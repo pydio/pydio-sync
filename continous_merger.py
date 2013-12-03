@@ -160,32 +160,30 @@ class ContinuousDiffMerger(threading.Thread):
                 self.sdk.rename(item['source'], item['target'])
 
     def reduce_changes(self, lchanges=[], rchanges=[]):
-        for item in rchanges:
-            if self.filter_change(item, item['location']):
-                rchanges.remove(item)
 
-        for item in lchanges:
-            if self.filter_change(item, item['location']):
-                lchanges.remove(item)
-
-        for item in lchanges:
-            for otheritem in rchanges:
+        rchanges_c = rchanges[:]
+        lchanges_c = lchanges[:]
+        for item in lchanges_c:
+            for otheritem in rchanges_c:
                 try:
-                    if not (item['type'] == otheritem['type']) or (item['location'] == otheritem['location']):
+                    if not (item['type'] == otheritem['type']):
                         continue
                     if not item['node'] and not otheritem['node'] and (item['source'] == otheritem['source']):
                         lchanges.remove(item)
                         rchanges.remove(otheritem)
                         break
 
-                    if not (item['node']['node_path'] == otheritem['node']['node_path']):
+                    if not (os.path.normpath(item['node']['node_path']) == os.path.normpath(otheritem['node']['node_path'])):
                         continue
-                    if item['node']['md5'] == otheritem['node']['md5']:
+                    if item['node']['bytesize'] == otheritem['node']['bytesize'] and item['node']['md5'] == otheritem['node']['md5']:
                         lchanges.remove(item)
                         rchanges.remove(otheritem)
                         break
-                except:
-                    print 'error'
+                except Exception as e:
+                    pass
+
+        rchanges = filter(lambda it: not self.filter_change(it, it['location']), rchanges)
+        lchanges = filter(lambda it: not self.filter_change(it, it['location']), lchanges)
 
         for item in lchanges:
             rchanges.append(item)
