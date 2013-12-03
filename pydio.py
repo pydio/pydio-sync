@@ -13,7 +13,7 @@ if __name__ == "__main__":
     path = sys.argv[1] if len(sys.argv) > 1 else '/Users/charles/Documents/tmp'
 
     watcher = LocalWatcher(path)
-    merger = ContinuousDiffMerger(path, 'http://localhost', ('admin','123456'))
+    merger = ContinuousDiffMerger(local_path=path, remote_ws='files-editable', sdk_url='http://localhost', sdk_auth=('admin','123456'))
 
     try:
         watcher.start()

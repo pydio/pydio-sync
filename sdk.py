@@ -5,8 +5,9 @@ import os
 
 class PydioSdk():
 
-    def __init__(self, url='', basepath='', auth=('admin', '123456')):
-        self.url = url+'/api/1'
+    def __init__(self, url='', basepath='', ws_id='', auth=('admin', '123456')):
+        self.ws_id = ws_id
+        self.url = url+'/api/'+ws_id
         self.basepath = basepath
         self.auth = auth
 

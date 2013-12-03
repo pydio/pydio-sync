@@ -10,10 +10,11 @@ import sys
 
 class ContinuousDiffMerger(threading.Thread):
 
-    def __init__(self, local_path, sdk_url, sdk_auth):
+    def __init__(self, local_path, remote_ws, sdk_url, sdk_auth):
         threading.Thread.__init__(self)
         self.basepath = local_path
-        self.sdk = PydioSdk(sdk_url, basepath=local_path, auth=sdk_auth)
+        self.ws_id = remote_ws
+        self.sdk = PydioSdk(sdk_url, basepath=local_path, ws_id=self.ws_id, auth=sdk_auth)
         self.remote_seq = 1
         self.local_seq = 0
         self.dbHandler = LocalDbHandler(local_path)
