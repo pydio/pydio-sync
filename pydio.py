@@ -1,6 +1,8 @@
 __author__ = 'charles'
 import logging
 import sys
+import os
+import argparse
 
 from continous_merger import ContinuousDiffMerger
 from local_watcher import LocalWatcher
@@ -10,10 +12,24 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR,
                         format='%(asctime)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
-    path = sys.argv[1] if len(sys.argv) > 1 else '/Users/charles/Documents/tmp'
+
+    parser = argparse.ArgumentParser('Pydio Synchronization Tool')
+    parser.add_argument('-s', '--server', help='Server URL, with http(s) and path to pydio', type=unicode, default='http://localhost')
+    parser.add_argument('-d', '--directory', help='Local directory', type=unicode, default=None)
+    parser.add_argument('-w', '--workspace', help='Id or Alias of workspace to synchronize', type=unicode, default=None)
+    parser.add_argument('-u', '--user', help='User name', type=unicode, default=None)
+    parser.add_argument('-p', '--password', help='Password', type=unicode, default=None)
+    args, _ = parser.parse_known_args()
+
+    path = args.directory
+    print "Starting on " + args.directory
+    if not os.path.exists(path):
+        print "Cannot find path " + path
+        exit()
 
     watcher = LocalWatcher(path)
-    merger = ContinuousDiffMerger(local_path=path, remote_ws='files-editable', sdk_url='http://localhost', sdk_auth=('admin','123456'))
+    merger = ContinuousDiffMerger(local_path=path, remote_ws=args.workspace, sdk_url=args.server,
+                                  sdk_auth=(args.user, args.password))
 
     try:
         watcher.start()

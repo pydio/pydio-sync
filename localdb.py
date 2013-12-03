@@ -15,6 +15,17 @@ class LocalDbHandler():
     def __init__(self, base=''):
         self.base = base
         self.db = "data/pydio.sqlite"
+        if not os.path.exists(self.db):
+            self.init_db()
+
+    def init_db(self):
+        conn = sqlite3.connect(self.db)
+
+        cursor = conn.cursor()
+        with open('create.sql', 'r') as inserts:
+            for statement in inserts:
+                cursor.execute(statement)
+        conn.close()
 
     def find_node_by_id(self, node_path):
         conn = sqlite3.connect(self.db)
@@ -84,7 +95,8 @@ class SqlEventHandler(FileSystemEventHandler):
         super(SqlEventHandler, self).__init__()
         self.base = basepath
         self.pattern = pattern
-        self.db = "data/pydio.sqlite"
+        db_handler = LocalDbHandler(basepath)
+        self.db = db_handler.db
 
     def remove_prefix(self, text):
         return text[len(self.base):] if text.startswith(self.base) else text
@@ -124,7 +136,7 @@ class SqlEventHandler(FileSystemEventHandler):
         conn.close()
 
     def on_deleted(self, event):
-        print("Deletiong noticed: " + event.event_type +
+        print("Deletion noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
         conn = sqlite3.connect(self.db)
         conn.execute("DELETE FROM ajxp_index WHERE node_path LIKE ?", (self.remove_prefix(event.src_path.decode('utf-8')) + '%',))
@@ -143,10 +155,23 @@ class SqlEventHandler(FileSystemEventHandler):
             if os.path.isfile(modifiedFilename) and fnmatch.fnmatch(os.path.basename(modifiedFilename), self.pattern) and not os.path.basename(modifiedFilename):
                 print "Modified file : %s" % modifiedFilename
                 conn = sqlite3.connect(self.db)
-                t = (os.path.getsize(modifiedFilename), hashfile(open(modifiedFilename, 'rb'), hashlib.md5()), os.path.getmtime(modifiedFilename), self.remove_prefix(modifiedFilename.decode('utf-8')),)
-                conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=? WHERE node_path=?", t)
+                size = os.path.getsize(modifiedFilename)
+                the_hash = hashfile(open(modifiedFilename, 'rb'), hashlib.md5())
+                mtime = os.path.getmtime(modifiedFilename)
+                search_path = self.remove_prefix(modifiedFilename.decode('utf-8'))
+                t = (size, the_hash, mtime, search_path, mtime, the_hash)
+                conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
                 conn.commit()
                 conn.close()
         else:
             modifiedFilename = event.src_path
-            print "Modified folder (ignore) : %s" % self.remove_prefix(modifiedFilename)
+            print "Modified file : %s" % self.remove_prefix(modifiedFilename)
+            conn = sqlite3.connect(self.db)
+            size = os.path.getsize(modifiedFilename)
+            the_hash = hashfile(open(modifiedFilename, 'rb'), hashlib.md5())
+            mtime = os.path.getmtime(modifiedFilename)
+            search_path = self.remove_prefix(modifiedFilename.decode('utf-8'))
+            t = (size, the_hash, mtime, search_path, mtime, the_hash)
+            conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
+            conn.commit()
+            conn.close()
