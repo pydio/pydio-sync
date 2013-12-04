@@ -29,7 +29,6 @@ class SqlSnapshot(object):
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         for row in c.execute("SELECT node_path,stat_result FROM ajxp_index WHERE stat_result NOT NULL"):
-            print row['stat_result']
             stat = pickle.loads(str(row['stat_result']))
             path = self.basepath + row['node_path']
             self._stat_snapshot[path] = stat
@@ -154,7 +153,9 @@ class LocalDbHandler():
         orders['content'] = 1
         orders['delete'] = 3
         orders['create'] = 3
-        for row in c.execute("SELECT * FROM ajxp_changes LEFT JOIN ajxp_index "
+        for row in c.execute("SELECT seq , ajxp_changes.node_id ,  type ,  "
+                             "source , target, ajxp_index.bytesize, ajxp_index.md5, ajxp_index.mtime, "
+                             "ajxp_index.node_path, ajxp_index.stat_result FROM ajxp_changes LEFT JOIN ajxp_index "
                              "ON ajxp_changes.node_id = ajxp_index.node_id "
                              "WHERE seq > ? ORDER BY ajxp_changes.node_id, seq ASC", (seq_id,)):
             drow = dict(row)
