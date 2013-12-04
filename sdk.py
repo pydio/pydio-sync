@@ -32,8 +32,12 @@ class PydioSdk():
         return resp.content
 
     def rename(self, source, target):
-        url = self.url + '/move'
-        resp = requests.post(url=url, data=dict(file=source.encode('utf-8'), dest=target.encode('utf-8')), auth=self.auth)
+        if os.path.dirname(source) == os.path.dirname(target):
+            url = self.url + '/rename'
+            resp = requests.post(url=url, data=dict(file=source.encode('utf-8'), dest=target.encode('utf-8')), auth=self.auth)
+        else:
+            url = self.url + '/move'
+            resp = requests.post(url=url, data=dict(file=source.encode('utf-8'), dest=os.path.dirname(target.encode('utf-8'))), auth=self.auth)
         return resp.content
 
     def delete(self, path):

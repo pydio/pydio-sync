@@ -1,10 +1,12 @@
 import time
 import os
 import threading
+from watchdog.events import DirCreatedEvent, DirDeletedEvent, DirModifiedEvent, DirMovedEvent, \
+    FileCreatedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent
 from watchdog.observers import Observer
 from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
 import pickle
-from localdb import SqlEventHandler
+from localdb import SqlEventHandler, SqlSnapshot
 # -*- coding: utf-8 -*-
 
 class LocalWatcher(threading.Thread):
@@ -12,27 +14,34 @@ class LocalWatcher(threading.Thread):
     def __init__(self, local_path):
         threading.Thread.__init__(self)
         self.basepath = local_path
+        self.observer = None
 
     def stop(self):
         self.observer.stop()
 
     def run(self):
-        if os.path.exists("data/local_snapshot.p"):
-            previous_snapshot = pickle.load(open("data/local_snapshot.p", "rb"))
-            snapshot = DirectorySnapshot(self.basepath, recursive=True)
-            diff = DirectorySnapshotDiff(previous_snapshot, snapshot)
-            print diff.files_moved
-
         event_handler = SqlEventHandler(pattern='*', basepath=self.basepath)
+
+        previous_snapshot = SqlSnapshot(self.basepath)
+        snapshot = DirectorySnapshot(self.basepath, recursive=True)
+        diff = DirectorySnapshotDiff(previous_snapshot, snapshot)
+        for path in diff.dirs_created:
+            event_handler.on_created(DirCreatedEvent(path))
+        for path in diff.files_created:
+            event_handler.on_created(FileCreatedEvent(path))
+        for path in diff.dirs_moved:
+            event_handler.on_moved(DirMovedEvent(path[0], path[1]))
+        for path in diff.files_moved:
+            event_handler.on_moved(FileMovedEvent(path[0], path[1]))
+        for path in diff.files_deleted:
+            event_handler.on_deleted(FileDeletedEvent(path))
+        for path in diff.dirs_deleted:
+            event_handler.on_deleted(DirDeletedEvent(path))
+
         self.observer = Observer()
         self.observer.schedule(event_handler, self.basepath, recursive=True)
         self.observer.start()
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            snapshot = DirectorySnapshot(self.basepath, recursive=True)
-            pickle.dump(snapshot, open("data/local_snapshot.p", "wb"))
-            self.observer.stop()
+        while True:
+            time.sleep(1)
         self.observer.join()
 

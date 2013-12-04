@@ -4,10 +4,91 @@ import os
 import hashlib
 import time
 import fnmatch
+import pickle
 
 from utils import hashfile
 
 from watchdog.events import FileSystemEventHandler
+from watchdog.utils.dirsnapshot import DirectorySnapshot,DirectorySnapshotDiff
+
+
+class SqlSnapshot(object):
+
+    def __init__(self, basepath):
+        self.db = 'data/pydio.sqlite'
+        self.basepath = basepath
+        self._stat_snapshot = {}
+        self._inode_to_path = {}
+        self.is_recursive = True
+        self.load_from_db()
+
+    def load_from_db(self):
+
+        conn = sqlite3.connect(self.db)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        for row in c.execute("SELECT node_path,stat_result FROM ajxp_index WHERE stat_result NOT NULL"):
+            stat = pickle.loads(row['stat_result'])
+            path = self.basepath + row['node_path']
+            self._stat_snapshot[path] = stat
+            self._inode_to_path[stat.st_ino] = path
+        c.close()
+
+    def __sub__(self, previous_dirsnap):
+        """Allow subtracting a DirectorySnapshot object instance from
+        another.
+
+        :returns:
+            A :class:`DirectorySnapshotDiff` object.
+        """
+        return DirectorySnapshotDiff(previous_dirsnap, self)
+
+    @property
+    def stat_snapshot(self):
+        """
+        Returns a dictionary of stat information with file paths being keys.
+        """
+        return self._stat_snapshot
+
+
+    def stat_info(self, path):
+        """
+        Returns a stat information object for the specified path from
+        the snapshot.
+
+        :param path:
+            The path for which stat information should be obtained
+            from a snapshot.
+        """
+        return self._stat_snapshot[path]
+
+
+    def path_for_inode(self, inode):
+        """
+        Determines the path that an inode represents in a snapshot.
+
+        :param inode:
+            inode number.
+        """
+        return self._inode_to_path[inode]
+
+
+    def stat_info_for_inode(self, inode):
+        """
+        Determines stat information for a given inode.
+
+        :param inode:
+            inode number.
+        """
+        return self.stat_info(self.path_for_inode(inode))
+
+
+    @property
+    def paths(self):
+        """
+        List of file/directory paths in the snapshot.
+        """
+        return set(self._stat_snapshot)
 
 
 class LocalDbHandler():
@@ -116,22 +197,38 @@ class SqlEventHandler(FileSystemEventHandler):
     def on_created(self, event):
         print("Creation noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
+        search_key = self.remove_prefix(event.src_path.decode('utf-8'))
         if event.is_directory:
+            hash_key = 'directory'
+        else:
+            hash_key = hashfile(open(event.src_path, 'rb'), hashlib.md5())
+
+        conn = sqlite3.connect(self.db)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        node_id = None
+        for row in c.execute("SELECT node_id FROM ajxp_index WHERE node_path=?", (search_key,)):
+            node_id = row['node_id']
+            break
+        c.close()
+        if not node_id:
             t = (
-                self.remove_prefix(self.remove_prefix(event.src_path).decode('utf-8')),
+                search_key,
                 os.path.getsize(event.src_path),
-                'directory',
+                hash_key,
                 os.path.getmtime(event.src_path),
+                pickle.dumps(os.stat(event.src_path))
             )
+            conn.execute("INSERT INTO ajxp_index (node_path,bytesize,md5,mtime,stat_result) VALUES (?,?,?,?,?)", t)
         else:
             t = (
-                self.remove_prefix(event.src_path.decode('utf-8')),
                 os.path.getsize(event.src_path),
-                hashfile(open(event.src_path, 'rb'), hashlib.md5()),
+                hash_key,
                 os.path.getmtime(event.src_path),
+                pickle.dumps(os.stat(event.src_path)),
+                search_key
             )
-        conn = sqlite3.connect(self.db)
-        conn.execute("INSERT INTO ajxp_index (node_path,bytesize,md5,mtime) VALUES (?,?,?,?)", t)
+            conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=?", t)
         conn.commit()
         conn.close()
 
@@ -152,15 +249,16 @@ class SqlEventHandler(FileSystemEventHandler):
                 modifiedFilename = max(files_in_dir, key=os.path.getmtime)
             else:
                 return
-            if os.path.isfile(modifiedFilename) and fnmatch.fnmatch(os.path.basename(modifiedFilename), self.pattern) and not os.path.basename(modifiedFilename):
+            if os.path.isfile(modifiedFilename) and fnmatch.fnmatch(os.path.basename(modifiedFilename), self.pattern):
                 print "Modified file : %s" % modifiedFilename
                 conn = sqlite3.connect(self.db)
                 size = os.path.getsize(modifiedFilename)
                 the_hash = hashfile(open(modifiedFilename, 'rb'), hashlib.md5())
                 mtime = os.path.getmtime(modifiedFilename)
                 search_path = self.remove_prefix(modifiedFilename.decode('utf-8'))
-                t = (size, the_hash, mtime, search_path, mtime, the_hash)
-                conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
+                stat_result = pickle.dumps(os.stat(modifiedFilename))
+                t = (size, the_hash, mtime, search_path, mtime, the_hash, stat_result)
+                conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
                 conn.commit()
                 conn.close()
         else:
@@ -171,7 +269,8 @@ class SqlEventHandler(FileSystemEventHandler):
             the_hash = hashfile(open(modifiedFilename, 'rb'), hashlib.md5())
             mtime = os.path.getmtime(modifiedFilename)
             search_path = self.remove_prefix(modifiedFilename.decode('utf-8'))
-            t = (size, the_hash, mtime, search_path, mtime, the_hash)
-            conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
+            stat_result = pickle.dumps(os.stat(modifiedFilename))
+            t = (size, the_hash, mtime, search_path, mtime, the_hash, stat_result)
+            conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
             conn.commit()
             conn.close()

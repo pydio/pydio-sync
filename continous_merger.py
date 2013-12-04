@@ -4,7 +4,6 @@ from localdb import LocalDbHandler
 from sdk import PydioSdk
 import threading
 import pickle
-import sys
 # -*- coding: utf-8 -*-
 
 
@@ -17,12 +16,16 @@ class ContinuousDiffMerger(threading.Thread):
         self.sdk = PydioSdk(sdk_url, basepath=local_path, ws_id=self.ws_id, auth=sdk_auth)
         self.remote_seq = 1
         self.local_seq = 0
-        self.dbHandler = LocalDbHandler(local_path)
+        self.local_target_seq = 1
+        self.remote_target_seq = 0
+        self.local_seqs = []
+        self.remote_seqs = []
+        self.db_handler = LocalDbHandler(local_path)
         self.interrupt = False
-        #if os.path.exists("sequences"):
-            #sequences = pickle.load(open("sequences", "rb"))
-            #remote_seq = sequences['remote']
-            #local_seq = sequences['local']
+        if os.path.exists("data/sequences"):
+            sequences = pickle.load(open("data/sequences", "rb"))
+            self.remote_seq = sequences['remote']
+            self.local_seq = sequences['local']
 
     def stop(self):
         self.interrupt = True
@@ -31,27 +34,45 @@ class ContinuousDiffMerger(threading.Thread):
         while not self.interrupt:
 
             try:
-                sequences = dict()
                 local_changes = []
                 remote_changes = []
-                self.remote_seq = self.get_remote_changes(self.remote_seq, remote_changes)
-                self.local_seq = self.dbHandler.get_local_changes(self.local_seq, local_changes)
+                self.remote_target_seq = self.get_remote_changes(self.remote_seq, remote_changes)
+                self.local_target_seq = self.db_handler.get_local_changes(self.local_seq, local_changes)
+                self.local_seqs = map(lambda x:x['seq'], local_changes)
+                self.remote_seqs = map(lambda x:x['seq'], remote_changes)
                 changes = self.reduce_changes(local_changes, remote_changes)
                 for change in changes:
                     try:
-                        self.process_change(change, change['location'])
+                        self.process_change(change)
+                        self.remove_seq(change['seq'], change['location'])
                     except OSError as e:
                         print e
                     if self.interrupt:
                         break
                     time.sleep(0.5)
 
-                sequences['local'] = self.local_seq
-                sequences['remote'] = self.remote_seq
-                #pickle.dump(sequences, open('sequences', 'wb'))
             except TypeError as e:
                 print e.message
             time.sleep(10)
+
+    def remove_seq(self, seq_id, location):
+        if location == 'local':
+            self.local_seqs.remove(seq_id)
+            if len(self.local_seqs):
+                self.local_seq = min(min(self.local_seqs), self.local_target_seq)
+            else:
+                self.local_seq = self.local_target_seq
+        else:
+            self.remote_seqs.remove(seq_id)
+            if len(self.remote_seqs):
+                self.remote_seq = min(min(self.remote_seqs), self.remote_target_seq)
+            else:
+                self.remote_seq = self.remote_target_seq
+        pickle.dump(dict(
+            local=self.local_seq,
+            remote=self.remote_seq
+        ), open('data/sequences', 'wb'))
+
 
     def stat_corresponding_item(self, path, location):
 
@@ -76,28 +97,34 @@ class ContinuousDiffMerger(threading.Thread):
             else:
                 return False
 
-    def filter_change(self, item, location):
+    def filter_change(self, item):
 
+        location = item['location']
+        res = False
         if item['type'] == 'create' or item['type'] == 'content':
             test_stat = self.stat_corresponding_item(item['node']['node_path'], location=location)
             if not test_stat:
                 return False
             elif item['node']['md5'] == 'directory':
-                return True
+                res = True
             elif test_stat['size'] == item['node']['bytesize']: # WE SHOULD TEST MD5 HERE AS WELL!
-                return True
+                res = True
         elif item['type'] == 'delete':
             test_stat = self.stat_corresponding_item(item['source'], location=location)
             if not test_stat:
-                return True
+                res = True
         else:# MOVE
             test_stat = self.stat_corresponding_item(item['target'], location=location)
             if not test_stat:
                 return False
             elif item['node']['md5'] == 'directory':
-                return True
+                res = True
             elif test_stat['size'] == item['node']['bytesize']: # WE SHOULD TEST MD5 HERE AS WELL!
-                return True
+                res = True
+
+        if res:
+            self.remove_seq(item['seq'], location)
+            return True
 
         return False
 
@@ -120,8 +147,9 @@ class ContinuousDiffMerger(threading.Thread):
         # sort on path otherwise
         return cmp(i2['node']['node_path'], i1['node']['node_path'])
 
-    def process_change(self, item, location):
+    def process_change(self, item):
 
+        location = item['location']
         if item['type'] == 'create' or item['type'] == 'content':
             if item['node']['md5'] == 'directory':
                 if item['node']['node_path']:
@@ -152,7 +180,7 @@ class ContinuousDiffMerger(threading.Thread):
         else:
             print('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
             if location == 'remote':
-                if os.path.exists(item['source']):
+                if os.path.exists(self.basepath + item['source']):
                     if not os.path.exists(self.basepath + os.path.dirname(item['target'])):
                         os.makedirs(self.basepath + os.path.dirname(item['target']))
                     os.rename(self.basepath + item['source'], self.basepath + item['target'])
@@ -171,6 +199,8 @@ class ContinuousDiffMerger(threading.Thread):
                     if not item['node'] and not otheritem['node'] and (item['source'] == otheritem['source']):
                         lchanges.remove(item)
                         rchanges.remove(otheritem)
+                        self.remove_seq(item['seq'], 'local')
+                        self.remove_seq(otheritem['seq'], 'remote')
                         break
 
                     if not (os.path.normpath(item['node']['node_path']) == os.path.normpath(otheritem['node']['node_path'])):
@@ -178,12 +208,14 @@ class ContinuousDiffMerger(threading.Thread):
                     if item['node']['bytesize'] == otheritem['node']['bytesize'] and item['node']['md5'] == otheritem['node']['md5']:
                         lchanges.remove(item)
                         rchanges.remove(otheritem)
+                        self.remove_seq(item['seq'], 'local')
+                        self.remove_seq(otheritem['seq'], 'remote')
                         break
                 except Exception as e:
                     pass
 
-        rchanges = filter(lambda it: not self.filter_change(it, it['location']), rchanges)
-        lchanges = filter(lambda it: not self.filter_change(it, it['location']), lchanges)
+        rchanges = filter(lambda it: not self.filter_change(it), rchanges)
+        lchanges = filter(lambda it: not self.filter_change(it), lchanges)
 
         for item in lchanges:
             rchanges.append(item)
