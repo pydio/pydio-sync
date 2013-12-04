@@ -5,23 +5,27 @@ from watchdog.events import DirCreatedEvent, DirDeletedEvent, DirModifiedEvent, 
     FileCreatedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent
 from watchdog.observers import Observer
 from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
-import pickle
+import logging
 from localdb import SqlEventHandler, SqlSnapshot
 # -*- coding: utf-8 -*-
 
+
 class LocalWatcher(threading.Thread):
 
-    def __init__(self, local_path):
+    def __init__(self, local_path, includes, excludes):
         threading.Thread.__init__(self)
         self.basepath = local_path
         self.observer = None
+        self.includes = includes
+        self.excludes = excludes
 
     def stop(self):
         self.observer.stop()
 
     def run(self):
-        event_handler = SqlEventHandler(pattern='*', basepath=self.basepath)
+        event_handler = SqlEventHandler(includes=self.includes, excludes=self.excludes, basepath=self.basepath)
 
+        logging.info('Scanning for changes since last application launch')
         previous_snapshot = SqlSnapshot(self.basepath)
         snapshot = DirectorySnapshot(self.basepath, recursive=True)
         diff = DirectorySnapshotDiff(previous_snapshot, snapshot)
@@ -38,6 +42,7 @@ class LocalWatcher(threading.Thread):
         for path in diff.dirs_deleted:
             event_handler.on_deleted(DirDeletedEvent(path))
 
+        logging.info('Starting permanent monitor')
         self.observer = Observer()
         self.observer.schedule(event_handler, self.basepath, recursive=True)
         self.observer.start()

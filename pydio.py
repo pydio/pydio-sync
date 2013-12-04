@@ -9,9 +9,10 @@ from local_watcher import LocalWatcher
 
 if __name__ == "__main__":
 
-    logging.basicConfig(level=logging.ERROR,
+    logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
+    logging.getLogger("requests").setLevel(logging.WARNING)
 
     parser = argparse.ArgumentParser('Pydio Synchronization Tool')
     parser.add_argument('-s', '--server', help='Server URL, with http(s) and path to pydio', type=unicode, default='http://localhost')
@@ -22,12 +23,12 @@ if __name__ == "__main__":
     args, _ = parser.parse_known_args()
 
     path = args.directory
-    print "Starting on " + args.directory
+    logging.info("Starting on " + args.directory)
     if not os.path.exists(path):
-        print "Cannot find path " + path
+        logging.error("Cannot find path " + path)
         exit()
 
-    watcher = LocalWatcher(path)
+    watcher = LocalWatcher(path, includes=['*'], excludes=['.*'])
     merger = ContinuousDiffMerger(local_path=path, remote_ws=args.workspace, sdk_url=args.server,
                                   sdk_auth=(args.user, args.password))
 
