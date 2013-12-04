@@ -54,9 +54,13 @@ class PydioSdk():
 
     def bulk_stat(self, pathes):
         data = dict()
-        data['nodes[]'] = pathes
+        data['nodes[]'] = map(lambda t: t.replace('\\', '/'), filter(lambda x: x !='' , pathes))
         resp = requests.post(self.url + '/stat' + urllib.pathname2url(pathes[0].encode('utf-8')) , data=data, auth=self.auth)
-        return json.loads(resp.content)
+        data = json.loads(resp.content)
+        replaced = dict()
+        for (p, stat) in data.items():
+            replaced[os.path.normpath(p)] = stat
+        return replaced
 
     def mkdir(self, path):
         url = self.url + '/mkdir' + urllib.pathname2url(path.encode('utf-8'))

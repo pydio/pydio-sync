@@ -29,7 +29,8 @@ class SqlSnapshot(object):
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         for row in c.execute("SELECT node_path,stat_result FROM ajxp_index WHERE stat_result NOT NULL"):
-            stat = pickle.loads(row['stat_result'])
+            print row['stat_result']
+            stat = pickle.loads(str(row['stat_result']))
             path = self.basepath + row['node_path']
             self._stat_snapshot[path] = stat
             self._inode_to_path[stat.st_ino] = path
