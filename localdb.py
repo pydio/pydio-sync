@@ -139,7 +139,7 @@ class LocalDbHandler():
             cmp2 = row2['target']
         return cmp1 == cmp2
 
-    def get_local_changes(self, seq_id, accumulator):
+    def get_local_changes(self, seq_id, accumulator=dict()):
 
         logging.debug("Local sequence " + str(seq_id))
         last = seq_id
@@ -148,11 +148,8 @@ class LocalDbHandler():
         c = conn.cursor()
         previous_node_id = -1
         previous_row = None
-        orders = dict()
-        orders['path'] = 0
-        orders['content'] = 1
-        orders['delete'] = 3
-        orders['create'] = 3
+        deletes = []
+
         for row in c.execute("SELECT seq , ajxp_changes.node_id ,  type ,  "
                              "source , target, ajxp_index.bytesize, ajxp_index.md5, ajxp_index.mtime, "
                              "ajxp_index.node_path, ajxp_index.stat_result FROM ajxp_changes LEFT JOIN ajxp_index "
@@ -166,8 +163,7 @@ class LocalDbHandler():
             if drow['node_id'] == previous_node_id and self.compare_raw_pathes(drow, previous_row):
                 previous_row['target'] = drow['target']
                 previous_row['seq'] = drow['seq']
-                #if orders[drow['type']] > orders[previous_row['type']]:
-                if (drow['type'] == 'path' or drow['type'] == 'content'):
+                if drow['type'] == 'path' or drow['type'] == 'content':
                     if previous_row['type'] == 'delete':
                         previous_row['type'] = drow['type']
                     elif previous_row['type'] == 'create':
@@ -182,18 +178,45 @@ class LocalDbHandler():
             else:
                 if previous_row is not None and (previous_row['source'] != previous_row['target'] or previous_row['type'] == 'content'):
                     previous_row['location'] = 'local'
-                    accumulator.append(previous_row)
+                    accumulator['data'][previous_row['seq']] = previous_row
+                    key = previous_row['source'] if previous_row['source'] != 'NULL' else previous_row['target']
+                    if not key in accumulator['path_to_seqs']:
+                        accumulator['path_to_seqs'][key] = []
+                    accumulator['path_to_seqs'][key].append(previous_row['seq'])
+                    if previous_row['type'] == 'delete':
+                        deletes.append(previous_row['seq'])
+
                 previous_row = drow
                 previous_node_id = drow['node_id']
             last = max(row['seq'], last)
 
         if previous_row is not None and (previous_row['source'] != previous_row['target'] or previous_row['type'] == 'content'):
             previous_row['location'] = 'local'
-            accumulator.append(previous_row)
+            accumulator['data'][previous_row['seq']] = previous_row
+            key = previous_row['source'] if previous_row['source'] != 'NULL' else previous_row['target']
+            if not key in accumulator['path_to_seqs']:
+                accumulator['path_to_seqs'][key] = []
+            accumulator['path_to_seqs'][key].append(previous_row['seq'])
+            if previous_row['type'] == 'delete':
+                deletes.append(previous_row['seq'])
 
         #refilter: create + delete or delete + create must be ignored
-        for row in accumulator:
-            print str(row['seq']) + '-' + row['type'] + '-' + row['source'] + '-' + row['target']
+        for to_del_seq in deletes:
+            to_del_item = accumulator['data'][to_del_seq]
+            key = to_del_item['source']
+            for del_seq in accumulator['path_to_seqs'][key]:
+                item = accumulator['data'][del_seq]
+                if item == to_del_item:
+                    continue
+                if item['seq'] > to_del_seq:
+                    del accumulator['data'][to_del_seq]
+                    accumulator['path_to_seqs'][key].remove(to_del_seq)
+                else:
+                    del accumulator['data'][item['seq']]
+                    accumulator['path_to_seqs'][key].remove(item['seq'])
+
+        for seq, row in accumulator['data'].items():
+            logging.debug('LOCAL CHANGE : ' + str(row['seq']) + '-' + row['type'] + '-' + row['source'] + '-' + row['target'])
 
         conn.close()
         return last
@@ -224,9 +247,10 @@ class SqlEventHandler(FileSystemEventHandler):
         return True
 
     def on_moved(self, event):
-        logging.debug("Event: move noticed: " + event.event_type + " on file " + event.src_path + " at " + time.asctime())
         if not self.included(event):
             return
+        logging.debug("Event: move noticed: " + event.event_type + " on file " + event.src_path + " at " + time.asctime())
+
         conn = sqlite3.connect(self.db)
         t = (
             self.remove_prefix(event.dest_path.decode('utf-8')),
@@ -237,12 +261,12 @@ class SqlEventHandler(FileSystemEventHandler):
         conn.close()
 
     def on_created(self, event):
-        logging.debug("Event: creation noticed: " + event.event_type +
-                         " on file " + event.src_path + " at " + time.asctime())
         if not self.included(event):
             return
+        logging.debug("Event: creation noticed: " + event.event_type +
+                         " on file " + event.src_path + " at " + time.asctime())
 
-        search_key = self.remove_prefix(event.src_path.decode('utf-8'))
+        search_key = self.remove_prefix(event.src_path)
         if event.is_directory:
             hash_key = 'directory'
         else:
@@ -278,13 +302,13 @@ class SqlEventHandler(FileSystemEventHandler):
         conn.close()
 
     def on_deleted(self, event):
-        logging.debug("Event: deletion noticed: " + event.event_type +
-                         " on file " + event.src_path + " at " + time.asctime())
         if not self.included(event):
             return
+        logging.debug("Event: deletion noticed: " + event.event_type +
+                         " on file " + event.src_path + " at " + time.asctime())
 
         conn = sqlite3.connect(self.db)
-        conn.execute("DELETE FROM ajxp_index WHERE node_path LIKE ?", (self.remove_prefix(event.src_path.decode('utf-8')) + '%',))
+        conn.execute("DELETE FROM ajxp_index WHERE node_path LIKE ?", (self.remove_prefix(event.src_path) + '%',))
         conn.commit()
         conn.close()
 

@@ -52,14 +52,24 @@ class PydioSdk():
         except:
             return False
 
-    def bulk_stat(self, pathes):
+    def bulk_stat(self, pathes, result=None):
         data = dict()
-        data['nodes[]'] = map(lambda t: t.replace('\\', '/'), filter(lambda x: x !='' , pathes))
+        pathes = map(lambda t: t.replace('\\', '/'), filter(lambda x: x !='', pathes))
+        data['nodes[]'] = pathes
         resp = requests.post(self.url + '/stat' + urllib.pathname2url(pathes[0].encode('utf-8')) , data=data, auth=self.auth)
         data = json.loads(resp.content)
-        replaced = dict()
+        if result:
+            replaced = result
+        else:
+            replaced = dict()
         for (p, stat) in data.items():
             replaced[os.path.normpath(p)] = stat
+            try:
+                pathes.remove(os.path.normpath(p))
+            except:
+                pass
+        if len(pathes):
+            self.bulk_stat(pathes, result=replaced)
         return replaced
 
     def mkdir(self, path):

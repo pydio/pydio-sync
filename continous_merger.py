@@ -1,5 +1,6 @@
 import time
 import os
+from requests.exceptions import ConnectionError
 from localdb import LocalDbHandler
 from sdk import PydioSdk, SystemSdk, ProcessException
 import threading
@@ -24,6 +25,9 @@ class ContinuousDiffMerger(threading.Thread):
         self.remote_seqs = []
         self.db_handler = LocalDbHandler(local_path)
         self.interrupt = False
+        self.online_timer = 10
+        self.offline_timer = 60
+        self.online_status = True
         if os.path.exists("data/sequences"):
             sequences = pickle.load(open("data/sequences", "rb"))
             self.remote_seq = sequences['remote']
@@ -36,14 +40,21 @@ class ContinuousDiffMerger(threading.Thread):
         while not self.interrupt:
 
             try:
-                local_changes = []
-                remote_changes = []
+                local_changes = dict(data=dict(), path_to_seqs=dict())
+                remote_changes = dict(data=dict(), path_to_seqs=dict())
                 logging.info('Loading remote changes with sequence ' + str(self.remote_seq))
-                self.remote_target_seq = self.get_remote_changes(self.remote_seq, remote_changes)
+                try:
+                    self.remote_target_seq = self.get_remote_changes(self.remote_seq, remote_changes)
+                except ConnectionError as ce:
+                    logging.info('No connection detected, waiting to retry')
+                    self.online_status = False
+                    time.sleep(self.offline_timer)
+                    continue
+                self.online_status = True
                 logging.info('Loading local changes with sequence ' + str(self.local_seq))
                 self.local_target_seq = self.db_handler.get_local_changes(self.local_seq, local_changes)
-                self.local_seqs = map(lambda x:x['seq'], local_changes)
-                self.remote_seqs = map(lambda x:x['seq'], remote_changes)
+                self.local_seqs = local_changes['data'].keys() #map(lambda x:x['seq'], local_changes)
+                self.remote_seqs = remote_changes['data'].keys() #map(lambda x:x['seq'], remote_changes)
                 logging.info('Reducing changes')
                 changes = self.reduce_changes(local_changes, remote_changes)
                 logging.info('Processing changes')
@@ -58,10 +69,9 @@ class ContinuousDiffMerger(threading.Thread):
                     if self.interrupt:
                         break
                     time.sleep(0.5)
-
             except OSError as e:
                 logging.error('Type Error! ')
-            time.sleep(10)
+            time.sleep(self.online_timer)
 
     def remove_seq(self, seq_id, location):
         if location == 'local':
@@ -93,24 +103,37 @@ class ContinuousDiffMerger(threading.Thread):
         else:
             return self.sdk.stat(path)
 
-    def filter_change(self, item, stats=None):
+    def filter_change(self, item, my_stat=None, other_stats=None):
 
         location = item['location']
+        opposite = 'local' if item['location'] == 'remote' else 'remote'
         res = False
         if item['type'] == 'create' or item['type'] == 'content':
-            test_stat = self.stat_corresponding_item(item['node']['node_path'], location=location, stats=stats)
+            # If it does not exist on remote size, ok
+            test_stat = self.stat_corresponding_item(item['node']['node_path'], location=location, stats=other_stats)
             if not test_stat:
                 return False
-            elif item['node']['md5'] == 'directory':
+            # Do not create or update content if it does not actually exists
+            #loc_stat = self.stat_corresponding_item(item['node']['node_path'], location=opposite, stats=my_stat)
+            #if not loc_stat:
+            #    res = True
+            # If it exists but is a directory, it won't change
+            if item['node']['md5'] == 'directory':
                 res = True
+            # If it exists and has same size, ok
             elif test_stat['size'] == item['node']['bytesize']: # WE SHOULD TEST MD5 HERE AS WELL!
                 res = True
         elif item['type'] == 'delete':
-            test_stat = self.stat_corresponding_item(item['source'], location=location, stats=stats)
+            # Shall we really delete it?
+            loc_stat = self.stat_corresponding_item(item['source'], location=opposite, stats=my_stat)
+            if loc_stat:
+                res = True
+            # Shall we delete if already absent? no!
+            test_stat = self.stat_corresponding_item(item['source'], location=location, stats=other_stats)
             if not test_stat:
                 res = True
-        else:# MOVE
-            test_stat = self.stat_corresponding_item(item['target'], location=location, stats=stats)
+        else:#MOVE
+            test_stat = self.stat_corresponding_item(item['target'], location=location, stats=other_stats)
             if not test_stat:
                 return False
             elif item['node']['md5'] == 'directory':
@@ -137,7 +160,7 @@ class ContinuousDiffMerger(threading.Thread):
 
         # directory
         if i1['node']['md5'] == 'directory' and i2['node']['md5'] == 'directory':
-            return cmp(i2['node']['node_path'], i1['node']['node_path'])
+            return cmp(i1['node']['node_path'], i2['node']['node_path'])
 
         if i1['node']['md5'] == 'directory':
             return -1
@@ -145,7 +168,7 @@ class ContinuousDiffMerger(threading.Thread):
             return 1
 
         # sort on path otherwise
-        return cmp(i2['node']['node_path'], i1['node']['node_path'])
+        return cmp(i1['node']['node_path'], i2['node']['node_path'])
 
     def process_change(self, item):
 
@@ -187,12 +210,23 @@ class ContinuousDiffMerger(threading.Thread):
             else:
                 self.sdk.rename(item['source'], item['target'])
 
-    def reduce_changes(self, lchanges=[], rchanges=[]):
+    def reduce_changes(self, local_changes=dict(), remote_changes=dict()):
 
-        rchanges_c = rchanges[:]
-        lchanges_c = lchanges[:]
-        for item in lchanges_c:
-            for otheritem in rchanges_c:
+        rchanges = remote_changes['data'].values()
+        lchanges = local_changes['data'].values()
+
+        for seq, item in local_changes['data'].items():
+            pathes = []
+            if item['source'] != 'NULL':
+                pathes.append(item['source'])
+            if item['target'] != 'NULL':
+                pathes.append(item['target'])
+            # search these pathes in remote_changes
+            remote_sequences = []
+            for x in pathes:
+                remote_sequences = remote_sequences + remote_changes['path_to_seqs'].setdefault(x, [])
+            for seq_id in remote_sequences:
+                otheritem = remote_changes['data'][seq_id]
                 try:
                     if not (item['type'] == otheritem['type']):
                         continue
@@ -214,26 +248,29 @@ class ContinuousDiffMerger(threading.Thread):
                 except Exception as e:
                     pass
 
-        rchanges = filter(lambda it: not self.filter_change(it), rchanges)
-
         test_stats = list(set(map(lambda it: it['source'] if it['source'] != 'NULL' else it['target'], lchanges)))
         remote_stats = None
         if len(test_stats):
             remote_stats = self.sdk.bulk_stat(test_stats)
 
-        lchanges = filter(lambda it: not self.filter_change(it, remote_stats), lchanges)
+        rchanges = filter(lambda it: not self.filter_change(it, remote_stats, None), rchanges)
+        lchanges = filter(lambda it: not self.filter_change(it, None, remote_stats), lchanges)
 
         for item in lchanges:
             rchanges.append(item)
 
         return sorted(rchanges, cmp=self.changes_sorter)
 
-    def get_remote_changes(self, seq_id, changes=[]):
+    def get_remote_changes(self, seq_id, changes=dict()):
 
         logging.debug('Remote sequence ' + str(seq_id))
         data = self.sdk.changes(seq_id)
         for (i, item) in enumerate(data['changes']):
             item['location'] = 'remote'
-            changes.append(item)
+            key = item['source'] if item['source'] != 'NULL' else item['target']
+            if not key in changes['path_to_seqs']:
+                changes['path_to_seqs'][key] = []
+            changes['path_to_seqs'][key].append(item['seq'])
+            changes['data'][item['seq']] = item
 
         return data['last_seq']
