@@ -11,11 +11,15 @@ import logging
 
 class ContinuousDiffMerger(threading.Thread):
 
-    def __init__(self, local_path, remote_ws, sdk_url, sdk_auth):
+    def __init__(self, local_path, remote_ws, sdk_url, sdk_user_id='', sdk_auth=()):
         threading.Thread.__init__(self)
         self.basepath = local_path
         self.ws_id = remote_ws
-        self.sdk = PydioSdk(sdk_url, basepath=local_path, ws_id=self.ws_id, auth=sdk_auth)
+        if sdk_user_id:
+            self.sdk = PydioSdk(sdk_url, basepath=local_path, ws_id=self.ws_id, user_id=sdk_user_id)
+        else:
+            self.sdk = PydioSdk(sdk_url, basepath=local_path, ws_id=self.ws_id, auth=sdk_auth)
+
         self.system = SystemSdk(local_path)
         self.remote_seq = 1
         self.local_seq = 0
@@ -91,7 +95,7 @@ class ContinuousDiffMerger(threading.Thread):
             remote=self.remote_seq
         ), open('data/sequences', 'wb'))
 
-    def stat_corresponding_item(self, path, location, stats=None):
+    def stat_path(self, path, location, stats=None):
         try:
             if stats:
                 return stats[path]
@@ -99,9 +103,10 @@ class ContinuousDiffMerger(threading.Thread):
             pass
 
         if location == 'remote':
-            return self.system.stat(path)
-        else:
             return self.sdk.stat(path)
+        else:
+            return self.system.stat(path)
+            pass
 
     def filter_change(self, item, my_stat=None, other_stats=None):
 
@@ -110,7 +115,7 @@ class ContinuousDiffMerger(threading.Thread):
         res = False
         if item['type'] == 'create' or item['type'] == 'content':
             # If it does not exist on remote size, ok
-            test_stat = self.stat_corresponding_item(item['node']['node_path'], location=location, stats=other_stats)
+            test_stat = self.stat_path(item['node']['node_path'], location=opposite, stats=other_stats)
             if not test_stat:
                 return False
             # Do not create or update content if it does not actually exists
@@ -125,20 +130,21 @@ class ContinuousDiffMerger(threading.Thread):
                 res = True
         elif item['type'] == 'delete':
             # Shall we really delete it?
-            loc_stat = self.stat_corresponding_item(item['source'], location=opposite, stats=my_stat)
+            loc_stat = self.stat_path(item['source'], location=location, stats=my_stat)
             if loc_stat:
                 res = True
             # Shall we delete if already absent? no!
-            test_stat = self.stat_corresponding_item(item['source'], location=location, stats=other_stats)
+            test_stat = self.stat_path(item['source'], location=opposite, stats=other_stats)
             if not test_stat:
                 res = True
         else:#MOVE
-            test_stat = self.stat_corresponding_item(item['target'], location=location, stats=other_stats)
-            if not test_stat:
+            source_stat = self.stat_path(item['source'], location=opposite, stats=other_stats)
+            target_stat = self.stat_path(item['target'], location=opposite, stats=other_stats)
+            if not target_stat or source_stat:
                 return False
             elif item['node']['md5'] == 'directory':
                 res = True
-            elif test_stat['size'] == item['node']['bytesize']: # WE SHOULD TEST MD5 HERE AS WELL!
+            elif target_stat['size'] == item['node']['bytesize']:# WE SHOULD TEST MD5 HERE AS WELL!
                 res = True
 
         if res:

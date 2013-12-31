@@ -3,6 +3,7 @@ import logging
 import sys
 import os
 import argparse
+import keyring
 
 from continous_merger import ContinuousDiffMerger
 from local_watcher import LocalWatcher
@@ -22,6 +23,9 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--password', help='Password', type=unicode, default=None)
     args, _ = parser.parse_known_args()
 
+    if args.password:
+        keyring.set_password(args.server, args.user, args.password)
+
     path = args.directory
     logging.info("Starting on " + args.directory)
     if not os.path.exists(path):
@@ -30,7 +34,7 @@ if __name__ == "__main__":
 
     watcher = LocalWatcher(path, includes=['*'], excludes=['.*'])
     merger = ContinuousDiffMerger(local_path=path, remote_ws=args.workspace, sdk_url=args.server,
-                                  sdk_auth=(args.user, args.password))
+                                  sdk_user_id=args.user)
 
     try:
         watcher.start()

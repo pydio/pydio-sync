@@ -2,6 +2,7 @@ import requests
 import urllib
 import json
 import os
+import keyring
 
 
 class ProcessException(Exception):
@@ -24,11 +25,14 @@ class SystemSdkException(ProcessException):
 
 class PydioSdk():
 
-    def __init__(self, url='', basepath='', ws_id='', auth=('admin', '123456')):
+    def __init__(self, url='', basepath='', ws_id='', user_id='', auth=()):
         self.ws_id = ws_id
         self.url = url+'/api/'+ws_id
         self.basepath = basepath
-        self.auth = auth
+        if user_id:
+            self.auth = (user_id, keyring.get_password(url, user_id))
+        else:
+            self.auth = auth
         self.system = SystemSdk(basepath)
 
     def changes(self, last_seq):
@@ -36,9 +40,10 @@ class PydioSdk():
         resp = requests.get(url=url, auth=self.auth)
         return json.loads(resp.content)
 
-    def stat(self, path):
+    def stat(self, path, with_hash=False):
+        action = '/stat_hash' if with_hash else '/stat'
         try:
-            url = self.url + '/stat' + urllib.pathname2url(path.encode('utf-8'))
+            url = self.url + action + urllib.pathname2url(path.encode('utf-8'))
             resp = requests.get(url=url, auth=self.auth)
             data = json.loads(resp.content)
             if not data:
@@ -52,12 +57,17 @@ class PydioSdk():
         except:
             return False
 
-    def bulk_stat(self, pathes, result=None):
+    def bulk_stat(self, pathes, result=None, with_hash=False):
+        action = '/stat_hash' if with_hash else '/stat'
         data = dict()
         pathes = map(lambda t: t.replace('\\', '/'), filter(lambda x: x !='', pathes))
         data['nodes[]'] = pathes
-        resp = requests.post(self.url + '/stat' + urllib.pathname2url(pathes[0].encode('utf-8')) , data=data, auth=self.auth)
+        resp = requests.post(self.url + action + urllib.pathname2url(pathes[0].encode('utf-8')), data=data, auth=self.auth)
         data = json.loads(resp.content)
+        if len(pathes) == 1:
+            englob = dict()
+            englob[pathes[0]] = data
+            data = englob
         if result:
             replaced = result
         else:
