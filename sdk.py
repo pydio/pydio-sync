@@ -112,13 +112,13 @@ class PydioSdk():
         resp = requests.post(url, data=data, files=files, auth=self.auth)
         new = self.stat(path)
         if not new or not (new['size'] == orig['size']):
-            raise PydioSdkException('upload', path, 'file not correct after upload')
+            raise PydioSdkException('upload', path, 'File not correct after upload')
         return True
 
     def download(self, path, local):
         orig = self.stat(path)
         if not orig:
-            raise PydioSdkException('download', path, 'original not found on server')
+            raise PydioSdkException('download', path, 'Original not found on server')
 
         url = self.url + '/download' + urllib.pathname2url(path.encode('utf-8'))
         resp = requests.get(url=url, stream=True, auth=self.auth)
@@ -130,10 +130,10 @@ class PydioSdk():
                     fd.write(chunk)
             new = self.system.stat(local, full_path=True)
             if not new or not orig['size'] == new['size']:
-                raise PydioSdkException('download', path, 'file not correct after download')
+                raise PydioSdkException('download', path, 'File not correct after download')
             return True
         except Exception as e:
-            raise PydioSdkException('download', path, 'error opening local file for writing')
+            raise PydioSdkException('download', path, 'Error opening local file for writing')
 
 
 class SystemSdk(object):

@@ -266,6 +266,9 @@ class SqlEventHandler(FileSystemEventHandler):
         logging.debug("Event: creation noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
 
+        if not os.path.exists(event.src_path):
+            return
+
         search_key = self.remove_prefix(event.src_path)
         if event.is_directory:
             hash_key = 'directory'
@@ -331,12 +334,15 @@ class SqlEventHandler(FileSystemEventHandler):
                 mtime = os.path.getmtime(modified_filename)
                 search_path = self.remove_prefix(modified_filename.decode('utf-8'))
                 stat_result = pickle.dumps(os.stat(modified_filename))
-                t = (size, the_hash, mtime, search_path, mtime, the_hash, stat_result)
+                t = (size, the_hash, mtime, stat_result, search_path, size, the_hash)
                 conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
                 conn.commit()
                 conn.close()
         else:
             modified_filename = event.src_path
+            if not os.path.exists(event.src_path):
+                return
+
             logging.debug("Event: modified file : %s" % self.remove_prefix(modified_filename))
             conn = sqlite3.connect(self.db)
             size = os.path.getsize(modified_filename)
@@ -344,7 +350,7 @@ class SqlEventHandler(FileSystemEventHandler):
             mtime = os.path.getmtime(modified_filename)
             search_path = self.remove_prefix(modified_filename.decode('utf-8'))
             stat_result = pickle.dumps(os.stat(modified_filename))
-            t = (size, the_hash, mtime, search_path, mtime, the_hash, stat_result)
+            t = (size, the_hash, mtime, stat_result, search_path, size, the_hash)
             conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
             conn.commit()
             conn.close()

@@ -184,37 +184,53 @@ class ContinuousDiffMerger(threading.Thread):
                 if item['node']['node_path']:
                     logging.info('[' + location + '] Create folder ' + item['node']['node_path'])
                     if location == 'remote':
+                        logging.info(item['node']['node_path'] + ' <============ MKDIR')
                         os.makedirs(self.basepath + item['node']['node_path'])
                     else:
+                        logging.info('MKDIR ============> ' + item['node']['node_path'])
                         self.sdk.mkdir(item['node']['node_path'])
             else:
                 if item['node']['node_path']:
                     if location == 'remote':
-                        logging.info('[' + location + '] Should download ' + item['node']['node_path'])
+                        logging.info(item['node']['node_path'] + ' <=============== ' + item['node']['node_path'])
                         self.sdk.download(item['node']['node_path'], self.basepath + item['node']['node_path'])
                     else:
-                        logging.info('[' + location + '] Should upload ' + item['node']['node_path'])
+                        logging.info(item['node']['node_path'] + ' ===============> ' + item['node']['node_path'])
                         self.sdk.upload(self.basepath+item['node']['node_path'], item['node']['node_path'])
 
         elif item['type'] == 'delete':
             logging.info('[' + location + '] Should delete ' + item['source'])
             if location == 'remote':
+                logging.info(item['source'] + ' <============ DELETE')
                 if os.path.isdir(self.basepath + item['source']):
                     self.system.rmdir(item['source'])
                 elif os.path.isfile(self.basepath + item['source']):
                     os.unlink(self.basepath + item['source'])
             else:
+                logging.info('DELETE ============> ' + item['source'])
                 self.sdk.delete(item['source'])
 
         else:
             logging.info('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
             if location == 'remote':
                 if os.path.exists(self.basepath + item['source']):
-                    if not os.path.exists(self.basepath + os.path.dirname(item['target'])):
-                        os.makedirs(self.basepath + os.path.dirname(item['target']))
-                    os.rename(self.basepath + item['source'], self.basepath + item['target'])
+                    logging.info(item['source'] + ' to ' + item['target'] + ' <============ MOVE')
+                    if os.path.exists(self.basepath + item['source']):
+                        if not os.path.exists(self.basepath + os.path.dirname(item['target'])):
+                            os.makedirs(self.basepath + os.path.dirname(item['target']))
+                        os.rename(self.basepath + item['source'], self.basepath + item['target'])
+                else:
+                    logging.debug('Cannot find source, switching to DOWNLOAD')
+                    logging.info(item['target'] + ' <=============== ' + item['target'])
+                    self.sdk.download(item['target'], self.basepath + item['target']);
             else:
-                self.sdk.rename(item['source'], item['target'])
+                if self.sdk.stat(item['source']):
+                    logging.info('MOVE ============> ' + item['source'] + ' to ' + item['target'])
+                    self.sdk.rename(item['source'], item['target'])
+                else:
+                    logging.debug('Cannot find source, switching to UPLOAD')
+                    logging.info(item['target'] + ' ===============> ' + item['target'])
+                    self.sdk.upload(self.basepath + item['target'], item['target'])
 
     def reduce_changes(self, local_changes=dict(), remote_changes=dict()):
 
@@ -237,6 +253,7 @@ class ContinuousDiffMerger(threading.Thread):
                     if not (item['type'] == otheritem['type']):
                         continue
                     if not item['node'] and not otheritem['node'] and (item['source'] == otheritem['source']):
+                        logging.debug('Reconciliation sequence for change (source)'+item['source'])
                         lchanges.remove(item)
                         rchanges.remove(otheritem)
                         self.remove_seq(item['seq'], 'local')
@@ -246,6 +263,7 @@ class ContinuousDiffMerger(threading.Thread):
                     if not (os.path.normpath(item['node']['node_path']) == os.path.normpath(otheritem['node']['node_path'])):
                         continue
                     if item['node']['bytesize'] == otheritem['node']['bytesize'] and item['node']['md5'] == otheritem['node']['md5']:
+                        logging.debug('Reconciliation sequence for change (node)'+item['node']['node_path'])
                         lchanges.remove(item)
                         rchanges.remove(otheritem)
                         self.remove_seq(item['seq'], 'local')
