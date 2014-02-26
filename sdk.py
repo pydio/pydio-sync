@@ -60,9 +60,9 @@ class PydioSdk():
     def bulk_stat(self, pathes, result=None, with_hash=False):
         action = '/stat_hash' if with_hash else '/stat'
         data = dict()
-        pathes = map(lambda t: t.replace('\\', '/'), filter(lambda x: x !='', pathes))
-        data['nodes[]'] = pathes
-        resp = requests.post(self.url + action + urllib.pathname2url(pathes[0].encode('utf-8')), data=data, auth=self.auth)
+        clean_pathes = map(lambda t: t.replace('\\', '/'), filter(lambda x: x !='', pathes))
+        data['nodes[]'] = clean_pathes
+        resp = requests.post(self.url + action + urllib.pathname2url(clean_pathes[0].encode('utf-8')), data=data, auth=self.auth)
         data = json.loads(resp.content)
         if len(pathes) == 1:
             englob = dict()

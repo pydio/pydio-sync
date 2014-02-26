@@ -157,6 +157,8 @@ class LocalDbHandler():
                              "WHERE seq > ? ORDER BY ajxp_changes.node_id, seq ASC", (seq_id,)):
             drow = dict(row)
             drow['node'] = dict()
+            if not row['node_path'] and not row['source'] and not row['target']:
+                continue
             for att in ('mtime', 'md5', 'bytesize', 'node_path',):
                 drow['node'][att] = row[att]
                 drow.pop(att, None)
