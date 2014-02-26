@@ -186,6 +186,7 @@ class ContinuousDiffMerger(threading.Thread):
                     if location == 'remote':
                         logging.info(item['node']['node_path'] + ' <============ MKDIR')
                         os.makedirs(self.basepath + item['node']['node_path'])
+                        self.db_handler.buffer_real_operation(item['type'], 'NULL', item['node']['node_path'])
                     else:
                         logging.info('MKDIR ============> ' + item['node']['node_path'])
                         self.sdk.mkdir(item['node']['node_path'])
@@ -194,6 +195,10 @@ class ContinuousDiffMerger(threading.Thread):
                     if location == 'remote':
                         logging.info(item['node']['node_path'] + ' <=============== ' + item['node']['node_path'])
                         self.sdk.download(item['node']['node_path'], self.basepath + item['node']['node_path'])
+                        if item['type'] == 'create':
+                            self.db_handler.buffer_real_operation(item['type'], 'NULL', item['node']['node_path'])
+                        else:
+                            self.db_handler.buffer_real_operation(item['type'], item['node']['node_path'], item['node']['node_path'])
                     else:
                         logging.info(item['node']['node_path'] + ' ===============> ' + item['node']['node_path'])
                         self.sdk.upload(self.basepath+item['node']['node_path'], item['node']['node_path'])
@@ -206,6 +211,7 @@ class ContinuousDiffMerger(threading.Thread):
                     self.system.rmdir(item['source'])
                 elif os.path.isfile(self.basepath + item['source']):
                     os.unlink(self.basepath + item['source'])
+                self.db_handler.buffer_real_operation('delete', item['source'], 'NULL')
             else:
                 logging.info('DELETE ============> ' + item['source'])
                 self.sdk.delete(item['source'])
@@ -219,10 +225,12 @@ class ContinuousDiffMerger(threading.Thread):
                         if not os.path.exists(self.basepath + os.path.dirname(item['target'])):
                             os.makedirs(self.basepath + os.path.dirname(item['target']))
                         os.rename(self.basepath + item['source'], self.basepath + item['target'])
+                        self.db_handler.buffer_real_operation(item['type'], item['source'], item['target'])
                 else:
                     logging.debug('Cannot find source, switching to DOWNLOAD')
                     logging.info(item['target'] + ' <=============== ' + item['target'])
                     self.sdk.download(item['target'], self.basepath + item['target']);
+                    self.db_handler.buffer_real_operation('create', 'NULL', item['target'])
             else:
                 if self.sdk.stat(item['source']):
                     logging.info('MOVE ============> ' + item['source'] + ' to ' + item['target'])
@@ -280,8 +288,20 @@ class ContinuousDiffMerger(threading.Thread):
         rchanges = filter(lambda it: not self.filter_change(it, remote_stats, None), rchanges)
         lchanges = filter(lambda it: not self.filter_change(it, None, remote_stats), lchanges)
 
+        last_ops = self.db_handler.get_last_operations()
+
         for item in lchanges:
+            ignore = False
+            for last in last_ops:
+                if last['type'] == item['type'] and last['source'] == item['source'] and last['target'] == item['target']:
+                    logging.info('IGNORING, RECENT MOVE FROM SERVER', last)
+                    ignore = True
+                    break
+            if ignore:
+                continue
             rchanges.append(item)
+
+        self.db_handler.clear_operations_buffer()
 
         return sorted(rchanges, cmp=self.changes_sorter)
 

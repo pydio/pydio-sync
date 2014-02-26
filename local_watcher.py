@@ -14,7 +14,7 @@ class LocalWatcher(threading.Thread):
 
     def __init__(self, local_path, includes, excludes):
         threading.Thread.__init__(self)
-        self.basepath = local_path
+        self.basepath = unicode(local_path)
         self.observer = None
         self.includes = includes
         self.excludes = excludes

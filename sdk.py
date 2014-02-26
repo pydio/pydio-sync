@@ -48,7 +48,7 @@ class PydioSdk():
             data = json.loads(resp.content)
             if not data:
                 return False
-            if len(data) > 0 and data['size']:
+            if len(data) > 0 and 'size' in data:
                 return data
             else:
                 return False

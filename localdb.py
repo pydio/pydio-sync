@@ -139,6 +139,32 @@ class LocalDbHandler():
             cmp2 = row2['target']
         return cmp1 == cmp2
 
+    def get_last_operations(self):
+        conn = sqlite3.connect(self.db)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        operations = []
+        for row in c.execute("SELECT type,source,target FROM ajxp_last_buffer"):
+            dRow = dict()
+            dRow['type'] = row['type']
+            dRow['source'] = row['source']
+            dRow['target'] = row['target']
+            operations.append(dRow)
+        c.close()
+        return operations
+
+    def buffer_real_operation(self, type, source, target):
+        conn = sqlite3.connect(self.db)
+        conn.execute("INSERT INTO ajxp_last_buffer (type,source,target) VALUES (?,?,?)", (type, source, target))
+        conn.commit()
+        conn.close()
+
+    def clear_operations_buffer(self):
+        conn = sqlite3.connect(self.db)
+        conn.execute("DELETE FROM ajxp_last_buffer")
+        conn.commit()
+        conn.close()
+
     def get_local_changes(self, seq_id, accumulator=dict()):
 
         logging.debug("Local sequence " + str(seq_id))
@@ -157,7 +183,7 @@ class LocalDbHandler():
                              "WHERE seq > ? ORDER BY ajxp_changes.node_id, seq ASC", (seq_id,)):
             drow = dict(row)
             drow['node'] = dict()
-            if not row['node_path'] and not row['source'] and not row['target']:
+            if not row['node_path'] and (not row['source'] or row['source'] == 'NULL') and (not row['target'] or row['source'] == 'NULL'):
                 continue
             for att in ('mtime', 'md5', 'bytesize', 'node_path',):
                 drow['node'][att] = row[att]
@@ -234,6 +260,11 @@ class SqlEventHandler(FileSystemEventHandler):
         db_handler = LocalDbHandler(basepath)
         self.db = db_handler.db
 
+    def get_unicode_path(self, src):
+        if isinstance(src, str):
+            src = unicode(src, 'utf-8')
+        return src
+
     def remove_prefix(self, text):
         return text[len(self.base):] if text.startswith(self.base) else text
 
@@ -255,8 +286,8 @@ class SqlEventHandler(FileSystemEventHandler):
 
         conn = sqlite3.connect(self.db)
         t = (
-            self.remove_prefix(event.dest_path.decode('utf-8')),
-            self.remove_prefix(event.src_path.decode('utf-8')),
+            self.remove_prefix(self.get_unicode_path(event.dest_path)),
+            self.remove_prefix(self.get_unicode_path(event.src_path)),
         )
         conn.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", t)
         conn.commit()
@@ -268,14 +299,15 @@ class SqlEventHandler(FileSystemEventHandler):
         logging.debug("Event: creation noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
 
-        if not os.path.exists(event.src_path):
+        src_path = self.get_unicode_path(event.src_path)
+        if not os.path.exists(src_path):
             return
 
-        search_key = self.remove_prefix(event.src_path)
+        search_key = self.remove_prefix(src_path)
         if event.is_directory:
             hash_key = 'directory'
         else:
-            hash_key = hashfile(open(event.src_path, 'rb'), hashlib.md5())
+            hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
 
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
@@ -288,18 +320,18 @@ class SqlEventHandler(FileSystemEventHandler):
         if not node_id:
             t = (
                 search_key,
-                os.path.getsize(event.src_path),
+                os.path.getsize(src_path),
                 hash_key,
-                os.path.getmtime(event.src_path),
-                pickle.dumps(os.stat(event.src_path))
+                os.path.getmtime(src_path),
+                pickle.dumps(os.stat(src_path))
             )
             conn.execute("INSERT INTO ajxp_index (node_path,bytesize,md5,mtime,stat_result) VALUES (?,?,?,?,?)", t)
         else:
             t = (
-                os.path.getsize(event.src_path),
+                os.path.getsize(src_path),
                 hash_key,
-                os.path.getmtime(event.src_path),
-                pickle.dumps(os.stat(event.src_path)),
+                os.path.getmtime(src_path),
+                pickle.dumps(os.stat(src_path)),
                 search_key
             )
             conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=?", t)
@@ -311,9 +343,9 @@ class SqlEventHandler(FileSystemEventHandler):
             return
         logging.debug("Event: deletion noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
-
+        src_path = self.get_unicode_path(event.src_path)
         conn = sqlite3.connect(self.db)
-        conn.execute("DELETE FROM ajxp_index WHERE node_path LIKE ?", (self.remove_prefix(event.src_path) + '%',))
+        conn.execute("DELETE FROM ajxp_index WHERE node_path LIKE ?", (self.remove_prefix(src_path) + '%',))
         conn.commit()
         conn.close()
 
@@ -321,9 +353,9 @@ class SqlEventHandler(FileSystemEventHandler):
         super(SqlEventHandler, self).on_modified(event)
         if not self.included(event):
             return
-
+        src_path = self.get_unicode_path(event.src_path)
         if event.is_directory:
-            files_in_dir = [event.src_path+"/"+f for f in os.listdir(event.src_path)]
+            files_in_dir = [src_path+"/"+f for f in os.listdir(src_path)]
             if len(files_in_dir) > 0:
                 modified_filename = max(files_in_dir, key=os.path.getmtime)
             else:
@@ -334,15 +366,15 @@ class SqlEventHandler(FileSystemEventHandler):
                 size = os.path.getsize(modified_filename)
                 the_hash = hashfile(open(modified_filename, 'rb'), hashlib.md5())
                 mtime = os.path.getmtime(modified_filename)
-                search_path = self.remove_prefix(modified_filename.decode('utf-8'))
+                search_path = self.remove_prefix(modified_filename)
                 stat_result = pickle.dumps(os.stat(modified_filename))
                 t = (size, the_hash, mtime, stat_result, search_path, size, the_hash)
                 conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
                 conn.commit()
                 conn.close()
         else:
-            modified_filename = event.src_path
-            if not os.path.exists(event.src_path):
+            modified_filename = src_path
+            if not os.path.exists(src_path):
                 return
 
             logging.debug("Event: modified file : %s" % self.remove_prefix(modified_filename))
@@ -350,7 +382,7 @@ class SqlEventHandler(FileSystemEventHandler):
             size = os.path.getsize(modified_filename)
             the_hash = hashfile(open(modified_filename, 'rb'), hashlib.md5())
             mtime = os.path.getmtime(modified_filename)
-            search_path = self.remove_prefix(modified_filename.decode('utf-8'))
+            search_path = self.remove_prefix(modified_filename)
             stat_result = pickle.dumps(os.stat(modified_filename))
             t = (size, the_hash, mtime, stat_result, search_path, size, the_hash)
             conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
