@@ -1,12 +1,14 @@
 import time
-import os
 import threading
-from watchdog.events import DirCreatedEvent, DirDeletedEvent, DirModifiedEvent, DirMovedEvent, \
-    FileCreatedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent
+import logging
+
+from watchdog.events import DirCreatedEvent, DirDeletedEvent, DirMovedEvent, \
+    FileCreatedEvent, FileDeletedEvent, FileMovedEvent
 from watchdog.observers import Observer
 from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
-import logging
-from localdb import SqlEventHandler, SqlSnapshot
+
+from py.localdb import SqlEventHandler, SqlSnapshot
+
 # -*- coding: utf-8 -*-
 
 

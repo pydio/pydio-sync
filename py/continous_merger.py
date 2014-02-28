@@ -1,12 +1,15 @@
 import time
 import os
-from requests.exceptions import ConnectionError
-from localdb import LocalDbHandler
-from sdk import PydioSdk, SystemSdk, ProcessException
 import threading
 import pickle
 import logging
+
+from requests.exceptions import ConnectionError
 import zmq
+
+from py.localdb import LocalDbHandler
+from sdk import PydioSdk, SystemSdk, ProcessException
+
 # -*- coding: utf-8 -*-
 
 

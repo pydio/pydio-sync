@@ -5,8 +5,8 @@ import os
 import argparse
 import keyring
 
-from continous_merger import ContinuousDiffMerger
-from local_watcher import LocalWatcher
+from py.continous_merger import ContinuousDiffMerger
+from py.local_watcher import LocalWatcher
 
 if __name__ == "__main__":
 

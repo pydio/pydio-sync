@@ -7,10 +7,10 @@ import fnmatch
 import pickle
 import logging
 
-from utils import hashfile
-
 from watchdog.events import FileSystemEventHandler
-from watchdog.utils.dirsnapshot import DirectorySnapshot,DirectorySnapshotDiff
+from watchdog.utils.dirsnapshot import DirectorySnapshotDiff
+
+from py.utils import hashfile
 
 
 class SqlSnapshot(object):

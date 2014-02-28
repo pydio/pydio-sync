@@ -1,6 +1,6 @@
 __author__ = 'charles'
 
-from sdk import PydioSdk
+from py.sdk import PydioSdk
 
 
 class SdkTest():
