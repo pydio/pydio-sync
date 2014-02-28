@@ -7,7 +7,7 @@ from watchdog.events import DirCreatedEvent, DirDeletedEvent, DirMovedEvent, \
 from watchdog.observers import Observer
 from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
 
-from py.localdb import SqlEventHandler, SqlSnapshot
+from localdb import SqlEventHandler, SqlSnapshot
 
 # -*- coding: utf-8 -*-
 

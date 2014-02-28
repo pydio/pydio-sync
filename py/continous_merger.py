@@ -7,7 +7,7 @@ import logging
 from requests.exceptions import ConnectionError
 import zmq
 
-from py.localdb import LocalDbHandler
+from localdb import LocalDbHandler
 from sdk import PydioSdk, SystemSdk, ProcessException
 
 # -*- coding: utf-8 -*-

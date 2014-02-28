@@ -10,7 +10,7 @@ import logging
 from watchdog.events import FileSystemEventHandler
 from watchdog.utils.dirsnapshot import DirectorySnapshotDiff
 
-from py.utils import hashfile
+from utils import hashfile
 
 
 class SqlSnapshot(object):
