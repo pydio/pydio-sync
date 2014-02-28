@@ -6,6 +6,7 @@ from sdk import PydioSdk, SystemSdk, ProcessException
 import threading
 import pickle
 import logging
+import zmq
 # -*- coding: utf-8 -*-
 
 
@@ -32,6 +33,10 @@ class ContinuousDiffMerger(threading.Thread):
         self.online_timer = 10
         self.offline_timer = 60
         self.online_status = True
+        context = zmq.Context()
+        self.socket = context.socket(zmq.PUB)
+        self.socket.bind("tcp://*:%s" % 5556)
+
         if os.path.exists("data/sequences"):
             sequences = pickle.load(open("data/sequences", "rb"))
             self.remote_seq = sequences['remote']
@@ -185,15 +190,18 @@ class ContinuousDiffMerger(threading.Thread):
                     logging.info('[' + location + '] Create folder ' + item['node']['node_path'])
                     if location == 'remote':
                         logging.info(item['node']['node_path'] + ' <============ MKDIR')
+                        self.socket.send_string('sync ' + item['node']['node_path'] + ' <============ MKDIR')
                         os.makedirs(self.basepath + item['node']['node_path'])
                         self.db_handler.buffer_real_operation(item['type'], 'NULL', item['node']['node_path'])
                     else:
                         logging.info('MKDIR ============> ' + item['node']['node_path'])
+                        self.socket.send_string('sync MKDIR ============> ' + item['node']['node_path'])
                         self.sdk.mkdir(item['node']['node_path'])
             else:
                 if item['node']['node_path']:
                     if location == 'remote':
                         logging.info(item['node']['node_path'] + ' <=============== ' + item['node']['node_path'])
+                        self.socket.send_string('sync ' + item['node']['node_path'] + ' <=============== ' + item['node']['node_path'])
                         self.sdk.download(item['node']['node_path'], self.basepath + item['node']['node_path'])
                         if item['type'] == 'create':
                             self.db_handler.buffer_real_operation(item['type'], 'NULL', item['node']['node_path'])
@@ -201,12 +209,14 @@ class ContinuousDiffMerger(threading.Thread):
                             self.db_handler.buffer_real_operation(item['type'], item['node']['node_path'], item['node']['node_path'])
                     else:
                         logging.info(item['node']['node_path'] + ' ===============> ' + item['node']['node_path'])
+                        self.socket.send_string('sync ' + item['node']['node_path'] + ' ===============> ' + item['node']['node_path'])
                         self.sdk.upload(self.basepath+item['node']['node_path'], item['node']['node_path'])
 
         elif item['type'] == 'delete':
             logging.info('[' + location + '] Should delete ' + item['source'])
             if location == 'remote':
                 logging.info(item['source'] + ' <============ DELETE')
+                self.socket.send_string('sync ' + item['source'] + ' <============ DELETE')
                 if os.path.isdir(self.basepath + item['source']):
                     self.system.rmdir(item['source'])
                 elif os.path.isfile(self.basepath + item['source']):
@@ -214,6 +224,7 @@ class ContinuousDiffMerger(threading.Thread):
                 self.db_handler.buffer_real_operation('delete', item['source'], 'NULL')
             else:
                 logging.info('DELETE ============> ' + item['source'])
+                self.socket.send_string('sync DELETE ============> ' + item['source'])
                 self.sdk.delete(item['source'])
 
         else:
@@ -221,6 +232,7 @@ class ContinuousDiffMerger(threading.Thread):
             if location == 'remote':
                 if os.path.exists(self.basepath + item['source']):
                     logging.info(item['source'] + ' to ' + item['target'] + ' <============ MOVE')
+                    self.socket.send_string('sync ' + item['source'] + ' to ' + item['target'] + ' <============ MOVE')
                     if os.path.exists(self.basepath + item['source']):
                         if not os.path.exists(self.basepath + os.path.dirname(item['target'])):
                             os.makedirs(self.basepath + os.path.dirname(item['target']))
@@ -229,15 +241,18 @@ class ContinuousDiffMerger(threading.Thread):
                 else:
                     logging.debug('Cannot find source, switching to DOWNLOAD')
                     logging.info(item['target'] + ' <=============== ' + item['target'])
+                    self.socket.send_string('sync ' + item['target'] + ' <=============== ' + item['target'])
                     self.sdk.download(item['target'], self.basepath + item['target']);
                     self.db_handler.buffer_real_operation('create', 'NULL', item['target'])
             else:
                 if self.sdk.stat(item['source']):
                     logging.info('MOVE ============> ' + item['source'] + ' to ' + item['target'])
+                    self.socket.send_string('sync MOVE ============> ' + item['source'] + ' to ' + item['target'])
                     self.sdk.rename(item['source'], item['target'])
                 else:
                     logging.debug('Cannot find source, switching to UPLOAD')
                     logging.info(item['target'] + ' ===============> ' + item['target'])
+                    self.socket.send_string('sync ' + item['target'] + ' ===============> ' + item['target'])
                     self.sdk.upload(self.basepath + item['target'], item['target'])
 
     def reduce_changes(self, local_changes=dict(), remote_changes=dict()):
