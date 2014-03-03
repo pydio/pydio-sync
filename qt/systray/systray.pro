@@ -1,7 +1,8 @@
 HEADERS       = window.h \
                 Subscriber.hpp \
                 SampleBase.hpp \
-                ../nzmqt/include/nzmqt/nzmqt.hpp
+                ../nzmqt/include/nzmqt/nzmqt.hpp \
+    Requester.hpp
 SOURCES       = main.cpp \
                 window.cpp
 RESOURCES     = systray.qrc

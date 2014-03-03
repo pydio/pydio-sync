@@ -42,6 +42,7 @@
 #define WINDOW_H
 
 #include <QSystemTrayIcon>
+#include <Requester.hpp>
 
 #ifndef QT_NO_SYSTEMTRAYICON
 
@@ -79,6 +80,8 @@ private slots:
     void showMessage();
     void messageClicked();
     void pingReceived(QList<QByteArray> message);
+    void toggleJobStatus();
+    void statusReceived(QList<QByteArray> message);
 
 private:
     void createActions();
@@ -108,6 +111,10 @@ private:
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
+    bool running;
+
+    nzmqt::ZMQContext* context;
+    //nzmqt::Requester *requester;
 };
 //! [0]
 

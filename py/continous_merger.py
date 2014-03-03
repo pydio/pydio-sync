@@ -1,5 +1,6 @@
 import time
 import os
+import thread
 import threading
 import pickle
 import logging
@@ -36,9 +37,36 @@ class ContinuousDiffMerger(threading.Thread):
         self.online_timer = 10
         self.offline_timer = 60
         self.online_status = True
+        self.job_status_running = True
         context = zmq.Context()
         self.socket = context.socket(zmq.PUB)
         self.socket.bind("tcp://*:%s" % 5556)
+        rep_socket = context.socket(zmq.REP)
+        rep_socket.bind("tcp://*:%s" % 5557)
+        def listen_to_REP():
+            while True:
+                message = rep_socket.recv()
+                logging.info('Received message from REP socket ' + message)
+                if message == 'PAUSE':
+                    logging.info("Pausing")
+                    self.job_status_running = False
+                elif message == 'START':
+                    logging.info("Starting")
+                    self.job_status_running = True
+                try:
+                    msg = 'stopped'
+                    if self.job_status_running:
+                        msg = 'running'
+                    rep_socket.send(msg)
+                    logging.info("Sending status " + msg)
+                except Exception as e:
+                    logging.error(e)
+
+        # Create two threads as follows
+        try:
+           thread.start_new_thread( listen_to_REP, () )
+        except:
+           logging.error("Error: unable to start thread")
 
         if os.path.exists("data/sequences"):
             sequences = pickle.load(open("data/sequences", "rb"))
@@ -52,6 +80,11 @@ class ContinuousDiffMerger(threading.Thread):
         while not self.interrupt:
 
             try:
+
+                if not self.job_status_running:
+                    time.sleep(self.online_timer)
+                    continue
+
                 local_changes = dict(data=dict(), path_to_seqs=dict())
                 remote_changes = dict(data=dict(), path_to_seqs=dict())
                 logging.info('Loading remote changes with sequence ' + str(self.remote_seq))

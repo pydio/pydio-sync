@@ -73,13 +73,18 @@ Window::Window()
     trayIcon->setIcon(icon);
     setWindowIcon(icon);
     trayIcon->show();
+    running = false;
 
-    nzmqt::ZMQContext* context = nzmqt::createDefaultContext(this);
+    context = nzmqt::createDefaultContext(this);
     context->start();
     nzmqt::Subscriber* sub = new nzmqt::Subscriber(*context, "tcp://127.0.0.1:5556", "sync", this);
     connect(sub, SIGNAL(pingReceived(QList<QByteArray>)), SLOT(pingReceived(QList<QByteArray>)));
     // Start command.
     sub->start();
+
+    nzmqt::Requester* req = new nzmqt::Requester(*context, "tcp://127.0.0.1:5557", "STATUS", this);
+    connect(req, SIGNAL(replyReceived(QList<QByteArray>)), this, SLOT(statusReceived(QList<QByteArray>)));
+    req->start();
 
     setWindowTitle(tr("Systray"));
     resize(25, 25);
@@ -91,6 +96,20 @@ void Window::pingReceived(QList<QByteArray> message)
     for(int i=0; i<message.size(); ++i){
         QString str(message[i].constData());
         trayIcon->showMessage("Sync Message", str);
+    }
+}
+
+void Window::statusReceived(QList<QByteArray> message)
+{
+    for(int i=0; i<message.size(); ++i){
+        QString str(message[i].constData());
+        //trayIcon->showMessage("Sync Message", str);
+        if(str == "running"){
+            running = true;
+        }else{
+            running = false;
+        }
+        maximizeAction->setText(running?tr("&Pause"):tr("&Start"));
     }
 }
 
@@ -164,14 +183,22 @@ void Window::messageClicked()
                                 "Maybe you should try asking a human?"));
 }
 //! [6]
+//! [6]
+void Window::toggleJobStatus()
+{
+    nzmqt::Requester* req = new nzmqt::Requester(*context, "tcp://127.0.0.1:5557", running?"PAUSE":"START", this);
+    connect(req, SIGNAL(replyReceived(QList<QByteArray>)), this, SLOT(statusReceived(QList<QByteArray>)));
+    req->start();
+}
+
 
 void Window::createActions()
 {
     minimizeAction = new QAction(tr("Mi&nimize"), this);
     connect(minimizeAction, SIGNAL(triggered()), this, SLOT(hide()));
 
-    maximizeAction = new QAction(tr("Ma&ximize"), this);
-    connect(maximizeAction, SIGNAL(triggered()), this, SLOT(showMaximized()));
+    maximizeAction = new QAction(tr("&Start"), this);
+    connect(maximizeAction, SIGNAL(triggered()), this, SLOT(toggleJobStatus()));
 
     restoreAction = new QAction(tr("&Restore"), this);
     connect(restoreAction, SIGNAL(triggered()), this, SLOT(showNormal()));
