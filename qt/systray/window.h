@@ -42,7 +42,9 @@
 #define WINDOW_H
 
 #include <QSystemTrayIcon>
+#include <QtWebKit>
 #include <Requester.hpp>
+#include <pydiogui.h>
 
 #ifndef QT_NO_SYSTEMTRAYICON
 
@@ -87,6 +89,7 @@ private:
     void createActions();
     void createTrayIcon();
 
+    QWidget *centralWidget;
     QGroupBox *iconGroupBox;
     QLabel *iconLabel;
     QComboBox *iconComboBox;

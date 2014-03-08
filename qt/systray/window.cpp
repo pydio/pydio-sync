@@ -64,6 +64,7 @@ Window::Window()
 
     createActions();
     createTrayIcon();
+    centralWidget = new PydioGui(this);
 
     connect(trayIcon, SIGNAL(messageClicked()), this, SLOT(messageClicked()));
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
@@ -87,7 +88,7 @@ Window::Window()
     req->start();
 
     setWindowTitle(tr("Systray"));
-    resize(25, 25);
+    resize(400, 300);
 }
 //! [0]
 

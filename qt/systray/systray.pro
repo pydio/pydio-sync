@@ -2,12 +2,15 @@ HEADERS       = window.h \
                 Subscriber.hpp \
                 SampleBase.hpp \
                 ../nzmqt/include/nzmqt/nzmqt.hpp \
-    Requester.hpp
+                Requester.hpp \
+                pydiogui.h
 SOURCES       = main.cpp \
-                window.cpp
+                window.cpp \
+                pydiogui.cpp
 RESOURCES     = systray.qrc
 
-QT += widgets
+QT += widgets \
+      webkitwidgets
 
 LIBS += -lzmq
 
@@ -25,3 +28,6 @@ INCLUDEPATH += \
 
 QMAKE_LIBDIR += \
     /usr/local/lib
+
+FORMS += \
+    pydiogui.ui
