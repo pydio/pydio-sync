@@ -109,24 +109,52 @@ class LocalDbHandler():
                 cursor.execute(statement)
         conn.close()
 
-    def find_node_by_id(self, node_path):
+    def find_node_by_id(self, node_path, with_status=False):
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        for row in c.execute("SELECT node_id FROM ajxp_index WHERE node_path LIKE ?", (node_path.decode('utf-8'))):
-            return row['node_id']
+        id = False
+        q = "SELECT node_id FROM ajxp_index WHERE node_path LIKE ?"
+        if with_status:
+            q = "SELECT ajxp_index.node_id FROM ajxp_index,ajxp_node_status WHERE ajxp_index.node_path = ? AND ajxp_node_status.node_id = ajxp_index.node_id"
+        for row in c.execute(q, (node_path,)):
+            id = row['node_id']
+            break
         c.close()
-        return False
+        return id
 
     def get_node_md5(self, node_path):
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        for row in c.execute("SELECT md5 FROM ajxp_index WHERE node_path LIKE ?", (node_path.decode('utf-8'))):
+        for row in c.execute("SELECT md5 FROM ajxp_index WHERE node_path LIKE ?", (node_path,)):
             return row['md5']
         c.close()
         return hashfile(self.base + node_path, hashlib.md5())
 
+    def get_node_status(self, node_path):
+        conn = sqlite3.connect(self.db)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        status = False
+        for row in c.execute("SELECT ajxp_node_status.status FROM ajxp_index,ajxp_node_status "
+                             "WHERE ajxp_index.node_path = ? AND ajxp_node_status.node_id = ajxp_index.node_id", (node_path,)):
+            status = row['status']
+            break
+        c.close()
+        return status
+
+    def update_node_status(self, node_path, status='IDLE', detail=''):
+        node_id = self.find_node_by_id(node_path, with_status=True)
+        conn = sqlite3.connect(self.db)
+        if not node_id:
+            node_id = self.find_node_by_id(node_path, with_status=False)
+            if node_id:
+                conn.execute("INSERT OR IGNORE INTO ajxp_node_status (node_id,status,detail) VALUES (?,?,?)", (node_id, status, detail))
+        else:
+            conn.execute("UPDATE ajxp_node_status SET status=?, detail=? WHERE node_id=?", (status, detail, node_id))
+        conn.commit()
+        conn.close()
 
     def compare_raw_pathes(self, row1, row2):
         if row1['source'] != 'NULL':

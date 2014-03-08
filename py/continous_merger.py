@@ -101,7 +101,15 @@ class ContinuousDiffMerger(threading.Thread):
                 self.local_seqs = local_changes['data'].keys() #map(lambda x:x['seq'], local_changes)
                 self.remote_seqs = remote_changes['data'].keys() #map(lambda x:x['seq'], remote_changes)
                 logging.info('Reducing changes')
-                changes = self.reduce_changes(local_changes, remote_changes)
+                conflicts = []
+                changes = self.reduce_changes(local_changes, remote_changes, conflicts)
+                if len(conflicts):
+                    logging.info('Conflicts detected, cannot continue!')
+                    self.store_conflicts(conflicts)
+                    self.job_status_running = False
+                    time.sleep(self.offline_timer)
+                    continue
+
                 logging.info('Processing changes')
                 for change in changes:
                     try:
@@ -217,6 +225,59 @@ class ContinuousDiffMerger(threading.Thread):
         # sort on path otherwise
         return cmp(i1['node']['node_path'], i2['node']['node_path'])
 
+    def info(self, message, toUser=False):
+        logging.info(message)
+        if toUser and self.socket:
+            self.socket.send_string('sync ' + toUser)
+
+    def process_localMKDIR(self, path):
+        message = path + ' <============ MKDIR'
+        os.makedirs(self.basepath + path)
+        self.info(message, 'New folder created at '+ path )
+
+    def process_remoteMKDIR(self, path):
+        message = 'MKDIR ============> ' + path
+        self.info(message, toUser=False)
+        self.sdk.mkdir(path)
+
+    def process_localDELETE(self, path):
+        if os.path.isdir(self.basepath + path):
+            self.system.rmdir(path)
+            self.info(path + ' <============ DELETE', 'Deleted folder ' + path)
+        elif os.path.isfile(self.basepath + path):
+            os.unlink(self.basepath + path)
+            self.info(path + ' <============ DELETE', 'Deleted file ' + path)
+
+    def process_remoteDELETE(self, path):
+        self.sdk.delete(path)
+        self.info('DELETE ============> ' + path, False)
+
+    def process_localMOVE(self, source, target):
+        if os.path.exists(self.basepath + source):
+            if not os.path.exists(self.basepath + os.path.dirname(target)):
+                os.makedirs(self.basepath + os.path.dirname(target))
+            os.rename(self.basepath + source, self.basepath + target)
+            self.info(source + ' to ' + target + ' <============ MOVE', 'Moved ' + source + ' to ' + target)
+            return True
+        return False
+
+    def process_remoteMOVE(self, source, target):
+        self.info('MOVE ============> ' + source + ' to ' + target, toUser=False)
+        self.sdk.rename(source, target)
+
+    def process_DOWNLOAD(self, path):
+        self.db_handler.update_node_status(path, 'DOWN')
+        self.sdk.download(path, self.basepath + path)
+        self.db_handler.update_node_status(path, 'IDLE')
+        self.info(path + ' <=============== ' + path, 'File ' + path + ' downloaded from server')
+
+    def process_UPLOAD(self, path):
+        self.db_handler.update_node_status(path, 'UP')
+        self.sdk.upload(self.basepath+path, path)
+        self.db_handler.update_node_status(path, 'IDLE')
+        self.info(path + ' ===============> ' + path, 'File ' + path + ' uploaded to server')
+
+
     def process_change(self, item):
 
         location = item['location']
@@ -225,73 +286,47 @@ class ContinuousDiffMerger(threading.Thread):
                 if item['node']['node_path']:
                     logging.info('[' + location + '] Create folder ' + item['node']['node_path'])
                     if location == 'remote':
-                        logging.info(item['node']['node_path'] + ' <============ MKDIR')
-                        self.socket.send_string('sync ' + item['node']['node_path'] + ' <============ MKDIR')
-                        os.makedirs(self.basepath + item['node']['node_path'])
+                        self.process_localMKDIR(item['node']['node_path'])
                         self.db_handler.buffer_real_operation(item['type'], 'NULL', item['node']['node_path'])
                     else:
-                        logging.info('MKDIR ============> ' + item['node']['node_path'])
-                        self.socket.send_string('sync MKDIR ============> ' + item['node']['node_path'])
-                        self.sdk.mkdir(item['node']['node_path'])
+                        self.process_remoteMKDIR(item['node']['node_path'])
             else:
                 if item['node']['node_path']:
                     if location == 'remote':
-                        logging.info(item['node']['node_path'] + ' <=============== ' + item['node']['node_path'])
-                        self.socket.send_string('sync ' + item['node']['node_path'] + ' <=============== ' + item['node']['node_path'])
-                        self.sdk.download(item['node']['node_path'], self.basepath + item['node']['node_path'])
+                        self.process_DOWNLOAD(item['node']['node_path'])
                         if item['type'] == 'create':
                             self.db_handler.buffer_real_operation(item['type'], 'NULL', item['node']['node_path'])
                         else:
                             self.db_handler.buffer_real_operation(item['type'], item['node']['node_path'], item['node']['node_path'])
                     else:
-                        logging.info(item['node']['node_path'] + ' ===============> ' + item['node']['node_path'])
-                        self.socket.send_string('sync ' + item['node']['node_path'] + ' ===============> ' + item['node']['node_path'])
-                        self.sdk.upload(self.basepath+item['node']['node_path'], item['node']['node_path'])
+                        self.process_UPLOAD(item['node']['node_path'])
 
         elif item['type'] == 'delete':
             logging.info('[' + location + '] Should delete ' + item['source'])
             if location == 'remote':
-                logging.info(item['source'] + ' <============ DELETE')
-                self.socket.send_string('sync ' + item['source'] + ' <============ DELETE')
-                if os.path.isdir(self.basepath + item['source']):
-                    self.system.rmdir(item['source'])
-                elif os.path.isfile(self.basepath + item['source']):
-                    os.unlink(self.basepath + item['source'])
+                self.process_localDELETE(item['source'])
                 self.db_handler.buffer_real_operation('delete', item['source'], 'NULL')
             else:
-                logging.info('DELETE ============> ' + item['source'])
-                self.socket.send_string('sync DELETE ============> ' + item['source'])
-                self.sdk.delete(item['source'])
+                self.process_remoteDELETE(item['source'])
 
         else:
             logging.info('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
             if location == 'remote':
                 if os.path.exists(self.basepath + item['source']):
-                    logging.info(item['source'] + ' to ' + item['target'] + ' <============ MOVE')
-                    self.socket.send_string('sync ' + item['source'] + ' to ' + item['target'] + ' <============ MOVE')
-                    if os.path.exists(self.basepath + item['source']):
-                        if not os.path.exists(self.basepath + os.path.dirname(item['target'])):
-                            os.makedirs(self.basepath + os.path.dirname(item['target']))
-                        os.rename(self.basepath + item['source'], self.basepath + item['target'])
+                    if self.process_localMOVE(item['source'], item['target']):
                         self.db_handler.buffer_real_operation(item['type'], item['source'], item['target'])
                 else:
                     logging.debug('Cannot find source, switching to DOWNLOAD')
-                    logging.info(item['target'] + ' <=============== ' + item['target'])
-                    self.socket.send_string('sync ' + item['target'] + ' <=============== ' + item['target'])
-                    self.sdk.download(item['target'], self.basepath + item['target']);
+                    self.process_DOWNLOAD(item['target'])
                     self.db_handler.buffer_real_operation('create', 'NULL', item['target'])
             else:
                 if self.sdk.stat(item['source']):
-                    logging.info('MOVE ============> ' + item['source'] + ' to ' + item['target'])
-                    self.socket.send_string('sync MOVE ============> ' + item['source'] + ' to ' + item['target'])
-                    self.sdk.rename(item['source'], item['target'])
-                else:
+                    self.process_remoteMOVE(item['source'], item['target'])
+                elif item['node']['md5'] != 'directory':
                     logging.debug('Cannot find source, switching to UPLOAD')
-                    logging.info(item['target'] + ' ===============> ' + item['target'])
-                    self.socket.send_string('sync ' + item['target'] + ' ===============> ' + item['target'])
-                    self.sdk.upload(self.basepath + item['target'], item['target'])
+                    self.process_UPLOAD(item['target'])
 
-    def reduce_changes(self, local_changes=dict(), remote_changes=dict()):
+    def reduce_changes(self, local_changes=dict(), remote_changes=dict(), conflicts=[]):
 
         rchanges = remote_changes['data'].values()
         lchanges = local_changes['data'].values()
@@ -350,11 +385,59 @@ class ContinuousDiffMerger(threading.Thread):
                     break
             if ignore:
                 continue
+            conflict = False
+            for rItem in rchanges:
+                if (not item['node'] and not rItem['node'] and rItem['source'] == rItem['source']) or (item['node'] and rItem['node'] and item['node']['node_path'] and rItem['node']['node_path'] and os.path.normpath(item['node']['node_path']) == os.path.normpath(rItem['node']['node_path'])):
+                    # Seems there is a conflict - check
+                    c_path = item['source']
+                    if item['node']:
+                        c_path = item['node']['node_path']
+                    status = self.db_handler.get_node_status(c_path)
+                    if status == 'SOLVED:KEEPLOCAL':
+                        rchanges.remove(rItem)
+                    elif status == 'SOLVED:KEEPREMOTE':
+                        conflict = True
+                    else:
+                        conflict = True
+                        rchanges.remove(rItem)
+                        conflicts.append({'local':item,'remote':rItem})
+                    break
+            if conflict:
+                continue
             rchanges.append(item)
 
         self.db_handler.clear_operations_buffer()
 
-        return sorted(rchanges, cmp=self.changes_sorter)
+        # Sort to make sure directory operations are applied first
+        rchanges = sorted(rchanges, cmp=self.changes_sorter)
+
+        # Prune changes : for DELETE and MOVE of Dir, remove all childrens
+        toremove = []
+        for i in range(len(rchanges)):
+            ch = rchanges[i]
+            if ch['type'] == 'path' and not ch['source'] == 'NULL' and not ch['target'] == 'NULL' and ch['node']['md5'] == 'directory':
+                if i < len(rchanges)-1:
+                    for j in range(i+1,len(rchanges)):
+                        if rchanges[j]['source'] and rchanges[j]['type'] == 'path' and rchanges[j]['source'].startswith(ch['source']+'/'):
+                            toremove.append(rchanges[j])
+
+        if len(toremove):
+            for r in toremove:
+                if r in rchanges: rchanges.remove(r)
+
+        return rchanges
+
+    def store_conflicts(self, conflicts):
+        for conflict in conflicts:
+            local = conflict["local"]
+            remote = conflict["remote"]
+            if local["node"]:
+                path = local["node"]["node_path"]
+            elif local["source"]:
+                path = local["source"]
+            else:
+                path = local["target"]
+            self.db_handler.update_node_status(path, 'CONFLICT', pickle.dumps(remote))
 
     def get_remote_changes(self, seq_id, changes=dict()):
 
