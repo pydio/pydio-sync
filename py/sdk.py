@@ -3,6 +3,10 @@ import urllib
 import json
 import os
 import keyring
+import hashlib
+import stat
+
+from utils import hashfile
 
 
 class ProcessException(Exception):
@@ -63,7 +67,7 @@ class PydioSdk():
         maxlen = min(len(pathes), 200)
         clean_pathes = map(lambda t: t.replace('\\', '/'), filter(lambda x: x !='', pathes[:maxlen]))
         data['nodes[]'] = clean_pathes
-        resp = requests.post(self.url + action + urllib.pathname2url(clean_pathes[0].encode('utf-8')), data=data, auth=self.auth)
+        resp = requests.post(self.url + action + urllib.pathname2url(clean_pathes[0]), data=data, auth=self.auth)
         data = json.loads(resp.content)
         if len(pathes) == 1:
             englob = dict()
@@ -80,7 +84,7 @@ class PydioSdk():
             except:
                 pass
         if len(pathes):
-            self.bulk_stat(pathes, result=replaced)
+            self.bulk_stat(pathes, result=replaced, with_hash=with_hash)
         return replaced
 
     def mkdir(self, path):
@@ -142,7 +146,7 @@ class SystemSdk(object):
     def __init__(self, basepath):
         self.basepath = basepath
 
-    def stat(self, path, full_path=False):
+    def stat(self, path, full_path=False, with_hash=False):
         if not path:
             return False
         if not full_path:
@@ -151,12 +155,17 @@ class SystemSdk(object):
             return False
         else:
             stat_result = os.stat(path)
-            stat = dict()
-            stat['size'] = stat_result.st_size
-            stat['mtime'] = stat_result.st_mtime
-            stat['mode'] = stat_result.st_mode
-            stat['inode'] = stat_result.st_ino
-            return stat
+            s = dict()
+            s['size'] = stat_result.st_size
+            s['mtime'] = stat_result.st_mtime
+            s['mode'] = stat_result.st_mode
+            s['inode'] = stat_result.st_ino
+            if with_hash:
+                if stat.S_ISREG(stat_result.st_mode):
+                    s['hash'] = hashfile(open(path, 'rb'), hashlib.md5())
+                elif stat.S_ISDIR(stat_result.st_mode):
+                    s['hash'] = 'directory'
+            return s
 
     def rmdir(self, path):
         if not os.path.exists(self.basepath + path):

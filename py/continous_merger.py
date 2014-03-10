@@ -144,7 +144,7 @@ class ContinuousDiffMerger(threading.Thread):
             remote=self.remote_seq
         ), open('data/sequences', 'wb'))
 
-    def stat_path(self, path, location, stats=None):
+    def stat_path(self, path, location, stats=None, with_hash=False):
         try:
             if stats:
                 return stats[path]
@@ -152,10 +152,9 @@ class ContinuousDiffMerger(threading.Thread):
             pass
 
         if location == 'remote':
-            return self.sdk.stat(path)
+            return self.sdk.stat(path, with_hash)
         else:
-            return self.system.stat(path)
-            pass
+            return self.system.stat(path, with_hash=True)
 
     def filter_change(self, item, my_stat=None, other_stats=None):
 
@@ -163,19 +162,15 @@ class ContinuousDiffMerger(threading.Thread):
         opposite = 'local' if item['location'] == 'remote' else 'remote'
         res = False
         if item['type'] == 'create' or item['type'] == 'content':
-            # If it does not exist on remote size, ok
-            test_stat = self.stat_path(item['node']['node_path'], location=opposite, stats=other_stats)
+            # If it does not exist on remote side, skip
+            test_stat = self.stat_path(item['node']['node_path'], location=opposite, stats=other_stats, with_hash=True)
             if not test_stat:
                 return False
-            # Do not create or update content if it does not actually exists
-            #loc_stat = self.stat_corresponding_item(item['node']['node_path'], location=opposite, stats=my_stat)
-            #if not loc_stat:
-            #    res = True
             # If it exists but is a directory, it won't change
             if item['node']['md5'] == 'directory':
                 res = True
             # If it exists and has same size, ok
-            elif test_stat['size'] == item['node']['bytesize']: # WE SHOULD TEST MD5 HERE AS WELL!
+            elif test_stat['size'] == item['node']['bytesize'] and 'hash' in test_stat and test_stat['hash'] == item['node']['md5']:
                 res = True
         elif item['type'] == 'delete':
             # Shall we really delete it?
@@ -188,12 +183,12 @@ class ContinuousDiffMerger(threading.Thread):
                 res = True
         else:#MOVE
             source_stat = self.stat_path(item['source'], location=opposite, stats=other_stats)
-            target_stat = self.stat_path(item['target'], location=opposite, stats=other_stats)
+            target_stat = self.stat_path(item['target'], location=opposite, stats=other_stats, with_hash=True)
             if not target_stat or source_stat:
                 return False
             elif item['node']['md5'] == 'directory':
                 res = True
-            elif target_stat['size'] == item['node']['bytesize']:# WE SHOULD TEST MD5 HERE AS WELL!
+            elif target_stat['size'] == item['node']['bytesize'] and 'hash' in target_stat and target_stat['hash'] == item['node']['md5']:
                 res = True
 
         if res:
@@ -369,7 +364,7 @@ class ContinuousDiffMerger(threading.Thread):
         test_stats = list(set(map(lambda it: it['source'] if it['source'] != 'NULL' else it['target'], lchanges)))
         remote_stats = None
         if len(test_stats):
-            remote_stats = self.sdk.bulk_stat(test_stats)
+            remote_stats = self.sdk.bulk_stat(test_stats, with_hash=True)
 
         rchanges = filter(lambda it: not self.filter_change(it, remote_stats, None), rchanges)
         lchanges = filter(lambda it: not self.filter_change(it, None, remote_stats), lchanges)
