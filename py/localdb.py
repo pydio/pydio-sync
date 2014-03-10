@@ -15,8 +15,8 @@ from utils import hashfile
 
 class SqlSnapshot(object):
 
-    def __init__(self, basepath):
-        self.db = 'data/pydio.sqlite'
+    def __init__(self, basepath, job_data_path):
+        self.db = job_data_path + '/pydio.sqlite'
         self.basepath = basepath
         self._stat_snapshot = {}
         self._inode_to_path = {}
@@ -94,9 +94,9 @@ class SqlSnapshot(object):
 
 class LocalDbHandler():
 
-    def __init__(self, base=''):
+    def __init__(self, job_data_path='', base=''):
         self.base = base
-        self.db = "data/pydio.sqlite"
+        self.db = job_data_path + '/pydio.sqlite'
         if not os.path.exists(self.db):
             self.init_db()
 
@@ -280,12 +280,12 @@ class LocalDbHandler():
 
 class SqlEventHandler(FileSystemEventHandler):
 
-    def __init__(self, basepath, includes, excludes):
+    def __init__(self, basepath, includes, excludes, job_data_path):
         super(SqlEventHandler, self).__init__()
         self.base = basepath
         self.includes = includes
         self.excludes = excludes
-        db_handler = LocalDbHandler(basepath)
+        db_handler = LocalDbHandler(job_data_path, basepath)
         self.db = db_handler.db
 
     def get_unicode_path(self, src):

@@ -4,6 +4,7 @@ import sys
 import os
 import argparse
 import keyring
+import slugify
 
 from continous_merger import ContinuousDiffMerger
 from local_watcher import LocalWatcher
@@ -32,9 +33,13 @@ if __name__ == "__main__":
         logging.error("Cannot find path " + path)
         exit()
 
-    watcher = LocalWatcher(path, includes=['*'], excludes=['.*'])
+    job_data_path = 'data/' + slugify.slugify(args.server) + '-' + slugify.slugify(args.workspace)
+    if not os.path.exists(job_data_path):
+        os.mkdir(job_data_path)
+
+    watcher = LocalWatcher(path, includes=['*'], excludes=['.*','recycle_bin'], data_path=job_data_path)
     merger = ContinuousDiffMerger(local_path=path, remote_ws=args.workspace, sdk_url=args.server,
-                                  sdk_user_id=args.user)
+                                  job_data_path=job_data_path, sdk_user_id=args.user)
 
     try:
         watcher.start()

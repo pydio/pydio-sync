@@ -67,7 +67,7 @@ class PydioSdk():
         maxlen = min(len(pathes), 200)
         clean_pathes = map(lambda t: t.replace('\\', '/'), filter(lambda x: x !='', pathes[:maxlen]))
         data['nodes[]'] = clean_pathes
-        resp = requests.post(self.url + action + urllib.pathname2url(clean_pathes[0]), data=data, auth=self.auth)
+        resp = requests.post(self.url + action + urllib.pathname2url(clean_pathes[0].encode('utf-8')), data=data, auth=self.auth)
         data = json.loads(resp.content)
         if len(pathes) == 1:
             englob = dict()

@@ -16,7 +16,7 @@ from sdk import PydioSdk, SystemSdk, ProcessException
 
 class ContinuousDiffMerger(threading.Thread):
 
-    def __init__(self, local_path, remote_ws, sdk_url, sdk_user_id='', sdk_auth=()):
+    def __init__(self, local_path, remote_ws, sdk_url, job_data_path, sdk_user_id='', sdk_auth=()):
         threading.Thread.__init__(self)
         self.basepath = local_path
         self.ws_id = remote_ws
@@ -32,7 +32,8 @@ class ContinuousDiffMerger(threading.Thread):
         self.remote_target_seq = 0
         self.local_seqs = []
         self.remote_seqs = []
-        self.db_handler = LocalDbHandler(local_path)
+        self.data_base = job_data_path
+        self.db_handler = LocalDbHandler(job_data_path, local_path)
         self.interrupt = False
         self.online_timer = 10
         self.offline_timer = 60
@@ -68,8 +69,8 @@ class ContinuousDiffMerger(threading.Thread):
         except:
            logging.error("Error: unable to start thread")
 
-        if os.path.exists("data/sequences"):
-            sequences = pickle.load(open("data/sequences", "rb"))
+        if os.path.exists(self.data_base + "/sequences"):
+            sequences = pickle.load(open(self.data_base + "/sequences", "rb"))
             self.remote_seq = sequences['remote']
             self.local_seq = sequences['local']
 
@@ -142,7 +143,7 @@ class ContinuousDiffMerger(threading.Thread):
         pickle.dump(dict(
             local=self.local_seq,
             remote=self.remote_seq
-        ), open('data/sequences', 'wb'))
+        ), open(self.data_base + '/sequences', 'wb'))
 
     def stat_path(self, path, location, stats=None, with_hash=False):
         try:
