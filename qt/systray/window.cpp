@@ -83,9 +83,16 @@ Window::Window()
     // Start command.
     sub->start();
 
+    nzmqt::Subscriber* sub2 = new nzmqt::Subscriber(*context, "tcp://127.0.0.1:5556", "status", this);
+    connect(sub2, SIGNAL(pingReceived(QList<QByteArray>)), SLOT(statusReceived(QList<QByteArray>)));
+    // Start command.
+    sub2->start();
+
+/*
     nzmqt::Requester* req = new nzmqt::Requester(*context, "tcp://127.0.0.1:5557", "STATUS", this);
     connect(req, SIGNAL(replyReceived(QList<QByteArray>)), this, SLOT(statusReceived(QList<QByteArray>)));
     req->start();
+*/
 
     setWindowTitle(tr("Systray"));
     resize(400, 300);
@@ -96,7 +103,7 @@ void Window::pingReceived(QList<QByteArray> message)
 {
     for(int i=0; i<message.size(); ++i){
         QString str(message[i].constData());
-        trayIcon->showMessage("Sync Message", str);
+        trayIcon->showMessage("Sync Message", str.replace("sync ", ""));
     }
 }
 
@@ -104,8 +111,9 @@ void Window::statusReceived(QList<QByteArray> message)
 {
     for(int i=0; i<message.size(); ++i){
         QString str(message[i].constData());
-        //trayIcon->showMessage("Sync Message", str);
-        if(str == "running"){
+        str = str.replace("status ", "");
+        //trayIcon->showMessage("Status Message", str);
+        if(str == "START"){
             running = true;
         }else{
             running = false;
