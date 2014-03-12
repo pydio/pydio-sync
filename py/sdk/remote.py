@@ -1,3 +1,23 @@
+#
+#  Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
+#  This file is part of Pydio.
+#
+#  Pydio is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  Pydio is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+#
+#  You should have received a copy of the GNU Affero General Public License
+#  along with Pydio.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  The latest code can be found at <http://pyd.io/>.
+#
+
 import requests
 import urllib
 import json
@@ -6,26 +26,8 @@ import keyring
 import hashlib
 import stat
 
-from utils import hashfile
-
-
-class ProcessException(Exception):
-    def __init__(self, src, operation, path, detail):
-        super(ProcessException, self).__init__('['+src+'] [' + operation + '] ' + path + ' ('+detail+')')
-        self.src_path = path
-        self.operation = operation
-        self.detail = detail
-
-
-class PydioSdkException(ProcessException):
-    def __init__(self, operation, path, detail):
-        super(PydioSdkException, self).__init__('sdk operation', operation, path, detail)
-
-
-class SystemSdkException(ProcessException):
-    def __init__(self, operation, path, detail):
-        super(SystemSdkException, self).__init__('system operation', operation, path, detail)
-
+from exceptions import SystemSdkException, PydioSdkException
+from utils.functions import hashfile
 
 class PydioSdk():
 
@@ -37,7 +39,6 @@ class PydioSdk():
             self.auth = (user_id, keyring.get_password(url, user_id))
         else:
             self.auth = auth
-        self.system = SystemSdk(basepath)
 
     def changes(self, last_seq):
         url = self.url + '/changes/' + str(last_seq)
@@ -106,9 +107,8 @@ class PydioSdk():
         resp = requests.get(url=url, auth=self.auth)
         return resp.content
 
-    def upload(self, local, path):
-        orig = self.system.stat(local, full_path=True)
-        if not orig:
+    def upload(self, local, local_stat, path):
+        if not local_stat:
             raise PydioSdkException('upload', path, 'local file to upload not found!')
 
         url = self.url + '/upload/put' + urllib.pathname2url(os.path.dirname(path).encode('utf-8'))
@@ -116,7 +116,7 @@ class PydioSdk():
         data = {'force_post':'true', 'urlencoded_filename':urllib.pathname2url(os.path.basename(path).encode('utf-8'))}
         resp = requests.post(url, data=data, files=files, auth=self.auth)
         new = self.stat(path)
-        if not new or not (new['size'] == orig['size']):
+        if not new or not (new['size'] == local_stat['size']):
             raise PydioSdkException('upload', path, 'File not correct after upload')
         return True
 
@@ -133,44 +133,12 @@ class PydioSdk():
             with open(local, 'wb') as fd:
                 for chunk in resp.iter_content(4096):
                     fd.write(chunk)
-            new = self.system.stat(local, full_path=True)
-            if not new or not orig['size'] == new['size']:
-                raise PydioSdkException('download', path, 'File not correct after download')
+            if not os.path.exists(local):
+                raise PydioSdkException('download', local, 'File not found after download')
+            else:
+                stat_result = os.stat(local)
+                if not orig['size'] == stat_result.st_size:
+                    raise PydioSdkException('download', path, 'File not correct after download')
             return True
         except Exception as e:
             raise PydioSdkException('download', path, 'Error opening local file for writing')
-
-
-class SystemSdk(object):
-
-    def __init__(self, basepath):
-        self.basepath = basepath
-
-    def stat(self, path, full_path=False, with_hash=False):
-        if not path:
-            return False
-        if not full_path:
-            path = self.basepath + path
-        if not os.path.exists(path):
-            return False
-        else:
-            stat_result = os.stat(path)
-            s = dict()
-            s['size'] = stat_result.st_size
-            s['mtime'] = stat_result.st_mtime
-            s['mode'] = stat_result.st_mode
-            s['inode'] = stat_result.st_ino
-            if with_hash:
-                if stat.S_ISREG(stat_result.st_mode):
-                    s['hash'] = hashfile(open(path, 'rb'), hashlib.md5())
-                elif stat.S_ISDIR(stat_result.st_mode):
-                    s['hash'] = 'directory'
-            return s
-
-    def rmdir(self, path):
-        if not os.path.exists(self.basepath + path):
-            return True
-        try:
-            os.rmdir(self.basepath + path)
-        except OSError as e:
-            raise SystemSdkException('delete', path, 'cannot remove folder')

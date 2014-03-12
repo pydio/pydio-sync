@@ -1,3 +1,23 @@
+#
+#  Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
+#  This file is part of Pydio.
+#
+#  Pydio is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  Pydio is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+#
+#  You should have received a copy of the GNU Affero General Public License
+#  along with Pydio.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  The latest code can be found at <http://pyd.io/>.
+#
+
 import time
 import os
 import thread
@@ -8,13 +28,18 @@ import logging
 from requests.exceptions import ConnectionError
 import zmq
 
-from localdb import LocalDbHandler
-from sdk import PydioSdk, SystemSdk, ProcessException
+from job.localdb import LocalDbHandler
+from sdk.exceptions import ProcessException
+from sdk.remote import PydioSdk
+from sdk.local import SystemSdk
+
+
 
 # -*- coding: utf-8 -*-
 
 
 class ContinuousDiffMerger(threading.Thread):
+    """Main Thread grabing changes from both sides, computing the necessary changes to apply, and applying them"""
 
     def __init__(self, local_path, remote_ws, sdk_url, job_data_path, sdk_user_id='', sdk_auth=()):
         threading.Thread.__init__(self)
@@ -269,7 +294,7 @@ class ContinuousDiffMerger(threading.Thread):
 
     def process_UPLOAD(self, path):
         self.db_handler.update_node_status(path, 'UP')
-        self.sdk.upload(self.basepath+path, path)
+        self.sdk.upload(self.basepath+path, self.system.stat(path), path)
         self.db_handler.update_node_status(path, 'IDLE')
         self.info(path + ' ===============> ' + path, 'File ' + path + ' uploaded to server')
 

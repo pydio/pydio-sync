@@ -18,10 +18,19 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 
-from py.sdk import PydioSdk
+class ProcessException(Exception):
+    def __init__(self, src, operation, path, detail):
+        super(ProcessException, self).__init__('['+src+'] [' + operation + '] ' + path + ' ('+detail+')')
+        self.src_path = path
+        self.operation = operation
+        self.detail = detail
 
 
-class SdkTest():
+class PydioSdkException(ProcessException):
+    def __init__(self, operation, path, detail):
+        super(PydioSdkException, self).__init__('sdk operation', operation, path, detail)
 
-    def __init__(self, url='', basepath='', ws_id='', user_id='', auth=()):
-        self.sdk = PydioSdk(url, basepath, ws_id, user_id, auth)
+
+class SystemSdkException(ProcessException):
+    def __init__(self, operation, path, detail):
+        super(SystemSdkException, self).__init__('system operation', operation, path, detail)

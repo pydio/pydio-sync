@@ -1,3 +1,24 @@
+#
+#  Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
+#  This file is part of Pydio.
+#
+#  Pydio is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  Pydio is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+#
+#  You should have received a copy of the GNU Affero General Public License
+#  along with Pydio.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  The latest code can be found at <http://pyd.io/>.
+#
+
+
 import time
 import threading
 import logging
@@ -9,7 +30,8 @@ from watchdog.events import DirCreatedEvent, DirDeletedEvent, DirMovedEvent, \
 from watchdog.observers import Observer
 from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
 
-from localdb import SqlEventHandler, SqlSnapshot
+from job.localdb import SqlEventHandler, SqlSnapshot
+
 
 # -*- coding: utf-8 -*-
 class SnapshotDiffStart(DirectorySnapshotDiff):
@@ -37,13 +59,13 @@ class SnapshotDiffStart(DirectorySnapshotDiff):
           else:
             self._files_modified.append(path)
 
-    paths_deleted = ref_dirsnap.paths - dirsnap.paths
-    paths_created = dirsnap.paths - ref_dirsnap.paths
+    paths_deleted = set(ref_dirsnap.paths) - set(dirsnap.paths)
+    paths_created = set(dirsnap.paths) - set(ref_dirsnap.paths)
 
     # Detect all the moves/renames.
     # Doesn't work on Windows, so exlude on Windows.
     if not sys.platform.startswith('win'):
-      for created_path in paths_created.copy():
+      for created_path in set(paths_created).copy():
         created_stat_info = dirsnap.stat_info(created_path)
         for deleted_path in paths_deleted.copy():
           deleted_stat_info = ref_dirsnap.stat_info(deleted_path)
