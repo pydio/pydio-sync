@@ -25,6 +25,7 @@ import argparse
 
 import keyring
 import slugify
+import json
 
 from job.continous_merger import ContinuousDiffMerger
 from job.local_watcher import LocalWatcher
@@ -43,29 +44,34 @@ if __name__ == "__main__":
     parser.add_argument('-w', '--workspace', help='Id or Alias of workspace to synchronize', type=unicode, default=None)
     parser.add_argument('-u', '--user', help='User name', type=unicode, default=None)
     parser.add_argument('-p', '--password', help='Password', type=unicode, default=None)
+    parser.add_argument('-f', '--file', type=unicode)
     args, _ = parser.parse_known_args()
 
-    if args.password:
-        keyring.set_password(args.server, args.user, args.password)
-
-    path = args.directory
-    logging.info("Starting on " + args.directory)
-    if not os.path.exists(path):
-        logging.error("Cannot find path " + path)
-        exit()
-
-    job_data_path = 'data/' + slugify.slugify(args.server) + '-' + slugify.slugify(args.workspace)
-    if not os.path.exists(job_data_path):
-        os.mkdir(job_data_path)
-
-    watcher = LocalWatcher(path, includes=['*'], excludes=['.*','recycle_bin'], data_path=job_data_path)
-    merger = ContinuousDiffMerger(local_path=path, remote_ws=args.workspace, sdk_url=args.server,
-                                  job_data_path=job_data_path, sdk_user_id=args.user)
+    data = []
+    if args.file:
+        with open(args.file) as data_file:
+            data = json.load(data_file)
+    if not len(data):
+        data = (vars(args),)
 
     try:
-        watcher.start()
-        merger.start()
+        for job_param in data:
+            if job_param['password']:
+                keyring.set_password(job_param['server'], job_param['user'], job_param['password'])
+            job_data_path = 'data/' + slugify.slugify(job_param['server']) + '-' + slugify.slugify(job_param['workspace'])
+            if not os.path.exists(job_data_path):
+                os.mkdir(job_data_path)
+
+            watcher = LocalWatcher(job_param['directory'], includes=['*'], excludes=['.*','recycle_bin'], data_path=job_data_path)
+            merger = ContinuousDiffMerger(local_path=job_param['directory'], remote_ws=job_param['workspace'], sdk_url=job_param['server'],
+                                          job_data_path=job_data_path, sdk_user_id=job_param['user'])
+
+            try:
+                watcher.start()
+                merger.start()
+            except (KeyboardInterrupt, SystemExit):
+                merger.stop()
+                watcher.stop()
+
     except (KeyboardInterrupt, SystemExit):
-        merger.stop()
-        watcher.stop()
         sys.exit()

@@ -24,6 +24,7 @@ import threading
 import logging
 import stat
 import sys
+import os
 
 from watchdog.events import DirCreatedEvent, DirDeletedEvent, DirMovedEvent, \
     FileCreatedEvent, FileDeletedEvent, FileMovedEvent, FileModifiedEvent
@@ -107,23 +108,24 @@ class LocalWatcher(threading.Thread):
         self.event_handler = SqlEventHandler(includes=self.includes, excludes=self.excludes, basepath=self.basepath, job_data_path=data_path)
 
         logging.info('Scanning for changes since last application launch')
-        previous_snapshot = SqlSnapshot(self.basepath, data_path)
-        snapshot = DirectorySnapshot(self.basepath, recursive=True)
-        diff = SnapshotDiffStart(previous_snapshot, snapshot)
-        for path in diff.dirs_created:
-            self.event_handler.on_created(DirCreatedEvent(path))
-        for path in diff.files_created:
-            self.event_handler.on_created(FileCreatedEvent(path))
-        for path in diff.dirs_moved:
-            self.event_handler.on_moved(DirMovedEvent(path[0], path[1]))
-        for path in diff.files_moved:
-            self.event_handler.on_moved(FileMovedEvent(path[0], path[1]))
-        for path in diff.files_modified:
-            self.event_handler.on_modified(FileModifiedEvent(path))
-        for path in diff.files_deleted:
-            self.event_handler.on_deleted(FileDeletedEvent(path))
-        for path in diff.dirs_deleted:
-            self.event_handler.on_deleted(DirDeletedEvent(path))
+        if os.path.exists(self.basepath):
+            previous_snapshot = SqlSnapshot(self.basepath, data_path)
+            snapshot = DirectorySnapshot(self.basepath, recursive=True)
+            diff = SnapshotDiffStart(previous_snapshot, snapshot)
+            for path in diff.dirs_created:
+                self.event_handler.on_created(DirCreatedEvent(path))
+            for path in diff.files_created:
+                self.event_handler.on_created(FileCreatedEvent(path))
+            for path in diff.dirs_moved:
+                self.event_handler.on_moved(DirMovedEvent(path[0], path[1]))
+            for path in diff.files_moved:
+                self.event_handler.on_moved(FileMovedEvent(path[0], path[1]))
+            for path in diff.files_modified:
+                self.event_handler.on_modified(FileModifiedEvent(path))
+            for path in diff.files_deleted:
+                self.event_handler.on_deleted(FileDeletedEvent(path))
+            for path in diff.dirs_deleted:
+                self.event_handler.on_deleted(DirDeletedEvent(path))
 
     def stop(self):
         self.observer.stop()

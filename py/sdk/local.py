@@ -28,6 +28,9 @@ class SystemSdk(object):
     def __init__(self, basepath):
         self.basepath = basepath
 
+    def check_basepath(self):
+        return os.path.exists(self.basepath)
+
     def stat(self, path, full_path=False, with_hash=False):
         if not path:
             return False

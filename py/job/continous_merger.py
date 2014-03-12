@@ -111,6 +111,11 @@ class ContinuousDiffMerger(threading.Thread):
                     time.sleep(self.online_timer)
                     continue
 
+                if not self.system.check_basepath():
+                    logging.info('Cannot find local folder! Did you disconnect a volume?')
+                    time.sleep(self.offline_timer)
+                    continue
+
                 local_changes = dict(data=dict(), path_to_seqs=dict())
                 remote_changes = dict(data=dict(), path_to_seqs=dict())
                 logging.info('Loading remote changes with sequence ' + str(self.remote_seq))
