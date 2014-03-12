@@ -41,7 +41,7 @@ from sdk.local import SystemSdk
 class ContinuousDiffMerger(threading.Thread):
     """Main Thread grabing changes from both sides, computing the necessary changes to apply, and applying them"""
 
-    def __init__(self, local_path, remote_ws, sdk_url, job_data_path, sdk_user_id='', sdk_auth=()):
+    def __init__(self, local_path, remote_ws, sdk_url, job_data_path, sdk_user_id='', sdk_auth=(), pub_socket=False):
         threading.Thread.__init__(self)
         self.basepath = local_path
         self.ws_id = remote_ws
@@ -64,40 +64,22 @@ class ContinuousDiffMerger(threading.Thread):
         self.offline_timer = 60
         self.online_status = True
         self.job_status_running = True
-        context = zmq.Context()
-        self.socket = context.socket(zmq.PUB)
-        self.socket.bind("tcp://*:%s" % 5556)
-        rep_socket = context.socket(zmq.REP)
-        rep_socket.bind("tcp://*:%s" % 5557)
-        def listen_to_REP():
-            while True:
-                message = rep_socket.recv()
-                logging.info('Received message from REP socket ' + message)
-                if message == 'PAUSE':
-                    logging.info("Pausing")
-                    self.job_status_running = False
-                elif message == 'START':
-                    logging.info("Starting")
-                    self.job_status_running = True
-                try:
-                    msg = 'stopped'
-                    if self.job_status_running:
-                        msg = 'running'
-                    rep_socket.send(msg)
-                    logging.info("Sending status " + msg)
-                except Exception as e:
-                    logging.error(e)
-
-        # Create two threads as follows
-        try:
-           thread.start_new_thread( listen_to_REP, () )
-        except:
-           logging.error("Error: unable to start thread")
+        if pub_socket:
+            self.pub_socket = pub_socket
+            self.info('Job Started', toUser='START', channel='status')
 
         if os.path.exists(self.data_base + "/sequences"):
             sequences = pickle.load(open(self.data_base + "/sequences", "rb"))
             self.remote_seq = sequences['remote']
             self.local_seq = sequences['local']
+
+    def pause(self):
+        self.job_status_running = False
+        self.info('Job Paused', toUser='PAUSE', channel='status')
+
+    def resume(self):
+        self.job_status_running = True
+        self.info('Job Started', toUser='START', channel='status')
 
     def stop(self):
         self.interrupt = True
@@ -251,10 +233,10 @@ class ContinuousDiffMerger(threading.Thread):
         # sort on path otherwise
         return cmp(i1['node']['node_path'], i2['node']['node_path'])
 
-    def info(self, message, toUser=False):
+    def info(self, message, toUser=False, channel='sync'):
         logging.info(message)
-        if toUser and self.socket:
-            self.socket.send_string('sync ' + toUser)
+        if toUser and self.pub_socket:
+            self.pub_socket.send_string(channel + ' ' + toUser)
 
     def process_localMKDIR(self, path):
         message = path + ' <============ MKDIR'

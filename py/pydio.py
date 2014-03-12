@@ -26,6 +26,8 @@ import argparse
 import keyring
 import slugify
 import json
+import zmq
+import thread
 
 from job.continous_merger import ContinuousDiffMerger
 from job.local_watcher import LocalWatcher
@@ -54,8 +56,15 @@ if __name__ == "__main__":
     if not len(data):
         data = (vars(args),)
 
+    context = zmq.Context()
+    pub_socket = context.socket(zmq.PUB)
+    pub_socket.bind("tcp://*:%s" % 5556)
+
     try:
+        controlThreads = []
         for job_param in data:
+            if 'inactive' in job_param and job_param['inactive']:
+                continue
             if job_param['password']:
                 keyring.set_password(job_param['server'], job_param['user'], job_param['password'])
             job_data_path = 'data/' + slugify.slugify(job_param['server']) + '-' + slugify.slugify(job_param['workspace'])
@@ -64,14 +73,40 @@ if __name__ == "__main__":
 
             watcher = LocalWatcher(job_param['directory'], includes=['*'], excludes=['.*','recycle_bin'], data_path=job_data_path)
             merger = ContinuousDiffMerger(local_path=job_param['directory'], remote_ws=job_param['workspace'], sdk_url=job_param['server'],
-                                          job_data_path=job_data_path, sdk_user_id=job_param['user'])
-
+                                          job_data_path=job_data_path, sdk_user_id=job_param['user'], pub_socket=pub_socket)
             try:
                 watcher.start()
                 merger.start()
+                controlThreads.append(merger)
             except (KeyboardInterrupt, SystemExit):
                 merger.stop()
                 watcher.stop()
+
+        rep_socket = context.socket(zmq.REP)
+        rep_socket.bind("tcp://*:%s" % 5557)
+        def listen_to_REP():
+            while True:
+                message = rep_socket.recv()
+                logging.info('Received message from REP socket ' + message)
+                if message == 'PAUSE':
+                    logging.info("SHOULD PAUSE")
+                    for t in controlThreads:
+                        t.pause()
+                elif message == 'START':
+                    logging.info("SHOULD START")
+                    for t in controlThreads:
+                        t.resume()
+                try:
+                    msg = 'status updated'
+                    rep_socket.send(msg)
+                except Exception as e:
+                    logging.error(e)
+
+        # Create thread as follows
+        try:
+           thread.start_new_thread( listen_to_REP, () )
+        except Exception as e:
+           logging.error(e)
 
     except (KeyboardInterrupt, SystemExit):
         sys.exit()
