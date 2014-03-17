@@ -67,9 +67,12 @@ if __name__ == "__main__":
                 continue
             if job_param['password']:
                 keyring.set_password(job_param['server'], job_param['user'], job_param['password'])
-            job_data_path = os.path.dirname(os.path.abspath(__file__)) + '/data/' + slugify.slugify(job_param['server']) + '-' + slugify.slugify(job_param['workspace'])
-            if not os.path.exists(job_data_path):
-                os.mkdir(job_data_path)
+
+            from pathlib import Path
+            job_data_path = Path(__file__).parent / 'data' / str(slugify.slugify(job_param['server']) + '-' + slugify.slugify(job_param['workspace']))
+            if not job_data_path.exists():
+                job_data_path.mkdir(parents=True)
+            job_data_path = str(job_data_path)
 
             watcher = LocalWatcher(job_param['directory'], includes=['*'], excludes=['.*','recycle_bin'], data_path=job_data_path)
             merger = ContinuousDiffMerger(local_path=job_param['directory'], remote_ws=job_param['workspace'], sdk_url=job_param['server'],

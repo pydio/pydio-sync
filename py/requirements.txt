@@ -1,0 +1,8 @@
+PyYAML==3.10
+argh==0.24.1
+keyring==3.6
+pathtools==0.1.2
+pyzmq==14.1.0
+requests==2.2.1
+slugify==0.0.1
+watchdog==0.7.1
