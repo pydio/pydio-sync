@@ -67,7 +67,7 @@ if __name__ == "__main__":
                 continue
             if job_param['password']:
                 keyring.set_password(job_param['server'], job_param['user'], job_param['password'])
-            job_data_path = 'data/' + slugify.slugify(job_param['server']) + '-' + slugify.slugify(job_param['workspace'])
+            job_data_path = os.path.dirname(os.path.abspath(__file__)) + '/data/' + slugify.slugify(job_param['server']) + '-' + slugify.slugify(job_param['workspace'])
             if not os.path.exists(job_data_path):
                 os.mkdir(job_data_path)
 
