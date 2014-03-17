@@ -108,6 +108,11 @@ class ContinuousDiffMerger(threading.Thread):
                     self.online_status = False
                     time.sleep(self.offline_timer)
                     continue
+                except Exception as e:
+                    logging.info('Error while connecting to remote server: ' + e.message)
+                    self.online_status = False
+                    time.sleep(self.offline_timer)
+                    continue
                 self.online_status = True
                 logging.info('Loading local changes with sequence ' + str(self.local_seq))
                 self.local_target_seq = self.db_handler.get_local_changes(self.local_seq, local_changes)

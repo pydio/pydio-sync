@@ -43,7 +43,10 @@ class PydioSdk():
     def changes(self, last_seq):
         url = self.url + '/changes/' + str(last_seq)
         resp = requests.get(url=url, auth=self.auth)
-        return json.loads(resp.content)
+        try:
+            return json.loads(resp.content)
+        except ValueError as v:
+            raise Exception("Invalid JSON value received while getting remote changes")
 
     def stat(self, path, with_hash=False):
         action = '/stat_hash' if with_hash else '/stat'
