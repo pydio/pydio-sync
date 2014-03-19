@@ -29,7 +29,7 @@ import logging
 from watchdog.events import FileSystemEventHandler
 from watchdog.utils.dirsnapshot import DirectorySnapshotDiff
 
-from utils.functions import hashfile
+from pydio.utils.functions import hashfile
 
 
 class SqlSnapshot(object):

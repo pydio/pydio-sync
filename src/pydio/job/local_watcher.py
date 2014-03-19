@@ -31,7 +31,7 @@ from watchdog.events import DirCreatedEvent, DirDeletedEvent, DirMovedEvent, \
 from watchdog.observers import Observer
 from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
 
-from job.localdb import SqlEventHandler, SqlSnapshot
+from pydio.job.localdb import SqlEventHandler, SqlSnapshot
 
 
 # -*- coding: utf-8 -*-

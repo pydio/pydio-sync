@@ -27,7 +27,7 @@ import hashlib
 import stat
 
 from exceptions import SystemSdkException, PydioSdkException
-from utils.functions import hashfile
+from pydio.utils.functions import hashfile
 
 class PydioSdk():
 

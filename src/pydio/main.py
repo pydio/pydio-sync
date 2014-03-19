@@ -21,6 +21,7 @@
 import logging
 import sys
 import os
+import sys
 import argparse
 
 import keyring
@@ -33,8 +34,7 @@ from job.continous_merger import ContinuousDiffMerger
 from job.local_watcher import LocalWatcher
 
 
-if __name__ == "__main__":
-
+def main(args=sys.argv[1:]):
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     parser.add_argument('-u', '--user', help='User name', type=unicode, default=None)
     parser.add_argument('-p', '--password', help='Password', type=unicode, default=None)
     parser.add_argument('-f', '--file', type=unicode)
-    args, _ = parser.parse_known_args()
+    args, _ = parser.parse_known_args(args)
 
     data = []
     if args.file:
@@ -113,3 +113,6 @@ if __name__ == "__main__":
 
     except (KeyboardInterrupt, SystemExit):
         sys.exit()
+
+if __name__ == "__main__":
+    main()

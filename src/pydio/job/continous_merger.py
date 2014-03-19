@@ -28,10 +28,10 @@ import logging
 from requests.exceptions import ConnectionError
 import zmq
 
-from job.localdb import LocalDbHandler
-from sdk.exceptions import ProcessException
-from sdk.remote import PydioSdk
-from sdk.local import SystemSdk
+from pydio.job.localdb import LocalDbHandler
+from pydio.sdk.exceptions import ProcessException
+from pydio.sdk.remote import PydioSdk
+from pydio.sdk.local import SystemSdk
 
 
 
