@@ -70,7 +70,7 @@ Window::Window()
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
             this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
 
-    const QIcon& icon = QIcon(":/images/Icon-16.png");
+    const QIcon& icon = QIcon(":/images/Pydio16.png");
     trayIcon->setIcon(icon);
     setWindowIcon(icon);
     trayIcon->show();
