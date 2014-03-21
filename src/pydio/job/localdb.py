@@ -25,6 +25,7 @@ import time
 import fnmatch
 import pickle
 import logging
+from pathlib import *
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.utils.dirsnapshot import DirectorySnapshotDiff
@@ -116,6 +117,7 @@ class LocalDbHandler():
     def __init__(self, job_data_path='', base=''):
         self.base = base
         self.db = job_data_path + '/pydio.sqlite'
+        self.job_data_path = job_data_path
         if not os.path.exists(self.db):
             self.init_db()
 
@@ -123,7 +125,8 @@ class LocalDbHandler():
         conn = sqlite3.connect(self.db)
 
         cursor = conn.cursor()
-        with open('res/create.sql', 'r') as inserts:
+        respath = Path(__file__).parent.parent / 'res' / 'create.sql'
+        with open(str(respath), 'r') as inserts:
             for statement in inserts:
                 cursor.execute(statement)
         conn.close()
