@@ -19,6 +19,7 @@
 #
 
 import sqlite3
+import sys
 import os
 import hashlib
 import time
@@ -125,7 +126,11 @@ class LocalDbHandler():
         conn = sqlite3.connect(self.db)
 
         cursor = conn.cursor()
-        respath = Path(__file__).parent.parent / 'res' / 'create.sql'
+        if getattr(sys, 'frozen', False):
+            respath = (Path(sys._MEIPASS)) / 'res' / 'create.sql'
+        else:
+            respath = (Path(__file__)).parent.parent / 'res' / 'create.sql'
+        logging.debug("respath: %s" % respath)
         with open(str(respath), 'r') as inserts:
             for statement in inserts:
                 cursor.execute(statement)

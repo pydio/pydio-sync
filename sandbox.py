@@ -63,6 +63,9 @@ def install_requirements():
     # args = "install -r requirements.txt --target {}".format(target)  # this will install to the right place but will not look for dependencies in this place
     args = "install -r requirements.txt -vvv"
     pip.main(args.split(" "))
+    if is_win:
+        logging.debug("Touching pywin32 installed by easy_install")
+        pip.main("install pywin32".split(" "))
 
 
 def install_pywin32():
@@ -133,6 +136,8 @@ def install_qt():
 
 
 if __name__ == "__main__":
+    logging.debug("sys.platform: %s" % sys.platform)
+
     import argparse
     parser = argparse.ArgumentParser(description='Build script for Pydio')
     parser.add_argument('cmd', metavar='cmd', help='a command to run', default="all")

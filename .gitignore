@@ -7,3 +7,6 @@ py/data/
 .idea/
 build/
 dist/
+tmp/
+data/
+pydio.spec
