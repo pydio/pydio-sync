@@ -20,3 +20,15 @@ Client Setup
  * Install pip
  * Run: ```pip install https://github.com/pydio/pydio-sync.git```
  * Start main module with the following parameters: ```python -m pydio.main --server=http://yourserver --directory=/path/to/local/dir --workspace=workspace-alias --user=rest_user --password=rest_password```
+
+Development Setup
+--
+
+# Linux
+
+  sudo apt-get install python
+  sudo apt-get install python-dev
+  sudo apt-get install python-pip
+  sudo apt-get install libzmq3-dev
+
+# Windows
