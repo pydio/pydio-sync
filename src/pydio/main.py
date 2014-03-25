@@ -71,6 +71,8 @@ def main(args=sys.argv[1:]):
 
             from pathlib import Path
             job_data_path = Path(__file__).parent / 'data' / str(slugify.slugify(job_param['server']) + '-' + slugify.slugify(job_param['workspace']))
+            # TODO
+            # Add more parameter to the slug, or create subfolders: remote_folder, username must be taken into account.
             if not job_data_path.exists():
                 job_data_path.mkdir(parents=True)
             job_data_path = str(job_data_path)
