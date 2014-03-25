@@ -37,6 +37,7 @@ logging.disable(logging.NOTSET)
 logging.debug("sys.path")  # = %s", repr(sys.path))
 for s in sys.path:
     logging.info("\t%s" % s)
+logging.debug("PYTHONPATH")  # = %s", repr(sys.path))
 for s in os.environ.get('PYTHONPATH', "").split(';'):
     logging.info("\t%s" % s)
 
@@ -49,6 +50,8 @@ def main(args=sys.argv[1:]):
                         format='%(asctime)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger("requests").setLevel(logging.WARNING)
+
+    logging.debug("args: %s" % args)
 
     parser = argparse.ArgumentParser('Pydio Synchronization Tool')
     parser.add_argument('-s', '--server', help='Server URL, with http(s) and path to pydio', type=unicode, default='http://localhost')
@@ -84,8 +87,15 @@ def main(args=sys.argv[1:]):
                 job_data_path.mkdir(parents=True)
             job_data_path = str(job_data_path)
 
-            watcher = LocalWatcher(job_param['directory'], includes=['*'], excludes=['.*','recycle_bin'], data_path=job_data_path)
-            merger = ContinuousDiffMerger(local_path=job_param['directory'], remote_ws=job_param['workspace'], sdk_url=job_param['server'],
+            directory = Path(str(job_param['directory'])).resolve()
+            if not directory.exists():
+                directory.mkdir(parents=True)
+            directory = str(directory)
+
+            logging.info("Sync directory: %s", directory)
+
+            watcher = LocalWatcher(directory, includes=['*'], excludes=['.*','recycle_bin'], data_path=job_data_path)
+            merger = ContinuousDiffMerger(local_path=directory, remote_ws=job_param['workspace'], sdk_url=job_param['server'],
                                           job_data_path=job_data_path, sdk_user_id=job_param['user'], pub_socket=pub_socket)
             try:
                 watcher.start()

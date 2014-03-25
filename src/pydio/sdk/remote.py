@@ -17,6 +17,8 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
+import logging
+import sys
 
 import requests
 import urllib
@@ -71,8 +73,15 @@ class PydioSdk():
         maxlen = min(len(pathes), 200)
         clean_pathes = map(lambda t: t.replace('\\', '/'), filter(lambda x: x !='', pathes[:maxlen]))
         data['nodes[]'] = clean_pathes
-        resp = requests.post(self.url + action + urllib.pathname2url(clean_pathes[0].encode('utf-8')), data=data, auth=self.auth)
-        data = json.loads(resp.content)
+        url = self.url + action + urllib.pathname2url(clean_pathes[0].encode('utf-8'))
+        resp = requests.post(url, data=data, auth=self.auth)
+        try:
+            data = json.loads(resp.content)
+        except ValueError:
+            logging.debug("url: %s" % url)
+            logging.debug("resp.content: %s" % resp.content)
+            raise
+
         if len(pathes) == 1:
             englob = dict()
             englob[pathes[0]] = data
