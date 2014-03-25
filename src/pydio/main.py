@@ -44,6 +44,7 @@ def main(args=sys.argv[1:]):
     parser.add_argument('-s', '--server', help='Server URL, with http(s) and path to pydio', type=unicode, default='http://localhost')
     parser.add_argument('-d', '--directory', help='Local directory', type=unicode, default=None)
     parser.add_argument('-w', '--workspace', help='Id or Alias of workspace to synchronize', type=unicode, default=None)
+    parser.add_argument('-r', '--remote_folder', help='Path to an existing folder of the workspace to synchronize', type=unicode, default=None)
     parser.add_argument('-u', '--user', help='User name', type=unicode, default=None)
     parser.add_argument('-p', '--password', help='Password', type=unicode, default=None)
     parser.add_argument('-f', '--file', type=unicode)
@@ -74,9 +75,15 @@ def main(args=sys.argv[1:]):
                 job_data_path.mkdir(parents=True)
             job_data_path = str(job_data_path)
 
+            remote_folder = ''
+            if job_param['remote_folder']:
+                remote_folder = job_param['remote_folder'].rstrip('/')
+
             watcher = LocalWatcher(job_param['directory'], includes=['*'], excludes=['.*','recycle_bin'], data_path=job_data_path)
-            merger = ContinuousDiffMerger(local_path=job_param['directory'], remote_ws=job_param['workspace'], sdk_url=job_param['server'],
-                                          job_data_path=job_data_path, sdk_user_id=job_param['user'], pub_socket=pub_socket)
+            merger = ContinuousDiffMerger(local_path=job_param['directory'], remote_ws=job_param['workspace'],
+                                          sdk_url=job_param['server'], job_data_path=job_data_path,
+                                          remote_folder=remote_folder, sdk_user_id=job_param['user'],
+                                          pub_socket=pub_socket)
             try:
                 watcher.start()
                 merger.start()
