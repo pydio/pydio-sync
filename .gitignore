@@ -5,3 +5,5 @@ py/data/
 .distve/
 .ve/
 .idea/
+build/
+dist/

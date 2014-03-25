@@ -30,6 +30,16 @@ import json
 import zmq
 import thread
 
+logging.basicConfig(format='%(asctime)s %(message)s')
+logging.getLogger().setLevel(logging.DEBUG)
+logging.disable(logging.NOTSET)
+
+logging.debug("sys.path")  # = %s", repr(sys.path))
+for s in sys.path:
+    logging.info("\t%s" % s)
+for s in os.environ.get('PYTHONPATH', "").split(';'):
+    logging.info("\t%s" % s)
+
 from job.continous_merger import ContinuousDiffMerger
 from job.local_watcher import LocalWatcher
 
