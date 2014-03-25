@@ -21,14 +21,18 @@ Client Setup
  * Run: ```pip install https://github.com/pydio/pydio-sync.git```
  * Start main module with the following parameters: ```python -m pydio.main --server=http://yourserver --directory=/path/to/local/dir --workspace=workspace-alias --user=rest_user --password=rest_password```
 
-Development Setup
---
+## Development Setup
 
-# Linux
+### Linux
 
   sudo apt-get install python
   sudo apt-get install python-dev
   sudo apt-get install python-pip
   sudo apt-get install libzmq3-dev
 
-# Windows
+### Windows
+
+ * Install python 2.7
+ * Install Pip
+    ```python -c "exec('try: from urllib2 import urlopen \nexcept: from urllib.request import urlopen');f=urlopen('https://raw.github.com/pypa/pip/master/contrib/get-pip.py').read();exec(f)"```
+ * Run sandbox.py to create virtual environment and build the app
