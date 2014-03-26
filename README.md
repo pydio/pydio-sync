@@ -18,5 +18,5 @@ Client Setup
  * Make sure to install Python 2.7
  * Install Zero MQ on the client (see http://zeromq.org/area:download)
  * Install pip
- * Run: ```pip install https://github.com/pydio/pydio-sync.git```
+ * Run: ```pip install git+https://github.com/pydio/pydio-sync.git```
  * Start main module with the following parameters: ```python -m pydio.main --server=http://yourserver --directory=/path/to/local/dir --workspace=workspace-alias --user=rest_user --password=rest_password```
