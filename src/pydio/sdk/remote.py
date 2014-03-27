@@ -33,10 +33,10 @@ from pydio.utils.functions import hashfile
 
 class PydioSdk():
 
-    def __init__(self, url='', basepath='', ws_id='', user_id='', auth=()):
+    def __init__(self, url='', ws_id='', remote_folder='', user_id='', auth=()):
         self.ws_id = ws_id
         self.url = url+'/api/'+ws_id
-        self.basepath = basepath
+        self.remote_folder = remote_folder
         if user_id:
             self.auth = (user_id, keyring.get_password(url, user_id))
         else:
@@ -44,6 +44,8 @@ class PydioSdk():
 
     def changes(self, last_seq):
         url = self.url + '/changes/' + str(last_seq)
+        if self.remote_folder:
+            url += '?filter=' + self.remote_folder
         resp = requests.get(url=url, auth=self.auth)
         try:
             return json.loads(resp.content)
@@ -51,6 +53,7 @@ class PydioSdk():
             raise Exception("Invalid JSON value received while getting remote changes")
 
     def stat(self, path, with_hash=False):
+        path = self.remote_folder + path;
         action = '/stat_hash' if with_hash else '/stat'
         try:
             url = self.url + action + urllib.pathname2url(path.encode('utf-8'))
@@ -71,7 +74,7 @@ class PydioSdk():
         action = '/stat_hash' if with_hash else '/stat'
         data = dict()
         maxlen = min(len(pathes), 200)
-        clean_pathes = map(lambda t: t.replace('\\', '/'), filter(lambda x: x !='', pathes[:maxlen]))
+        clean_pathes = map(lambda t: self.remote_folder + t.replace('\\', '/'), filter(lambda x: x !='', pathes[:maxlen]))
         data['nodes[]'] = clean_pathes
         url = self.url + action + urllib.pathname2url(clean_pathes[0].encode('utf-8'))
         resp = requests.post(url, data=data, auth=self.auth)
@@ -84,13 +87,15 @@ class PydioSdk():
 
         if len(pathes) == 1:
             englob = dict()
-            englob[pathes[0]] = data
+            englob[self.remote_folder + pathes[0]] = data
             data = englob
         if result:
             replaced = result
         else:
             replaced = dict()
         for (p, stat) in data.items():
+            if self.remote_folder:
+                p = p[len(self.remote_folder):]
             replaced[os.path.normpath(p)] = stat
             try:
                 pathes.remove(os.path.normpath(p))
@@ -101,21 +106,21 @@ class PydioSdk():
         return replaced
 
     def mkdir(self, path):
-        url = self.url + '/mkdir' + urllib.pathname2url(path.encode('utf-8'))
+        url = self.url + '/mkdir' + urllib.pathname2url((self.remote_folder + path).encode('utf-8'))
         resp = requests.get(url=url, auth=self.auth)
         return resp.content
 
     def rename(self, source, target):
         if os.path.dirname(source) == os.path.dirname(target):
             url = self.url + '/rename'
-            resp = requests.post(url=url, data=dict(file=source.encode('utf-8'), dest=target.encode('utf-8')), auth=self.auth)
+            resp = requests.post(url=url, data=dict(file=(self.remote_folder + source).encode('utf-8'), dest=(self.remote_folder + target).encode('utf-8')), auth=self.auth)
         else:
             url = self.url + '/move'
-            resp = requests.post(url=url, data=dict(file=source.encode('utf-8'), dest=os.path.dirname(target.encode('utf-8'))), auth=self.auth)
+            resp = requests.post(url=url, data=dict(file=(self.remote_folder + source).encode('utf-8'), dest=os.path.dirname((self.remote_folder + target).encode('utf-8'))), auth=self.auth)
         return resp.content
 
     def delete(self, path):
-        url = self.url + '/delete' + urllib.pathname2url(path.encode('utf-8'))
+        url = self.url + '/delete' + urllib.pathname2url((self.remote_folder + path).encode('utf-8'))
         resp = requests.get(url=url, auth=self.auth)
         return resp.content
 
@@ -123,7 +128,7 @@ class PydioSdk():
         if not local_stat:
             raise PydioSdkException('upload', path, 'local file to upload not found!')
 
-        url = self.url + '/upload/put' + urllib.pathname2url(os.path.dirname(path).encode('utf-8'))
+        url = self.url + '/upload/put' + urllib.pathname2url((self.remote_folder + os.path.dirname(path)).encode('utf-8'))
         files = {'userfile_0': ('my-name',open(local, 'rb'))}
         data = {'force_post':'true', 'urlencoded_filename':urllib.pathname2url(os.path.basename(path).encode('utf-8'))}
         resp = requests.post(url, data=data, files=files, auth=self.auth)
@@ -137,7 +142,7 @@ class PydioSdk():
         if not orig:
             raise PydioSdkException('download', path, 'Original not found on server')
 
-        url = self.url + '/download' + urllib.pathname2url(path.encode('utf-8'))
+        url = self.url + '/download' + urllib.pathname2url((self.remote_folder + path).encode('utf-8'))
         resp = requests.get(url=url, stream=True, auth=self.auth)
         if not os.path.exists(os.path.dirname(local)):
             os.makedirs(os.path.dirname(local))

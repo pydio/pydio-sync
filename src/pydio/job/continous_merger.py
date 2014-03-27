@@ -41,14 +41,15 @@ from pydio.sdk.local import SystemSdk
 class ContinuousDiffMerger(threading.Thread):
     """Main Thread grabing changes from both sides, computing the necessary changes to apply, and applying them"""
 
-    def __init__(self, local_path, remote_ws, sdk_url, job_data_path, sdk_user_id='', sdk_auth=(), pub_socket=False):
+    def __init__(self, local_path, remote_ws, sdk_url, job_data_path, remote_folder='', sdk_user_id='', sdk_auth=(),
+                 pub_socket=False):
         threading.Thread.__init__(self)
         self.basepath = local_path
         self.ws_id = remote_ws
         if sdk_user_id:
-            self.sdk = PydioSdk(sdk_url, basepath=local_path, ws_id=self.ws_id, user_id=sdk_user_id)
+            self.sdk = PydioSdk(sdk_url, ws_id=self.ws_id, remote_folder=remote_folder, user_id=sdk_user_id)
         else:
-            self.sdk = PydioSdk(sdk_url, basepath=local_path, ws_id=self.ws_id, auth=sdk_auth)
+            self.sdk = PydioSdk(sdk_url, ws_id=self.ws_id, remote_folder=remote_folder, auth=sdk_auth)
 
         self.system = SystemSdk(local_path)
         self.remote_seq = 1
