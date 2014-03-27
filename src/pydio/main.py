@@ -102,7 +102,7 @@ def main(args=sys.argv[1:]):
             logging.info("Sync directory: %s", directory)
 
             watcher = LocalWatcher(directory, includes=['*'], excludes=['.*','recycle_bin'], data_path=job_data_path)
-            merger = ContinuousDiffMerger(local_path=directory, remote_ws=job_param['workspace'], sdk_url=job_param['server'],
+            merger = ContinuousDiffMerger(local_path=directory, remote_ws=job_param['workspace'],
                                           sdk_url=job_param['server'], job_data_path=job_data_path,
                                           remote_folder=remote_folder, sdk_user_id=job_param['user'],
                                           pub_socket=pub_socket)
