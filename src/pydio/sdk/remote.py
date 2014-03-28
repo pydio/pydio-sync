@@ -156,12 +156,14 @@ class PydioSdk():
                 if total_length is None: # no content length header
                     fd.write(r.content)
                 else:
-                    for chunk in r.iter_content(1024):
+                    previous_done = 0
+                    for chunk in r.iter_content(1024 * 8):
                         dl += len(chunk)
                         fd.write(chunk)
                         done = int(50 * dl / int(total_length))
-                        logging.debug("\r[%s%s] %s bps" % ('=' * done, ' ' * (50-done), dl//(time.clock() - start)))
-                        print ''
+                        if done != previous_done:
+                            logging.debug("\r[%s%s] %s bps" % ('=' * done, ' ' * (50-done), dl//(time.clock() - start)))
+                        previous_done = done
             if not os.path.exists(local_tmp):
                 raise PydioSdkException('download', local, 'File not found after download')
             else:
