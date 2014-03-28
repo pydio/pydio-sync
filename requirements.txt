@@ -7,5 +7,4 @@ pathlib==0.97
 pathtools==0.1.2
 pyzmq==14.1.0
 requests==2.2.1
-virtualenv==1.11.4
 watchdog==0.7.1
