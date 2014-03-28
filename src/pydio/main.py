@@ -25,21 +25,10 @@ import sys
 import argparse
 
 import keyring
-import slugify
+import hashlib
 import json
 import zmq
 import thread
-
-logging.basicConfig(format='%(asctime)s %(message)s')
-logging.getLogger().setLevel(logging.DEBUG)
-logging.disable(logging.NOTSET)
-
-logging.debug("sys.path")  # = %s", repr(sys.path))
-for s in sys.path:
-    logging.info("\t%s" % s)
-logging.debug("PYTHONPATH")  # = %s", repr(sys.path))
-for s in os.environ.get('PYTHONPATH', "").split(';'):
-    logging.info("\t%s" % s)
 
 from job.continous_merger import ContinuousDiffMerger
 from job.local_watcher import LocalWatcher
@@ -51,8 +40,6 @@ def main(args=sys.argv[1:]):
                         datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger("requests").setLevel(logging.WARNING)
 
-    logging.debug("args: %s" % args)
-
     parser = argparse.ArgumentParser('Pydio Synchronization Tool')
     parser.add_argument('-s', '--server', help='Server URL, with http(s) and path to pydio', type=unicode, default='http://localhost')
     parser.add_argument('-d', '--directory', help='Local directory', type=unicode, default=None)
@@ -60,7 +47,8 @@ def main(args=sys.argv[1:]):
     parser.add_argument('-r', '--remote_folder', help='Path to an existing folder of the workspace to synchronize', type=unicode, default=None)
     parser.add_argument('-u', '--user', help='User name', type=unicode, default=None)
     parser.add_argument('-p', '--password', help='Password', type=unicode, default=None)
-    parser.add_argument('-f', '--file', type=unicode)
+    parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
+    parser.add_argument('-z', '--zmq_port', type=int, help='Available port for zmq, both this port and this port +1 will be used', default=5556)
     args, _ = parser.parse_known_args(args)
 
     data = []
@@ -72,7 +60,7 @@ def main(args=sys.argv[1:]):
 
     context = zmq.Context()
     pub_socket = context.socket(zmq.PUB)
-    pub_socket.bind("tcp://*:%s" % 5556)
+    pub_socket.bind("tcp://*:%s" % args.zmq_port)
 
     try:
         controlThreads = []
@@ -82,27 +70,24 @@ def main(args=sys.argv[1:]):
             if job_param['password']:
                 keyring.set_password(job_param['server'], job_param['user'], job_param['password'])
 
+            remote_folder = ''
+            if 'remote_folder' in job_param and job_param['remote_folder']:
+                remote_folder = job_param['remote_folder'].rstrip('/')
+
             from pathlib import Path
-            job_data_path = Path(__file__).parent / 'data' / str(slugify.slugify(job_param['server']) + '-' + slugify.slugify(job_param['workspace']))
-            # TODO
-            # Add more parameter to the slug, or create subfolders: remote_folder, username must be taken into account.
+            # compute uuid for storing data - slug
+            uuid_str = job_param['server'] + '/@' + job_param['user'] + '/' + job_param['workspace'] + '/' + remote_folder
+            m = hashlib.md5()
+            m.update(uuid_str)
+            uuid = m.hexdigest()
+            job_data_path = Path(__file__).parent / 'data' / str(uuid)[8:]
             if not job_data_path.exists():
                 job_data_path.mkdir(parents=True)
             job_data_path = str(job_data_path)
 
-            remote_folder = ''
-            if job_param['remote_folder']:
-                remote_folder = job_param['remote_folder'].rstrip('/')
 
-            directory = Path(str(job_param['directory'])).resolve()
-            if not directory.exists():
-                directory.mkdir(parents=True)
-            directory = str(directory)
-
-            logging.info("Sync directory: %s", directory)
-
-            watcher = LocalWatcher(directory, includes=['*'], excludes=['.*','recycle_bin'], data_path=job_data_path)
-            merger = ContinuousDiffMerger(local_path=directory, remote_ws=job_param['workspace'],
+            watcher = LocalWatcher(job_param['directory'], includes=['*'], excludes=['.*','recycle_bin'], data_path=job_data_path)
+            merger = ContinuousDiffMerger(local_path=job_param['directory'].rstrip('/').rstrip('\\'), remote_ws=job_param['workspace'],
                                           sdk_url=job_param['server'], job_data_path=job_data_path,
                                           remote_folder=remote_folder, sdk_user_id=job_param['user'],
                                           pub_socket=pub_socket)
@@ -115,7 +100,7 @@ def main(args=sys.argv[1:]):
                 watcher.stop()
 
         rep_socket = context.socket(zmq.REP)
-        rep_socket.bind("tcp://*:%s" % 5557)
+        rep_socket.bind("tcp://*:%s" % (args.zmq_port + 1))
         def listen_to_REP():
             while True:
                 message = rep_socket.recv()
