@@ -358,40 +358,7 @@ class SqlEventHandler(FileSystemEventHandler):
         if not os.path.exists(src_path):
             return
 
-        search_key = self.remove_prefix(src_path)
-        if event.is_directory:
-            hash_key = 'directory'
-        else:
-            hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
-
-        conn = sqlite3.connect(self.db)
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        node_id = None
-        for row in c.execute("SELECT node_id FROM ajxp_index WHERE node_path=?", (search_key,)):
-            node_id = row['node_id']
-            break
-        c.close()
-        if not node_id:
-            t = (
-                search_key,
-                os.path.getsize(src_path),
-                hash_key,
-                os.path.getmtime(src_path),
-                pickle.dumps(os.stat(src_path))
-            )
-            conn.execute("INSERT INTO ajxp_index (node_path,bytesize,md5,mtime,stat_result) VALUES (?,?,?,?,?)", t)
-        else:
-            t = (
-                os.path.getsize(src_path),
-                hash_key,
-                os.path.getmtime(src_path),
-                pickle.dumps(os.stat(src_path)),
-                search_key
-            )
-            conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=?", t)
-        conn.commit()
-        conn.close()
+        self.updateOrInsert(src_path, is_directory=event.is_directory, skip_nomodif=False)
 
     def on_deleted(self, event):
         if not self.included(event):
@@ -416,30 +383,61 @@ class SqlEventHandler(FileSystemEventHandler):
             else:
                 return
             if os.path.isfile(modified_filename) and self.included(event=None, base=modified_filename):
-                logging.debug("Event: modified file : %s" % modified_filename)
-                conn = sqlite3.connect(self.db)
-                size = os.path.getsize(modified_filename)
-                the_hash = hashfile(open(modified_filename, 'rb'), hashlib.md5())
-                mtime = os.path.getmtime(modified_filename)
-                search_path = self.remove_prefix(modified_filename)
-                stat_result = pickle.dumps(os.stat(modified_filename))
-                t = (size, the_hash, mtime, stat_result, search_path, size, the_hash)
-                conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
-                conn.commit()
-                conn.close()
+                logging.debug("Event: modified file : %s" % self.remove_prefix(modified_filename))
+                self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
         else:
             modified_filename = src_path
             if not os.path.exists(src_path):
                 return
 
             logging.debug("Event: modified file : %s" % self.remove_prefix(modified_filename))
-            conn = sqlite3.connect(self.db)
-            size = os.path.getsize(modified_filename)
-            the_hash = hashfile(open(modified_filename, 'rb'), hashlib.md5())
-            mtime = os.path.getmtime(modified_filename)
-            search_path = self.remove_prefix(modified_filename)
-            stat_result = pickle.dumps(os.stat(modified_filename))
-            t = (size, the_hash, mtime, stat_result, search_path, size, the_hash)
-            conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
-            conn.commit()
-            conn.close()
+            self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
+
+    def updateOrInsert(self, src_path, is_directory, skip_nomodif):
+        search_key = self.remove_prefix(src_path)
+        if is_directory:
+            hash_key = 'directory'
+        else:
+            hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
+
+        conn = sqlite3.connect(self.db)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        node_id = None
+        for row in c.execute("SELECT node_id FROM ajxp_index WHERE node_path=?", (search_key,)):
+            node_id = row['node_id']
+            break
+        c.close()
+        if not node_id:
+            t = (
+                search_key,
+                os.path.getsize(src_path),
+                hash_key,
+                os.path.getmtime(src_path),
+                pickle.dumps(os.stat(src_path))
+            )
+            conn.execute("INSERT INTO ajxp_index (node_path,bytesize,md5,mtime,stat_result) VALUES (?,?,?,?,?)", t)
+        else:
+            if skip_nomodif:
+                bytesize = os.path.getsize(src_path)
+                t = (
+                    bytesize,
+                    hash_key,
+                    os.path.getmtime(src_path),
+                    pickle.dumps(os.stat(src_path)),
+                    search_key,
+                    bytesize,
+                    hash_key
+                )
+                conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
+            else:
+                t = (
+                    os.path.getsize(src_path),
+                    hash_key,
+                    os.path.getmtime(src_path),
+                    pickle.dumps(os.stat(src_path)),
+                    search_key
+                )
+                conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=?", t)
+        conn.commit()
+        conn.close()

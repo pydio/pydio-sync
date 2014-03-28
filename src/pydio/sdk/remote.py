@@ -27,6 +27,7 @@ import os
 import keyring
 import hashlib
 import stat
+import time
 
 from exceptions import SystemSdkException, PydioSdkException
 from pydio.utils.functions import hashfile
@@ -143,19 +144,35 @@ class PydioSdk():
             raise PydioSdkException('download', path, 'Original not found on server')
 
         url = self.url + '/download' + urllib.pathname2url((self.remote_folder + path).encode('utf-8'))
-        resp = requests.get(url=url, stream=True, auth=self.auth)
+        local_tmp = local + '.pydio_dl'
         if not os.path.exists(os.path.dirname(local)):
             os.makedirs(os.path.dirname(local))
         try:
-            with open(local, 'wb') as fd:
-                for chunk in resp.iter_content(4096):
-                    fd.write(chunk)
-            if not os.path.exists(local):
+            with open(local_tmp, 'wb') as fd:
+                start = time.clock()
+                r = requests.get(url, stream=True, auth=self.auth)
+                total_length = r.headers.get('content-length')
+                dl = 0
+                if total_length is None: # no content length header
+                    fd.write(r.content)
+                else:
+                    for chunk in r.iter_content(1024):
+                        dl += len(chunk)
+                        fd.write(chunk)
+                        done = int(50 * dl / int(total_length))
+                        logging.debug("\r[%s%s] %s bps" % ('=' * done, ' ' * (50-done), dl//(time.clock() - start)))
+                        print ''
+            if not os.path.exists(local_tmp):
                 raise PydioSdkException('download', local, 'File not found after download')
             else:
-                stat_result = os.stat(local)
+                stat_result = os.stat(local_tmp)
                 if not orig['size'] == stat_result.st_size:
+                    os.unlink(local_tmp)
                     raise PydioSdkException('download', path, 'File not correct after download')
+                else:
+                    os.rename(local_tmp, local)
             return True
         except Exception as e:
+            if(os.path.exists(local_tmp)):
+                os.unlink(local_tmp)
             raise PydioSdkException('download', path, 'Error opening local file for writing')

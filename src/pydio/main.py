@@ -86,7 +86,7 @@ def main(args=sys.argv[1:]):
             job_data_path = str(job_data_path)
 
 
-            watcher = LocalWatcher(job_param['directory'], includes=['*'], excludes=['.*','recycle_bin'], data_path=job_data_path)
+            watcher = LocalWatcher(job_param['directory'], includes=['*'], excludes=['.*','recycle_bin', '*.pydio_dl', '.DS_Store'], data_path=job_data_path)
             merger = ContinuousDiffMerger(local_path=job_param['directory'].rstrip('/').rstrip('\\'), remote_ws=job_param['workspace'],
                                           sdk_url=job_param['server'], job_data_path=job_data_path,
                                           remote_folder=remote_folder, sdk_user_id=job_param['user'],
