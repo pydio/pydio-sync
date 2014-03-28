@@ -42,7 +42,7 @@ class ContinuousDiffMerger(threading.Thread):
     """Main Thread grabing changes from both sides, computing the necessary changes to apply, and applying them"""
 
     def __init__(self, local_path, remote_ws, sdk_url, job_data_path, remote_folder='', sdk_user_id='', sdk_auth=(),
-                 pub_socket=False):
+                 pub_socket=False, direction='bi'):
         threading.Thread.__init__(self)
         self.basepath = local_path
         self.ws_id = remote_ws
@@ -65,6 +65,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.offline_timer = 60
         self.online_status = True
         self.job_status_running = True
+        self.direction = direction
         if pub_socket:
             self.pub_socket = pub_socket
             self.info('Job Started', toUser='START', channel='status')
@@ -295,6 +296,11 @@ class ContinuousDiffMerger(threading.Thread):
     def process_change(self, item):
 
         location = item['location']
+        if self.direction == 'up' and location == 'remote':
+            return
+        if self.direction == 'down' and location == 'local':
+            return
+
         if item['type'] == 'create' or item['type'] == 'content':
             if item['node']['md5'] == 'directory':
                 if item['node']['node_path']:

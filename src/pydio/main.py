@@ -90,7 +90,7 @@ def main(args=sys.argv[1:]):
             merger = ContinuousDiffMerger(local_path=job_param['directory'].rstrip('/').rstrip('\\'), remote_ws=job_param['workspace'],
                                           sdk_url=job_param['server'], job_data_path=job_data_path,
                                           remote_folder=remote_folder, sdk_user_id=job_param['user'],
-                                          pub_socket=pub_socket)
+                                          pub_socket=pub_socket, direction='bi')
             try:
                 watcher.start()
                 merger.start()
