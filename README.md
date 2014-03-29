@@ -19,7 +19,35 @@ Client Setup
  * Install Zero MQ on the client (see http://zeromq.org/area:download)
  * Install pip
  * Run: ```pip install git+https://github.com/pydio/pydio-sync.git```
- * Start main module with the following parameters: ```python -m pydio.main --server=http://yourserver --directory=/path/to/local/dir --workspace=workspace-alias --user=rest_user --password=rest_password```
+ * Either start main module with the following parameters: 
+```
+python -m pydio.main 
+        --server=http://yourserver 
+        --directory=/path/to/local/dir 
+        --workspace=workspace-alias 
+        --user=rest_user 
+        --password=rest_password
+```
+ * Or start passing a path to a json file containing a server config: 
+```
+python -m pydio.main 
+        --file=/path/to/config.json
+```
+In that case, the JSON file must contain an array of "jobs configs" objects, including a __type__ key with value "JobConfig":
+```
+[
+    {
+        "__type__"  : "JobConfig", // This one is important!
+        "server"    : "http://mydomain.tld/path",
+        "workspace" : "ws_alias_or_id",
+        "directory" : "/Path/to/local/folder",
+        "user"      : "user",
+        "password"  : "password",
+        "direction" : "bi", // can be "up", "down", "bi"
+        "active"    : true
+    }
+]
+```
 
 ## Development Setup
 
