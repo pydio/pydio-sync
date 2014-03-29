@@ -42,9 +42,17 @@ class ContinuousDiffMerger(threading.Thread):
 
     def __init__(self, job_config, job_data_path, pub_socket=False):
         threading.Thread.__init__(self)
+        self.data_base = job_data_path
+        self.job_config = job_config
+
         self.basepath = job_config.directory
         self.ws_id = job_config.workspace
-        self.sdk = PydioSdk(job_config.server, ws_id=self.ws_id, remote_folder=job_config.remote_folder, user_id=job_config.user_id)
+        self.sdk = PydioSdk(
+            job_config.server,
+            ws_id=self.ws_id,
+            remote_folder=job_config.remote_folder,
+            user_id=job_config.user_id
+        )
         self.system = SystemSdk(job_config.directory)
         self.remote_seq = 1
         self.local_seq = 0
@@ -52,8 +60,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.remote_target_seq = 0
         self.local_seqs = []
         self.remote_seqs = []
-        self.data_base = job_data_path
-        self.db_handler = LocalDbHandler(job_data_path, job_config.directory)
+        self.db_handler = LocalDbHandler(self.data_base, job_config.directory)
         self.interrupt = False
         self.online_timer = 10
         self.offline_timer = 60
@@ -330,8 +337,12 @@ class ContinuousDiffMerger(threading.Thread):
                     if self.process_localMOVE(item['source'], item['target']):
                         self.db_handler.buffer_real_operation(item['type'], item['source'], item['target'])
                 else:
-                    logging.debug('Cannot find source, switching to DOWNLOAD')
-                    self.process_DOWNLOAD(item['target'])
+                    if item["node"]["md5"] == "directory":
+                        logging.debug('Cannot find folder to move, switching to creation')
+                        self.process_localMKDIR(item['target'])
+                    else:
+                        logging.debug('Cannot find source, switching to DOWNLOAD')
+                        self.process_DOWNLOAD(item['target'])
                     self.db_handler.buffer_real_operation('create', 'NULL', item['target'])
             else:
                 if self.sdk.stat(item['source']):

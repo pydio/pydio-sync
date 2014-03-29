@@ -24,8 +24,6 @@ import os
 import sys
 import argparse
 
-import keyring
-import hashlib
 import json
 import zmq
 import thread
@@ -93,18 +91,34 @@ def main(args=sys.argv[1:]):
         rep_socket.bind("tcp://*:%s" % (args.zmq_port + 1))
         def listen_to_REP():
             while True:
-                message = rep_socket.recv()
+                message = str(rep_socket.recv())
                 logging.info('Received message from REP socket ' + message)
-                if message == 'PAUSE':
+                parts = message.split(' ', 2)
+                msg = 'status updated'
+                if message.startswith('PAUSE'):
                     logging.info("SHOULD PAUSE")
-                    for t in controlThreads:
-                        t.pause()
-                elif message == 'START':
+                    if len(parts) > 1 and int(parts[1]) in controlThreads:
+                        controlThreads[int(parts[1])].pause()
+                    else:
+                        for t in controlThreads:
+                            t.pause()
+                elif message.startswith('START'):
                     logging.info("SHOULD START")
+                    if len(parts) > 1 and int(parts[1]) in controlThreads:
+                        controlThreads[int(parts[1])].resume()
+                    else:
+                        for t in controlThreads:
+                            t.resume()
+                elif str(message).startswith('RELOAD') and len(parts) > 1 and int(parts[1]) in controlThreads:
+                    # Todo: implement the reload of the config data
+                    pass
+                elif message == 'LIST-JOBS':
+                    data = []
                     for t in controlThreads:
-                        t.resume()
+                        data.append(t.job_config.server + ' - ' + t.job_config.directory)
+                    msg = json.dumps(data)
+
                 try:
-                    msg = 'status updated'
                     rep_socket.send(msg)
                 except Exception as e:
                     logging.error(e)

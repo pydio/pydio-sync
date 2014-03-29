@@ -36,7 +36,7 @@ class JobConfig:
         self.monitor = True
         self.filters = dict(
             includes=['*'],
-            excludes=['.*','recycle_bin', '*.pydio_dl', '.DS_Store']
+            excludes=['.*','/recycle_bin*', '*.pydio_dl', '*.DS_Store']
         )
 
     def uuid(self):

@@ -382,14 +382,15 @@ class SqlEventHandler(FileSystemEventHandler):
                 modified_filename = max(files_in_dir, key=os.path.getmtime)
             else:
                 return
-            if os.path.isfile(modified_filename) and self.included(event=None, base=modified_filename):
-                logging.debug("Event: modified file : %s" % self.remove_prefix(modified_filename))
+            if os.path.isfile(modified_filename) and self.included(event=None, base=self.remove_prefix(modified_filename)):
+                logging.debug("Event: modified file 1 : %s" % self.remove_prefix(modified_filename))
                 self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
         else:
             modified_filename = src_path
             if not os.path.exists(src_path):
                 return
-
+            if not self.included(event=None, base=self.remove_prefix(modified_filename)):
+                return
             logging.debug("Event: modified file : %s" % self.remove_prefix(modified_filename))
             self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
 
