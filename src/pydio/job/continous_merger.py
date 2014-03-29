@@ -34,24 +34,18 @@ from pydio.sdk.remote import PydioSdk
 from pydio.sdk.local import SystemSdk
 
 
-
 # -*- coding: utf-8 -*-
 
 
 class ContinuousDiffMerger(threading.Thread):
     """Main Thread grabing changes from both sides, computing the necessary changes to apply, and applying them"""
 
-    def __init__(self, local_path, remote_ws, sdk_url, job_data_path, remote_folder='', sdk_user_id='', sdk_auth=(),
-                 pub_socket=False, direction='bi'):
+    def __init__(self, job_config, job_data_path, pub_socket=False):
         threading.Thread.__init__(self)
-        self.basepath = local_path
-        self.ws_id = remote_ws
-        if sdk_user_id:
-            self.sdk = PydioSdk(sdk_url, ws_id=self.ws_id, remote_folder=remote_folder, user_id=sdk_user_id)
-        else:
-            self.sdk = PydioSdk(sdk_url, ws_id=self.ws_id, remote_folder=remote_folder, auth=sdk_auth)
-
-        self.system = SystemSdk(local_path)
+        self.basepath = job_config.directory
+        self.ws_id = job_config.workspace
+        self.sdk = PydioSdk(job_config.server, ws_id=self.ws_id, remote_folder=job_config.remote_folder, user_id=job_config.user_id)
+        self.system = SystemSdk(job_config.directory)
         self.remote_seq = 1
         self.local_seq = 0
         self.local_target_seq = 1
@@ -59,13 +53,13 @@ class ContinuousDiffMerger(threading.Thread):
         self.local_seqs = []
         self.remote_seqs = []
         self.data_base = job_data_path
-        self.db_handler = LocalDbHandler(job_data_path, local_path)
+        self.db_handler = LocalDbHandler(job_data_path, job_config.directory)
         self.interrupt = False
         self.online_timer = 10
         self.offline_timer = 60
         self.online_status = True
         self.job_status_running = True
-        self.direction = direction
+        self.direction = job_config.direction
         if pub_socket:
             self.pub_socket = pub_socket
             self.info('Job Started', toUser='START', channel='status')
@@ -141,7 +135,7 @@ class ContinuousDiffMerger(threading.Thread):
                         logging.error(e.message)
                     if self.interrupt:
                         break
-                    time.sleep(0.5)
+                    time.sleep(0.01)
             except OSError as e:
                 logging.error('Type Error! ')
             time.sleep(self.online_timer)
@@ -396,6 +390,8 @@ class ContinuousDiffMerger(threading.Thread):
 
         last_ops = self.db_handler.get_last_operations()
 
+        new_rchanges = []
+
         for item in lchanges:
             ignore = False
             for last in last_ops:
@@ -424,12 +420,12 @@ class ContinuousDiffMerger(threading.Thread):
                     break
             if conflict:
                 continue
-            rchanges.append(item)
+            new_rchanges.append(item)
 
         self.db_handler.clear_operations_buffer()
 
         # Sort to make sure directory operations are applied first
-        rchanges = sorted(rchanges, cmp=self.changes_sorter)
+        rchanges = sorted(rchanges + new_rchanges, cmp=self.changes_sorter)
 
         # Prune changes : for DELETE and MOVE of Dir, remove all childrens
         toremove = []

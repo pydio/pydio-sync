@@ -32,7 +32,7 @@ import thread
 
 from job.continous_merger import ContinuousDiffMerger
 from job.local_watcher import LocalWatcher
-
+from job.job_config import JobConfig
 
 def main(args=sys.argv[1:]):
     logging.basicConfig(level=logging.DEBUG,
@@ -51,12 +51,17 @@ def main(args=sys.argv[1:]):
     parser.add_argument('-z', '--zmq_port', type=int, help='Available port for zmq, both this port and this port +1 will be used', default=5556)
     args, _ = parser.parse_known_args(args)
 
+    from pathlib import Path
+    jobs_root_path = Path(__file__).parent / 'data'
+
     data = []
     if args.file:
         with open(args.file) as data_file:
-            data = json.load(data_file)
+            data = json.load(data_file, object_hook=JobConfig.object_decoder)
     if not len(data):
-        data = (vars(args),)
+        job_config = JobConfig()
+        job_config.load_from_cliargs(args)
+        data = (job_config,)
 
     context = zmq.Context()
     pub_socket = context.socket(zmq.PUB)
@@ -64,33 +69,18 @@ def main(args=sys.argv[1:]):
 
     try:
         controlThreads = []
-        for job_param in data:
-            if 'inactive' in job_param and job_param['inactive']:
+        for job_config in data:
+            if not job_config.active:
                 continue
-            if job_param['password']:
-                keyring.set_password(job_param['server'], job_param['user'], job_param['password'])
 
-            remote_folder = ''
-            if 'remote_folder' in job_param and job_param['remote_folder']:
-                remote_folder = job_param['remote_folder'].rstrip('/')
-
-            from pathlib import Path
-            # compute uuid for storing data - slug
-            uuid_str = job_param['server'] + '/@' + job_param['user'] + '/' + job_param['workspace'] + '/' + remote_folder
-            m = hashlib.md5()
-            m.update(uuid_str)
-            uuid = m.hexdigest()
-            job_data_path = Path(__file__).parent / 'data' / str(uuid)[8:]
+            job_data_path = jobs_root_path / job_config.uuid()
             if not job_data_path.exists():
                 job_data_path.mkdir(parents=True)
             job_data_path = str(job_data_path)
 
 
-            watcher = LocalWatcher(job_param['directory'], includes=['*'], excludes=['.*','recycle_bin', '*.pydio_dl', '.DS_Store'], data_path=job_data_path)
-            merger = ContinuousDiffMerger(local_path=job_param['directory'].rstrip('/').rstrip('\\'), remote_ws=job_param['workspace'],
-                                          sdk_url=job_param['server'], job_data_path=job_data_path,
-                                          remote_folder=remote_folder, sdk_user_id=job_param['user'],
-                                          pub_socket=pub_socket, direction='bi')
+            watcher = LocalWatcher(job_config.directory, job_config.filters['includes'], job_config.filters['excludes'], job_data_path)
+            merger = ContinuousDiffMerger(job_config, job_data_path=job_data_path, pub_socket=pub_socket)
             try:
                 watcher.start()
                 merger.start()
