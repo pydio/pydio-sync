@@ -155,7 +155,9 @@ class LocalDbHandler():
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         for row in c.execute("SELECT md5 FROM ajxp_index WHERE node_path LIKE ?", (node_path,)):
-            return row['md5']
+            md5 = row['md5']
+            c.close()
+            return md5
         c.close()
         return hashfile(self.base + node_path, hashlib.md5())
 
@@ -208,6 +210,17 @@ class LocalDbHandler():
         c.close()
         return operations
 
+    def is_last_operation(self, type, source, target):
+        conn = sqlite3.connect(self.db)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        for row in c.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND source=? AND target=?", (type,source,target)):
+            c.close()
+            return True
+        c.close()
+        return False
+
+
     def buffer_real_operation(self, type, source, target):
         conn = sqlite3.connect(self.db)
         conn.execute("INSERT INTO ajxp_last_buffer (type,source,target) VALUES (?,?,?)", (type, source, target))
@@ -239,6 +252,8 @@ class LocalDbHandler():
             drow = dict(row)
             drow['node'] = dict()
             if not row['node_path'] and (not row['source'] or row['source'] == 'NULL') and (not row['target'] or row['source'] == 'NULL'):
+                continue
+            if self.is_last_operation(row['type'], row['source'], row['target']):
                 continue
             for att in ('mtime', 'md5', 'bytesize', 'node_path',):
                 drow['node'][att] = row[att]
@@ -325,7 +340,10 @@ class SqlEventHandler(FileSystemEventHandler):
 
     def included(self, event, base=None):
         if not base:
-            base = os.path.basename(event.src_path)
+            if hasattr(event, 'dest_path'):
+                base = os.path.basename(event.dest_path)
+            else:
+                base = os.path.basename(event.src_path)
         for i in self.includes:
             if not fnmatch.fnmatch(base, i):
                 return False
@@ -336,17 +354,32 @@ class SqlEventHandler(FileSystemEventHandler):
 
     def on_moved(self, event):
         if not self.included(event):
+            logging.debug('ignoring move event ' + event.src_path + event.dest_path)
             return
-        logging.debug("Event: move noticed: " + event.event_type + " on file " + event.src_path + " at " + time.asctime())
+        logging.debug("Event: move noticed: " + event.event_type + " on file " + event.dest_path + " at " + time.asctime())
+        target_key = self.remove_prefix(self.get_unicode_path(event.dest_path))
+        source_key = self.remove_prefix(self.get_unicode_path(event.src_path))
 
         conn = sqlite3.connect(self.db)
-        t = (
-            self.remove_prefix(self.get_unicode_path(event.dest_path)),
-            self.remove_prefix(self.get_unicode_path(event.src_path)),
-        )
-        conn.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", t)
-        conn.commit()
-        conn.close()
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        node_id = None
+        for row in c.execute("SELECT node_id FROM ajxp_index WHERE node_path=?", (source_key,)):
+            node_id = row['node_id']
+            break
+        c.close()
+        if not node_id:
+            # detected a move but node not found: create it
+            self.updateOrInsert(self.get_unicode_path(event.dest_path), event.is_directory, True, force_insert=True)
+        else:
+            conn = sqlite3.connect(self.db)
+            t = (
+                self.remove_prefix(self.get_unicode_path(event.dest_path)),
+                self.remove_prefix(self.get_unicode_path(event.src_path)),
+            )
+            conn.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", t)
+            conn.commit()
+            conn.close()
 
     def on_created(self, event):
         if not self.included(event):
@@ -374,6 +407,7 @@ class SqlEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
         super(SqlEventHandler, self).on_modified(event)
         if not self.included(event):
+            logging.debug('ignoring modified event ' + event.src_path + event.dest_path)
             return
         src_path = self.get_unicode_path(event.src_path)
         if event.is_directory:
@@ -394,21 +428,24 @@ class SqlEventHandler(FileSystemEventHandler):
             logging.debug("Event: modified file : %s" % self.remove_prefix(modified_filename))
             self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
 
-    def updateOrInsert(self, src_path, is_directory, skip_nomodif):
+    def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert = False):
         search_key = self.remove_prefix(src_path)
         if is_directory:
             hash_key = 'directory'
         else:
             hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
 
+        node_id = False
         conn = sqlite3.connect(self.db)
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        node_id = None
-        for row in c.execute("SELECT node_id FROM ajxp_index WHERE node_path=?", (search_key,)):
-            node_id = row['node_id']
-            break
-        c.close()
+        if not force_insert:
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            node_id = None
+            for row in c.execute("SELECT node_id FROM ajxp_index WHERE node_path=?", (search_key,)):
+                node_id = row['node_id']
+                break
+            c.close()
+
         if not node_id:
             t = (
                 search_key,
@@ -417,6 +454,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 os.path.getmtime(src_path),
                 pickle.dumps(os.stat(src_path))
             )
+            logging.debug("Real insert %s" % search_key)
             conn.execute("INSERT INTO ajxp_index (node_path,bytesize,md5,mtime,stat_result) VALUES (?,?,?,?,?)", t)
         else:
             if skip_nomodif:
@@ -430,6 +468,7 @@ class SqlEventHandler(FileSystemEventHandler):
                     bytesize,
                     hash_key
                 )
+                logging.debug("Real update %s if not the same" % search_key)
                 conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
             else:
                 t = (
@@ -439,6 +478,7 @@ class SqlEventHandler(FileSystemEventHandler):
                     pickle.dumps(os.stat(src_path)),
                     search_key
                 )
+                logging.debug("Real update %s" % search_key)
                 conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=?", t)
         conn.commit()
         conn.close()
