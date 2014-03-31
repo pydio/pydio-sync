@@ -77,3 +77,8 @@ or using python itself
     python -c "exec('try: from urllib2 import urlopen \nexcept: from urllib.request import urlopen');f=urlopen('https://raw.github.com/pypa/pip/master/contrib/get-pip.py').read();exec(f)"
 
 Run sandbox.py to create virtual environment and build the app
+
+
+## Contributing
+
+Please <a href="http://pyd.io/contribute/cla">sign the Contributor License Agreement</a> before contributing.
