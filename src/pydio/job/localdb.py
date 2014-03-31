@@ -407,7 +407,7 @@ class SqlEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
         super(SqlEventHandler, self).on_modified(event)
         if not self.included(event):
-            logging.debug('ignoring modified event ' + event.src_path + event.dest_path)
+            logging.debug('ignoring modified event ' + event.src_path)
             return
         src_path = self.get_unicode_path(event.src_path)
         if event.is_directory:
