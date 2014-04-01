@@ -54,7 +54,10 @@ class JobConfig:
         self.server = args.server
         self.workspace = args.workspace
         self.directory = args.directory.rstrip('/').rstrip('\\')
-        self.remote_folder = args.remote_folder.rstrip('/').rstrip('\\')
+        if args.remote_folder:
+            self.remote_folder = args.remote_folder.rstrip('/').rstrip('\\')
+        else:
+            self.remote_folder = ''
         if args.password:
             keyring.set_password(self.server, args.user, args.password)
         self.user_id = args.user
