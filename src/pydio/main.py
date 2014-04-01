@@ -39,8 +39,22 @@ import thread
 from pathlib import Path
 import zmq
 
-from job.continous_merger import ContinuousDiffMerger
-from job.job_config import JobConfig
+if __name__ == "__main__":
+    pydio_module = os.path.dirname(os.path.abspath(__file__))
+    logging.debug("sys.platform: %s" % sys.platform)
+    if sys.platform == "win32":
+        pydio_module = pydio_module.replace("/", "\\")
+    logging.debug("pydio_module: %s" % pydio_module)
+    if pydio_module in sys.path:
+        # if this module was run directly it will mess up imports
+        # we need to correct sys.path
+        logging.debug("Removing from sys.path: %s" % pydio_module)
+        sys.path.remove(pydio_module)
+        logging.debug("Prepending to sys.path: %s" % os.path.dirname(pydio_module))
+        sys.path.insert(0, os.path.dirname(pydio_module))
+
+from pydio.job.continous_merger import ContinuousDiffMerger
+from pydio.job.job_config import JobConfig
 
 CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
 
@@ -59,10 +73,16 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-dir', '--direction', help='Synchro Direction', type=str, default='bi')
     parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
     parser.add_argument('-z', '--zmq_port', type=int, help='Available port for zmq, both this port and this port +1 will be used', default=5556)
-    parser.add_argument('--save-cfg', dest='save_cfg', action='store_true')
+    parser.add_argument('--save-cfg', action='store_true')
+    parser.add_argument('--auto-start', action='store_true')
     args, _ = parser.parse_known_args(argv)
 
     jobs_root_path = Path(__file__).parent / 'data'
+
+    if args.auto_start:
+        import pydio.autostart
+        pydio.autostart.setup(argv)
+        return 0
 
     data = []
     if args.file or not argv:
@@ -77,7 +97,10 @@ def main(argv=sys.argv[1:]):
         if args.save_cfg:
             logging.info("Storing config in %s", CONFIG_FILE)
             with open(CONFIG_FILE, 'w') as fp:
-                json.dump((job_config.__dict__,), fp, indent=2)
+                cfg = job_config.__dict__
+                cfg.pop("save_cfg", None)
+                cfg.pop("auto_start", None)
+                json.dump((cfg,), fp, indent=2)
 
     context = zmq.Context()
     pub_socket = context.socket(zmq.PUB)
@@ -195,4 +218,6 @@ def setup_logging():
 
 
 if __name__ == "__main__":
-    main()
+    rc = main()
+    if rc is not None:
+        sys.exit(0)
