@@ -98,6 +98,7 @@ def main(argv=sys.argv[1:]):
             logging.info("Storing config in %s", CONFIG_FILE)
             with open(CONFIG_FILE, 'w') as fp:
                 cfg = job_config.__dict__
+                cfg["__type__"] = "JobConfig"  # this is needed for the hoo above to work properly.
                 cfg.pop("save_cfg", None)
                 cfg.pop("auto_start", None)
                 json.dump((cfg,), fp, indent=2)
