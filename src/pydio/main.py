@@ -21,21 +21,30 @@
 import logging
 import sys
 import os
-import sys
-import argparse
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logging.getLogger().setLevel(logging.DEBUG)
+logging.disable(logging.NOTSET)
+logging.getLogger("requests").setLevel(logging.WARNING)
+
+logging.debug("sys.path: %s", "\n\t".join(sys.path))
+logging.debug("PYTHONPATH: %s", "\n\t".join(os.environ.get('PYTHONPATH', "").split(';')))
+
+# Most imports are placed after we have logged import path
+# so we can easily debug import problems
+import argparse
 import json
-import zmq
 import thread
+from pathlib import Path
+import zmq
 
 from job.continous_merger import ContinuousDiffMerger
 from job.job_config import JobConfig
 
-def main(args=sys.argv[1:]):
-    logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s - %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S')
-    logging.getLogger("requests").setLevel(logging.WARNING)
+CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
+
+
+def main(argv=sys.argv[1:]):
 
     parser = argparse.ArgumentParser('Pydio Synchronization Tool')
     parser.add_argument('-s', '--server', help='Server URL, with http(s) and path to pydio', type=unicode, default='http://localhost')
@@ -47,19 +56,25 @@ def main(args=sys.argv[1:]):
     parser.add_argument('-dir', '--direction', help='Synchro Direction', type=str, default='bi')
     parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
     parser.add_argument('-z', '--zmq_port', type=int, help='Available port for zmq, both this port and this port +1 will be used', default=5556)
-    args, _ = parser.parse_known_args(args)
+    parser.add_argument('--save-cfg', dest='save_cfg', action='store_true')
+    args, _ = parser.parse_known_args(argv)
 
-    from pathlib import Path
     jobs_root_path = Path(__file__).parent / 'data'
 
     data = []
-    if args.file:
-        with open(args.file) as data_file:
-            data = json.load(data_file, object_hook=JobConfig.object_decoder)
-    if not len(data):
+    if args.file or not argv:
+        fp = args.file or CONFIG_FILE
+        logging.info("Loading config from %s", fp)
+        with open(fp) as fp:
+            data = json.load(fp, object_hook=JobConfig.object_decoder)
+    else:
         job_config = JobConfig()
         job_config.load_from_cliargs(args)
         data = (job_config,)
+        if args.save_cfg:
+            logging.info("Storing config in %s", CONFIG_FILE)
+            with open(CONFIG_FILE, 'w') as fp:
+                json.dump(data, fp, indent=2)
 
     context = zmq.Context()
     pub_socket = context.socket(zmq.PUB)
