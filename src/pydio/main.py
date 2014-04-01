@@ -32,6 +32,7 @@ logging.debug("PYTHONPATH: %s", "\n\t".join(os.environ.get('PYTHONPATH', "").spl
 
 # Most imports are placed after we have logged import path
 # so we can easily debug import problems
+
 import argparse
 import json
 import thread
@@ -45,6 +46,8 @@ CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
 
 
 def main(argv=sys.argv[1:]):
+
+    setup_logging()
 
     parser = argparse.ArgumentParser('Pydio Synchronization Tool')
     parser.add_argument('-s', '--server', help='Server URL, with http(s) and path to pydio', type=unicode, default='http://localhost')
@@ -74,7 +77,7 @@ def main(argv=sys.argv[1:]):
         if args.save_cfg:
             logging.info("Storing config in %s", CONFIG_FILE)
             with open(CONFIG_FILE, 'w') as fp:
-                json.dump(data, fp, indent=2)
+                json.dump((job_config.__dict__,), fp, indent=2)
 
     context = zmq.Context()
     pub_socket = context.socket(zmq.PUB)
@@ -142,6 +145,54 @@ def main(argv=sys.argv[1:]):
 
     except (KeyboardInterrupt, SystemExit):
         sys.exit()
+
+
+def setup_logging():
+    import appdirs
+    location = Path(str(appdirs.user_log_dir("pydio", "pydio")))
+    if not location.exists():
+        location.mkdir(parents=True)
+    log_file = str(location / "pydio.log")
+
+    configuration = {
+        'version': 1,
+        'disable_existing_loggers': True,
+        'formatters': {
+            'short': {
+                'format': '%(asctime)s %(message)s',
+                'datefmt': '%H:%M:%S',
+            },
+            # this will slow down the app a little, due to
+            'verbose': {
+                'format': '%(asctime)s %(levelname)-7s %(filename)s:%(lineno)s | %(funcName)s | %(message)s',
+                'datefmt': '%Y-%m-%d %H:%M:%S',
+            },
+        },
+        'handlers': {
+            'file': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'formatter': 'verbose',
+                'backupCount': 3,
+                'maxBytes': 4194304,  # 4MB
+                'filename': log_file
+            },
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+                'formatter': 'short',
+            },
+        },
+        'root': {
+            'level': 'DEBUG',
+            'handlers': ['console', 'file'],
+        }
+
+    }
+    import logging.config
+    logging.config.dictConfig(configuration)
+    logging.info("Logging setup changed")
+
 
 if __name__ == "__main__":
     main()
