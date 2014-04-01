@@ -22,6 +22,7 @@ import hashlib
 import stat
 from exceptions import SystemSdkException
 from pydio.utils.functions import hashfile
+import shutil
 
 class SystemSdk(object):
 
@@ -56,6 +57,7 @@ class SystemSdk(object):
         if not os.path.exists(self.basepath + path):
             return True
         try:
-            os.rmdir(self.basepath + path)
+            shutil.rmtree(self.basepath + path)
+            #os.rmdir(self.basepath + path)
         except OSError as e:
             raise SystemSdkException('delete', path, 'cannot remove folder')

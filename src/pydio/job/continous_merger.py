@@ -34,7 +34,8 @@ from pydio.sdk.exceptions import ProcessException
 from pydio.sdk.remote import PydioSdk
 from pydio.sdk.local import SystemSdk
 
-
+from pydispatch import dispatcher
+PROGRESS_SIGNAL = 'progress'
 # -*- coding: utf-8 -*-
 
 
@@ -45,6 +46,7 @@ class ContinuousDiffMerger(threading.Thread):
         threading.Thread.__init__(self)
         self.data_base = job_data_path
         self.job_config = job_config
+        self.progress = 0
 
         self.basepath = job_config.directory
         self.ws_id = job_config.workspace
@@ -82,7 +84,10 @@ class ContinuousDiffMerger(threading.Thread):
                                         job_config.filters['includes'],
                                         job_config.filters['excludes'],
                                         job_data_path)
+        dispatcher.connect( self.handle_progress_event, signal=PROGRESS_SIGNAL, sender=dispatcher.Any )
 
+    def handle_progress_event(self, sender, progress):
+        self.info('Job progress is %i' % progress)
 
     def pause(self):
         self.job_status_running = False
@@ -109,7 +114,7 @@ class ContinuousDiffMerger(threading.Thread):
                     continue
 
                 if not self.system.check_basepath():
-                    logging.info('Cannot find local folder! Did you disconnect a volume?')
+                    logging.info('Cannot find local folder! Did you disconnect a volume? Waiting %s seconds before retry' % self.offline_timer)
                     time.sleep(self.offline_timer)
                     continue
 
@@ -124,12 +129,12 @@ class ContinuousDiffMerger(threading.Thread):
                         self.remote_target_seq = 1
                         self.ping_remote()
                 except ConnectionError as ce:
-                    logging.info('No connection detected, waiting to retry')
+                    logging.info('No connection detected, waiting %s seconds to retry' % self.offline_timer)
                     self.online_status = False
                     time.sleep(self.offline_timer)
                     continue
                 except Exception as e:
-                    logging.info('Error while connecting to remote server: ' + e.message)
+                    logging.info('Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % e.message, self.offline_timer)
                     self.online_status = False
                     time.sleep(self.offline_timer)
                     continue
@@ -154,6 +159,7 @@ class ContinuousDiffMerger(threading.Thread):
                     continue
 
                 logging.info('Processing changes')
+                i = 0
                 for change in changes:
                     try:
                         self.process_change(change)
@@ -162,11 +168,14 @@ class ContinuousDiffMerger(threading.Thread):
                         logging.error(pe.message)
                     except OSError as e:
                         logging.error(e.message)
+                    dispatcher.send(signal=PROGRESS_SIGNAL, sender=self, progress=int(100 * i / len(changes)))
+                    i += 1
                     if self.interrupt:
                         break
                     time.sleep(0.01)
             except OSError as e:
                 logging.error('Type Error! ')
+            logging.info('Finished applying changes, waiting for %i seconds' % self.online_timer)
             time.sleep(self.online_timer)
 
     def remove_seq(self, seq_id, location):

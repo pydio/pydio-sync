@@ -360,73 +360,92 @@ class SqlEventHandler(FileSystemEventHandler):
         target_key = self.remove_prefix(self.get_unicode_path(event.dest_path))
         source_key = self.remove_prefix(self.get_unicode_path(event.src_path))
 
-        conn = sqlite3.connect(self.db)
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        node_id = None
-        for row in c.execute("SELECT node_id FROM ajxp_index WHERE node_path=?", (source_key,)):
-            node_id = row['node_id']
-            break
-        c.close()
-        if not node_id:
-            # detected a move but node not found: create it
-            self.updateOrInsert(self.get_unicode_path(event.dest_path), event.is_directory, True, force_insert=True)
-        else:
+        try:
             conn = sqlite3.connect(self.db)
-            t = (
-                self.remove_prefix(self.get_unicode_path(event.dest_path)),
-                self.remove_prefix(self.get_unicode_path(event.src_path)),
-            )
-            conn.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", t)
-            conn.commit()
-            conn.close()
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            node_id = None
+            for row in c.execute("SELECT node_id FROM ajxp_index WHERE node_path=?", (source_key,)):
+                node_id = row['node_id']
+                break
+            c.close()
+            if not node_id:
+                # detected a move but node not found: create it
+                self.updateOrInsert(self.get_unicode_path(event.dest_path), event.is_directory, True, force_insert=True)
+            else:
+                conn = sqlite3.connect(self.db)
+                t = (
+                    self.remove_prefix(self.get_unicode_path(event.dest_path)),
+                    self.remove_prefix(self.get_unicode_path(event.src_path)),
+                )
+                conn.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", t)
+                conn.commit()
+                conn.close()
+        except Exception as ex:
+            logging.error(ex)
+        except Error as e:
+            logging.error(e)
 
     def on_created(self, event):
         if not self.included(event):
             return
         logging.debug("Event: creation noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
+        try:
+            src_path = self.get_unicode_path(event.src_path)
+            if not os.path.exists(src_path):
+                return
 
-        src_path = self.get_unicode_path(event.src_path)
-        if not os.path.exists(src_path):
-            return
-
-        self.updateOrInsert(src_path, is_directory=event.is_directory, skip_nomodif=False)
+            self.updateOrInsert(src_path, is_directory=event.is_directory, skip_nomodif=False)
+        except Exception as ex:
+            logging.error(ex)
+        except Error as e:
+            logging.error(e)
 
     def on_deleted(self, event):
         if not self.included(event):
             return
         logging.debug("Event: deletion noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
-        src_path = self.get_unicode_path(event.src_path)
-        conn = sqlite3.connect(self.db)
-        conn.execute("DELETE FROM ajxp_index WHERE node_path LIKE ?", (self.remove_prefix(src_path) + '%',))
-        conn.commit()
-        conn.close()
+        try:
+            src_path = self.get_unicode_path(event.src_path)
+            conn = sqlite3.connect(self.db)
+            conn.execute("DELETE FROM ajxp_index WHERE node_path LIKE ?", (self.remove_prefix(src_path) + '%',))
+            conn.commit()
+            conn.close()
+        except Exception as ex:
+            logging.error(ex)
+        except Error as e:
+            logging.error(e)
 
     def on_modified(self, event):
         super(SqlEventHandler, self).on_modified(event)
         if not self.included(event):
             logging.debug('ignoring modified event ' + event.src_path)
             return
-        src_path = self.get_unicode_path(event.src_path)
-        if event.is_directory:
-            files_in_dir = [src_path+"/"+f for f in os.listdir(src_path)]
-            if len(files_in_dir) > 0:
-                modified_filename = max(files_in_dir, key=os.path.getmtime)
+        try:
+            src_path = self.get_unicode_path(event.src_path)
+            if event.is_directory:
+                files_in_dir = [src_path+"/"+f for f in os.listdir(src_path)]
+                if len(files_in_dir) > 0:
+                    modified_filename = max(files_in_dir, key=os.path.getmtime)
+                else:
+                    return
+                if os.path.isfile(modified_filename) and self.included(event=None, base=self.remove_prefix(modified_filename)):
+                    logging.debug("Event: modified file 1 : %s" % self.remove_prefix(modified_filename))
+                    self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
             else:
-                return
-            if os.path.isfile(modified_filename) and self.included(event=None, base=self.remove_prefix(modified_filename)):
-                logging.debug("Event: modified file 1 : %s" % self.remove_prefix(modified_filename))
+                modified_filename = src_path
+                if not os.path.exists(src_path):
+                    return
+                if not self.included(event=None, base=self.remove_prefix(modified_filename)):
+                    return
+                logging.debug("Event: modified file : %s" % self.remove_prefix(modified_filename))
                 self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
-        else:
-            modified_filename = src_path
-            if not os.path.exists(src_path):
-                return
-            if not self.included(event=None, base=self.remove_prefix(modified_filename)):
-                return
-            logging.debug("Event: modified file : %s" % self.remove_prefix(modified_filename))
-            self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
+        except Exception as ex:
+            logging.error(ex)
+        except Error as e:
+            logging.error(e)
 
     def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert = False):
         search_key = self.remove_prefix(src_path)
