@@ -61,6 +61,8 @@ class JobConfig:
         if args.password:
             keyring.set_password(self.server, args.user, args.password)
         self.user_id = args.user
+        if args.direction:
+            self.direction = args.direction
 
     @staticmethod
     def object_decoder(obj):

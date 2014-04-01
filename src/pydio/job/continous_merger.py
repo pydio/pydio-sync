@@ -29,6 +29,7 @@ from requests.exceptions import ConnectionError
 import zmq
 
 from pydio.job.localdb import LocalDbHandler
+from pydio.job.local_watcher import LocalWatcher
 from pydio.sdk.exceptions import ProcessException
 from pydio.sdk.remote import PydioSdk
 from pydio.sdk.local import SystemSdk
@@ -76,6 +77,13 @@ class ContinuousDiffMerger(threading.Thread):
             self.remote_seq = sequences['remote']
             self.local_seq = sequences['local']
 
+        if job_config.direction != 'down':
+            self.watcher = LocalWatcher(job_config.directory,
+                                        job_config.filters['includes'],
+                                        job_config.filters['excludes'],
+                                        job_data_path)
+
+
     def pause(self):
         self.job_status_running = False
         self.info('Job Paused', toUser='PAUSE', channel='status')
@@ -85,11 +93,15 @@ class ContinuousDiffMerger(threading.Thread):
         self.info('Job Started', toUser='START', channel='status')
 
     def stop(self):
+        if hasattr(self, 'watcher'):
+            self.watcher.stop()
         self.interrupt = True
 
     def run(self):
-        while not self.interrupt:
+        if hasattr(self, 'watcher'):
+            self.watcher.start()
 
+        while not self.interrupt:
             try:
 
                 if not self.job_status_running:
@@ -101,11 +113,16 @@ class ContinuousDiffMerger(threading.Thread):
                     time.sleep(self.offline_timer)
                     continue
 
+                # Load local and/or remote changes, depending on the direction
                 local_changes = dict(data=dict(), path_to_seqs=dict())
                 remote_changes = dict(data=dict(), path_to_seqs=dict())
-                logging.info('Loading remote changes with sequence ' + str(self.remote_seq))
                 try:
-                    self.remote_target_seq = self.get_remote_changes(self.remote_seq, remote_changes)
+                    if self.job_config.direction != 'up':
+                        logging.info('Loading remote changes with sequence ' + str(self.remote_seq))
+                        self.remote_target_seq = self.get_remote_changes(self.remote_seq, remote_changes)
+                    else:
+                        self.remote_target_seq = 1
+                        self.ping_remote()
                 except ConnectionError as ce:
                     logging.info('No connection detected, waiting to retry')
                     self.online_status = False
@@ -117,8 +134,13 @@ class ContinuousDiffMerger(threading.Thread):
                     time.sleep(self.offline_timer)
                     continue
                 self.online_status = True
-                logging.info('Loading local changes with sequence ' + str(self.local_seq))
-                self.local_target_seq = self.db_handler.get_local_changes(self.local_seq, local_changes)
+
+                if self.job_config.direction != 'down':
+                    logging.info('Loading local changes with sequence ' + str(self.local_seq))
+                    self.local_target_seq = self.db_handler.get_local_changes(self.local_seq, local_changes)
+                else:
+                    self.local_target_seq = 1
+
                 self.local_seqs = local_changes['data'].keys() #map(lambda x:x['seq'], local_changes)
                 self.remote_seqs = remote_changes['data'].keys() #map(lambda x:x['seq'], remote_changes)
                 logging.info('Reducing changes')
@@ -176,6 +198,10 @@ class ContinuousDiffMerger(threading.Thread):
             return self.sdk.stat(path, with_hash)
         else:
             return self.system.stat(path, with_hash=True)
+
+    def ping_remote(self):
+        test = self.sdk.stat('/')
+        return (test != False)
 
     def filter_change(self, item, my_stat=None, other_stats=None):
 

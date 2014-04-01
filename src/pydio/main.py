@@ -29,7 +29,6 @@ import zmq
 import thread
 
 from job.continous_merger import ContinuousDiffMerger
-from job.local_watcher import LocalWatcher
 from job.job_config import JobConfig
 
 def main(args=sys.argv[1:]):
@@ -45,6 +44,7 @@ def main(args=sys.argv[1:]):
     parser.add_argument('-r', '--remote_folder', help='Path to an existing folder of the workspace to synchronize', type=unicode, default=None)
     parser.add_argument('-u', '--user', help='User name', type=unicode, default=None)
     parser.add_argument('-p', '--password', help='Password', type=unicode, default=None)
+    parser.add_argument('-dir', '--direction', help='Synchro Direction', type=str, default='bi')
     parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
     parser.add_argument('-z', '--zmq_port', type=int, help='Available port for zmq, both this port and this port +1 will be used', default=5556)
     args, _ = parser.parse_known_args(args)
@@ -76,16 +76,12 @@ def main(args=sys.argv[1:]):
                 job_data_path.mkdir(parents=True)
             job_data_path = str(job_data_path)
 
-
-            watcher = LocalWatcher(job_config.directory, job_config.filters['includes'], job_config.filters['excludes'], job_data_path)
             merger = ContinuousDiffMerger(job_config, job_data_path=job_data_path, pub_socket=pub_socket)
             try:
-                watcher.start()
                 merger.start()
                 controlThreads.append(merger)
             except (KeyboardInterrupt, SystemExit):
                 merger.stop()
-                watcher.stop()
 
         rep_socket = context.socket(zmq.REP)
         rep_socket.bind("tcp://*:%s" % (args.zmq_port + 1))
