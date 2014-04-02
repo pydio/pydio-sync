@@ -134,7 +134,7 @@ class ContinuousDiffMerger(threading.Thread):
                     time.sleep(self.offline_timer)
                     continue
                 except Exception as e:
-                    logging.info('Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % e.message, self.offline_timer)
+                    logging.info('Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer))
                     self.online_status = False
                     time.sleep(self.offline_timer)
                     continue
@@ -158,24 +158,27 @@ class ContinuousDiffMerger(threading.Thread):
                     time.sleep(self.offline_timer)
                     continue
 
-                logging.info('Processing changes')
-                i = 0
-                for change in changes:
-                    try:
-                        self.process_change(change)
-                        self.remove_seq(change['seq'], change['location'])
-                    except ProcessException as pe:
-                        logging.error(pe.message)
-                    except OSError as e:
-                        logging.error(e.message)
-                    dispatcher.send(signal=PROGRESS_SIGNAL, sender=self, progress=int(100 * i / len(changes)))
-                    i += 1
-                    if self.interrupt:
-                        break
-                    time.sleep(0.01)
+                if len(changes):
+                    logging.info('Processing %i changes' % len(changes))
+                    i = 0
+                    for change in changes:
+                        try:
+                            self.process_change(change)
+                            self.remove_seq(change['seq'], change['location'])
+                        except ProcessException as pe:
+                            logging.error(pe.message)
+                        except OSError as e:
+                            logging.error(e.message)
+                        dispatcher.send(signal=PROGRESS_SIGNAL, sender=self, progress=int(100 * i / len(changes)))
+                        i += 1
+                        if self.interrupt:
+                            break
+                        time.sleep(0.01)
+                else:
+                    logging.info('No changes detected')
             except OSError as e:
                 logging.error('Type Error! ')
-            logging.info('Finished applying changes, waiting for %i seconds' % self.online_timer)
+            logging.info('Finished this cycle, waiting for %i seconds' % self.online_timer)
             time.sleep(self.online_timer)
 
     def remove_seq(self, seq_id, location):

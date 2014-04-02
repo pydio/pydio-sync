@@ -32,7 +32,7 @@ from job.continous_merger import ContinuousDiffMerger
 from job.job_config import JobConfig
 
 def main(args=sys.argv[1:]):
-    logging.basicConfig(level=logging.DEBUG,
+    logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger("requests").setLevel(logging.WARNING)
