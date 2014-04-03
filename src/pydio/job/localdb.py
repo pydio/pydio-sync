@@ -336,7 +336,8 @@ class SqlEventHandler(FileSystemEventHandler):
         return src
 
     def remove_prefix(self, text):
-        return text[len(self.base):] if text.startswith(self.base) else text
+        text = text[len(self.base):] if text.startswith(self.base) else text
+        return os.path.normpath(text)
 
     def included(self, event, base=None):
         if not base:
