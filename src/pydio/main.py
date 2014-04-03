@@ -202,7 +202,7 @@ def setup_logging():
                 'filename': log_file
             },
             'console': {
-                'level': 'DEBUG',
+                'level': 'WARNING',
                 'class': 'logging.StreamHandler',
                 'formatter': 'short',
             },
