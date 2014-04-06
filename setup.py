@@ -24,13 +24,15 @@ setup_kwargs = {
     # 'scripts':  ['py/pydio.py'],
     'package_dir': {'': 'src'},
     'install_requires': [str(r.req) for r in install_requires],
-
-    # 'package_data': {457
+    "package_data": {
+        'pydio': ['res/*.sql']
+    },
+    # 'data_files': [
     #     # If any package contains *.txt or *.rst files, include them:
-    #     '': ['*.txt', '*.rst'],
-    #     # And include any *.msg files found in the 'hello' package, too:
-    #     'hello': ['*.msg'],
-    # },
+    #     # '': ['*.txt', '*.rst'],
+    #     ('pydio', ['res/*.sql']),
+    # ],
+    # 'include_package_data': True,
 
     # metadata for upload to PyPI
     'author': "Charles du Jeu",
