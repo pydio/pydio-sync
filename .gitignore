@@ -10,3 +10,4 @@ dist/
 tmp/
 data/
 pydio.spec
+src/pydio.egg-info/

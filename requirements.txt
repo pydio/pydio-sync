@@ -1,6 +1,7 @@
 PyInstaller==2.1
 PyDispatcher==2.0.3
 PyYAML==3.10
+appdirs==1.2.0
 argh==0.24.1
 keyring==3.6
 pathlib==0.97
