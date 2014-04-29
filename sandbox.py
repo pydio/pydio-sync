@@ -59,7 +59,7 @@ def install_requirements():
     # Install requirements
     import pip
     logging.debug("pip: %s" % pip.__file__)
-    target = os.path.join(os.path.dirname(os.path.abspath(__file__)), VE_NAME, "lib", "site-packages")
+    # target = os.path.join(os.path.dirname(os.path.abspath(__file__)), VE_NAME, "lib", "site-packages")
     # args = "install -r requirements.txt --target {}".format(target)  # this will install to the right place but will not look for dependencies in this place
     args = "install -r requirements.txt -vvv"
     pip.main(args.split(" "))
@@ -82,7 +82,13 @@ def build_installer():
     # PyInstaller.main.run(["--onefile", "--windowed", "--noconsole", app])
     # PyInstaller.main.run(["--onefile --name=pydio", app])
     hooks = os.path.join(ROOT, "pyi_hooks")
-    args = "--name=pydio --hidden-import=pydio --onedir --debug --additional-hooks-dir={} --paths={} {}".format(hooks, src, app)
+
+    # debugging build, multiple files
+    # args = "--name=pydio --hidden-import=pydio --onedir --debug --additional-hooks-dir={} --paths={} {}".format(hooks, src, app)
+
+    # production build, one file
+    args = "--name=pydio --hidden-import=pydio --onefile --name=pydio --debug --additional-hooks-dir={} --paths={} {}".format(hooks, src, app)
+
     # makespec command does not support passing custom arguments we need to override sys.argv
     argv = sys.argv
     sys.argv = argv[0:1] + args.split(" ")
