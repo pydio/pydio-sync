@@ -23,7 +23,6 @@ import sys
 import os
 import sys
 import argparse
-
 import json
 import zmq
 import thread
@@ -48,7 +47,6 @@ def main(args=sys.argv[1:]):
     parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
     parser.add_argument('-z', '--zmq_port', type=int, help='Available port for zmq, both this port and this port +1 will be used', default=5556)
     args, _ = parser.parse_known_args(args)
-
     from pathlib import Path
     jobs_root_path = Path(__file__).parent / 'data'
 
@@ -85,26 +83,36 @@ def main(args=sys.argv[1:]):
 
         rep_socket = context.socket(zmq.REP)
         rep_socket.bind("tcp://*:%s" % (args.zmq_port + 1))
+
+        watch_socket = context.socket(zmq.REP)
+        watch_socket.bind("tcp://*:%s" % (args.zmq_port + 2))
         def listen_to_REP():
             while True:
                 message = str(rep_socket.recv())
+                reply = "undefined reply"
                 logging.info('Received message from REP socket ' + message)
                 parts = message.split(' ', 2)
-                msg = 'status updated'
                 if message.startswith('PAUSE'):
                     logging.info("SHOULD PAUSE")
                     if len(parts) > 1 and int(parts[1]) in controlThreads:
                         controlThreads[int(parts[1])].pause()
+                        if not t.is_running():
+                            reply = "PAUSED"
                     else:
                         for t in controlThreads:
                             t.pause()
+                            if not t.is_running():
+                                reply = "PAUSED"
                 elif message.startswith('START'):
                     logging.info("SHOULD START")
                     if len(parts) > 1 and int(parts[1]) in controlThreads:
                         controlThreads[int(parts[1])].resume()
+                        reply = "RUNNING"
                     else:
                         for t in controlThreads:
                             t.resume()
+                            reply = "RUNNING"
+
                 elif str(message).startswith('RELOAD') and len(parts) > 1 and int(parts[1]) in controlThreads:
                     # Todo: implement the reload of the config data
                     pass
@@ -112,18 +120,32 @@ def main(args=sys.argv[1:]):
                     data = []
                     for t in controlThreads:
                         data.append(t.job_config.server + ' - ' + t.job_config.directory)
-                    msg = json.dumps(data)
+                    reply = json.dumps(data)
 
                 try:
-                    rep_socket.send(msg)
+                    rep_socket.send(reply)
                 except Exception as e:
                     logging.error(e)
 
+        def listen_to_watcher():
+            while True:
+                message = str(watch_socket.recv())
+                logging.info("Received ping from watcher :" + message)
+                for t in controlThreads:
+                    if not t.is_running():
+                        reply = "PAUSED"
+                    else:
+                        reply = "RUNNING"
+                try:
+                    watch_socket.send(reply)
+                except Exception as e:
+                    logging.error(e)
         # Create thread as follows
         try:
-           thread.start_new_thread( listen_to_REP, () )
+            thread.start_new_thread(listen_to_REP, ())
+            thread.start_new_thread(listen_to_watcher(), ())
         except Exception as e:
-           logging.error(e)
+            logging.error(e)
 
     except (KeyboardInterrupt, SystemExit):
         sys.exit()

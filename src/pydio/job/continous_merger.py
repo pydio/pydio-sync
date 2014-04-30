@@ -40,7 +40,7 @@ PROGRESS_SIGNAL = 'progress'
 
 
 class ContinuousDiffMerger(threading.Thread):
-    """Main Thread grabing changes from both sides, computing the necessary changes to apply, and applying them"""
+    """Main Thread grabbing changes from both sides, computing the necessary changes to apply, and applying them"""
 
     def __init__(self, job_config, job_data_path, pub_socket=False):
         threading.Thread.__init__(self)
@@ -88,6 +88,9 @@ class ContinuousDiffMerger(threading.Thread):
 
     def handle_progress_event(self, sender, progress):
         self.info('Job progress is %i' % progress)
+
+    def is_running(self):
+        return self.job_status_running
 
     def pause(self):
         self.job_status_running = False
@@ -160,7 +163,7 @@ class ContinuousDiffMerger(threading.Thread):
 
                 if len(changes):
                     logging.info('Processing %i changes' % len(changes))
-                    i = 0
+                    i = 1
                     for change in changes:
                         try:
                             self.process_change(change)
@@ -169,7 +172,9 @@ class ContinuousDiffMerger(threading.Thread):
                             logging.error(pe.message)
                         except OSError as e:
                             logging.error(e.message)
-                        dispatcher.send(signal=PROGRESS_SIGNAL, sender=self, progress=int(100 * i / len(changes)))
+                        progress_percent = 100 * i / len(changes)
+                        dispatcher.send(signal=PROGRESS_SIGNAL, sender=self, progress=progress_percent)
+                        #self.pub_socket.send_string("sync" + ' ' + str(i) + "/" + str(len(changes)) + " changes done : " + str(progressPercent) + "%")
                         i += 1
                         if self.interrupt:
                             break
