@@ -54,7 +54,9 @@ def main(args=sys.argv[1:]):
     jobs_root_path = Path(__file__).parent / 'data'
 
     if args.smoke_test:
-        SmokeTests.run()
+        smoke_tests = SmokeTests(
+            args.server, args.workspace, args.remote_folder, args.user)
+        smoke_tests.run()
         return
 
     data = []
