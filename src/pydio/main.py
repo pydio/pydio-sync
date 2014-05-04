@@ -29,6 +29,8 @@ import thread
 
 from job.continous_merger import ContinuousDiffMerger
 from job.job_config import JobConfig
+from test.smoke_test import SmokeTests
+
 
 def main(args=sys.argv[1:]):
     logging.basicConfig(level=logging.INFO,
@@ -46,9 +48,14 @@ def main(args=sys.argv[1:]):
     parser.add_argument('-dir', '--direction', help='Synchro Direction', type=str, default='bi')
     parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
     parser.add_argument('-z', '--zmq_port', type=int, help='Available port for zmq, both this port and this port +1 will be used', default=5556)
+    parser.add_argument('-st', '--smoke_test', help='runs smoke tests', action='store_true', default=False)
     args, _ = parser.parse_known_args(args)
     from pathlib import Path
     jobs_root_path = Path(__file__).parent / 'data'
+
+    if args.smoke_test:
+        SmokeTests.run()
+        return
 
     data = []
     if args.file:
