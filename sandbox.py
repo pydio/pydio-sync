@@ -91,9 +91,10 @@ def build_installer():
         # if a build system variable is present build with descriptive name
         # TODO: 07.05.14 wooyek We need fo factor a release workflow. Will it be automatic or human triggered?
         # Not sure this should live here, but the less depends on build server setup the better
-        vcs_number = os.environ.get("BUILD_VCS_NUMBER", "hashmissing")
+        vcs_number = os.environ.get("BUILD_VCS_NUMBER")[:7]
         ts = datetime.now().strftime("%Y%m%d%H%M%S")
-        name = "{}-{}-{}".format(name, ts, vcs_number)
+        platform = sys.platform
+        name = "{}-{}-{}-{}".format(name, platform, ts, vcs_number)
 
     # debugging build, multiple files
     # args = "--name=pydio --hidden-import=pydio --onedir --debug --additional-hooks-dir={} --paths={} {}".format(hooks, src, app)
