@@ -156,7 +156,10 @@ def install_qt():
 def diagnostics(name):
     binary = os.path.join(ROOT, "dist", (name + ".exe") if is_win else name)
     cmd = binary + " --file . --diag --diag-http"
-    subprocess.call(cmd.split(" "))
+    rc = subprocess.call(cmd.split(" "))
+    if rc != 0:
+        logging.error("Self diagnostics have failed")
+        sys.exit(rc)
 
 if __name__ == "__main__":
     logging.debug("sys.platform: %s" % sys.platform)
