@@ -95,7 +95,7 @@ def main(argv=sys.argv[1:]):
     if args.file or not argv:
         fp = args.file
         if not fp or fp == '.':
-            fb = DEFAULT_CONFIG_FILE
+            fp = DEFAULT_CONFIG_FILE
         logging.info("Loading config from %s", fp)
         with open(fp) as fp:
             data = json.load(fp, object_hook=JobConfig.object_decoder)
