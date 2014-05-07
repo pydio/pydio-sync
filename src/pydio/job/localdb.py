@@ -340,16 +340,24 @@ class SqlEventHandler(FileSystemEventHandler):
         return os.path.normpath(text)
 
     def included(self, event, base=None):
+        path = ''
         if not base:
             if hasattr(event, 'dest_path'):
                 base = os.path.basename(event.dest_path)
+                path = self.remove_prefix(self.get_unicode_path(event.dest_path))
             else:
                 base = os.path.basename(event.src_path)
+                path = self.remove_prefix(self.get_unicode_path(event.src_path))
+        if path == '.':
+            return False
         for i in self.includes:
             if not fnmatch.fnmatch(base, i):
                 return False
         for e in self.excludes:
             if fnmatch.fnmatch(base, e):
+                return False
+        for e in self.excludes:
+            if (e.startswith('/') or e.startswith('*/')) and fnmatch.fnmatch(path, e):
                 return False
         return True
 

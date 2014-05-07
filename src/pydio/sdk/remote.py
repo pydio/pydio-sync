@@ -111,6 +111,11 @@ class PydioSdk():
         resp = requests.get(url=url, auth=self.auth)
         return resp.content
 
+    def mkfile(self, path):
+        url = self.url + '/mkfile' + urllib.pathname2url((self.remote_folder + path).encode('utf-8'))
+        resp = requests.get(url=url, auth=self.auth)
+        return resp.content
+
     def rename(self, source, target):
         if os.path.dirname(source) == os.path.dirname(target):
             url = self.url + '/rename'
@@ -128,7 +133,12 @@ class PydioSdk():
     def upload(self, local, local_stat, path):
         if not local_stat:
             raise PydioSdkException('upload', path, 'local file to upload not found!')
-
+        if local_stat['size'] == 0:
+            self.mkfile(path)
+            new = self.stat(path)
+            if not new or not (new['size'] == local_stat['size']):
+                raise PydioSdkException('upload', path, 'File not correct after upload (expected size was 0 bytes)')
+            return True
         url = self.url + '/upload/put' + urllib.pathname2url((self.remote_folder + os.path.dirname(path)).encode('utf-8'))
         files = {'userfile_0': ('my-name',open(local, 'rb'))}
         data = {'force_post':'true', 'urlencoded_filename':urllib.pathname2url(os.path.basename(path).encode('utf-8'))}

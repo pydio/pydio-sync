@@ -2,6 +2,7 @@
 # Created 2014 by Janusz Skonieczny
 
 # coding=utf-8
+from datetime import datetime
 import logging
 import os
 import sys
@@ -83,11 +84,21 @@ def build_installer():
     # PyInstaller.main.run(["--onefile --name=pydio", app])
     hooks = os.path.join(ROOT, "pyi_hooks")
 
+    name = "pydio-sync-agent"
+
+    if "BUILD_VCS_NUMBER" in os.environ:
+        # if a build system variable is present build with descriptive name
+        # TODO: 07.05.14 wooyek We need fo factor a release workflow. Will it be automatic or human triggered?
+        # Not sure this should live here, but the less depends on build server setup the better
+        vcs_number = os.environ.get("BUILD_VCS_NUMBER", "hashmissing")
+        ts = datetime.now().strftime("%Y%m%d%H%M%S")
+        name = "{}-{}-{}".format(name, ts, vcs_number)
+
     # debugging build, multiple files
     # args = "--name=pydio --hidden-import=pydio --onedir --debug --additional-hooks-dir={} --paths={} {}".format(hooks, src, app)
 
     # production build, one file
-    args = "--name=pydio --hidden-import=pydio --onefile --name=pydio --debug --additional-hooks-dir={} --paths={} {}".format(hooks, src, app)
+    args = "--name=pydio --hidden-import=pydio --onefile --name={} --debug --additional-hooks-dir={} --paths={} {}".format(name, hooks, src, app)
 
     # makespec command does not support passing custom arguments we need to override sys.argv
     argv = sys.argv
@@ -97,7 +108,7 @@ def build_installer():
     PyInstaller.cliutils.makespec.run()
     sys.argv = argv
 
-    spec = os.path.join(ROOT, "pydio.spec")
+    spec = os.path.join(ROOT, name + ".spec")
     import PyInstaller.main
     logging.info("Running PyInstaller.main %s", spec)
     PyInstaller.main.run(["--noconfirm", "--clean", spec])
