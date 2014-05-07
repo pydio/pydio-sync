@@ -30,6 +30,7 @@ import thread
 from job.continous_merger import ContinuousDiffMerger
 from job.job_config import JobConfig
 from test.smoke_test import SmokeTests
+from test import config_ports
 
 
 def main(args=sys.argv[1:]):
@@ -66,9 +67,12 @@ def main(args=sys.argv[1:]):
         job_config.load_from_cliargs(args)
         data = (job_config,)
 
+
+    config_ports.create_config_file()
     context = zmq.Context()
     pub_socket = context.socket(zmq.PUB)
-    pub_socket.bind("tcp://*:%s" % args.zmq_port)
+    port = config_ports.get_open_port("pub_socket")
+    pub_socket.bind("tcp://*:%s" % port)
 
     try:
         controlThreads = []
@@ -89,10 +93,12 @@ def main(args=sys.argv[1:]):
                 merger.stop()
 
         rep_socket = context.socket(zmq.REP)
-        rep_socket.bind("tcp://*:%s" % (args.zmq_port + 1))
+        port = config_ports.get_open_port("command_socket")
+        rep_socket.bind("tcp://*:%s" % port)
 
         watch_socket = context.socket(zmq.REP)
-        watch_socket.bind("tcp://*:%s" % (args.zmq_port + 2))
+        port = config_ports.get_open_port("watch_socket")
+        watch_socket.bind("tcp://*:%s" % port)
         def listen_to_REP():
             while True:
                 message = str(rep_socket.recv())
