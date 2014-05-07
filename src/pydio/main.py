@@ -21,23 +21,49 @@
 import logging
 import sys
 import os
-import sys
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-7s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+logging.getLogger().setLevel(logging.DEBUG)
+logging.disable(logging.NOTSET)
+logging.getLogger("requests").setLevel(logging.WARNING)
+
+logging.debug("sys.path: %s", "\n\t".join(sys.path))
+logging.debug("PYTHONPATH: %s", "\n\t".join(os.environ.get('PYTHONPATH', "").split(';')))
+
+# Most imports are placed after we have logged import path
+# so we can easily debug import problems
+
 import argparse
 import json
 import zmq
 import thread
+from pathlib import Path
+
+if __name__ == "__main__":
+    pydio_module = os.path.dirname(os.path.abspath(__file__))
+    logging.debug("sys.platform: %s" % sys.platform)
+    if sys.platform == "win32":
+        pydio_module = pydio_module.replace("/", "\\")
+    logging.debug("pydio_module: %s" % pydio_module)
+    if pydio_module in sys.path:
+        # if this module was run directly it will mess up imports
+        # we need to correct sys.path
+        logging.debug("Removing from sys.path: %s" % pydio_module)
+        sys.path.remove(pydio_module)
+        logging.debug("Prepending to sys.path: %s" % os.path.dirname(pydio_module))
+        sys.path.insert(0, os.path.dirname(pydio_module))
+
+DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
+
 
 from job.continous_merger import ContinuousDiffMerger
 from job.job_config import JobConfig
-from test.smoke_test import SmokeTests
+from test.smoke_test import PydioDiagnostics
 from test import config_ports
 
 
-def main(args=sys.argv[1:]):
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s - %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S')
-    logging.getLogger("requests").setLevel(logging.WARNING)
+def main(argv=sys.argv[1:]):
+
 
     parser = argparse.ArgumentParser('Pydio Synchronization Tool')
     parser.add_argument('-s', '--server', help='Server URL, with http(s) and path to pydio', type=unicode, default='http://localhost')
@@ -49,25 +75,51 @@ def main(args=sys.argv[1:]):
     parser.add_argument('-dir', '--direction', help='Synchro Direction', type=str, default='bi')
     parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
     parser.add_argument('-z', '--zmq_port', type=int, help='Available port for zmq, both this port and this port +1 will be used', default=5556)
-    parser.add_argument('-st', '--smoke_test', help='runs smoke tests', action='store_true', default=False)
-    args, _ = parser.parse_known_args(args)
-    from pathlib import Path
+    parser.add_argument('--diag', help='Run self diagnostic', action='store_true', default=False)
+    parser.add_argument('--diag-http', help='Check server connection', action='store_true', default=False)
+    parser.add_argument('--save-cfg', action='store_true')
+    parser.add_argument('--auto-start', action='store_true')
+    parser.add_argument('-v', '--verbose', action='count', )
+    args, _ = parser.parse_known_args(argv)
+
+    setup_logging(args.verbose)
+
     jobs_root_path = Path(__file__).parent / 'data'
 
-    if args.smoke_test:
-        smoke_tests = SmokeTests(
-            args.server, args.workspace, args.remote_folder, args.user)
-        smoke_tests.run()
-        return
+    if args.auto_start:
+        import pydio.autostart
+        pydio.autostart.setup(argv)
+        return 0
 
     data = []
-    if args.file:
-        with open(args.file) as data_file:
-            data = json.load(data_file, object_hook=JobConfig.object_decoder)
-    if not len(data):
+    if args.file or not argv:
+        fp = args.file
+        if not fp or fp == '.':
+            fb = DEFAULT_CONFIG_FILE
+        logging.info("Loading config from %s", fp)
+        with open(fp) as fp:
+            data = json.load(fp, object_hook=JobConfig.object_decoder)
+    else:
         job_config = JobConfig()
         job_config.load_from_cliargs(args)
         data = (job_config,)
+        if args.save_cfg:
+            logging.info("Storing config in %s", DEFAULT_CONFIG_FILE)
+            with open(DEFAULT_CONFIG_FILE, 'w') as fp:
+                # TODO: 07.05.14 wooyek This should be taken care of in the JobConfig
+                cfg = job_config.__dict__.copy()
+                cfg["__type__"] = "JobConfig"  # this is needed for the hoo above to work properly.
+                cfg.pop("save_cfg", None)
+                cfg.pop("auto_start", None)
+                cfg["user"] = cfg.pop("user_id", None)
+                json.dump((cfg,), fp, indent=2)
+
+    logging.debug("data: %s" % json.dumps(data[0].__dict__, indent=2))
+
+    if args.diag_http:
+        smoke_tests = PydioDiagnostics(
+            data[0].server, data[0].workspace, data[0].remote_folder, data[0].user_id)
+        return sys.exit(smoke_tests.run())
 
 
     config_ports.create_config_file()
@@ -164,6 +216,62 @@ def main(args=sys.argv[1:]):
 
     except (KeyboardInterrupt, SystemExit):
         sys.exit()
+
+
+def setup_logging(verbosity=None):
+    import appdirs
+    location = Path(str(appdirs.user_log_dir("pydio", "pydio")))
+    if not location.exists():
+        location.mkdir(parents=True)
+    log_file = str(location / "pydio.log")
+
+    levels = {
+        0: logging.WARNING,
+        1: logging.INFO,
+        2: logging.DEBUG,
+    }
+    level = levels.get(verbosity, logging.NOTSET)
+
+    configuration = {
+        'version': 1,
+        'disable_existing_loggers': True,
+        'formatters': {
+            'short': {
+                'format': '%(asctime)s %(levelname)-7s %(thread)-5d %(message)s',
+                'datefmt': '%H:%M:%S',
+            },
+            # this will slow down the app a little, due to
+            'verbose': {
+                'format': '%(asctime)s %(levelname)-7s %(thread)-5d %(filename)s:%(lineno)s | %(funcName)s | %(message)s',
+                'datefmt': '%Y-%m-%d %H:%M:%S',
+            },
+        },
+        'handlers': {
+            'file': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'formatter': 'verbose',
+                'backupCount': 3,
+                'maxBytes': 4194304,  # 4MB
+                'filename': log_file
+            },
+            'console': {
+                'level': level,
+                'class': 'logging.StreamHandler',
+                'formatter': 'short',
+            },
+        },
+        'root': {
+            'level': 'DEBUG',
+            'handlers': ['console', 'file'],
+        }
+
+    }
+    from logging.config import dictConfig
+    dictConfig(configuration)
+    logging.info("Logging setup changed")
+    logging.debug("verbosity: %s" % verbosity)
+
 
 if __name__ == "__main__":
     main()

@@ -4,6 +4,7 @@
 # coding=utf-8
 from datetime import datetime
 import logging
+import subprocess
 import os
 import sys
 
@@ -112,6 +113,7 @@ def build_installer():
     import PyInstaller.main
     logging.info("Running PyInstaller.main %s", spec)
     PyInstaller.main.run(["--noconfirm", "--clean", spec])
+    return name
 
 
 def install_qt():
@@ -136,7 +138,6 @@ def install_qt():
 
     try:
         # this will not elevate privileges but will not require to launch a new process
-        import subprocess
         rc = subprocess.call(call.split(" "))
         if rc != 0:
             logging.info("PyQt binary install requires elevated privileges. If install fails, try running it with admin privileges.")
@@ -151,6 +152,11 @@ def install_qt():
     # import win32com.shell.shell as shell
     # shell.ShellExecuteEx(lpVerb='runas', lpFile=call[0], lpParameters=" ".join(call[1:]))
 
+
+def diagnostics(name):
+    binary = os.path.join(ROOT, "dist", (name + ".exe") if is_win else name)
+    cmd = binary + " --file . --diag --diag-http"
+    subprocess.call(cmd.split(" "))
 
 if __name__ == "__main__":
     logging.debug("sys.platform: %s" % sys.platform)
@@ -173,7 +179,8 @@ if __name__ == "__main__":
         install_pywin32()
     install_requirements()
     # install_qt()
-    build_installer()
+    name = build_installer()
+    diagnostics(name)
 
 
 
