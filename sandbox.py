@@ -7,6 +7,7 @@ import logging
 import subprocess
 import os
 import sys
+import platform
 
 
 # logging.basicConfig(format='%(asctime)s %(levelname)-7s %(module)s.%(funcName)s - %(message)s')
@@ -93,8 +94,10 @@ def build_installer():
         # Not sure this should live here, but the less depends on build server setup the better
         vcs_number = os.environ.get("BUILD_VCS_NUMBER")[:7]
         ts = datetime.now().strftime("%Y%m%d%H%M%S")
-        platform = sys.platform
-        name = "{}-{}-{}-{}".format(name, platform, ts, vcs_number)
+        os_name = sys.platform
+        os_name = {'win32': "win", "darwin": "macos", "linux2": "linux"}.get(os_name, os_name)
+        bitness = "x64" if sys.maxsize > 2**32 else "x32"
+        name = "{}-{}_{}-{}-{}".format(name, os_name, bitness, ts, vcs_number)
 
     # debugging build, multiple files
     # args = "--name=pydio --hidden-import=pydio --onedir --debug --additional-hooks-dir={} --paths={} {}".format(hooks, src, app)
