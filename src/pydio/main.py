@@ -56,10 +56,10 @@ if __name__ == "__main__":
 DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
 
 
-from job.continous_merger import ContinuousDiffMerger
-from job.job_config import JobConfig
-from test.smoke_test import PydioDiagnostics
-from test import config_ports
+from pydio.job.continous_merger import ContinuousDiffMerger
+from pydio.job.job_config import JobConfig
+from pydio.test.diagnostics import PydioDiagnostics
+from pydio.test import config_ports
 
 
 def main(argv=sys.argv[1:]):
