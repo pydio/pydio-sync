@@ -139,6 +139,9 @@ class PydioSdk():
             if not new or not (new['size'] == local_stat['size']):
                 raise PydioSdkException('upload', path, 'File not correct after upload (expected size was 0 bytes)')
             return True
+        folder = self.stat(os.path.dirname(path))
+        if not folder:
+            self.mkdir(os.path.dirname(path))
         url = self.url + '/upload/put' + urllib.pathname2url((self.remote_folder + os.path.dirname(path)).encode('utf-8'))
         files = {'userfile_0': ('my-name',open(local, 'rb'))}
         data = {'force_post':'true', 'urlencoded_filename':urllib.pathname2url(os.path.basename(path).encode('utf-8'))}
