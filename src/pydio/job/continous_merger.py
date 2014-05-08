@@ -87,7 +87,7 @@ class ContinuousDiffMerger(threading.Thread):
         dispatcher.connect( self.handle_progress_event, signal=PROGRESS_SIGNAL, sender=dispatcher.Any )
 
     def handle_progress_event(self, sender, progress):
-        self.info('Job progress is %i' % progress)
+        self.info('Job progress is %s' % progress)
 
     def is_running(self):
         return self.job_status_running
@@ -172,7 +172,8 @@ class ContinuousDiffMerger(threading.Thread):
                             logging.error(pe.message)
                         except OSError as e:
                             logging.error(e.message)
-                        progress_percent = 100 * i / len(changes)
+                        #progress_percent = 100 * i / len(changes)
+                        progress_percent = "{0:.2f}%".format(float(i)/len(changes) * 100)
                         dispatcher.send(signal=PROGRESS_SIGNAL, sender=self, progress=progress_percent)
                         #self.pub_socket.send_string("sync" + ' ' + str(i) + "/" + str(len(changes)) + " changes done : " + str(progressPercent) + "%")
                         i += 1
