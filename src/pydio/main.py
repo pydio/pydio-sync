@@ -40,6 +40,12 @@ import thread
 from pathlib import Path
 
 if __name__ == "__main__":
+    # You can run this module in to ways
+    # 1. Directly:
+    # This way this module is disconnected from other pydio modules and sys.path
+    # does not facilitate import pydio, it need to bo corrected manually
+    # 2. Via module argument "python -m"
+    # Then there is nothing to change
     pydio_module = os.path.dirname(os.path.abspath(__file__))
     logging.debug("sys.platform: %s" % sys.platform)
     if sys.platform == "win32":
@@ -53,17 +59,15 @@ if __name__ == "__main__":
         logging.debug("Prepending to sys.path: %s" % os.path.dirname(pydio_module))
         sys.path.insert(0, os.path.dirname(pydio_module))
 
-DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
-
-
 from pydio.job.continous_merger import ContinuousDiffMerger
 from pydio.job.job_config import JobConfig
 from pydio.test.diagnostics import PydioDiagnostics
 from pydio.test import config_ports
 
+DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
+
 
 def main(argv=sys.argv[1:]):
-
 
     parser = argparse.ArgumentParser('Pydio Synchronization Tool')
     parser.add_argument('-s', '--server', help='Server URL, with http(s) and path to pydio', type=unicode, default='http://localhost')
