@@ -25,29 +25,99 @@ import urllib
 import json
 import os
 import keyring
+import hmac
 import hashlib
 import stat
 import time
+import random
+from hashlib import sha256
+from hashlib import sha1
+from urlparse import urlparse
 
-from exceptions import SystemSdkException, PydioSdkException
+from exceptions import SystemSdkException, PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException
 from pydio.utils.functions import hashfile
 
 class PydioSdk():
 
     def __init__(self, url='', ws_id='', remote_folder='', user_id='', auth=()):
         self.ws_id = ws_id
-        self.url = url+'/api/'+ws_id
+        self.base_url = url.rstrip('/') + '/api/'
+        self.url = url.rstrip('/') +'/api/'+ws_id
         self.remote_folder = remote_folder
+        self.user_id = user_id
         if user_id:
             self.auth = (user_id, keyring.get_password(url, user_id))
         else:
             self.auth = auth
 
+    def basic_authenticate(self):
+        url = self.base_url + 'pydio/keystore_generate_auth_token/python_client'
+        resp = requests.get(url=url, auth=self.auth)
+        if resp.status_code == 401:
+            raise PydioSdkBasicAuthException('Authentication Error')
+        try:
+            tokens = json.loads(resp.content)
+        except ValueError as v:
+            return false
+        keyring.set_password(self.url, self.user_id +'-token' , tokens['t']+':'+tokens['p'])
+        return tokens
+
+
+    def perform_with_tokens(self, token, private, url, type='get', data=None, files=None, stream=False):
+
+        nonce =  sha1(str(random.random())).hexdigest()
+        uri = urlparse(url).path
+        msg = uri+ ':' + nonce + ':'+private
+        the_hash = hmac.new(str(token), str(msg), sha256);
+        auth_hash = nonce + ':' + the_hash.hexdigest()
+
+        if type == 'get':
+            auth_string = 'auth_token=' + token + '&auth_hash=' + auth_hash
+            if '?' in url:
+                url += '&' + auth_string
+            else:
+                url += '?' + auth_string
+            resp = requests.get(url=url, stream=stream)
+        elif type == 'post':
+            if not data:
+                data = {}
+            data['auth_token'] = token
+            data['auth_hash']  = auth_hash
+            if files:
+                resp = requests.post(url=url, data=data, files=files, stream=stream)
+            else:
+                resp = requests.post(url=url, data=data, stream=stream)
+        else:
+            raise PydioSdkTokenAuthException("Unsupported HTTP method")
+
+        if resp.status_code == 401:
+            raise PydioSdkTokenAuthException("Authentication Exception")
+        return resp
+
+
+    def perform_request(self, url, type='get', data=None, files=None, stream=False):
+
+        tokens = keyring.get_password(self.url, self.user_id +'-token')
+        if not tokens:
+            tokens = self.basic_authenticate()
+            return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files, stream)
+        else:
+            tokens = tokens.split(':')
+            try:
+                resp = self.perform_with_tokens(tokens[0], tokens[1], url, type, data, files, stream)
+                return resp
+            except PydioSdkTokenAuthException as pTok:
+                # Tokens may be revoked? Retry
+                tokens = self.basic_authenticate()
+                return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files, stream)
+
+
     def changes(self, last_seq):
         url = self.url + '/changes/' + str(last_seq)
         if self.remote_folder:
             url += '?filter=' + self.remote_folder
-        resp = requests.get(url=url, auth=self.auth)
+        #resp = requests.get(url=url, auth=self.auth)
+        resp = self.perform_request(url=url)
         try:
             return json.loads(resp.content)
         except ValueError as v:
@@ -58,7 +128,8 @@ class PydioSdk():
         action = '/stat_hash' if with_hash else '/stat'
         try:
             url = self.url + action + urllib.pathname2url(path.encode('utf-8'))
-            resp = requests.get(url=url, auth=self.auth)
+            #resp = requests.get(url=url, auth=self.auth)
+            resp = self.perform_request(url)
             data = json.loads(resp.content)
             if not data:
                 return False
@@ -78,7 +149,8 @@ class PydioSdk():
         clean_pathes = map(lambda t: self.remote_folder + t.replace('\\', '/'), filter(lambda x: x !='', pathes[:maxlen]))
         data['nodes[]'] = clean_pathes
         url = self.url + action + urllib.pathname2url(clean_pathes[0].encode('utf-8'))
-        resp = requests.post(url, data=data, auth=self.auth)
+        #resp = requests.post(url, data=data, auth=self.auth)
+        resp = self.perform_request(url, type='post', data=data)
         try:
             data = json.loads(resp.content)
         except ValueError:
@@ -108,26 +180,32 @@ class PydioSdk():
 
     def mkdir(self, path):
         url = self.url + '/mkdir' + urllib.pathname2url((self.remote_folder + path).encode('utf-8'))
-        resp = requests.get(url=url, auth=self.auth)
+        #resp = requests.get(url=url, auth=self.auth)
+        resp = self.perform_request(url=url)
         return resp.content
 
     def mkfile(self, path):
         url = self.url + '/mkfile' + urllib.pathname2url((self.remote_folder + path).encode('utf-8'))
-        resp = requests.get(url=url, auth=self.auth)
+        #resp = requests.get(url=url, auth=self.auth)
+        resp = self.perform_request(url=url)
         return resp.content
 
     def rename(self, source, target):
         if os.path.dirname(source) == os.path.dirname(target):
             url = self.url + '/rename'
-            resp = requests.post(url=url, data=dict(file=(self.remote_folder + source).encode('utf-8'), dest=(self.remote_folder + target).encode('utf-8')), auth=self.auth)
+            data = dict(file=(self.remote_folder + source).encode('utf-8'), dest=(self.remote_folder + target).encode('utf-8'))
+            #resp = requests.post(url=url, data=dict(file=(self.remote_folder + source).encode('utf-8'), dest=(self.remote_folder + target).encode('utf-8')), auth=self.auth)
         else:
             url = self.url + '/move'
-            resp = requests.post(url=url, data=dict(file=(self.remote_folder + source).encode('utf-8'), dest=os.path.dirname((self.remote_folder + target).encode('utf-8'))), auth=self.auth)
+            data = dict(file=(self.remote_folder + source).encode('utf-8'), dest=os.path.dirname((self.remote_folder + target).encode('utf-8')))
+            #resp = requests.post(url=url, data=dict(file=(self.remote_folder + source).encode('utf-8'), dest=os.path.dirname((self.remote_folder + target).encode('utf-8'))), auth=self.auth)
+        resp = self.perform_request(url=url, type='post', data=data)
         return resp.content
 
     def delete(self, path):
         url = self.url + '/delete' + urllib.pathname2url((self.remote_folder + path).encode('utf-8'))
-        resp = requests.get(url=url, auth=self.auth)
+        #resp = requests.get(url=url, auth=self.auth)
+        resp = self.perform_request(url=url)
         return resp.content
 
     def upload(self, local, local_stat, path):
@@ -145,7 +223,8 @@ class PydioSdk():
         url = self.url + '/upload/put' + urllib.pathname2url((self.remote_folder + os.path.dirname(path)).encode('utf-8'))
         files = {'userfile_0': ('my-name',open(local, 'rb'))}
         data = {'force_post':'true', 'urlencoded_filename':urllib.pathname2url(os.path.basename(path).encode('utf-8'))}
-        resp = requests.post(url, data=data, files=files, auth=self.auth)
+        #resp = requests.post(url, data=data, files=files, auth=self.auth)
+        resp = self.perform_request(url=url, type='post', data=data, files=files)
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
             raise PydioSdkException('upload', path, 'File not correct after upload')
@@ -163,7 +242,8 @@ class PydioSdk():
         try:
             with open(local_tmp, 'wb') as fd:
                 start = time.clock()
-                r = requests.get(url, stream=True, auth=self.auth)
+                #r = requests.get(url, stream=True, auth=self.auth)
+                r = self.perform_request(url=url, stream=True)
                 total_length = r.headers.get('content-length')
                 dl = 0
                 if total_length is None: # no content length header
