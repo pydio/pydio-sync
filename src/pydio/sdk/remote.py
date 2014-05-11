@@ -31,6 +31,8 @@ import time
 
 from exceptions import SystemSdkException, PydioSdkException
 from pydio.utils.functions import hashfile
+from .utils import upload_file_showing_progress
+
 
 class PydioSdk():
 
@@ -142,10 +144,17 @@ class PydioSdk():
         folder = self.stat(os.path.dirname(path))
         if not folder:
             self.mkdir(os.path.dirname(path))
+
         url = self.url + '/upload/put' + urllib.pathname2url((self.remote_folder + os.path.dirname(path)).encode('utf-8'))
-        files = {'userfile_0': ('my-name',open(local, 'rb'))}
-        data = {'force_post':'true', 'urlencoded_filename':urllib.pathname2url(os.path.basename(path).encode('utf-8'))}
-        resp = requests.post(url, data=data, files=files, auth=self.auth)
+        files = {'userfile_0': ('my-name', open(local, 'rb').read())}
+        data = {
+            'force_post': 'true',
+            'urlencoded_filename': urllib.pathname2url(os.path.basename(path).encode('utf-8'))
+        }
+
+        fields = dict(files, **data)
+        upload_file_showing_progress(url, fields, self.auth)
+
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
             raise PydioSdkException('upload', path, 'File not correct after upload')
