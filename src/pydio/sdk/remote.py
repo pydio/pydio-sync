@@ -66,7 +66,7 @@ class PydioSdk():
     def perform_with_tokens(self, token, private, url, type='get', data=None, files=None, stream=False):
 
         nonce =  sha1(str(random.random())).hexdigest()
-        uri = urlparse(url).path
+        uri = urlparse(url).path.rstrip('/')
         msg = uri+ ':' + nonce + ':'+private
         the_hash = hmac.new(str(token), str(msg), sha256);
         auth_hash = nonce + ':' + the_hash.hexdigest()
@@ -217,9 +217,11 @@ class PydioSdk():
             if not new or not (new['size'] == local_stat['size']):
                 raise PydioSdkException('upload', path, 'File not correct after upload (expected size was 0 bytes)')
             return True
-        folder = self.stat(os.path.dirname(path))
-        if not folder:
-            self.mkdir(os.path.dirname(path))
+        dirpath = os.path.dirname(path)
+        if dirpath and dirpath != '/':
+            folder = self.stat(dirpath)
+            if not folder:
+                self.mkdir(os.path.dirname(path))
         url = self.url + '/upload/put' + urllib.pathname2url((self.remote_folder + os.path.dirname(path)).encode('utf-8'))
         files = {'userfile_0': ('my-name',open(local, 'rb'))}
         data = {'force_post':'true', 'urlencoded_filename':urllib.pathname2url(os.path.basename(path).encode('utf-8'))}
