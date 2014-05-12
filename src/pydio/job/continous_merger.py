@@ -287,7 +287,7 @@ class ContinuousDiffMerger(threading.Thread):
     def info(self, message, toUser=False, channel='sync'):
         logging.info(message)
         if toUser and self.pub_socket:
-            self.pub_socket.send_string(channel + ' ' + toUser)
+            self.pub_socket.send_string(channel + "/" + message)
 
     def process_localMKDIR(self, path):
         message = path + ' <============ MKDIR'
