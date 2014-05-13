@@ -125,7 +125,10 @@ def main(argv=sys.argv[1:]):
     if args.diag_http:
         smoke_tests = PydioDiagnostics(
             data[0].server, data[0].workspace, data[0].remote_folder, data[0].user_id)
-        return sys.exit(smoke_tests.run())
+        rc = smoke_tests.run()
+        if rc != 0:
+            logging.error("Diagnostics failed: %s %s" % (str(rc), smoke_tests.status_message))
+        return sys.exit(rc)
 
 
     config_ports.create_config_file()
