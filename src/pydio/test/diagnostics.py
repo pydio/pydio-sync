@@ -19,7 +19,7 @@ class PydioDiagnostics():
 
     def run(self):
         # self.run_zmq_smoke_test()
-        self.run_ping_bserver_test()
+        self.run_ping_server_test()
         return self.status
 
     @classmethod
@@ -70,7 +70,7 @@ class PydioDiagnostics():
         pydio_sdk = PydioSdk(self.url, self.basepath, self.ws_id or '', self.user_id)
         success = pydio_sdk.stat('/')
         logging.debug('Server ping test: %s' % ('success' if success else 'failure'))
-        if success:
+        if not success:
             self.status = -1
             self.status_message = "Server ping test: failure"
             return
