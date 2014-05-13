@@ -13,12 +13,39 @@
     </div>
 </script>
 
-<h1>3. Select Workspace</h1>
-<p class="lead">
+<a  ng-show="job.id!='new'" href="#/">&lt; Back to list</a>
+<h1 ng-show="job.id!='new'">Task Configuration</h1>
+
+<h1 ng-show="job.id=='new'">3. Select Workspace</h1>
+<p ng-show="job.id=='new'" class="lead">
     Welcome {{job.user}}!<br>
     You are connected to <a href="{{job.server}}" target="_blank">{{job.server}}</a>
-    <br>Select a workspace and/or a subfolder that you want to synchronize.</p>
+    <br>Select a workspace and/or a subfolder that you want to synchronize.
+</p>
+
+
 <div class="well">
+
+    <form ng-show="job.id!='new'" class="form-inline">
+        <h4>Server URL</h4>
+        <div class="form-group">
+            <input style="width:300px;" type="url" name="site" ng-model="job.server" class="form-control" placeholder="http:// .... " required>
+            <span ng-show="myForm.site.$error.required && !myForm.site.$pristine" class="help-inline">Required</span>
+            <span ng-show="myForm.site.$error.url" class="help-inline">Not a URL</span>
+        </div>
+        <h4>User Credentials</h4>
+        <div class="form-group">
+            <label>Login</label>
+            <input style="width:150px;" type="text" name="user" ng-model="job.user" class="form-control" placeholder="Login" required>
+            <span ng-show="myForm.user.$error.required && !myForm.user.$pristine" class="help-inline">Required</span>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input style="width:150px;" type="password" name="pwd" ng-model="job.password" class="form-control" placeholder="Password" required>
+            <span ng-show="myForm.pwd.$error.required && !myForm.pwd.$pristine" class="help-inline">Required</span>
+        </div>
+
+    </form>
 
     <h4>Remote workspaces</h4>
     <div class="well" style="background-color: white; padding: 10px;">
@@ -28,14 +55,16 @@
                 onload="data = child"/>
     </div>
 
-    <a ng-click="showAdvanced=!showAdvanced;" style="cursor: pointer;">Advanced Parameters</a>
+    <a ng-click="showAdvanced=!showAdvanced;" style="cursor: pointer;"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': !showAdvanced, 'glyphicon-chevron-down': showAdvanced}"></span> Advanced Parameters</a>
 
     <div ng-show="showAdvanced" style="margin-top: 20px;">
         <div>
             <h4>Local Folder</h4>
             <div class="form-group">
-                <input id="folder_chooser" webkitdirectory type="file" class="pull-right" webdirectory directory>
-                <span>{{job.directory}}</span>
+                <div class="input-group">
+                    <input type="text" ng-model="job.directory" class="form-control">
+                    <span class="input-group-addon"><span style="cursor: pointer;" class="glyphicon glyphicon-list-alt"></span></span>
+                </div>
             </div>
         </div>
 
@@ -70,7 +99,7 @@
     </div>
 </div>
 <div class="pull-right">
-    <a href="#/edit/{{job.id}}/step2" class="btn btn-primary">&lt;&lt;</a>
-    <a href="#/" class="btn btn-primary" ng-disabled="!job.selection">Save</a>
+    <a href="#/edit/{{job.id}}/step2" class="btn btn-primary" ng-show="job.id=='new'">&lt;&lt;</a>
+    <a ng-click="save()" class="btn btn-primary" ng-disabled="!job.selection">Save</a>
 </div>
 

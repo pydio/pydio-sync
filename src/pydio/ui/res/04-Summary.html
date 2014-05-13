@@ -1,0 +1,25 @@
+<h1>4. Summary</h1>
+<p class="lead">Your sync task is now up and running!</p>
+
+<div style="border-radius: 150px;background-color: whitesmoke;padding: 90px;">
+<table style="width:100%; text-align:center;color:slategray">
+    <tr>
+        <td>
+            <span class="glyphicon glyphicon-cloud" style="font-size: 150px;color: rgb(211, 235, 255);"></span><br><br>
+            Server {{job.server}} on workspace {{job.workspace}}, logged as {{job.user}}
+        </td>
+        <td>
+            <span class="glyphicon glyphicon-transfer" style="font-size: 130px;color: white;"></span><br>
+            {{job.direction}}
+        </td>
+        <td>
+            <span class="glyphicon glyphicon-hdd" style="font-size: 150px;color: slategrey;"></span><br><br>
+            Your computer, inside folder {{job.directory}}
+        </td>
+    </tr>
+</table>
+</div>
+
+<div style="text-align: right;margin-top: 50px;">
+    <a  ng-show="job.id!='new'" href="#/">Back to list</a>
+</div>
