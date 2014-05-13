@@ -1,0 +1,20 @@
+<input type="text" ng-model="search" class="search-query" placeholder="Search">
+<a href="#/new"><i class="glyphicon-plus"></i></a>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Server URL</th>
+        <th>Workspace</th>
+        <th>Local Directory</th>
+        <th>Remote Folder</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="job in jobs | filter:search | orderBy:'workspace'">
+        <td><a href="#/edit/{{job.id}}/step1" >{{job.server}}</a></td>
+        <td>{{job.workspace}}</td>
+        <td>{{job.directory}}</td>
+        <td>{{job.remote_folder}}</td>
+    </tr>
+    </tbody>
+</table>
