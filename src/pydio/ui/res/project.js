@@ -41,11 +41,36 @@ angular.module('project', ['ngRoute', 'ngResource'])
         }
     })
 
+    .service('folders', function() {
+        var objectValue = [
+            {
+                path:'/',
+                label:'Mes Fichiers',
+                children:[
+                    {path: '/dir1', label:'dir1', children:[]},
+                    {path: '/dir2', label:'dir2', children:[]},
+                    {path: '/dir3', label:'dir3', children:[
+                        {path: '/dir3/subDir', label:'subDir', children:[]}
+                    ]}
+                ]
+            }
+        ];
+        return {
+            getFolders: function() {
+                return objectValue;
+            }
+        }
+    })
+
     .config(function($routeProvider) {
         $routeProvider
             .when('/', {
                 controller:'ListCtrl',
                 templateUrl:'list.html'
+            })
+            .when('/edit/:jobId/full', {
+                controller:'EditCtrl',
+                templateUrl:'03-Workspace.html'
             })
             .when('/edit/:jobId/step1', {
                 controller:'EditCtrl',
@@ -58,6 +83,10 @@ angular.module('project', ['ngRoute', 'ngResource'])
             .when('/edit/:jobId/step3', {
                 controller:'EditCtrl',
                 templateUrl:'03-Workspace.html'
+            })
+            .when('/edit/:jobId/step4', {
+                controller:'EditCtrl',
+                templateUrl:'04-Summary.html'
             })
             .when('/new', {
                 controller:'CreateCtrl',
@@ -74,21 +103,28 @@ angular.module('project', ['ngRoute', 'ngResource'])
     })
 
     .controller('CreateCtrl', function($scope, $location, $timeout, Jobs, currentJob) {
-        $scope.job = {
-            id:'new'
-        };
+        var job = new Jobs();
+        job.id = 'new';
+        $scope.job = job;
         currentJob.setJob($scope.job);
     })
 
-    .controller('EditCtrl', function($scope, $location, $routeParams, Jobs, currentJob, workspaces) {
+    .controller('EditCtrl', function($scope, $location, $routeParams, Jobs, currentJob, workspaces, folders) {
         if(!currentJob.getJob()){
-            currentJob.setJob(Jobs.get({job_id:$routeParams.jobId}));
+            currentJob.setJob(Jobs.get({
+                job_id:$routeParams.jobId
+            }));
         }
         $scope.job = currentJob.getJob();
         $scope.workspaces = workspaces.getWorkspaces();
+        $scope.folders = folders.getFolders();
 
         $scope.save = function() {
-            $scope.job.$save();//??
-            $location.path('/');
+            $scope.job.$save();
+            if($scope.job.id == 'new'){
+                $location.path('/edit/new/step4');
+            }else{
+                $location.path('/');
+            }
         };
     });

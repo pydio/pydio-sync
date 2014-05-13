@@ -1,20 +1,28 @@
-<input type="text" ng-model="search" class="search-query" placeholder="Search">
-<a href="#/new"><i class="glyphicon-plus"></i></a>
 <table class="table">
     <thead>
     <tr>
         <th>Server URL</th>
         <th>Workspace</th>
+        <th></th>
         <th>Local Directory</th>
-        <th>Remote Folder</th>
+        <th>
+            <!--
+            <input style="font-weight: normal; border-radius: 3px;border:1px solid #ccc;" type="text" ng-model="search" class="search-query pull-right" placeholder="Search">
+            -->
+        </th>
     </tr>
     </thead>
     <tbody>
     <tr ng-repeat="job in jobs | filter:search | orderBy:'workspace'">
-        <td><a href="#/edit/{{job.id}}/step1" >{{job.server}}</a></td>
-        <td>{{job.workspace}}</td>
+        <td><a href="{{job.server}}">{{job.server}}</a></td>
+        <td>{{job.workspace}} - {{job.remote_folder}}</td>
+        <td><span class="glyphicon glyphicon-transfer"></span></td>
         <td>{{job.directory}}</td>
-        <td>{{job.remote_folder}}</td>
+        <td>
+            <span class="glyphicon glyphicon-pause"></span>
+            <a href="#/edit/{{job.id}}/full" class="glyphicon glyphicon-edit"></a>
+        </td>
     </tr>
     </tbody>
 </table>
+<a href="#/new" class="btn btn-primary glyphicon-plus"> Create a new synchronisation job</a>
