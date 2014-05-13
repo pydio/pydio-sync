@@ -1,0 +1,76 @@
+<script id="treeNode.html" type="text/ng-template">
+    <div ng-click="job.selection=data.path" style="cursor: pointer">
+        <span ng-class="{'glyphicon-folder-open': job.selection == data.path, 'glyphicon-folder-close': job.selection != data.path}"
+                class="glyphicon"></span>&nbsp;&nbsp;<span ng-bind="data.label"></span>
+    </div>
+    <!-- Want to loose the div in the repeat as well -->
+    <div style="padding-left:25px;">
+        <ng-include
+                ng-if="data.children.length > 0"
+                onload="data = child"
+                ng-repeat="child in data.children"
+                src="'treeNode.html'"></div>
+    </div>
+</script>
+
+<h1>3. Select Workspace</h1>
+<p class="lead">
+    Welcome {{job.user}}!<br>
+    You are connected to <a href="{{job.server}}" target="_blank">{{job.server}}</a>
+    <br>Select a workspace and/or a subfolder that you want to synchronize.</p>
+<div class="well">
+
+    <h4>Remote workspaces</h4>
+    <div class="well" style="background-color: white; padding: 10px;">
+        <ng-include
+                ng-repeat="child in workspaces"
+                src="'treeNode.html'"
+                onload="data = child"/>
+    </div>
+
+    <a ng-click="showAdvanced=!showAdvanced;" style="cursor: pointer;">Advanced Parameters</a>
+
+    <div ng-show="showAdvanced" style="margin-top: 20px;">
+        <div>
+            <h4>Local Folder</h4>
+            <div class="form-group">
+                <input id="folder_chooser" webkitdirectory type="file" class="pull-right" webdirectory directory>
+                <span>{{job.directory}}</span>
+            </div>
+        </div>
+
+        <div>
+            <h4>Sync Direction</h4>
+            <p>By default, modifications from both sides (local/remote) are automatically reflected on the other side. You can limit this to one direction, enabling a backup-like job ('up' only) or a mirroring job ('down' only).</p>
+            <div class="form-group">
+                <select class="form-control" ng-model="job.direction">
+                    <option value="bi">Bi-directionnal</option>
+                    <option value="up">Upload only (backup style)</option>
+                    <option value="down">Download only (mirroring style)</option>
+                </select>
+            </div>
+        </div>
+
+        <div>
+            <h4>Conflicts</h4>
+            <p>Conflicts are cases where a file was modified on both local and remote sides at the same time. When they happen, sync is stopped until you manually decide which version to keep. You can automatically force the conflict resolution.</p>
+            <div class="form-group">
+                <input type="radio" name="conflict"> Solve keeping remote version <br>
+                <input type="radio" name="conflict"> Solve keeping local version
+            </div>
+        </div>
+
+        <div>
+            <h4>Monitoring</h4>
+            <p>If you are synchronizing a huge amount of files, you can disable the continuous monitoring of the local folder and let the synchro run at a fixed period instead.</p>
+            <div class="form-group center-block">
+                <input type="checkbox" name="disable_monitoring" ng-model="monitoring"> Disable Folder Monitoring and check every <input type="number" style="width:45px" value="60" ng-disabled="!monitoring"> mn instead.<br>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="pull-right">
+    <a href="#/edit/{{job.id}}/step2" class="btn btn-primary">&lt;&lt;</a>
+    <a href="#/" class="btn btn-primary" ng-disabled="!job.selection">Save</a>
+</div>
+
