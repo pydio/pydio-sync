@@ -38,6 +38,7 @@ import json
 import zmq
 import thread
 import time
+import pydio.monkeypatch
 
 from pathlib import Path
 
