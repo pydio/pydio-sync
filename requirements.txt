@@ -8,3 +8,4 @@ pathtools==0.1.2
 pyzmq>=14.3
 requests==2.2.1
 watchdog==0.7.1
+cffi>=0.8
