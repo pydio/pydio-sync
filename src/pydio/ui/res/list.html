@@ -1,28 +1,29 @@
+<h1>All Jobs</h1>
+<p class="lead">You have many synchronisation jobs running. Click on the button to see the status.</p>
 <table class="table">
     <thead>
     <tr>
-        <th>Server URL</th>
-        <th>Workspace</th>
-        <th></th>
-        <th>Local Directory</th>
         <th>
             <!--
             <input style="font-weight: normal; border-radius: 3px;border:1px solid #ccc;" type="text" ng-model="search" class="search-query pull-right" placeholder="Search">
             -->
         </th>
+        <th>Server URL</th>
+        <th>Workspace</th>
+        <th></th>
+        <th>Local Directory</th>
     </tr>
     </thead>
     <tbody>
     <tr ng-repeat="job in jobs | filter:search | orderBy:'workspace'">
-        <td><a href="{{job.server}}">{{job.server}}</a></td>
+        <td>
+            <a href="#"><span class="glyphicon glyphicon-pause"></span></a>
+            <a href="#/summary/{{job.id}}" class="glyphicon glyphicon-edit"></a>
+        </td>
+        <td><a href="{{job.server}}" target="_blank">{{job.server}} </a></td>
         <td>{{job.workspace}} - {{job.remote_folder}}</td>
         <td><span class="glyphicon glyphicon-transfer"></span></td>
         <td>{{job.directory}}</td>
-        <td>
-            <span class="glyphicon glyphicon-pause"></span>
-            <a href="#/edit/{{job.id}}/full" class="glyphicon glyphicon-edit"></a>
-        </td>
     </tr>
     </tbody>
 </table>
-<a href="#/new" class="btn btn-primary glyphicon-plus"> Create a new synchronisation job</a>

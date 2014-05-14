@@ -84,7 +84,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 controller:'EditCtrl',
                 templateUrl:'03-Workspace.html'
             })
-            .when('/edit/:jobId/step4', {
+            .when('/summary/:jobId', {
                 controller:'EditCtrl',
                 templateUrl:'04-Summary.html'
             })
@@ -97,8 +97,10 @@ angular.module('project', ['ngRoute', 'ngResource'])
             });
     })
 
-    .controller('ListCtrl', function($scope, Jobs, currentJob) {
-        $scope.jobs = Jobs.query();
+    .controller('ListCtrl', function($scope, $location, Jobs, currentJob) {
+        $scope.jobs = Jobs.query(function(resp){
+            if(!resp.length) $location.path('/new');
+        });
         currentJob.setJob(null);
     })
 
@@ -115,16 +117,13 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 job_id:$routeParams.jobId
             }));
         }
+        $scope.jobs = Jobs.query();
         $scope.job = currentJob.getJob();
         $scope.workspaces = workspaces.getWorkspaces();
         $scope.folders = folders.getFolders();
 
         $scope.save = function() {
             $scope.job.$save();
-            if($scope.job.id == 'new'){
-                $location.path('/edit/new/step4');
-            }else{
-                $location.path('/');
-            }
+            $location.path('/summary/'+$scope.job.id);
         };
     });

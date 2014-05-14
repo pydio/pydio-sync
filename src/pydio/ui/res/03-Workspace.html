@@ -13,16 +13,21 @@
     </div>
 </script>
 
-<a  ng-show="job.id!='new'" href="#/">&lt; Back to list</a>
-<h1 ng-show="job.id!='new'">Task Configuration</h1>
+<div ng-show="job.id!='new'">
+    <h1>Task Configuration</h1>
+    <p class="lead">
+        Update the connection parameters and advanced options of this synchronization task.
+    </p>
+</div>
 
-<h1 ng-show="job.id=='new'">3. Select Workspace</h1>
-<p ng-show="job.id=='new'" class="lead">
-    Welcome {{job.user}}!<br>
-    You are connected to <a href="{{job.server}}" target="_blank">{{job.server}}</a>
-    <br>Select a workspace and/or a subfolder that you want to synchronize.
-</p>
-
+<div ng-show="job.id=='new'">
+    <h1>3. Select Workspace</h1>
+    <p class="lead">
+        Welcome {{job.user}}!<br>
+        You are connected to <a href="{{job.server}}" target="_blank">{{job.server}}</a>
+        <br>Select a workspace and/or a subfolder that you want to synchronize.
+    </p>
+</div>
 
 <div class="well">
 
@@ -100,6 +105,7 @@
 </div>
 <div class="pull-right">
     <a href="#/edit/{{job.id}}/step2" class="btn btn-primary" ng-show="job.id=='new'">&lt;&lt;</a>
+    <a href="#/summary/{{job.id}}" class="btn" ng-show="job.id!='new'">Cancel</a>
     <a ng-click="save()" class="btn btn-primary" ng-disabled="!job.selection">Save</a>
 </div>
 
