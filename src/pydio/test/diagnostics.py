@@ -15,6 +15,7 @@ class PydioDiagnostics():
         self.ws_id = ws_id
         self.user_id = user_id
         self.status = 0
+        self.status_message = None
 
     def run(self):
         # self.run_zmq_smoke_test()
@@ -63,8 +64,14 @@ class PydioDiagnostics():
             logging.debug('Can not run ping server test, please provide: ')
             logging.debug('--server --directory --workspace --user --password')
             self.status = -1
+            self.status_message = "Can not run ping server test, please provide configuration arguments"
             return
 
         pydio_sdk = PydioSdk(self.url, self.basepath, self.ws_id or '', self.user_id)
-        test_result = 'success' if pydio_sdk.stat('/') else 'failure'
-        logging.debug(('Server ping test: %s' % test_result))
+        success = pydio_sdk.stat('/')
+        logging.debug('Server ping test: %s' % ('success' if success else 'failure'))
+        if not success:
+            self.status = -1
+            self.status_message = "Server ping test: failure"
+            return
+

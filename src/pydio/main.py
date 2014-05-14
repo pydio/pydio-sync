@@ -37,6 +37,9 @@ import argparse
 import json
 import zmq
 import thread
+import time
+import pydio.monkeypatch
+
 from pathlib import Path
 
 if __name__ == "__main__":
@@ -62,7 +65,7 @@ if __name__ == "__main__":
 from pydio.job.continous_merger import ContinuousDiffMerger
 from pydio.job.job_config import JobConfig
 from pydio.test.diagnostics import PydioDiagnostics
-from pydio.test import config_ports
+from pydio.utils import config_ports
 
 DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
 
@@ -123,7 +126,10 @@ def main(argv=sys.argv[1:]):
     if args.diag_http:
         smoke_tests = PydioDiagnostics(
             data[0].server, data[0].workspace, data[0].remote_folder, data[0].user_id)
-        return sys.exit(smoke_tests.run())
+        rc = smoke_tests.run()
+        if rc != 0:
+            logging.error("Diagnostics failed: %s %s" % (str(rc), smoke_tests.status_message))
+        return sys.exit(rc)
 
 
     config_ports.create_config_file()
@@ -154,9 +160,6 @@ def main(argv=sys.argv[1:]):
         port = config_ports.get_open_port("command_socket")
         rep_socket.bind("tcp://*:%s" % port)
 
-        watch_socket = context.socket(zmq.REP)
-        port = config_ports.get_open_port("watch_socket")
-        watch_socket.bind("tcp://*:%s" % port)
         def listen_to_REP():
             while True:
                 message = str(rep_socket.recv())
@@ -198,23 +201,18 @@ def main(argv=sys.argv[1:]):
                 except Exception as e:
                     logging.error(e)
 
-        def listen_to_watcher():
+        def pinger():
             while True:
-                message = str(watch_socket.recv())
-                logging.info("Received ping from watcher :" + message)
-                for t in controlThreads:
-                    if not t.is_running():
-                        reply = "PAUSED"
-                    else:
-                        reply = "RUNNING"
+                logging.info("Send ping to UI...")
                 try:
-                    watch_socket.send(reply)
+                    pub_socket.send_string("ping/")
                 except Exception as e:
                     logging.error(e)
+                time.sleep(10)
         # Create thread as follows
         try:
             thread.start_new_thread(listen_to_REP, ())
-            thread.start_new_thread(listen_to_watcher(), ())
+            thread.start_new_thread(pinger(), ())
         except Exception as e:
             logging.error(e)
 
