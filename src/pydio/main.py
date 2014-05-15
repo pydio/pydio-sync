@@ -149,7 +149,8 @@ def main(argv=sys.argv[1:]):
 
     app = Flask(__name__, static_folder = 'ui/res', static_url_path='/res')
     api = Api(app)
-    api.add_resource(JobManager, '/jobs', '/jobs/<string:job_id>')
+    job_manager = JobManager.make_job_manager(str(jobs_root_path / 'configs.json'))
+    api.add_resource(job_manager, '/jobs', '/jobs/<string:job_id>')
     port = ports_detector.get_open_port('flask_api')
 
     try:
