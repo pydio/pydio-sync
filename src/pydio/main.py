@@ -32,13 +32,15 @@ logging.debug("PYTHONPATH: %s", "\n\t".join(os.environ.get('PYTHONPATH', "").spl
 
 # Most imports are placed after we have logged import path
 # so we can easily debug import problems
-
+from flask import Flask
+from flask.ext.restful import Api
 import argparse
 import json
 import zmq
 import thread
 import time
 import pydio.monkeypatch
+import multiprocessing
 
 from pathlib import Path
 
@@ -66,6 +68,7 @@ from pydio.job.continous_merger import ContinuousDiffMerger
 from pydio.job.job_config import JobConfig
 from pydio.test.diagnostics import PydioDiagnostics
 from pydio.utils import config_ports
+from pydio.ui.web_api import JobManager
 
 DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
 
@@ -134,9 +137,19 @@ def main(argv=sys.argv[1:]):
 
     config_ports.create_config_file()
     context = zmq.Context()
+
+    rep_socket = context.socket(zmq.REP)
+    port = config_ports.get_open_port("command_socket")
+    rep_socket.bind("tcp://*:%s" % port)
+
     pub_socket = context.socket(zmq.PUB)
     port = config_ports.get_open_port("pub_socket")
     pub_socket.bind("tcp://*:%s" % port)
+
+    app = Flask(__name__, static_folder = 'ui/res', static_url_path='/res')
+    api = Api(app)
+    api.add_resource(JobManager, '/jobs', '/jobs/<string:job_id>')
+    port = config_ports.get_open_port('flask_api')
 
     try:
         controlThreads = []
@@ -156,9 +169,6 @@ def main(argv=sys.argv[1:]):
             except (KeyboardInterrupt, SystemExit):
                 merger.stop()
 
-        rep_socket = context.socket(zmq.REP)
-        port = config_ports.get_open_port("command_socket")
-        rep_socket.bind("tcp://*:%s" % port)
 
         def listen_to_REP():
             while True:
@@ -211,12 +221,16 @@ def main(argv=sys.argv[1:]):
                 time.sleep(10)
         # Create thread as follows
         try:
+            ui_server = multiprocessing.Process(target=app.run, kwargs={'port': port})
+            ui_server.start()
             thread.start_new_thread(listen_to_REP, ())
             thread.start_new_thread(pinger(), ())
         except Exception as e:
             logging.error(e)
 
     except (KeyboardInterrupt, SystemExit):
+        ui_server.terminate()
+        ui_server.join()
         sys.exit()
 
 

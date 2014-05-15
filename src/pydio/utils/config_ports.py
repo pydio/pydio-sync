@@ -12,9 +12,10 @@ def get_open_port(socket_name):
         return port
 
 def create_config_file():
-    with open('pydio_port_config', 'w') as config_file:
+    with open('data/pydio_port_config', 'w') as config_file:
         config_file.write("Pydio port config file \n")
 
+
 def save_config(socket_name, port_to_save):
-    with open('pydio_port_config', 'a') as config_file:
+    with open('data/pydio_port_config', 'a') as config_file:
         config_file.write(socket_name + ':' + str(port_to_save) + "\n")

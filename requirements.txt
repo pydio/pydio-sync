@@ -9,3 +9,6 @@ pyzmq>=14.3
 requests==2.2.1
 watchdog==0.7.1
 cffi>=0.8
+flask==0.10.1
+flask-restful==0.2.12
+
