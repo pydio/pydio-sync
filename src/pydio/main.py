@@ -89,6 +89,7 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('--diag-http', help='Check server connection', action='store_true', default=False)
     parser.add_argument('--save-cfg', action='store_true')
     parser.add_argument('--auto-start', action='store_true')
+    parser.add_argument('--auto_detect_port', type=bool, help='Auto detect available ports', default=False)
     parser.add_argument('-v', '--verbose', action='count', )
     args, _ = parser.parse_known_args(argv)
 
@@ -135,7 +136,7 @@ def main(argv=sys.argv[1:]):
         return sys.exit(rc)
 
 
-    ports_detector = PortsDetector(store_file=str(jobs_root_path / 'ports_config') )
+    ports_detector = PortsDetector(args.zmq_port, args.auto_detect_port, store_file=str(jobs_root_path / 'ports_config') )
     ports_detector.create_config_file()
     context = zmq.Context()
 
