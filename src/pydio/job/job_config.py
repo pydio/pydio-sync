@@ -49,6 +49,18 @@ class JobConfig:
         self.__uuid = str(uuid)[0:10]
         return self.__uuid
 
+    def encoder(obj):
+        if isinstance(obj, JobConfig):
+            return {"__type__"      : 'JobConfig',
+                    "server"        : obj.server,
+                    "id"            : obj.id,
+                    "workspace"     : obj.workspace,
+                    "directory"     : obj.directory,
+                    "remote_folder" : obj.remote_folder,
+                    "user"          : obj.user_id,
+                    "direction"     : obj.direction,
+                    "active"        : obj.active}
+        raise TypeError(repr(JobConfig) + " can't be encoded")
 
     def load_from_cliargs(self, args):
         self.server = args.server
@@ -63,6 +75,7 @@ class JobConfig:
         self.user_id = args.user
         if args.direction:
             self.direction = args.direction
+        self.id = self.uuid()
 
     @staticmethod
     def object_decoder(obj):
@@ -85,5 +98,6 @@ class JobConfig:
                 job_config.monitor = obj['monitor']
             if 'active' in obj and obj['active'] in [True, False]:
                 job_config.active = obj['active']
+            job_config.id = job_config.uuid()
             return job_config
         return obj

@@ -3,7 +3,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
 
     .factory('Jobs', ['$resource',
         function($resource){
-            return $resource('http://demo2229936.mockable.io/jobs/:job_id/', {}, {
+            return $resource('/jobs/:job_id/', {}, {
                 query: {method:'GET', params:{job_id:''}, isArray:true}
             });
         }])
@@ -107,6 +107,10 @@ angular.module('project', ['ngRoute', 'ngResource'])
     .controller('CreateCtrl', function($scope, $location, $timeout, Jobs, currentJob) {
         var job = new Jobs();
         job.id = 'new';
+        job.remote_folder = '/';
+        job.directory = '/Path/to/local';
+        job.workspace = 'ws-watched';
+        job.__type__ = 'JobConfig'
         $scope.job = job;
         currentJob.setJob($scope.job);
     })
@@ -123,7 +127,14 @@ angular.module('project', ['ngRoute', 'ngResource'])
         $scope.folders = folders.getFolders();
 
         $scope.save = function() {
-            $scope.job.$save();
-            $location.path('/summary/'+$scope.job.id);
+            if($scope.job.id == 'new') {
+                delete $scope.job.id;
+                $scope.job.$save(function(resp){
+                    $location.path('/summary/'+resp.id);
+                });
+            }else{
+                $scope.job.$save();
+                $location.path('/summary/'+$scope.job.id);
+            }
         };
     });
