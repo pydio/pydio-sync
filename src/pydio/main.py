@@ -67,7 +67,7 @@ if __name__ == "__main__":
 from pydio.job.continous_merger import ContinuousDiffMerger
 from pydio.job.job_config import JobConfig
 from pydio.test.diagnostics import PydioDiagnostics
-from pydio.utils import config_ports
+from pydio.utils.config_ports import PortsDetector
 from pydio.ui.web_api import JobManager
 
 DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
@@ -135,21 +135,22 @@ def main(argv=sys.argv[1:]):
         return sys.exit(rc)
 
 
-    config_ports.create_config_file()
+    ports_detector = PortsDetector(store_file=str(jobs_root_path / 'ports_config') )
+    ports_detector.create_config_file()
     context = zmq.Context()
 
     rep_socket = context.socket(zmq.REP)
-    port = config_ports.get_open_port("command_socket")
+    port = ports_detector.get_open_port("command_socket")
     rep_socket.bind("tcp://*:%s" % port)
 
     pub_socket = context.socket(zmq.PUB)
-    port = config_ports.get_open_port("pub_socket")
+    port = ports_detector.get_open_port("pub_socket")
     pub_socket.bind("tcp://*:%s" % port)
 
     app = Flask(__name__, static_folder = 'ui/res', static_url_path='/res')
     api = Api(app)
     api.add_resource(JobManager, '/jobs', '/jobs/<string:job_id>')
-    port = config_ports.get_open_port('flask_api')
+    port = ports_detector.get_open_port('flask_api')
 
     try:
         controlThreads = []
