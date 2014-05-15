@@ -2,11 +2,16 @@ from flask import request, jsonify
 from flask.ext.restful import Resource
 from pydio.job.job_config import JobConfig
 import json
+import requests
+import keyring
 
-class JobManager(Resource):
+class JobsLoader():
 
     config_file = ''
     jobs = None
+
+    def __init__(self, config_file):
+        self.config_file = config_file
 
     def get_jobs(self):
         if self.jobs:
@@ -30,17 +35,44 @@ class JobManager(Resource):
         with open(self.config_file, "w") as fp:
             json.dump(all_jobs, fp, indent=2)
 
+
+class WorkspacesManager(Resource):
+
+    def get(self, job_id):
+        jobs = self.loader.get_jobs()
+        if not job_id in jobs:
+            return {"error":"Cannot find job"}
+        job = jobs[job_id]
+        resp = requests.get(
+            job.server + '/api/pydio/state/user/repositories?format=json',
+            stream = True,
+            auth=(job.user_id, keyring.get_password(job.server, job.user_id))
+        )
+        data = json.loads(resp.content)
+        return data
+
+    @classmethod
+    def make_ws_manager(cls, loader):
+        cls.loader = loader
+        return cls
+
+
+
+class JobManager(Resource):
+
+    loader = None
+
     def post(self):
-        jobs = self.get_jobs()
+        jobs = self.loader.get_jobs()
         json_req = request.get_json()
         test_job = JobConfig.object_decoder(json_req)
         jobs[test_job.id] = test_job
-        self.save_jobs(jobs)
-        jobs = self.get_jobs()
+        self.loader.save_jobs(jobs)
+        jobs = self.loader.get_jobs()
         return JobConfig.encoder(test_job)
 
     def get(self, job_id = None):
-        jobs = self.get_jobs()
+        jobs = self.loader.get_jobs()
         if not job_id:
             std_obj = []
             for k in jobs:
@@ -49,13 +81,13 @@ class JobManager(Resource):
         return JobConfig.encoder(jobs[job_id])
 
     def delete(self, job_id):
-        jobs = self.get_jobs()
+        jobs = self.loader.get_jobs()
         del jobs[job_id]
         return job_id + "deleted", 204
 
     @classmethod
-    def make_job_manager(cls, file):
-        cls.config_file = file
+    def make_job_manager(cls, loader):
+        cls.loader = loader
         return cls
 
         #curl --data '{"__type__" : "JobConfig", "id" : 1, "server" : "http://localhost", "workspace" : "ws-watched", "directory" : "/Users/charles/Documents/SYNCTESTS/subfolder", "remote_folder" : "/test", "user" : "Administrator", "password" : "xxxxxx", "direction" : "bi", "active" : true}' http://localhost:5000/jobs  --header 'Content-Type: application/json' --header 'Accept: application/json'

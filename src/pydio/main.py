@@ -68,7 +68,7 @@ from pydio.job.continous_merger import ContinuousDiffMerger
 from pydio.job.job_config import JobConfig
 from pydio.test.diagnostics import PydioDiagnostics
 from pydio.utils.config_ports import PortsDetector
-from pydio.ui.web_api import JobManager
+from pydio.ui.web_api import JobManager, WorkspacesManager, JobsLoader
 
 DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
 
@@ -138,6 +138,17 @@ def main(argv=sys.argv[1:]):
 
     ports_detector = PortsDetector(args.zmq_port, args.auto_detect_port, store_file=str(jobs_root_path / 'ports_config') )
     ports_detector.create_config_file()
+
+    app = Flask(__name__, static_folder = 'ui/res', static_url_path='/res')
+    api = Api(app)
+    loader = JobsLoader(str(jobs_root_path / 'configs.json'))
+    job_manager = JobManager.make_job_manager(loader)
+    ws_manager = WorkspacesManager.make_ws_manager(loader)
+    api.add_resource(job_manager, '/jobs', '/jobs/<string:job_id>')
+    api.add_resource(ws_manager, '/ws/<string:job_id>')
+    port = ports_detector.get_open_port('flask_api')
+
+
     context = zmq.Context()
 
     rep_socket = context.socket(zmq.REP)
@@ -148,11 +159,6 @@ def main(argv=sys.argv[1:]):
     port = ports_detector.get_open_port("pub_socket")
     pub_socket.bind("tcp://*:%s" % port)
 
-    app = Flask(__name__, static_folder = 'ui/res', static_url_path='/res')
-    api = Api(app)
-    job_manager = JobManager.make_job_manager(str(jobs_root_path / 'configs.json'))
-    api.add_resource(job_manager, '/jobs', '/jobs/<string:job_id>')
-    port = ports_detector.get_open_port('flask_api')
 
     try:
         controlThreads = []
