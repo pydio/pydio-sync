@@ -1,7 +1,7 @@
 import logging
+import requests
 
 from io import BytesIO
-import requests
 
 
 class BytesIOWithCallback(BytesIO):
