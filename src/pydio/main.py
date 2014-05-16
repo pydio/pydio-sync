@@ -68,7 +68,7 @@ from pydio.job.continous_merger import ContinuousDiffMerger
 from pydio.job.job_config import JobConfig
 from pydio.test.diagnostics import PydioDiagnostics
 from pydio.utils.config_ports import PortsDetector
-from pydio.ui.web_api import JobManager, WorkspacesManager, JobsLoader
+from pydio.ui.web_api import JobManager, WorkspacesManager, JobsLoader, FoldersManager
 
 DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
 
@@ -144,8 +144,10 @@ def main(argv=sys.argv[1:]):
     loader = JobsLoader(str(jobs_root_path / 'configs.json'))
     job_manager = JobManager.make_job_manager(loader)
     ws_manager = WorkspacesManager.make_ws_manager(loader)
+    folders_manager = FoldersManager.make_folders_manager(loader)
     api.add_resource(job_manager, '/jobs', '/jobs/<string:job_id>')
     api.add_resource(ws_manager, '/ws/<string:job_id>')
+    api.add_resource(folders_manager, '/folders/<string:job_id>')
 
 
     context = zmq.Context()

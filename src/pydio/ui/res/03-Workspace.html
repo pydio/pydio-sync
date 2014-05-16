@@ -31,14 +31,14 @@
 
 <div class="well">
 
-    <form ng-show="job.id!='new'" class="form-inline">
-        <h4>Server URL</h4>
+    <form ng-show="job.id!='new'" class="">
+        <h4>Server Connexion</h4>
         <div class="form-group">
+            <label>Server Address</label>
             <input style="width:300px;" type="url" name="site" ng-model="job.server" class="form-control" placeholder="http:// .... " required>
             <span ng-show="myForm.site.$error.required && !myForm.site.$pristine" class="help-inline">Required</span>
             <span ng-show="myForm.site.$error.url" class="help-inline">Not a URL</span>
         </div>
-        <h4>User Credentials</h4>
         <div class="form-group">
             <label>Login</label>
             <input style="width:150px;" type="text" name="user" ng-model="job.user" class="form-control" placeholder="Login" required>
@@ -49,7 +49,6 @@
             <input style="width:150px;" type="password" name="pwd" ng-model="job.password" class="form-control" placeholder="Password" required>
             <span ng-show="myForm.pwd.$error.required && !myForm.pwd.$pristine" class="help-inline">Required</span>
         </div>
-
     </form>
 
     <h4>Remote workspaces</h4>

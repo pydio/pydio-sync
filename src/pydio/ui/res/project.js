@@ -23,14 +23,25 @@ angular.module('project', ['ngRoute', 'ngResource'])
     .factory('Ws', ['$resource',
         function($resource){
             return $resource('/ws/:job_id/', {}, {
-                query: {method:'GET', params:{job_id:''}}
+                query: {method:'GET', params:{
+                    job_id:'',
+                    url   :'',
+                    user  :'',
+                    password:''
+                }}
             });
         }])
 
     .factory('Folders', ['$resource',
         function($resource){
             return $resource('/folders/:job_id/', {}, {
-                query: {method:'GET', params:{job_id:''}, isArray:true}
+                query: {method:'GET', params:{
+                    job_id:'',
+                    url   :'',
+                    ws    :'',
+                    user  :'',
+                    password:''
+                }, isArray:true}
             });
         }])
 
