@@ -20,47 +20,19 @@ angular.module('project', ['ngRoute', 'ngResource'])
         }
     })
 
-    .service('workspaces', function() {
-        var objectValue = [
-            {
-                path:'/',
-                label:'Mes Fichiers',
-                children:[
-                    {path: '/dir1', label:'dir1', children:[]},
-                    {path: '/dir2', label:'dir2', children:[]},
-                    {path: '/dir3', label:'dir3', children:[
-                        {path: '/dir3/subDir', label:'subDir', children:[]}
-                    ]}
-                ]
-            }
-        ];
-        return {
-            getWorkspaces: function() {
-                return objectValue;
-            }
-        }
-    })
+    .factory('Ws', ['$resource',
+        function($resource){
+            return $resource('/ws/:job_id/', {}, {
+                query: {method:'GET', params:{job_id:''}}
+            });
+        }])
 
-    .service('folders', function() {
-        var objectValue = [
-            {
-                path:'/',
-                label:'Mes Fichiers',
-                children:[
-                    {path: '/dir1', label:'dir1', children:[]},
-                    {path: '/dir2', label:'dir2', children:[]},
-                    {path: '/dir3', label:'dir3', children:[
-                        {path: '/dir3/subDir', label:'subDir', children:[]}
-                    ]}
-                ]
-            }
-        ];
-        return {
-            getFolders: function() {
-                return objectValue;
-            }
-        }
-    })
+    .factory('Folders', ['$resource',
+        function($resource){
+            return $resource('/folders/:job_id/', {}, {
+                query: {method:'GET', params:{job_id:''}, isArray:true}
+            });
+        }])
 
     .config(function($routeProvider) {
         $routeProvider
@@ -115,7 +87,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
         currentJob.setJob($scope.job);
     })
 
-    .controller('EditCtrl', function($scope, $location, $routeParams, Jobs, currentJob, workspaces, folders) {
+    .controller('EditCtrl', function($scope, $location, $routeParams, Jobs, currentJob, Ws, Folders) {
         if(!currentJob.getJob()){
             currentJob.setJob(Jobs.get({
                 job_id:$routeParams.jobId
@@ -123,10 +95,24 @@ angular.module('project', ['ngRoute', 'ngResource'])
         }
         $scope.jobs = Jobs.query();
         $scope.job = currentJob.getJob();
-        $scope.workspaces = workspaces.getWorkspaces();
-        $scope.folders = folders.getFolders();
+        Ws.get({
+            job_id:$routeParams.jobId
+        }, function(response){
+            $scope.repositories = response.repositories.repo;
+            angular.forEach($scope.repositories, function(r){
+                if(r['@repositorySlug'] == $scope.job.workspace){
+                    $scope.job.repoObject = r;
+                }
+            });
+        });
+        $scope.folders = Folders.query({
+            job_id:$routeParams.jobId
+        });
 
         $scope.save = function() {
+            if($scope.job.repoObject){
+                $scope.job.workspace = $scope.job.repoObject['@repositorySlug'];
+            }
             if($scope.job.id == 'new') {
                 delete $scope.job.id;
                 $scope.job.$save(function(resp){

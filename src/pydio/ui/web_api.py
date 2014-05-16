@@ -4,6 +4,7 @@ from pydio.job.job_config import JobConfig
 import json
 import requests
 import keyring
+import xmltodict
 
 class JobsLoader():
 
@@ -53,6 +54,26 @@ class WorkspacesManager(Resource):
 
     @classmethod
     def make_ws_manager(cls, loader):
+        cls.loader = loader
+        return cls
+
+class FoldersManager(Resource):
+
+    def get(self, job_id):
+        jobs = self.loader.get_jobs()
+        if not job_id in jobs:
+            return {"error":"Cannot find job"}
+        job = jobs[job_id]
+        resp = requests.get(
+            job.server + '/api/'+job.workspace+'/ls/?options=d&recursive=true',
+            stream = True,
+            auth=(job.user_id, keyring.get_password(job.server, job.user_id))
+        )
+        o = xmltodict.parse(resp.content)
+        return o['tree']['tree']
+
+    @classmethod
+    def make_folders_manager(cls, loader):
         cls.loader = loader
         return cls
 

@@ -1,14 +1,14 @@
 <script id="treeNode.html" type="text/ng-template">
-    <div ng-click="job.selection=data.path" style="cursor: pointer">
-        <span ng-class="{'glyphicon-folder-open': job.selection == data.path, 'glyphicon-folder-close': job.selection != data.path}"
-                class="glyphicon"></span>&nbsp;&nbsp;<span ng-bind="data.label"></span>
+    <div ng-click="job.selection=data.filename" style="cursor: pointer">
+        <span ng-class="{'glyphicon-folder-open': job.selection == data.filename, 'glyphicon-folder-close': job.selection != data.filename}"
+                class="glyphicon"></span>&nbsp;&nbsp;<span ng-bind="data['@text']"></span>
     </div>
     <!-- Want to loose the div in the repeat as well -->
     <div style="padding-left:25px;">
         <ng-include
-                ng-if="data.children.length > 0"
+                ng-if="data.tree && data.tree.length > 0"
                 onload="data = child"
-                ng-repeat="child in data.children"
+                ng-repeat="child in data.tree"
                 src="'treeNode.html'"></div>
     </div>
 </script>
@@ -53,9 +53,12 @@
     </form>
 
     <h4>Remote workspaces</h4>
+    <select ng-model="job.repoObject" ng-options="repo as repo.label for repo in repositories" class="form-control">
+        <option value="">-- Select a workspace --</option>
+    </select>
     <div class="well" style="background-color: white; padding: 10px;">
         <ng-include
-                ng-repeat="child in workspaces"
+                ng-repeat="child in folders"
                 src="'treeNode.html'"
                 onload="data = child"/>
     </div>
