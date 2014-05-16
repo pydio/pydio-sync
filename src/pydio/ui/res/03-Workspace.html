@@ -1,16 +1,24 @@
 <script id="treeNode.html" type="text/ng-template">
-    <div ng-click="job.selection=data.filename" style="cursor: pointer">
-        <span ng-class="{'glyphicon-folder-open': job.selection == data.filename, 'glyphicon-folder-close': job.selection != data.filename}"
-                class="glyphicon"></span>&nbsp;&nbsp;<span ng-bind="data['@text']"></span>
+    <div ng-class="{'list-group-item-success':job.remote_folder == data['@filename']}" style="padding: 5px;border-radius: 3px;">
+        <span style="cursor: pointer;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]"  ng-class="{'glyphicon-folder-open': !pathes[data['@filename']] && data.tree, 'glyphicon-folder-close': pathes[data['@filename']] || !data.tree }"
+                class="glyphicon"></span>&nbsp;&nbsp;
+        <span style="cursor: pointer;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]" ng-bind="data['@text']"></span>
+        <span style="cursor: pointer; float: right;" ng-click="job.remote_folder=data['@filename']" ng-class="{'glyphicon-unchecked':job.remote_folder != data['@filename'],'glyphicon-ok':job.remote_folder == data['@filename']}" class="glyphicon"> </span>
     </div>
     <!-- Want to loose the div in the repeat as well -->
-    <div style="padding-left:25px;">
+    <div ng-hide="pathes[data['@filename']]" style="padding-left:25px;">
         <ng-include
                 ng-if="data.tree && data.tree.length > 0"
                 onload="data = child"
                 ng-repeat="child in data.tree"
-                src="'treeNode.html'"></div>
+                src="'treeNode.html'">
     </div>
+    <div ng-hide="pathes[data['@filename']]" style="padding-left:25px;">
+        <ng-include
+            ng-if="data.tree && data.tree['@text']"
+            onload="data = data.tree"
+            src="'treeNode.html'">
+            </div>
 </script>
 
 <div ng-show="job.id!='new'">
@@ -49,17 +57,27 @@
             <input style="width:150px;" type="password" name="pwd" ng-model="job.password" class="form-control" placeholder="Password" required>
             <span ng-show="myForm.pwd.$error.required && !myForm.pwd.$pristine" class="help-inline">Required</span>
         </div>
+        <div>
+            <a ng-click="loadWorkspaces()">Load Workspaces</a>
+        </div>
     </form>
 
     <h4>Remote workspaces</h4>
-    <select ng-model="job.repoObject" ng-options="repo as repo.label for repo in repositories" class="form-control">
+    <select ng-change="loadFolders()" ng-model="job.repoObject" ng-options="repo as repo.label for repo in repositories" class="form-control">
         <option value="">-- Select a workspace --</option>
     </select>
     <div class="well" style="background-color: white; padding: 10px;">
-        <ng-include
-                ng-repeat="child in folders"
-                src="'treeNode.html'"
-                onload="data = child"/>
+        <div ng-click="job.remote_folder = ''" ng-class="{'list-group-item-success':!job.remote_folder}" style="cursor: pointer;padding: 5px;border-radius: 3px;">
+        <span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;Whole workspace<span ng-if="folders_loading"> [loading...]</span> <span>{{folders_loading_error}}</span>
+        </div>
+        <!-- Want to loose the div in the repeat as well -->
+        <div style="padding-left:25px;">
+
+            <ng-include
+                    ng-repeat="child in folders"
+                    src="'treeNode.html'"
+                    onload="data = child"/>
+        </div>
     </div>
 
     <a ng-click="showAdvanced=!showAdvanced;" style="cursor: pointer;"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': !showAdvanced, 'glyphicon-chevron-down': showAdvanced}"></span> Advanced Parameters</a>
@@ -108,6 +126,6 @@
 <div class="pull-right">
     <a href="#/edit/{{job.id}}/step2" class="btn btn-primary" ng-show="job.id=='new'">&lt;&lt;</a>
     <a href="#/summary/{{job.id}}" class="btn" ng-show="job.id!='new'">Cancel</a>
-    <a ng-click="save()" class="btn btn-primary" ng-disabled="!job.selection">Save</a>
+    <a ng-click="save()" class="btn btn-primary" ng-disabled="!job.remote_folder">Save</a>
 </div>
 

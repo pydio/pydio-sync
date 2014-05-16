@@ -5,6 +5,8 @@ import json
 import requests
 import keyring
 import xmltodict
+import types
+from collections import OrderedDict
 
 class JobsLoader():
 
@@ -40,15 +42,24 @@ class JobsLoader():
 class WorkspacesManager(Resource):
 
     def get(self, job_id):
-        jobs = self.loader.get_jobs()
-        if not job_id in jobs:
-            return {"error":"Cannot find job"}
-        job = jobs[job_id]
-        resp = requests.get(
-            job.server + '/api/pydio/state/user/repositories?format=json',
-            stream = True,
-            auth=(job.user_id, keyring.get_password(job.server, job.user_id))
-        )
+        if job_id != 'request':
+            jobs = self.loader.get_jobs()
+            if not job_id in jobs:
+                return {"error":"Cannot find job"}
+            job = jobs[job_id]
+
+            url = job.server + '/api/pydio/state/user/repositories?format=json'
+            auth = (job.user_id, keyring.get_password(job.server, job.user_id))
+        else:
+            args = request.args
+            base = args['url'].rstrip('/')
+            url = base + '/api/pydio/state/user/repositories?format=json'
+            if 'password' in args:
+                auth = (args['user'], args['password'])
+            else:
+                auth = (args['user'], keyring.get_password(base, args['user']))
+
+        resp = requests.get(url,stream = True,auth=auth)
         data = json.loads(resp.content)
         return data
 
@@ -60,16 +71,30 @@ class WorkspacesManager(Resource):
 class FoldersManager(Resource):
 
     def get(self, job_id):
-        jobs = self.loader.get_jobs()
-        if not job_id in jobs:
-            return {"error":"Cannot find job"}
-        job = jobs[job_id]
-        resp = requests.get(
-            job.server + '/api/'+job.workspace+'/ls/?options=d&recursive=true',
-            stream = True,
-            auth=(job.user_id, keyring.get_password(job.server, job.user_id))
-        )
+        if job_id != 'request':
+            jobs = self.loader.get_jobs()
+            if not job_id in jobs:
+                return {"error":"Cannot find job"}
+            job = jobs[job_id]
+            url = job.server + '/api/'+job.workspace+'/ls/?options=d&recursive=true'
+            auth = (job.user_id, keyring.get_password(job.server, job.user_id))
+        else:
+            args = request.args
+            base = args['url'].rstrip('/')
+            url = base + '/api/'+args['ws']+'/ls/?options=d&recursive=true'
+            if 'password' in args:
+                auth = (args['user'], args['password'])
+            else:
+                auth = (args['user'], keyring.get_password(base, args['user']))
+
+        resp = requests.get( url, stream = True, auth=auth )
         o = xmltodict.parse(resp.content)
+        if not 'tree' in o or 'message' in o['tree']:
+            return [{'error':'Cannot load workspace'}];
+        if not 'tree' in o['tree']:
+            return []
+        if isinstance(o['tree']['tree'], types.DictType):
+            return [o['tree']['tree']]
         return o['tree']['tree']
 
     @classmethod

@@ -24,10 +24,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
         function($resource){
             return $resource('/ws/:job_id/', {}, {
                 query: {method:'GET', params:{
-                    job_id:'',
-                    url   :'',
-                    user  :'',
-                    password:''
+                    job_id:''
                 }}
             });
         }])
@@ -99,26 +96,59 @@ angular.module('project', ['ngRoute', 'ngResource'])
     })
 
     .controller('EditCtrl', function($scope, $location, $routeParams, Jobs, currentJob, Ws, Folders) {
+        $scope.loadFolders = function(){
+            if($scope.job.repoObject && $scope.job.repoObject['@repositorySlug'] != $scope.job.workspace){
+                $scope.job.workspace = $scope.job.repoObject['@repositorySlug'];
+            }
+            $scope.folders_loading = true;
+            $scope.folders_loading_error = '';
+            $scope.folders = Folders.query({
+                job_id:'request',
+                url:$scope.job.server,
+                user:$scope.job.user,
+                password:$scope.job.password,
+                ws:$scope.job.workspace
+            }, function(resp){
+                if(resp[0] && resp[0].error){
+                    $scope.folders_loading_error = resp[0].error;
+                }
+                $scope.folders_loading = false;
+            });
+        }
+
+        $scope.loadWorkspaces = function(){
+            if($scope.job.id == 'new' && !$scope.job.password) {
+                return;
+            }
+            Ws.get({
+                job_id:'request',
+                url:$scope.job.server,
+                user:$scope.job.user,
+                password:$scope.job.password
+            }, function(response){
+                $scope.repositories = response.repositories.repo;
+                angular.forEach($scope.repositories, function(r){
+                    if(r['@repositorySlug'] == $scope.job.workspace){
+                        $scope.job.repoObject = r;
+                    }
+                });
+                $scope.loadFolders();
+            });
+        };
+
+        $scope.pathes = {};
+        $scope.jobs = Jobs.query();
         if(!currentJob.getJob()){
             currentJob.setJob(Jobs.get({
                 job_id:$routeParams.jobId
+            }, function(resp){
+                $scope.job = resp;
+                $scope.loadWorkspaces();
             }));
+        }else{
+            $scope.job = currentJob.getJob();
+            $scope.loadWorkspaces();
         }
-        $scope.jobs = Jobs.query();
-        $scope.job = currentJob.getJob();
-        Ws.get({
-            job_id:$routeParams.jobId
-        }, function(response){
-            $scope.repositories = response.repositories.repo;
-            angular.forEach($scope.repositories, function(r){
-                if(r['@repositorySlug'] == $scope.job.workspace){
-                    $scope.job.repoObject = r;
-                }
-            });
-        });
-        $scope.folders = Folders.query({
-            job_id:$routeParams.jobId
-        });
 
         $scope.save = function() {
             if($scope.job.repoObject){
