@@ -146,7 +146,6 @@ def main(argv=sys.argv[1:]):
     ws_manager = WorkspacesManager.make_ws_manager(loader)
     api.add_resource(job_manager, '/jobs', '/jobs/<string:job_id>')
     api.add_resource(ws_manager, '/ws/<string:job_id>')
-    port = ports_detector.get_open_port('flask_api')
 
 
     context = zmq.Context()
@@ -230,7 +229,9 @@ def main(argv=sys.argv[1:]):
                 time.sleep(10)
         # Create thread as follows
         try:
-            ui_server = multiprocessing.Process(target=app.run, kwargs={'port': port})
+            ui_server = multiprocessing.Process(target=app.run, kwargs={
+                'port': ports_detector.get_open_port('flask_api')
+            })
             ui_server.start()
             thread.start_new_thread(listen_to_REP, ())
             thread.start_new_thread(pinger(), ())
