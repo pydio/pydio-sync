@@ -18,13 +18,13 @@ class PydioDiagnostics():
         self.status_message = None
 
     def run(self):
-        # self.run_zmq_smoke_test()
+        self.run_zmq_smoke_test()
         self.run_ping_server_test()
         return self.status
 
     @classmethod
     def run_zmq_smoke_test(cls):
-        logging.debug('Start ZMQ test')
+        logging.info('Start ZMQ test')
         receive_process = multiprocessing.Process(
             target=cls._receive_message_from_zmq_and_send_reply)
         receive_process.start()
@@ -38,7 +38,7 @@ class PydioDiagnostics():
         sock.bind(cls.zmq_address)
 
         message = '--- Test message send to zmq ---'
-        logging.debug('Sending request: %s' % message)
+        logging.info('Sending request: %s' % message)
         sock.send_unicode(message)
         response = sock.recv_unicode()
         logging.debug('Receiving response: %s' % response)
@@ -50,26 +50,26 @@ class PydioDiagnostics():
         sock.connect(cls.zmq_address)
 
         request = sock.recv_unicode()
-        logging.debug('Receiving request: %s' % request)
+        logging.info('Receiving request: %s' % request)
         message = 'Test response sent to zmq'
         logging.debug('Sending response: %s' % message)
         sock.send_unicode(message)
 
     def run_ping_server_test(self):
-        logging.debug('---- Server ping test ---')
+        logging.info('---- Server ping test ---')
         assert self.url
         assert self.basepath
         assert self.user_id
         if not all([self.url, self.basepath, self.user_id]):
-            logging.debug('Can not run ping server test, please provide: ')
-            logging.debug('--server --directory --workspace --user --password')
+            logging.info('Can not run ping server test, please provide: ')
+            logging.info('--server --directory --workspace --user --password')
             self.status = -1
             self.status_message = "Can not run ping server test, please provide configuration arguments"
             return
 
         pydio_sdk = PydioSdk(self.url, self.basepath, self.ws_id or '', self.user_id)
         success = pydio_sdk.stat('/')
-        logging.debug('Server ping test: %s' % ('success' if success else 'failure'))
+        logging.info('Server ping test: %s' % ('success' if success else 'failure'))
         if not success:
             self.status = -1
             self.status_message = "Server ping test: failure"
