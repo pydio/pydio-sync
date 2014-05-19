@@ -231,7 +231,7 @@ def main(argv=sys.argv[1:]):
                 time.sleep(10)
         # Create thread as follows
         try:
-            thread.start_new_thread(app.run(port=ports_detector.get_open_port('flask_api')))
+            thread.start_new_thread(app.run, (), {'port':ports_detector.get_open_port('flask_api')})
             thread.start_new_thread(listen_to_REP, ())
             thread.start_new_thread(pinger(), ())
         except Exception as e:
