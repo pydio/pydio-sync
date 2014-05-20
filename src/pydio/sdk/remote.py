@@ -36,6 +36,8 @@ from urlparse import urlparse
 
 from exceptions import SystemSdkException, PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException
 from pydio.utils.functions import hashfile
+from .utils import upload_file_showing_progress
+
 
 class PydioSdk():
 
@@ -63,7 +65,7 @@ class PydioSdk():
         return tokens
 
 
-    def perform_with_tokens(self, token, private, url, type='get', data=None, files=None, stream=False):
+    def perform_with_tokens(self, token, private, url, type='get', data=None, files=None, stream=False, with_progress=False):
 
         nonce =  sha1(str(random.random())).hexdigest()
         uri = urlparse(url).path.rstrip('/')
@@ -83,7 +85,10 @@ class PydioSdk():
                 data = {}
             data['auth_token'] = token
             data['auth_hash']  = auth_hash
-            if files:
+            if with_progress:
+                fields = dict(files, **data)
+                upload_file_showing_progress(url, fields, stream)
+            elif files:
                 resp = requests.post(url=url, data=data, files=files, stream=stream)
             else:
                 resp = requests.post(url=url, data=data, stream=stream)
@@ -95,7 +100,7 @@ class PydioSdk():
         return resp
 
 
-    def perform_request(self, url, type='get', data=None, files=None, stream=False):
+    def perform_request(self, url, type='get', data=None, files=None, stream=False, with_progress=False):
 
         tokens = keyring.get_password(self.url, self.user_id +'-token')
         if not tokens:
@@ -104,7 +109,7 @@ class PydioSdk():
         else:
             tokens = tokens.split(':')
             try:
-                resp = self.perform_with_tokens(tokens[0], tokens[1], url, type, data, files, stream)
+                resp = self.perform_with_tokens(tokens[0], tokens[1], url, type, data, files, stream, with_progress)
                 return resp
             except PydioSdkTokenAuthException as pTok:
                 # Tokens may be revoked? Retry
@@ -223,10 +228,10 @@ class PydioSdk():
             if not folder:
                 self.mkdir(os.path.dirname(path))
         url = self.url + '/upload/put' + urllib.pathname2url((self.remote_folder + os.path.dirname(path)).encode('utf-8'))
-        files = {'userfile_0': ('my-name',open(local, 'rb'))}
+        files = {'userfile_0': ('my-name',open(local, 'rb').read())}
         data = {'force_post':'true', 'urlencoded_filename':urllib.pathname2url(os.path.basename(path).encode('utf-8'))}
         #resp = requests.post(url, data=data, files=files, auth=self.auth)
-        resp = self.perform_request(url=url, type='post', data=data, files=files)
+        resp = self.perform_request(url=url, type='post', data=data, files=files, with_progress=True)
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
             raise PydioSdkException('upload', path, 'File not correct after upload')
