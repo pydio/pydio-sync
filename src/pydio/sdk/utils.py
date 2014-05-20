@@ -28,7 +28,7 @@ class BytesIOWithCallback(BytesIO):
         return chunk
 
 
-def upload_file_showing_progress(url, fields, auth):
+def upload_file_showing_progress(url, fields, stream):
     (data, content_type) = requests.packages.urllib3.filepost.encode_multipart_formdata(fields)
     body = BytesIOWithCallback(data, log_progress)
 
@@ -36,7 +36,7 @@ def upload_file_showing_progress(url, fields, auth):
         url,
         data=body,
         headers={'Content-Type': content_type},
-        auth=auth
+        stream=stream
     )
 
 

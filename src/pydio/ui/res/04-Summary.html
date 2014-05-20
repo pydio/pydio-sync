@@ -1,0 +1,27 @@
+<h1>Job Summary</h1>
+<p class="lead">Your sync task is currently <em>active</em> and <em>running</em>. <a href="#/edit/{{job.id}}/step3">[edit]</a></p>
+
+<div style="border-radius: 10px;padding: 60px;margin: 40px 70px;" class="well">
+<table style="width:100%; text-align:center;color:slategray">
+    <tr>
+        <td style="width:40%;" class="lead">
+            <span class="glyphicon glyphicon-cloud" style="font-size: 150px;color: rgb(211, 235, 255);"></span><br>
+            Server <a href="{{job.server}}" target="_blank">{{job.server}}</a> on workspace <em>{{job.workspace}}</em><span ng-if="job.remote_folder!=''"> (folder <em>{{job.remote_folder}}</em>)</span>, logged as <em>{{job.user}}</em>
+        </td>
+        <td>
+            <span ng-if="job.direction=='bi'">Bidirectional Sync</span>
+            <span ng-if="job.direction=='down'">Download only (mirror)</span>
+            <span ng-if="job.direction=='up'">Upload only (backup)</span>
+            <br/><span class="glyphicon glyphicon-transfer" style="font-size: 130px;color: white;"></span>
+        </td>
+        <td style="width:40%;word-break: break-all;" class="lead">
+            <span class="glyphicon glyphicon-hdd" style="font-size: 150px;color: slategrey;"></span><br>
+            Local folder <em>{{job.directory}}</em> on your computer
+        </td>
+    </tr>
+</table>
+</div>
+
+<div style="text-align: right;margin-top: 50px;">
+    <a  ng-show="job.id!='new' && jobs.length" href="#/">Back to list</a>
+</div>

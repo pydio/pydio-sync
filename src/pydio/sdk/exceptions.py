@@ -34,3 +34,14 @@ class PydioSdkException(ProcessException):
 class SystemSdkException(ProcessException):
     def __init__(self, operation, path, detail):
         super(SystemSdkException, self).__init__('system operation', operation, path, detail)
+
+
+class PydioSdkBasicAuthException(Exception):
+    def __init__(self, type):
+        super(PydioSdkBasicAuthException, self).__init__('Http-Basic authentication failed, wrong credentials?')
+
+
+class PydioSdkTokenAuthException(Exception):
+    def __init__(self, type):
+        super(PydioSdkTokenAuthException, self).__init__('Token-based authentication failed, reload credentials?')
+

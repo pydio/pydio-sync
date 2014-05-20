@@ -1,0 +1,21 @@
+<!doctype html>
+<html ng-app="project">
+<head>
+    <script src="angularjs/angular.min.js"></script>
+    <script src="angularjs/angular-resource.min.js"></script>
+    <script src="angularjs/angular-route.min.js"></script>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <script src="project.js"></script>
+</head>
+<body style="padding: 50px 20px;">
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <a class="navbar-brand" href="#">Pydio Synchronization Agent</a>
+    <ul class="nav navbar-nav navbar-right" style="margin-right: 10px;">
+        <li><a style="cursor: pointer"><span class="glyphicon glyphicon-pause"></span> Pause all</a></li>
+        <li><a href="#/new"><span class="glyphicon glyphicon-plus"></span> Create new job</a></li>
+    </ul>
+</nav>
+
+<div ng-view></div>
+</body>
+</html>

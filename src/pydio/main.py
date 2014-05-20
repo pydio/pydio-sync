@@ -32,11 +32,16 @@ logging.debug("PYTHONPATH: %s", "\n\t".join(os.environ.get('PYTHONPATH', "").spl
 
 # Most imports are placed after we have logged import path
 # so we can easily debug import problems
-
+from flask import Flask
+from flask.ext.restful import Api
 import argparse
 import json
 import zmq
 import thread
+import time
+import pydio.monkeypatch
+import multiprocessing
+
 from pathlib import Path
 
 if __name__ == "__main__":
@@ -62,7 +67,8 @@ if __name__ == "__main__":
 from pydio.job.continous_merger import ContinuousDiffMerger
 from pydio.job.job_config import JobConfig
 from pydio.test.diagnostics import PydioDiagnostics
-from pydio.test import config_ports
+from pydio.utils.config_ports import PortsDetector
+from pydio.ui.web_api import JobManager, WorkspacesManager, JobsLoader, FoldersManager
 
 DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
 
@@ -83,6 +89,7 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('--diag-http', help='Check server connection', action='store_true', default=False)
     parser.add_argument('--save-cfg', action='store_true')
     parser.add_argument('--auto-start', action='store_true')
+    parser.add_argument('--auto_detect_port', type=bool, help='Auto detect available ports', default=False)
     parser.add_argument('-v', '--verbose', action='count', )
     args, _ = parser.parse_known_args(argv)
 
@@ -123,14 +130,36 @@ def main(argv=sys.argv[1:]):
     if args.diag_http:
         smoke_tests = PydioDiagnostics(
             data[0].server, data[0].workspace, data[0].remote_folder, data[0].user_id)
-        return sys.exit(smoke_tests.run())
+        rc = smoke_tests.run()
+        if rc != 0:
+            logging.error("Diagnostics failed: %s %s" % (str(rc), smoke_tests.status_message))
+        return sys.exit(rc)
 
 
-    config_ports.create_config_file()
+    ports_detector = PortsDetector(args.zmq_port, args.auto_detect_port, store_file=str(jobs_root_path / 'ports_config') )
+    ports_detector.create_config_file()
+
+    app = Flask(__name__, static_folder = 'ui/res', static_url_path='/res')
+    api = Api(app)
+    loader = JobsLoader(str(jobs_root_path / 'configs.json'))
+    job_manager = JobManager.make_job_manager(loader)
+    ws_manager = WorkspacesManager.make_ws_manager(loader)
+    folders_manager = FoldersManager.make_folders_manager(loader)
+    api.add_resource(job_manager, '/jobs', '/jobs/<string:job_id>')
+    api.add_resource(ws_manager, '/ws/<string:job_id>')
+    api.add_resource(folders_manager, '/folders/<string:job_id>')
+
+
     context = zmq.Context()
+
+    rep_socket = context.socket(zmq.REP)
+    port = ports_detector.get_open_port("command_socket")
+    rep_socket.bind("tcp://*:%s" % port)
+
     pub_socket = context.socket(zmq.PUB)
-    port = config_ports.get_open_port("pub_socket")
+    port = ports_detector.get_open_port("pub_socket")
     pub_socket.bind("tcp://*:%s" % port)
+
 
     try:
         controlThreads = []
@@ -150,13 +179,7 @@ def main(argv=sys.argv[1:]):
             except (KeyboardInterrupt, SystemExit):
                 merger.stop()
 
-        rep_socket = context.socket(zmq.REP)
-        port = config_ports.get_open_port("command_socket")
-        rep_socket.bind("tcp://*:%s" % port)
 
-        watch_socket = context.socket(zmq.REP)
-        port = config_ports.get_open_port("watch_socket")
-        watch_socket.bind("tcp://*:%s" % port)
         def listen_to_REP():
             while True:
                 message = str(rep_socket.recv())
@@ -198,23 +221,19 @@ def main(argv=sys.argv[1:]):
                 except Exception as e:
                     logging.error(e)
 
-        def listen_to_watcher():
+        def pinger():
             while True:
-                message = str(watch_socket.recv())
-                logging.info("Received ping from watcher :" + message)
-                for t in controlThreads:
-                    if not t.is_running():
-                        reply = "PAUSED"
-                    else:
-                        reply = "RUNNING"
+                logging.info("Send ping to UI...")
                 try:
-                    watch_socket.send(reply)
+                    pub_socket.send_string("ping/")
                 except Exception as e:
                     logging.error(e)
+                time.sleep(10)
         # Create thread as follows
         try:
+            thread.start_new_thread(app.run, (), {'port':ports_detector.get_open_port('flask_api')})
             thread.start_new_thread(listen_to_REP, ())
-            thread.start_new_thread(listen_to_watcher(), ())
+            thread.start_new_thread(pinger(), ())
         except Exception as e:
             logging.error(e)
 

@@ -57,9 +57,9 @@ class ContinuousDiffMerger(threading.Thread):
             user_id=job_config.user_id
         )
         self.system = SystemSdk(job_config.directory)
-        self.remote_seq = 1
+        self.remote_seq = 0
         self.local_seq = 0
-        self.local_target_seq = 1
+        self.local_target_seq = 0
         self.remote_target_seq = 0
         self.local_seqs = []
         self.remote_seqs = []
@@ -288,7 +288,7 @@ class ContinuousDiffMerger(threading.Thread):
     def info(self, message, toUser=False, channel='sync'):
         logging.info(message)
         if toUser and self.pub_socket:
-            self.pub_socket.send_string(channel + ' ' + toUser)
+            self.pub_socket.send_string(channel + "/" + message)
 
     def process_localMKDIR(self, path):
         message = path + ' <============ MKDIR'

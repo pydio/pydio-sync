@@ -1,0 +1,17 @@
+<h1>1. Configure Connection</h1>
+<p class="lead">Connect to the server with the same URL as the one you would use to access through a web browser, e.g. http://mydomain.com/pydio</p>
+<div class="well">
+    <form name="myForm" class="form-inline">
+    <div class="form-group">
+        <label>Server URL</label>
+        <input style="width:300px;" type="url" name="site" ng-model="job.server" class="form-control" placeholder="http:// .... " required>
+        <span ng-show="myForm.site.$error.required && !myForm.site.$pristine" class="help-inline">Required</span>
+        <span ng-show="myForm.site.$error.url" class="help-inline">Not a URL</span>
+    </div>
+
+    </form>
+</div>
+<div class="pull-right">
+    <a href="#/" class="btn previous">Cancel</a>
+    <a href="#/edit/{{job.id}}/step2" class="btn btn-primary next" ng-disabled="myForm.$invalid">&gt;&gt;</a>
+</div>
