@@ -136,6 +136,20 @@ angular.module('project', ['ngRoute', 'ngResource'])
             });
         };
 
+        $scope.openDirChooser = function(){
+
+            var res;
+            if(!window.PydioQtFileDialog) {
+                res = window.prompt('Full path to the local folder');
+            }else{
+                res = window.PydioQtFileDialog.getPath();
+            }
+            if(res){
+                $scope.job.directory = res;
+            }
+
+        };
+
         $scope.pathes = {};
         $scope.jobs = Jobs.query();
         if(!currentJob.getJob()){
