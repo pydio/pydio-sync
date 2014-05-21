@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, redirect
 from flask.ext.restful import Resource
 from pydio.job.job_config import JobConfig
 import json
@@ -118,6 +118,8 @@ class JobManager(Resource):
         return JobConfig.encoder(test_job)
 
     def get(self, job_id = None):
+        if request.path=='/':
+            return redirect("/res/index.html", code=302)
         jobs = self.loader.get_jobs()
         if not job_id:
             std_obj = []
@@ -135,5 +137,3 @@ class JobManager(Resource):
     def make_job_manager(cls, loader):
         cls.loader = loader
         return cls
-
-        #curl --data '{"__type__" : "JobConfig", "id" : 1, "server" : "http://localhost", "workspace" : "ws-watched", "directory" : "/Users/charles/Documents/SYNCTESTS/subfolder", "remote_folder" : "/test", "user" : "Administrator", "password" : "xxxxxx", "direction" : "bi", "active" : true}' http://localhost:5000/jobs  --header 'Content-Type: application/json' --header 'Accept: application/json'

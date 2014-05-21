@@ -145,7 +145,7 @@ def main(argv=sys.argv[1:]):
     job_manager = JobManager.make_job_manager(loader)
     ws_manager = WorkspacesManager.make_ws_manager(loader)
     folders_manager = FoldersManager.make_folders_manager(loader)
-    api.add_resource(job_manager, '/jobs', '/jobs/<string:job_id>')
+    api.add_resource(job_manager, '/','/jobs', '/jobs/<string:job_id>')
     api.add_resource(ws_manager, '/ws/<string:job_id>')
     api.add_resource(folders_manager, '/folders/<string:job_id>')
 
