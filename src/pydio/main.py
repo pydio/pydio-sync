@@ -21,6 +21,7 @@
 import logging
 import sys
 import os
+from pydio.job import run_loop
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-7s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logging.getLogger().setLevel(logging.DEBUG)
@@ -180,60 +181,66 @@ def main(argv=sys.argv[1:]):
                 merger.stop()
 
 
+        @run_loop
         def listen_to_REP():
-            while True:
-                message = str(rep_socket.recv())
-                reply = "undefined reply"
-                logging.info('Received message from REP socket ' + message)
-                parts = message.split(' ', 2)
-                if message.startswith('PAUSE'):
-                    logging.info("SHOULD PAUSE")
-                    if len(parts) > 1 and int(parts[1]) in controlThreads:
-                        controlThreads[int(parts[1])].pause()
+            message = str(rep_socket.recv())
+            reply = "undefined reply"
+            logging.info('Received message from REP socket ' + message)
+            parts = message.split(' ', 2)
+            if message.startswith('PAUSE'):
+                logging.info("SHOULD PAUSE")
+                if len(parts) > 1 and int(parts[1]) in controlThreads:
+                    controlThreads[int(parts[1])].pause()
+                    if not t.is_running():
+                        reply = "PAUSED"
+                else:
+                    for t in controlThreads:
+                        t.pause()
                         if not t.is_running():
                             reply = "PAUSED"
-                    else:
-                        for t in controlThreads:
-                            t.pause()
-                            if not t.is_running():
-                                reply = "PAUSED"
-                elif message.startswith('START'):
-                    logging.info("SHOULD START")
-                    if len(parts) > 1 and int(parts[1]) in controlThreads:
-                        controlThreads[int(parts[1])].resume()
-                        reply = "RUNNING"
-                    else:
-                        for t in controlThreads:
-                            t.resume()
-                            reply = "RUNNING"
-
-                elif str(message).startswith('RELOAD') and len(parts) > 1 and int(parts[1]) in controlThreads:
-                    # Todo: implement the reload of the config data
-                    pass
-                elif message == 'LIST-JOBS':
-                    data = []
+            elif message.startswith('START'):
+                logging.info("SHOULD START")
+                if len(parts) > 1 and int(parts[1]) in controlThreads:
+                    controlThreads[int(parts[1])].resume()
+                    reply = "RUNNING"
+                else:
                     for t in controlThreads:
-                        data.append(t.job_config.server + ' - ' + t.job_config.directory)
-                    reply = json.dumps(data)
+                        t.resume()
+                        reply = "RUNNING"
 
-                try:
-                    rep_socket.send(reply)
-                except Exception as e:
-                    logging.error(e)
+            elif str(message).startswith('RELOAD') and len(parts) > 1 and int(parts[1]) in controlThreads:
+                # Todo: implement the reload of the config data
+                pass
+            elif message == 'LIST-JOBS':
+                data = []
+                for t in controlThreads:
+                    data.append(t.job_config.server + ' - ' + t.job_config.directory)
+                reply = json.dumps(data)
 
+            try:
+                rep_socket.send(reply)
+            except Exception as e:
+                logging.error(e)
+
+
+        @run_loop
         def pinger():
-            while True:
-                logging.info("Send ping to UI...")
-                try:
-                    pub_socket.send_string("ping/")
-                except Exception as e:
-                    logging.error(e)
+            logging.info("Send ping to UI...")
+            try:
+                pub_socket.send_string("ping/")
+            except Exception as e:
+                logging.error(e)
+            try:
                 time.sleep(10)
-        # Create thread as follows
+            except KeyboardInterrupt as ex:
+                logging.debug("Pinger: %s" % ex)
+
+            # Create thread as follows
         try:
-            thread.start_new_thread(app.run, (), {'port':ports_detector.get_open_port('flask_api')})
+            # thread.start_new_thread(app.run, (), {'port':ports_detector.get_open_port('flask_api')})
             thread.start_new_thread(listen_to_REP, ())
-            thread.start_new_thread(pinger(), ())
+            thread.start_new_thread(pinger, ())
+            pass
         except Exception as e:
             logging.error(e)
 
@@ -260,12 +267,12 @@ def setup_logging(verbosity=None):
         'disable_existing_loggers': True,
         'formatters': {
             'short': {
-                'format': '%(asctime)s %(levelname)-7s %(thread)-5d %(message)s',
+                'format': '%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(message)s',
                 'datefmt': '%H:%M:%S',
             },
             # this will slow down the app a little, due to
             'verbose': {
-                'format': '%(asctime)s %(levelname)-7s %(thread)-5d %(filename)s:%(lineno)s | %(funcName)s | %(message)s',
+                'format': '%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(filename)s:%(lineno)s | %(funcName)s | %(message)s',
                 'datefmt': '%Y-%m-%d %H:%M:%S',
             },
         },
@@ -298,3 +305,5 @@ def setup_logging(verbosity=None):
 
 if __name__ == "__main__":
     main()
+    from pydio.job import manager
+    manager.wait()

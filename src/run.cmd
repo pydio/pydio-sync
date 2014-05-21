@@ -1,0 +1,1 @@
+cmd /K ..\.pve\scripts\python -m pydio.main --file c:\Users\wooyek\.pydio.json

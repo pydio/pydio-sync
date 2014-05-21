@@ -23,6 +23,7 @@ import os
 import threading
 import pickle
 import logging
+from pydio.job import stop_on_keyboard_interrupt
 
 from requests.exceptions import ConnectionError
 
@@ -100,22 +101,29 @@ class ContinuousDiffMerger(threading.Thread):
 
     def stop(self):
         if hasattr(self, 'watcher'):
+            logging.debug("Stopping watcher: %s" % self.watcher)
             self.watcher.stop()
+        self.info('Job stopping', toUser='PAUSE', channel='status')
         self.interrupt = True
 
+    @stop_on_keyboard_interrupt
     def run(self):
         if hasattr(self, 'watcher'):
             self.watcher.start()
 
         while not self.interrupt:
+            logging.debug("ContinuousDiffMerger.run loop enter: %s" % self)
+
             try:
 
                 if not self.job_status_running:
+                    logging.debug("self.online_timer: %s" % self.online_timer)
                     time.sleep(self.online_timer)
                     continue
 
                 if not self.system.check_basepath():
                     logging.info('Cannot find local folder! Did you disconnect a volume? Waiting %s seconds before retry' % self.offline_timer)
+                    logging.debug("self.offline_timer: %s" % self.offline_timer)
                     time.sleep(self.offline_timer)
                     continue
 
@@ -132,11 +140,13 @@ class ContinuousDiffMerger(threading.Thread):
                 except ConnectionError as ce:
                     logging.info('No connection detected, waiting %s seconds to retry' % self.offline_timer)
                     self.online_status = False
+                    logging.debug("self.offline_timer: %s" % self.offline_timer)
                     time.sleep(self.offline_timer)
                     continue
                 except Exception as e:
                     logging.info('Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer))
                     self.online_status = False
+                    logging.debug("self.offline_timer: %s" % self.offline_timer)
                     time.sleep(self.offline_timer)
                     continue
                 self.online_status = True
@@ -156,6 +166,7 @@ class ContinuousDiffMerger(threading.Thread):
                     logging.info('Conflicts detected, cannot continue!')
                     self.store_conflicts(conflicts)
                     self.job_status_running = False
+                    logging.debug("self.offline_timer: %s" % self.offline_timer)
                     time.sleep(self.offline_timer)
                     continue
 
@@ -177,12 +188,14 @@ class ContinuousDiffMerger(threading.Thread):
                         i += 1
                         if self.interrupt:
                             break
+                        logging.debug("self.offline_timer: 0.01")
                         time.sleep(0.01)
                 else:
                     logging.info('No changes detected')
             except OSError as e:
                 logging.error('Type Error! ')
             logging.info('Finished this cycle, waiting for %i seconds' % self.online_timer)
+            logging.debug("self.offline_timer: %s" % self.online_timer)
             time.sleep(self.online_timer)
 
     def remove_seq(self, seq_id, location):
@@ -286,6 +299,7 @@ class ContinuousDiffMerger(threading.Thread):
     def info(self, message, toUser=False, channel='sync'):
         logging.info(message)
         if toUser and self.pub_socket:
+            logging.debug("pub_socket: %s" % (channel + "/" + message))
             self.pub_socket.send_string(channel + "/" + message)
 
     def process_localMKDIR(self, path):
@@ -399,6 +413,7 @@ class ContinuousDiffMerger(threading.Thread):
         lchanges = local_changes['data'].values()
 
         for seq, item in local_changes['data'].items():
+            logging.debug("seq, item: %s %s" % (seq, item))
             pathes = []
             if item['source'] != 'NULL':
                 pathes.append(item['source'])
@@ -446,6 +461,7 @@ class ContinuousDiffMerger(threading.Thread):
         new_rchanges = []
 
         for item in lchanges:
+            logging.debug("item: %s" % item)
             ignore = False
             for last in last_ops:
                 if last['type'] == item['type'] and last['source'] == item['source'] and last['target'] == item['target']:
@@ -494,6 +510,7 @@ class ContinuousDiffMerger(threading.Thread):
             for r in toremove:
                 if r in rchanges: rchanges.remove(r)
 
+        logging.debug("rchanges: %s" % rchanges)
         return rchanges
 
     def store_conflicts(self, conflicts):

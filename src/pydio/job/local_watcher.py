@@ -22,6 +22,7 @@
 import time
 import threading
 import logging
+from pydio.job import stop_on_keyboard_interrupt
 import stat
 import sys
 import os
@@ -128,15 +129,17 @@ class LocalWatcher(threading.Thread):
                 self.event_handler.on_deleted(DirDeletedEvent(path))
 
     def stop(self):
+        logging.debug("Stopping: %s" % self.observer)
         self.observer.stop()
 
+    @stop_on_keyboard_interrupt
     def run(self):
 
         logging.info('Starting permanent monitor')
         self.observer = Observer()
         self.observer.schedule(self.event_handler, self.basepath, recursive=True)
         self.observer.start()
-        while True:
-            time.sleep(1)
+        # while True:
+        #     time.sleep(1)
         self.observer.join()
 
