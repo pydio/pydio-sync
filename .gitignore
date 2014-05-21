@@ -12,3 +12,4 @@ data/
 pydio.spec
 src/pydio.egg-info/
 *.spec
+.pve/

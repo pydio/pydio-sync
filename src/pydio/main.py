@@ -33,7 +33,7 @@ logging.debug("PYTHONPATH: %s", "\n\t".join(os.environ.get('PYTHONPATH', "").spl
 # Most imports are placed after we have logged import path
 # so we can easily debug import problems
 from flask import Flask
-from flask.ext.restful import Api
+from flask_restful import Api
 import argparse
 import json
 import zmq
