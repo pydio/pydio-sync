@@ -20,13 +20,11 @@
 
 import time
 import os
-import thread
 import threading
 import pickle
 import logging
 
 from requests.exceptions import ConnectionError
-import zmq
 
 from pydio.job.localdb import LocalDbHandler
 from pydio.job.local_watcher import LocalWatcher
