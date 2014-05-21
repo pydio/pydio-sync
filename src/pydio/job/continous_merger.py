@@ -23,7 +23,6 @@ import os
 import threading
 import pickle
 import logging
-from pydio.job import stop_on_keyboard_interrupt
 
 from requests.exceptions import ConnectionError
 
@@ -106,7 +105,6 @@ class ContinuousDiffMerger(threading.Thread):
         self.info('Job stopping', toUser='PAUSE', channel='status')
         self.interrupt = True
 
-    @stop_on_keyboard_interrupt
     def run(self):
         if hasattr(self, 'watcher'):
             self.watcher.start()

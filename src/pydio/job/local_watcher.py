@@ -22,7 +22,6 @@
 import time
 import threading
 import logging
-from pydio.job import stop_on_keyboard_interrupt
 import stat
 import sys
 import os
@@ -132,7 +131,6 @@ class LocalWatcher(threading.Thread):
         logging.debug("Stopping: %s" % self.observer)
         self.observer.stop()
 
-    @stop_on_keyboard_interrupt
     def run(self):
 
         logging.info('Starting permanent monitor')

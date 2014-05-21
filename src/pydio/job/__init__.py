@@ -25,65 +25,44 @@ import time
 
 class ThreadManger(object):
     def __init__(self):
-        self._threads = set()
         self.continue_run = True
 
     def manage(self, thread):
         logging.debug("Storing reference to thread: %s" % thread)
-        self._threads.add(thread)
 
     def stop_all(self):
-        logging.debug("Stopping managed threads: %s" % self._threads)
+        logging.debug("Stopping managed threads")
         self.continue_run = False
-        for thread in self._threads:
+        for thread in self.managed_threads():
+            if not hasattr(thread, "stop"):
+                logging.warning("Could not stop %s" % thread)
+                continue
             logging.debug("Stopping thread: %s" % thread)
-            try:
-                thread.stop()
-            except Exception as ex:
-                logging.warning("Could not stop thread: %s", thread,  exc_info=ex)
+            thread.stop()
 
-    def log_threads(self):
+    def managed_threads(self):
         for thread in threading.enumerate():
-            logging.debug("thread: %s" % thread)
+            if thread == threading.current_thread() or getattr(thread, "daemon", False):
+                continue
+            yield thread
 
-    def wait_more(self):
-        while threading.active_count() > 1:
+    def shutdown_wait(self):
+        while len(list(self.managed_threads())):
             logging.debug("There are %d threads still running" % threading.active_count())
-            self.log_threads()
-            time.sleep(5)
+            logging.debug("Threads: \n\t%s" % "\n\t".join([str(t) for t in threading.enumerate()]))
+            time.sleep(2)
 
     def wait(self):
         try:
-            time.sleep(5)
-            self.log_threads()
+            time.sleep(1)
+            logging.debug("Threads: \n\t%s" % "\n\t".join([str(t) for t in threading.enumerate()]))
             logging.debug("Waiting for exit")
-            time.sleep(5000)
+            while True:
+                time.sleep(111600)
         except KeyboardInterrupt, ex:
-            logging.error(ex, exc_info=True)
+            logging.debug("KeyboardInterrupt, shutting down.")
             manager.stop_all()
-            self.wait_more()
-
-
-
-manager = ThreadManger()
-
-
-def stop_on_keyboard_interrupt(thread_run_function):
-    """
-    Wrapper for thread run functions that will catch KeyboardInterrupt and stop other threads
-    """
-    @wraps(thread_run_function)
-    def wrapper(*args, **kwds):
-        try:
-            manager.manage(threading.current_thread())
-            thread_run_function(*args, **kwds)
-        except KeyboardInterrupt:
-            logging.debug(u"KeyboardInterrupt, shutting down all threads")
-            manager.stop_all()
-        except SystemExit:
-            logging.debug(u"SystemExit, shutting down all threads")
-            manager.stop_all()
-    return wrapper
+            self.shutdown_wait()
 
 
 def run_loop(thread_run_function):
@@ -93,22 +72,9 @@ def run_loop(thread_run_function):
     """
     @wraps(thread_run_function)
     def wrapper(*args, **kwds):
-        try:
-            thread = threading.current_thread()
-            manager.manage(thread)
-            while manager.continue_run:
-                logging.debug("Run loop start")
-                thread_run_function(*args, **kwds)
-        except KeyboardInterrupt:
-            logging.debug(u"KeyboardInterrupt, shutting down all threads")
-            manager.stop_all()
-        except SystemExit:
-            logging.debug(u"SystemExit, shutting down all threads")
-            manager.stop_all()
+        while manager.continue_run:
+            logging.debug("Run loop start")
+            thread_run_function(*args, **kwds)
     return wrapper
 
-
-class PydioThread(threading.Thread):
-    @stop_on_keyboard_interrupt
-    def run(self):
-        super(PydioThread, self).run()
+manager = ThreadManger()

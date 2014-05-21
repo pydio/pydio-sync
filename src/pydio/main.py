@@ -230,17 +230,13 @@ def main(argv=sys.argv[1:]):
                 pub_socket.send_string("ping/")
             except Exception as e:
                 logging.error(e)
-            try:
-                time.sleep(10)
-            except KeyboardInterrupt as ex:
-                logging.debug("Pinger: %s" % ex)
+            time.sleep(10)
 
             # Create thread as follows
         try:
-            # thread.start_new_thread(app.run, (), {'port':ports_detector.get_open_port('flask_api')})
+            thread.start_new_thread(app.run, (), {'port':ports_detector.get_open_port('flask_api')})
             thread.start_new_thread(listen_to_REP, ())
             thread.start_new_thread(pinger, ())
-            pass
         except Exception as e:
             logging.error(e)
 
