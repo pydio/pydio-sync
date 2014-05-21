@@ -87,7 +87,7 @@ class PydioSdk():
             data['auth_hash']  = auth_hash
             if with_progress:
                 fields = dict(files, **data)
-                upload_file_showing_progress(url, fields, stream)
+                resp = upload_file_showing_progress(url, fields, stream)
             elif files:
                 resp = requests.post(url=url, data=data, files=files, stream=stream)
             else:
