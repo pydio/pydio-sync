@@ -88,6 +88,7 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-z', '--zmq_port', type=int, help='Available port for zmq, both this port and this port +1 will be used', default=5556)
     parser.add_argument('--diag', help='Run self diagnostic', action='store_true', default=False)
     parser.add_argument('--diag-http', help='Check server connection', action='store_true', default=False)
+    parser.add_argument('--diag-imports', help='Check imports and exit', action='store_true', default=False)
     parser.add_argument('--save-cfg', action='store_true')
     parser.add_argument('--auto-start', action='store_true')
     parser.add_argument('--auto_detect_port', type=bool, help='Auto detect available ports', default=False)
@@ -127,6 +128,10 @@ def main(argv=sys.argv[1:]):
                 json.dump((cfg,), fp, indent=2)
 
     logging.debug("data: %s" % json.dumps(data[0].__dict__, indent=2))
+
+    if args.diag_imports:
+        # nothing more to do
+        return
 
     if args.diag_http:
         smoke_tests = PydioDiagnostics(
