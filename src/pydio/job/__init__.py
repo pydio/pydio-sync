@@ -23,7 +23,7 @@ import threading
 import time
 
 
-class ThreadManger(object):
+class ThreadManager(object):
     def __init__(self):
         self.continue_run = True
 
@@ -77,4 +77,4 @@ def run_loop(thread_run_function):
             thread_run_function(*args, **kwds)
     return wrapper
 
-manager = ThreadManger()
+manager = ThreadManager()
