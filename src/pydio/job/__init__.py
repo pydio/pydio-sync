@@ -46,8 +46,11 @@ class ThreadManager(object):
                 continue
             yield thread
 
+    def are_threads_running(self):
+        return len(list(self.managed_threads())) > 0
+
     def shutdown_wait(self):
-        while len(list(self.managed_threads())):
+        while self.are_threads_running():
             logging.debug("There are %d threads still running" % threading.active_count())
             logging.debug("Threads: \n\t%s" % "\n\t".join([str(t) for t in threading.enumerate()]))
             time.sleep(2)
@@ -56,6 +59,9 @@ class ThreadManager(object):
         try:
             time.sleep(1)
             logging.debug("Threads: \n\t%s" % "\n\t".join([str(t) for t in threading.enumerate()]))
+            if not self.are_threads_running:
+                logging.debug("No threads to wait for")
+                return
             logging.debug("Waiting for exit")
             while True:
                 time.sleep(111600)
