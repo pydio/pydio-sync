@@ -131,7 +131,7 @@ def main(argv=sys.argv[1:]):
 
     if args.diag_imports:
         # nothing more to do
-        return
+        return sys.exit(0)
 
     if args.diag_http:
         smoke_tests = PydioDiagnostics(
