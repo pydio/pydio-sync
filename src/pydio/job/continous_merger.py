@@ -31,6 +31,7 @@ from pydio.job.local_watcher import LocalWatcher
 from pydio.sdk.exceptions import ProcessException
 from pydio.sdk.remote import PydioSdk
 from pydio.sdk.local import SystemSdk
+from pydio.job.EventLogger import EventLogger
 
 from pydispatch import dispatcher
 PROGRESS_SIGNAL = 'progress'
@@ -68,6 +69,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.online_status = True
         self.job_status_running = True
         self.direction = job_config.direction
+        self.event_logger = EventLogger(self.data_base)
         if pub_socket:
             self.pub_socket = pub_socket
             self.info('Job Started', toUser='START', channel='status')
@@ -179,10 +181,8 @@ class ContinuousDiffMerger(threading.Thread):
                             logging.error(pe.message)
                         except OSError as e:
                             logging.error(e.message)
-                        #progress_percent = 100 * i / len(changes)
                         progress_percent = "{0:.2f}%".format(float(i)/len(changes) * 100)
                         dispatcher.send(signal=PROGRESS_SIGNAL, sender=self, progress=progress_percent)
-                        #self.pub_socket.send_string("sync" + ' ' + str(i) + "/" + str(len(changes)) + " changes done : " + str(progressPercent) + "%")
                         i += 1
                         if self.interrupt:
                             break
@@ -304,48 +304,64 @@ class ContinuousDiffMerger(threading.Thread):
         message = path + ' <============ MKDIR'
         os.makedirs(self.basepath + path)
         self.info(message, 'New folder created at '+ path )
+        self.event_logger.log(type='local', action='mkdir', status='undefined', target=path, message=message)
 
     def process_remoteMKDIR(self, path):
         message = 'MKDIR ============> ' + path
         self.info(message, toUser=False)
         self.sdk.mkdir(path)
+        self.event_logger.log(type='remote', action='mkdir', status='undefined', target=path, message=message)
 
     def process_localDELETE(self, path):
         if os.path.isdir(self.basepath + path):
             self.system.rmdir(path)
-            self.info(path + ' <============ DELETE', 'Deleted folder ' + path)
+            message = path + ' <============ DELETE'
+            self.info(message, 'Deleted folder ' + path)
+            self.event_logger.log(type='local', action='delete_folder', status='undefined', target=path, message=message)
         elif os.path.isfile(self.basepath + path):
             os.unlink(self.basepath + path)
-            self.info(path + ' <============ DELETE', 'Deleted file ' + path)
+            message = path + ' <============ DELETE'
+            self.info(message, 'Deleted file ' + path)
+            self.event_logger.log(type='local', action='delete_file', status='undefined', target=path, message=message)
 
     def process_remoteDELETE(self, path):
         self.sdk.delete(path)
-        self.info('DELETE ============> ' + path, False)
+        message = 'DELETE ============> ' + path
+        self.info(message, False)
+        self.event_logger.log(type='remote', action='delete', status='undefined', target=path, message=message)
 
     def process_localMOVE(self, source, target):
         if os.path.exists(self.basepath + source):
             if not os.path.exists(self.basepath + os.path.dirname(target)):
                 os.makedirs(self.basepath + os.path.dirname(target))
             os.rename(self.basepath + source, self.basepath + target)
-            self.info(source + ' to ' + target + ' <============ MOVE', 'Moved ' + source + ' to ' + target)
+            message = source + ' to ' + target + ' <============ MOVE'
+            self.info(message, 'Moved ' + source + ' to ' + target)
+            self.event_logger.log(type='local', action='move', status='undefined', target=target, source=source, message=message)
             return True
         return False
 
     def process_remoteMOVE(self, source, target):
-        self.info('MOVE ============> ' + source + ' to ' + target, toUser=False)
+        message = 'MOVE ============> ' + source + ' to ' + target
+        self.info(message, toUser=False)
+        self.event_logger.log(type='remote', action='move', status='undefined', target=target, source=source, message=message)
         self.sdk.rename(source, target)
 
     def process_DOWNLOAD(self, path):
         self.db_handler.update_node_status(path, 'DOWN')
         self.sdk.download(path, self.basepath + path)
         self.db_handler.update_node_status(path, 'IDLE')
-        self.info(path + ' <=============== ' + path, 'File ' + path + ' downloaded from server')
+        message = path + ' <=============== ' + path
+        self.info(message, 'File ' + path + ' downloaded from server')
+        self.event_logger.log(type='local', action='download', status='undefined', target=path, message=message)
 
     def process_UPLOAD(self, path):
         self.db_handler.update_node_status(path, 'UP')
         self.sdk.upload(self.basepath+path, self.system.stat(path), path)
         self.db_handler.update_node_status(path, 'IDLE')
-        self.info(path + ' ===============> ' + path, 'File ' + path + ' uploaded to server')
+        message = path + ' ===============> ' + path
+        self.info(message, 'File ' + path + ' uploaded to server')
+        self.event_logger.log(type='remote', action='upload', status='undefined', target=path, message=message)
 
 
     def process_change(self, item):

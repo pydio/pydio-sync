@@ -1,6 +1,7 @@
 from flask import request, redirect
 from flask.ext.restful import Resource
 from pydio.job.job_config import JobConfig
+from pydio.job.EventLogger import EventLogger
 import json
 import requests
 import keyring
@@ -118,7 +119,7 @@ class JobManager(Resource):
         return JobConfig.encoder(test_job)
 
     def get(self, job_id = None):
-        if request.path=='/':
+        if request.path == '/':
             return redirect("/res/index.html", code=302)
         jobs = self.loader.get_jobs()
         if not job_id:
@@ -136,4 +137,28 @@ class JobManager(Resource):
     @classmethod
     def make_job_manager(cls, loader):
         cls.loader = loader
+        return cls
+
+
+class LogManager(Resource):
+
+    def __init__(self):
+        self.events = {}
+
+    def get(self, job_id):
+        if job_id in self.loader.get_jobs():
+            logger = EventLogger(str(self.data_path)+ '/' + job_id)
+            if not request.args:
+                return logger.get_all()
+            else:
+                filter = request.args.keys()[0]
+                filter_parameter = request.args.get(filter)
+                return logger.filter(filter, filter_parameter)
+        else:
+            return "Can't find any job config with this ID.", 404
+
+    @classmethod
+    def make_log_manager(cls, loader, data_path):
+        cls.loader = loader
+        cls.data_path = data_path
         return cls
