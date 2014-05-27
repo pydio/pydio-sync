@@ -30,7 +30,7 @@ class EventLogger():
     def get_all(self):
         conn = sqlite3.connect(self.db)
         c = conn.cursor()
-        c.execute("SELECT * FROM events")
+        c.execute("SELECT * FROM events ORDER BY date DESC")
         events = c.fetchall()
         c.close()
         return events
@@ -53,7 +53,7 @@ class EventLogger():
             logging.info("type ok")
             conn = sqlite3.connect(self.db)
             c = conn.cursor()
-            events = c.execute("SELECT * FROM events WHERE type = '%s'" % type).fetchall()
+            events = c.execute("SELECT * FROM events WHERE type = '%s' ORDER BY date DESC" % type).fetchall()
             c.close()
             return events
         else:
@@ -64,7 +64,7 @@ class EventLogger():
         if action in action_list:
             conn = sqlite3.connect(self.db)
             c = conn.cursor()
-            events = c.execute("SELECT * FROM events WHERE action = '%s'" % action).fetchall()
+            events = c.execute("SELECT * FROM events WHERE action = '%s' ORDER BY date DESC" % action).fetchall()
             c.close()
             return events
         else:
@@ -75,7 +75,7 @@ class EventLogger():
         if status in status_list:
             conn = sqlite3.connect(self.db)
             c = conn.cursor()
-            events = c.execute("SELECT * FROM events WHERE status = '%s'" % status).fetchall()
+            events = c.execute("SELECT * FROM events WHERE status = '%s' ORDER BY date DESC" % status).fetchall()
             c.close()
             return events
         else:

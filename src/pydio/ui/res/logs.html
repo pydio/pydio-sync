@@ -1,0 +1,26 @@
+<div style="float: right;margin-top: 40px;"><a href="#/" class="btn btn-info">Back to list</a></div>
+<h1>Logs</h1>
+<p class="lead">Current job logs</p>
+<table class="table">
+    <thead>
+    <tr>
+        <th></th>
+        <th>Date</th>
+        <th>Action</th>
+        <th>Source</th>
+        <th>Target</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="log in logs">
+        <td ng-if="log[1] == 'remote'"><span class="glyphicon glyphicon-cloud-upload"></span></td>
+        <td ng-if="log[1] == 'local'"><span class="glyphicon glyphicon-cloud-download"></span></td>
+        <td>{{log[7]}}</td>
+        <td>{{log[5]}}</td>
+        <td>{{log[3]}}</td>
+        <td>{{log[4]}}</td>
+        <td>{{log[6]}}</td>
+    </tr>
+    </tbody>
+</table>

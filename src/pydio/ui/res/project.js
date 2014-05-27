@@ -8,6 +8,13 @@ angular.module('project', ['ngRoute', 'ngResource'])
             });
         }])
 
+    .factory('Logs', ['$resource',
+        function($resource){
+            return $resource('/jobs/:job_id/logs', {}, {
+                query: {method:'GET', params:{job_id:''}, isArray:true}
+            });
+        }])
+
     .service('currentJob', function() {
         var objectValue = null;
         return {
@@ -72,6 +79,10 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 controller:'CreateCtrl',
                 templateUrl:'01-Connection.html'
             })
+            .when('/logs/:jobId',{
+                controller:'ListLogsCtrl',
+                templateUrl:'logs.html'
+            })
             .otherwise({
                 redirectTo:'/'
             });
@@ -82,6 +93,15 @@ angular.module('project', ['ngRoute', 'ngResource'])
             if(!resp.length) $location.path('/new');
         });
         currentJob.setJob(null);
+    })
+
+    .controller('ListLogsCtrl', function($scope, $routeParams, $timeout, Logs){
+        (function tick() {
+            var logs = Logs.query({job_id:$routeParams.jobId}, function(){
+                $scope.logs = logs;
+                $timeout(tick, 1500);
+            });
+        })();
     })
 
     .controller('CreateCtrl', function($scope, $location, $timeout, Jobs, currentJob) {
