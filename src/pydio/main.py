@@ -33,8 +33,8 @@ logging.debug("PYTHONPATH: %s", "\n\t".join(os.environ.get('PYTHONPATH', "").spl
 
 # Most imports are placed after we have logged import path
 # so we can easily debug import problems
-from flask import Flask
-from flask_restful import Api
+# from flask import Flask
+# from flask_restful import Api
 import argparse
 import json
 import zmq
@@ -67,7 +67,10 @@ from pydio.job.continous_merger import ContinuousDiffMerger
 from pydio.job.job_config import JobConfig
 from pydio.test.diagnostics import PydioDiagnostics
 from pydio.utils.config_ports import PortsDetector
-from pydio.ui.web_api import JobManager, WorkspacesManager, JobsLoader, FoldersManager, LogManager, ConflictsManager
+from pydio.ui.web_api import PydioApi
+from pydio.job.bus_zmq import ZmqBus
+from pydio.job.pydio_manager import PydioManager
+
 
 DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
 
@@ -143,109 +146,21 @@ def main(argv=sys.argv[1:]):
     ports_detector = PortsDetector(args.zmq_port, args.auto_detect_port, store_file=str(jobs_root_path / 'ports_config') )
     ports_detector.create_config_file()
 
-    app = Flask(__name__, static_folder = 'ui/res', static_url_path='/res')
-    api = Api(app)
-    loader = JobsLoader(str(jobs_root_path / 'configs.json'))
-    job_manager = JobManager.make_job_manager(loader)
-    ws_manager = WorkspacesManager.make_ws_manager(loader)
-    folders_manager = FoldersManager.make_folders_manager(loader)
-    logs_manager = LogManager.make_log_manager(loader, jobs_root_path)
-    conflicts_manager = ConflictsManager.make_conflicts_manager(loader, jobs_root_path)
-    api.add_resource(job_manager, '/','/jobs', '/jobs/<string:job_id>')
-    api.add_resource(ws_manager, '/ws/<string:job_id>')
-    api.add_resource(folders_manager, '/folders/<string:job_id>')
-    api.add_resource(logs_manager, '/jobs/<string:job_id>/logs')
-    api.add_resource(conflicts_manager, '/jobs/<string:job_id>/conflicts', '/jobs/conflicts')
-
-
-    context = zmq.Context()
-
-    rep_socket = context.socket(zmq.REP)
-    port = ports_detector.get_open_port("command_socket")
-    rep_socket.bind("tcp://*:%s" % port)
-
-    pub_socket = context.socket(zmq.PUB)
-    port = ports_detector.get_open_port("pub_socket")
-    pub_socket.bind("tcp://*:%s" % port)
-
+    zmq_bus = ZmqBus(ports_detector)
+    zmq_bus.open()
+    server = PydioApi(jobs_root_path, ports_detector.get_open_port('flask_api'))
 
     try:
-        controlThreads = []
-        for job_config in data:
-            if not job_config.active:
-                continue
 
-            job_data_path = jobs_root_path / job_config.uuid()
-            if not job_data_path.exists():
-                job_data_path.mkdir(parents=True)
-            job_data_path = str(job_data_path)
-
-            merger = ContinuousDiffMerger(job_config, job_data_path=job_data_path, pub_socket=pub_socket)
-            try:
-                merger.start()
-                controlThreads.append(merger)
-            except (KeyboardInterrupt, SystemExit):
-                merger.stop()
-
-
-        @run_loop
-        def listen_to_REP():
-            message = str(rep_socket.recv())
-            reply = "undefined reply"
-            logging.info('Received message from REP socket ' + message)
-            parts = message.split(' ', 2)
-            if message.startswith('PAUSE'):
-                logging.info("SHOULD PAUSE")
-                if len(parts) > 1 and int(parts[1]) in controlThreads:
-                    controlThreads[int(parts[1])].pause()
-                    if not t.is_running():
-                        reply = "PAUSED"
-                else:
-                    for t in controlThreads:
-                        t.pause()
-                        if not t.is_running():
-                            reply = "PAUSED"
-            elif message.startswith('START'):
-                logging.info("SHOULD START")
-                if len(parts) > 1 and int(parts[1]) in controlThreads:
-                    controlThreads[int(parts[1])].resume()
-                    reply = "RUNNING"
-                else:
-                    for t in controlThreads:
-                        t.resume()
-                        reply = "RUNNING"
-
-            elif str(message).startswith('RELOAD') and len(parts) > 1 and int(parts[1]) in controlThreads:
-                # Todo: implement the reload of the config data
-                pass
-            elif message == 'LIST-JOBS':
-                data = []
-                for t in controlThreads:
-                    data.append(t.job_config.server + ' - ' + t.job_config.directory)
-                reply = json.dumps(data)
-
-            try:
-                rep_socket.send(reply)
-            except Exception as e:
-                logging.error(e)
-
-
-        @run_loop
-        def pinger():
-            logging.info("Send ping to UI...")
-            try:
-                pub_socket.send_string("ping/")
-            except Exception as e:
-                logging.error(e)
-            time.sleep(10)
-
-            # Create thread as follows
         try:
-            thread.start_new_thread(app.run, (), {'port':ports_detector.get_open_port('flask_api')})
-            thread.start_new_thread(listen_to_REP, ())
-            thread.start_new_thread(pinger, ())
+            thread.start_new_thread(server.start_server, ())
+            thread.start_new_thread(zmq_bus.listen_to_REP, ())
+            #thread.start_new_thread(zmq_bus.pinger, ())
         except Exception as e:
             logging.error(e)
+
+        pydio_manager = PydioManager(data, jobs_root_path)
+        pydio_manager.startAll()
 
     except (KeyboardInterrupt, SystemExit):
         sys.exit()

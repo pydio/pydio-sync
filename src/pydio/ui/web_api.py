@@ -1,3 +1,6 @@
+from flask import Flask
+from flask_restful import Api
+
 from flask import request, redirect
 from flask.ext.restful import Resource
 from pydio.job.job_config import JobConfig
@@ -9,6 +12,27 @@ import keyring
 import xmltodict
 import types
 from collections import OrderedDict
+
+class PydioApi(Api):
+
+    def __init__(self, jobs_root_path, server_port):
+        self.port = server_port
+        jobs_loader = JobsLoader(str(jobs_root_path / 'configs.json'))
+        self.app = Flask(__name__, static_folder = 'res', static_url_path='/res')
+        super(PydioApi, self).__init__(self.app)
+        job_manager = JobManager.make_job_manager(jobs_loader)
+        ws_manager = WorkspacesManager.make_ws_manager(jobs_loader)
+        folders_manager = FoldersManager.make_folders_manager(jobs_loader)
+        logs_manager = LogManager.make_log_manager(jobs_loader, jobs_root_path)
+        conflicts_manager = ConflictsManager.make_conflicts_manager(jobs_loader, jobs_root_path)
+        self.add_resource(job_manager, '/','/jobs', '/jobs/<string:job_id>')
+        self.add_resource(ws_manager, '/ws/<string:job_id>')
+        self.add_resource(folders_manager, '/folders/<string:job_id>')
+        self.add_resource(logs_manager, '/jobs/<string:job_id>/logs')
+        self.add_resource(conflicts_manager, '/jobs/<string:job_id>/conflicts', '/jobs/conflicts')
+
+    def start_server(self):
+        self.app.run(port=self.port)
 
 class JobsLoader():
 

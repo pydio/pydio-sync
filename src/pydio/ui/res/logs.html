@@ -16,9 +16,9 @@
             <td>{{conflict.status}}</td>
             <td>{{conflict.node_path}}</td>
             <td>
-                <a ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEP_LOCAL')">Keep my version</a>
-                <a ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEP_REMOTE')">Override with remote version</a>
-                <a ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEP_BOTH')">Keep both</a>
+                <a style="cursor: pointer;" ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEPLOCAL')">Keep my version</a> |
+                <a style="cursor: pointer;" ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEPREMOTE')">Override with remote version</a> |
+                <a  style="cursor: pointer;" ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEPBOTH')">Keep both</a>
             </td>
         </tr>
         </tbody>
