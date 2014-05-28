@@ -8,6 +8,7 @@ import requests
 import keyring
 import xmltodict
 import types
+import logging
 from collections import OrderedDict
 
 class JobsLoader():
@@ -25,20 +26,14 @@ class JobsLoader():
         if not self.config_file:
             return jobs
         with open(self.config_file) as fp:
-            data = json.load(fp, object_hook=JobConfig.object_decoder)
-        if data:
-            for j in data:
-                jobs[j.uuid()] = j
+            jobs = json.load(fp, object_hook=JobConfig.object_decoder)
             self.jobs = jobs
         return jobs
 
     def save_jobs(self, jobs):
-        self.jobs = None
-        all_jobs = []
-        for k in jobs:
-            all_jobs.append(JobConfig.encoder(jobs[k]))
+        self.jobs.update(jobs)
         with open(self.config_file, "w") as fp:
-            json.dump(all_jobs, fp, indent=2)
+            json.dump(self.jobs, fp, default=JobConfig.encoder, indent=2)
 
 
 class WorkspacesManager(Resource):
@@ -113,11 +108,10 @@ class JobManager(Resource):
     def post(self):
         jobs = self.loader.get_jobs()
         json_req = request.get_json()
-        test_job = JobConfig.object_decoder(json_req)
-        jobs[test_job.id] = test_job
+        new_job = JobConfig.object_decoder(json_req)
+        jobs[new_job.id] = new_job
         self.loader.save_jobs(jobs)
-        jobs = self.loader.get_jobs()
-        return JobConfig.encoder(test_job)
+        return JobConfig.encoder(new_job)
 
     def get(self, job_id = None):
         if request.path == '/':
@@ -128,6 +122,7 @@ class JobManager(Resource):
             for k in jobs:
                 std_obj.append(JobConfig.encoder(jobs[k]))
             return std_obj
+        logging.info("Job ID : "+job_id)
         return JobConfig.encoder(jobs[job_id])
 
     def delete(self, job_id):

@@ -98,6 +98,9 @@ class JobConfig:
                 job_config.monitor = obj['monitor']
             if 'active' in obj and obj['active'] in [True, False]:
                 job_config.active = obj['active']
-            job_config.id = job_config.uuid()
+            if 'id' not in obj:
+                job_config.id = job_config.uuid()
+            else:
+                job_config.id = obj['id']
             return job_config
         return obj
