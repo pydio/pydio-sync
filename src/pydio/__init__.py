@@ -17,3 +17,6 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
+PROGRESS_SIGNAL = 'progress'
+COMMAND_SIGNAL = 'command'
+PUBLISH_SIGNAL = 'publish'

@@ -34,14 +34,14 @@ from pydio.sdk.local import SystemSdk
 from pydio.job.EventLogger import EventLogger
 
 from pydispatch import dispatcher
-PROGRESS_SIGNAL = 'progress'
+from pydio import PUBLISH_SIGNAL, PROGRESS_SIGNAL
 # -*- coding: utf-8 -*-
 
 
 class ContinuousDiffMerger(threading.Thread):
     """Main Thread grabbing changes from both sides, computing the necessary changes to apply, and applying them"""
 
-    def __init__(self, job_config, job_data_path, pub_socket=False):
+    def __init__(self, job_config, job_data_path):
         threading.Thread.__init__(self)
         self.data_base = job_data_path
         self.job_config = job_config
@@ -64,15 +64,14 @@ class ContinuousDiffMerger(threading.Thread):
         self.remote_seqs = []
         self.db_handler = LocalDbHandler(self.data_base, job_config.directory)
         self.interrupt = False
+        self.event_timer = 2
         self.online_timer = 10
         self.offline_timer = 60
         self.online_status = True
         self.job_status_running = True
         self.direction = job_config.direction
         self.event_logger = EventLogger(self.data_base)
-        if pub_socket:
-            self.pub_socket = pub_socket
-            self.info('Job Started', toUser='START', channel='status')
+        dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel='status', message='START')
 
         if os.path.exists(self.data_base + "/sequences"):
             sequences = pickle.load(open(self.data_base + "/sequences", "rb"))
@@ -92,6 +91,9 @@ class ContinuousDiffMerger(threading.Thread):
     def is_running(self):
         return self.job_status_running
 
+    def start_now(self):
+        self.last_run = 0
+
     def pause(self):
         self.job_status_running = False
         self.info('Job Paused', toUser='PAUSE', channel='status')
@@ -107,24 +109,39 @@ class ContinuousDiffMerger(threading.Thread):
         self.info('Job stopping', toUser='PAUSE', channel='status')
         self.interrupt = True
 
+    def sleep_offline(self):
+        self.online_status = False
+        self.last_run = time.time()
+        time.sleep(self.event_timer)
+
+    def sleep_online(self):
+        self.online_status = True
+        self.last_run = time.time()
+        time.sleep(self.event_timer)
+
     def run(self):
         if hasattr(self, 'watcher'):
             self.watcher.start()
 
+        self.last_run = 0
+
         while not self.interrupt:
-            logging.debug("ContinuousDiffMerger.run loop enter: %s" % self)
+            #logging.debug("ContinuousDiffMerger.run loop enter: %s" % self)
 
             try:
+                interval = int(time.time() - self.last_run)
+                if (self.online_status and interval < self.online_timer) or (not self.online_status and interval < self.offline_timer):
+                    time.sleep(self.event_timer)
+                    continue
 
                 if not self.job_status_running:
                     logging.debug("self.online_timer: %s" % self.online_timer)
-                    time.sleep(self.online_timer)
+                    self.sleep_offline()
                     continue
 
                 if not self.system.check_basepath():
                     logging.info('Cannot find local folder! Did you disconnect a volume? Waiting %s seconds before retry' % self.offline_timer)
-                    logging.debug("self.offline_timer: %s" % self.offline_timer)
-                    time.sleep(self.offline_timer)
+                    self.sleep_offline()
                     continue
 
                 # Load local and/or remote changes, depending on the direction
@@ -139,15 +156,11 @@ class ContinuousDiffMerger(threading.Thread):
                         self.ping_remote()
                 except ConnectionError as ce:
                     logging.info('No connection detected, waiting %s seconds to retry' % self.offline_timer)
-                    self.online_status = False
-                    logging.debug("self.offline_timer: %s" % self.offline_timer)
-                    time.sleep(self.offline_timer)
+                    self.sleep_offline()
                     continue
                 except Exception as e:
                     logging.info('Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer))
-                    self.online_status = False
-                    logging.debug("self.offline_timer: %s" % self.offline_timer)
-                    time.sleep(self.offline_timer)
+                    self.sleep_offline()
                     continue
                 self.online_status = True
 
@@ -165,9 +178,7 @@ class ContinuousDiffMerger(threading.Thread):
                 if len(conflicts):
                     logging.info('Conflicts detected, cannot continue!')
                     self.store_conflicts(conflicts)
-                    self.job_status_running = False
-                    logging.debug("self.offline_timer: %s" % self.offline_timer)
-                    time.sleep(self.offline_timer)
+                    self.sleep_offline()
                     continue
 
                 if len(changes):
@@ -186,15 +197,13 @@ class ContinuousDiffMerger(threading.Thread):
                         i += 1
                         if self.interrupt:
                             break
-                        logging.debug("self.offline_timer: 0.01")
                         time.sleep(0.01)
                 else:
                     logging.info('No changes detected')
             except OSError as e:
                 logging.error('Type Error! ')
             logging.info('Finished this cycle, waiting for %i seconds' % self.online_timer)
-            logging.debug("self.offline_timer: %s" % self.online_timer)
-            time.sleep(self.online_timer)
+            self.sleep_online()
 
     def remove_seq(self, seq_id, location):
         if location == 'local':
@@ -296,9 +305,8 @@ class ContinuousDiffMerger(threading.Thread):
 
     def info(self, message, toUser=False, channel='sync'):
         logging.info(message)
-        if toUser and self.pub_socket:
-            logging.debug("pub_socket: %s" % (channel + "/" + message))
-            self.pub_socket.send_string(channel + "/" + message)
+        if toUser:
+            dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel=channel, message=message)
 
     def process_localMKDIR(self, path):
         message = path + ' <============ MKDIR'
