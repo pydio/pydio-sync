@@ -93,15 +93,34 @@ angular.module('project', ['ngRoute', 'ngResource'])
             if(!resp.length) $location.path('/new');
         });
         currentJob.setJob(null);
+        $scope.toggleJobActive = function(jobId){
+            angular.forEach($scope.jobs, function(j){
+                if(j.id != jobId) return;
+                j.active = !j.active;
+                j.$save();
+            });
+        };
+        $scope.deleteJob = function(jobId){
+            angular.forEach($scope.jobs, function(j){
+                if(j.id != jobId) return;
+                j.active = !j.active;
+                j.$delete();
+            });
+        };
+
     })
 
     .controller('ListLogsCtrl', function($scope, $routeParams, $timeout, Logs){
+        var tO;
         (function tick() {
             var logs = Logs.query({job_id:$routeParams.jobId}, function(){
                 $scope.logs = logs;
-                $timeout(tick, 1500);
+                tO = $timeout(tick, 1500);
             });
         })();
+        $scope.$on('$destroy', function(){
+            $timeout.cancel(tO);
+        });
     })
 
     .controller('CreateCtrl', function($scope, $location, $timeout, Jobs, currentJob) {
@@ -134,7 +153,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 }
                 $scope.folders_loading = false;
             });
-        }
+        };
 
         $scope.loadWorkspaces = function(){
             if($scope.job.id == 'new' && !$scope.job.password) {

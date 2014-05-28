@@ -1,6 +1,6 @@
 <h1>All Jobs</h1>
 <p class="lead">You have many synchronisation jobs running. Click on the button to see the status.</p>
-<table class="table">
+<table class="table table-hover">
     <thead>
     <tr>
         <th>Server URL</th>
@@ -15,14 +15,34 @@
     </tr>
     </thead>
     <tbody>
-    <tr ng-repeat="job in jobs | filter:search | orderBy:'workspace'">
-        <td><a href="#/summary/{{job.id}}">{{job.server}} </a></td>
-        <td>{{job.workspace}} - {{job.remote_folder}}</td>
+    <tr ng-repeat="job in jobs | filter:{active:true} | filter:search | orderBy:'workspace'">
+        <td>{{job.server}}</td>
+        <td ng-if="job.remote_folder">{{job.workspace}} - {{job.remote_folder}}</td>
+        <td ng-if="!job.remote_folder">{{job.workspace}}</td>
         <td><span class="glyphicon glyphicon-transfer"></span></td>
         <td>{{job.directory}}</td>
         <td>
+            <a href="#/summary/{{job.id}}"><span  class="glyphicon glyphicon-edit"></span></a>
             <a href="#/logs/{{job.id}}"><span class="glyphicon glyphicon-list"></span></a>
+            <a href="#" ng-click="toggleJobActive(job.id)"><span class="glyphicon glyphicon-stop"></span></a>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="5" style="background-color: transparent !important;">
+            <em style="display:block;margin-top:50px;">Inactive tasks</em>
+        </td>
+    </tr>
+    <tr ng-repeat="job in jobs | filter:{active:false} | filter:search | orderBy:'workspace'">
+        <td>{{job.server}}</td>
+        <td ng-if="job.remote_folder">{{job.workspace}} - {{job.remote_folder}}</td>
+        <td ng-if="!job.remote_folder">{{job.workspace}}</td>
+        <td><span class="glyphicon glyphicon-transfer"></span></td>
+        <td>{{job.directory}}</td>
+        <td>
             <a href="#/summary/{{job.id}}" class="glyphicon glyphicon-edit"></a>
+            <a href="#/logs/{{job.id}}"><span class="glyphicon glyphicon-list"></span></a>
+            <a href="#" ng-click="toggleJobActive(job.id)"><span class="glyphicon glyphicon-play"></span></a>
+            <a href="#" ng-click="deleteJob(job.id)"><span class="glyphicon glyphicon-remove"></span></a>
         </td>
     </tr>
     </tbody>
