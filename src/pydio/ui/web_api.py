@@ -132,6 +132,7 @@ class JobManager(Resource):
     def post(self):
         jobs = self.loader.get_jobs()
         json_req = request.get_json()
+        logging.info(json_req)
         new_job = JobConfig.object_decoder(json_req)
         jobs[new_job.id] = new_job
         self.loader.save_jobs(jobs)

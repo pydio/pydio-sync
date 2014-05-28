@@ -105,7 +105,6 @@ def main(argv=sys.argv[1:]):
         pydio.autostart.setup(argv)
         return 0
 
-    data = []
     if args.file or not argv:
         fp = args.file
         if not fp or fp == '.':
@@ -128,15 +127,16 @@ def main(argv=sys.argv[1:]):
                 cfg["user"] = cfg.pop("user_id", None)
                 json.dump((cfg,), fp, indent=2)
 
-    logging.debug("data: %s" % json.dumps(data[0].__dict__, indent=2))
+    logging.debug("data: %s" % json.dumps(data, default=JobConfig.encoder, indent=2))
 
     if args.diag_imports:
         # nothing more to do
         return sys.exit(0)
 
     if args.diag_http:
+        keys = data.keys()
         smoke_tests = PydioDiagnostics(
-            data[0].server, data[0].workspace, data[0].remote_folder, data[0].user_id)
+            data[keys[0]].server, data[keys[0]].workspace, data[keys[0]].remote_folder, data[keys[0]].user_id)
         rc = smoke_tests.run()
         if rc != 0:
             logging.error("Diagnostics failed: %s %s" % (str(rc), smoke_tests.status_message))
@@ -154,7 +154,7 @@ def main(argv=sys.argv[1:]):
 
         try:
             thread.start_new_thread(server.start_server, ())
-            thread.start_new_thread(zmq_bus.listen_to_REP, ())
+            #thread.start_new_thread(zmq_bus.listen_to_REP, ())
             #thread.start_new_thread(zmq_bus.pinger, ())
         except Exception as e:
             logging.error(e)

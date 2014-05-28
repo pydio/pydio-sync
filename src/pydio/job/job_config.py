@@ -99,7 +99,7 @@ class JobConfig:
             if 'active' in obj and obj['active'] in [True, False]:
                 job_config.active = obj['active']
             if 'id' not in obj:
-                job_config.id = job_config.uuid()
+                job_config.id = job_config.workspace + "-" + job_config.user_id
             else:
                 job_config.id = obj['id']
             return job_config

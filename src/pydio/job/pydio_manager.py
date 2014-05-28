@@ -30,11 +30,12 @@ class PydioManager():
 
     def startAll(self):
 
-        for job_config in self.job_configs:
+        for job_id in self.job_configs:
+            job_config = self.job_configs[job_id]
             if not job_config.active:
                 continue
 
-            job_data_path = self.jobs_root_path / job_config.uuid()
+            job_data_path = self.jobs_root_path / str(job_config.id)
             if not job_data_path.exists():
                 job_data_path.mkdir(parents=True)
             job_data_path = str(job_data_path)
