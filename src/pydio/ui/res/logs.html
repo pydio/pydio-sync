@@ -1,4 +1,30 @@
 <div style="float: right;margin-top: 40px;"><a href="#/" class="btn btn-info">Back to list</a></div>
+
+<div ng-if="conflicts">
+    <h1>Conflicts</h1>
+    <p class="lead">There are some conflicts, synchro is currently stopped</p>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Status</th>
+            <th>File</th>
+            <th>Solve Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="conflict in conflicts">
+            <td>{{conflict.status}}</td>
+            <td>{{conflict.node_path}}</td>
+            <td>
+                <a ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEP_LOCAL')">Keep my version</a>
+                <a ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEP_REMOTE')">Override with remote version</a>
+                <a ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEP_BOTH')">Keep both</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
 <h1>Logs</h1>
 <p class="lead">Current job logs</p>
 <table class="table">

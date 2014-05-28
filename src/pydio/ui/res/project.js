@@ -15,6 +15,13 @@ angular.module('project', ['ngRoute', 'ngResource'])
             });
         }])
 
+    .factory('Conflicts', ['$resource',
+        function($resource){
+            return $resource('/jobs/:job_id/conflicts', {}, {
+                query: {method:'GET', params:{job_id:''}, isArray:true}
+            });
+        }])
+
     .service('currentJob', function() {
         var objectValue = null;
         return {
@@ -104,23 +111,39 @@ angular.module('project', ['ngRoute', 'ngResource'])
             angular.forEach($scope.jobs, function(j){
                 if(j.id != jobId) return;
                 j.active = !j.active;
-                j.$delete();
+                j.$delete({job_id:jobId});
             });
         };
 
     })
 
-    .controller('ListLogsCtrl', function($scope, $routeParams, $timeout, Logs){
+    .controller('ListLogsCtrl', function($scope, $routeParams, $timeout, Logs, Conflicts){
         var tO;
-        (function tick() {
+        var t1;
+        (function tickLog() {
             var logs = Logs.query({job_id:$routeParams.jobId}, function(){
                 $scope.logs = logs;
-                tO = $timeout(tick, 1500);
+                tO = $timeout(tickLog, 2000);
+            });
+        })();
+        (function tickConflict() {
+            var conflicts = Conflicts.query({job_id:$routeParams.jobId}, function(){
+                $scope.conflicts = conflicts;
+                t1 = $timeout(tickConflict, 2000);
             });
         })();
         $scope.$on('$destroy', function(){
             $timeout.cancel(tO);
+            $timeout.cancel(t1);
         });
+        $scope.solveConflict = function(nodeId, status){
+            angular.forEach($scope.conflicts, function(conflict){
+                if(conflict.node_id != nodeId) return;
+                conflict.status = status;
+                conflict.job_id = $routeParams.jobId;
+                conflict.$save();
+            });
+        };
     })
 
     .controller('CreateCtrl', function($scope, $location, $timeout, Jobs, currentJob) {

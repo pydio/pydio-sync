@@ -2,6 +2,7 @@ from flask import request, redirect
 from flask.ext.restful import Resource
 from pydio.job.job_config import JobConfig
 from pydio.job.EventLogger import EventLogger
+from pydio.job.localdb import LocalDbHandler
 import json
 import requests
 import keyring
@@ -139,6 +140,30 @@ class JobManager(Resource):
         cls.loader = loader
         return cls
 
+class ConflictsManager(Resource):
+
+    def post(self):
+        json_conflict = request.get_json()
+        job_id = json_conflict['job_id']
+        if not job_id in self.loader.get_jobs():
+            return "Can't find any job config with this ID.", 404
+
+        dbHandler = LocalDbHandler(str(self.data_path)+ '/' + job_id)
+        dbHandler.update_node_status(json_conflict['node_path'], json_conflict['status'])
+        return json_conflict
+
+    def get(self, job_id):
+        if not job_id in self.loader.get_jobs():
+            return "Can't find any job config with this ID.", 404
+
+        dbHandler = LocalDbHandler(str(self.data_path)+ '/' + job_id)
+        return dbHandler.list_conflict_nodes()
+
+    @classmethod
+    def make_conflicts_manager(cls, loader, data_path):
+        cls.loader = loader
+        cls.data_path = data_path
+        return cls
 
 class LogManager(Resource):
 
