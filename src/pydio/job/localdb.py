@@ -173,6 +173,24 @@ class LocalDbHandler():
         c.close()
         return status
 
+    def list_conflict_nodes(self):
+        conn = sqlite3.connect(self.db)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        status = False
+        rows = []
+        for row in c.execute("SELECT * FROM ajxp_index,ajxp_node_status "
+                             "WHERE (ajxp_node_status.status='CONFLICT' OR ajxp_node_status.status LIKE 'SOLVED%' ) AND ajxp_node_status.node_id = ajxp_index.node_id"):
+            d = {}
+            for idx, col in enumerate(c.description):
+                if col[0] == 'stat_result':
+                    continue
+                d[col[0]] = row[idx]
+            rows.append(d)
+        c.close()
+        return rows
+
+
     def update_node_status(self, node_path, status='IDLE', detail=''):
         node_id = self.find_node_by_id(node_path, with_status=True)
         conn = sqlite3.connect(self.db)
