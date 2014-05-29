@@ -69,11 +69,9 @@ from pydio.test.diagnostics import PydioDiagnostics
 from pydio.utils.config_ports import PortsDetector
 from pydio.ui.web_api import PydioApi
 from pydio.job.bus_zmq import ZmqBus
-from pydio.job.pydio_manager import PydioManager
-
+from pydio.job.scheduler import PydioScheduler
 
 DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
-
 
 def main(argv=sys.argv[1:]):
 
@@ -148,7 +146,8 @@ def main(argv=sys.argv[1:]):
 
     zmq_bus = ZmqBus(ports_detector)
     zmq_bus.open()
-    server = PydioApi(jobs_root_path, ports_detector.get_open_port('flask_api'))
+    scheduler = PydioScheduler(jobs_root_path, data, args.file)
+    server = PydioApi(jobs_root_path, ports_detector.get_open_port('flask_api'), scheduler)
 
     try:
 
@@ -159,8 +158,7 @@ def main(argv=sys.argv[1:]):
         except Exception as e:
             logging.error(e)
 
-        pydio_manager = PydioManager(data, jobs_root_path)
-        pydio_manager.startAll()
+        scheduler.start_all()
 
     except (KeyboardInterrupt, SystemExit):
         sys.exit()

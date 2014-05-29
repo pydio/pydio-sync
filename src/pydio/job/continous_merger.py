@@ -92,6 +92,7 @@ class ContinuousDiffMerger(threading.Thread):
         return self.job_status_running
 
     def start_now(self):
+        self.resume()
         self.last_run = 0
 
     def pause(self):

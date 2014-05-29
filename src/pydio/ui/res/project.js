@@ -22,6 +22,13 @@ angular.module('project', ['ngRoute', 'ngResource'])
             });
         }])
 
+    .factory('Commands', ['$resource',
+        function($resource){
+            return $resource('/cmd/:cmd/:job_id', {}, {
+                query: {method:'GET', params:{job_id:''}, isArray:true}
+            });
+        }])
+
     .service('currentJob', function() {
         var objectValue = null;
         return {
@@ -95,7 +102,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
             });
     })
 
-    .controller('ListCtrl', function($scope, $location, Jobs, currentJob) {
+    .controller('ListCtrl', function($scope, $location, Jobs, currentJob, Commands) {
         $scope.jobs = Jobs.query(function(resp){
             if(!resp.length) $location.path('/new');
         });
@@ -104,7 +111,13 @@ angular.module('project', ['ngRoute', 'ngResource'])
             angular.forEach($scope.jobs, function(j){
                 if(j.id != jobId) return;
                 j.active = !j.active;
-                j.$save();
+                j.$save(function(){
+                    Commands.query({cmd:(j.active?'enable':'disable'), job_id:jobId}, function(){
+                        var newJobs = Jobs.query({}, function(){
+                            $scope.jobs = newJobs;
+                        });
+                    });
+                });
             });
         };
         $scope.deleteJob = function(jobId){
@@ -114,6 +127,13 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 j.$delete({job_id:jobId});
             });
         };
+        $scope.applyCmd = function(cmd, jobId){
+            Commands.query({cmd:cmd, job_id:jobId}, function(){
+                var newJobs = Jobs.query({}, function(){
+                    $scope.jobs = newJobs;
+                });
+            });
+        }
 
     })
 
@@ -136,6 +156,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
             $timeout.cancel(tO);
             $timeout.cancel(t1);
         });
+        $scope.job_id = $routeParams.jobId;
         $scope.solveConflict = function(nodeId, status){
             angular.forEach($scope.conflicts, function(conflict){
                 if(conflict.node_id != nodeId) return;

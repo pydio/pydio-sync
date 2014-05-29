@@ -128,11 +128,15 @@ class LocalWatcher(threading.Thread):
                 self.event_handler.on_deleted(DirDeletedEvent(path))
 
     def stop(self):
-        logging.debug("Stopping: %s" % self.observer)
-        self.observer.stop()
+        if self.observer:
+            logging.debug("Stopping: %s" % self.observer)
+            self.observer.stop()
 
     def run(self):
 
+        if not os.path.exists(self.basepath):
+            logging.error('Cannot start monitor on non-existing path ' + self.basepath)
+            return
         logging.info('Starting permanent monitor')
         self.observer = Observer()
         self.observer.schedule(self.event_handler, self.basepath, recursive=True)

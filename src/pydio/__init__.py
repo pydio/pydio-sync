@@ -19,4 +19,5 @@
 #
 PROGRESS_SIGNAL = 'progress'
 COMMAND_SIGNAL = 'command'
+JOB_COMMAND_SIGNAL = 'job_command'
 PUBLISH_SIGNAL = 'publish'
