@@ -29,7 +29,6 @@ class Singleton:
 
     def Instance(self, config_file=None):
         try:
-            print "singleton appel"
             return self._instance
         except AttributeError:
             self._instance = self._decorated(config_file)
@@ -49,7 +48,6 @@ class JobsLoader():
     jobs = None
 
     def __init__(self, config_file):
-        print "constructeur appel"
         self.config_file = config_file
 
     def contains_job(self, id):
@@ -78,7 +76,10 @@ class JobsLoader():
         return self.jobs[id_to_get]
 
     def save_jobs(self, jobs):
-        self.jobs.update(jobs)
+        if self.jobs:
+            self.jobs.update(jobs)
+        else:
+            self.jobs = jobs
         with open(self.config_file, "w") as fp:
             json.dump(self.jobs, fp, default=JobConfig.encoder, indent=2)
 
@@ -135,7 +136,8 @@ class JobConfig:
         self.user_id = args.user
         if args.direction:
             self.direction = args.direction
-        self.id = self.uuid()
+        self.make_id()
+        self.__type__ = "JobConfig"
 
     @staticmethod
     def object_decoder(obj):
