@@ -5,7 +5,7 @@
             <a ng-if="!job.active" href="#" ng-click="toggleJobActive(job.id)" class="pull-right"><span class="glyphicon glyphicon-off"></span> Enable</a>
             Job {{job.id}}</div>
         <div style="margin-top: 15px;margin-left: 15px;font-size: 12px;font-weight: 700;color: #bbb;text-transform: uppercase;letter-spacing: 1px;">Parameters
-            <a href="#/summary/{{job.id}}">[Edit]</a> <a href="#/logs/{{job.id}}">[Logs]</a>
+            <a href="#/edit/{{job.id}}/step3">[Edit]</a> <a href="#/logs/{{job.id}}">[Logs]</a>
         </div>
         <div style="line-height: 1.8em;" class="panel-body">
             <table class="table">

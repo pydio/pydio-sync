@@ -171,8 +171,8 @@ angular.module('project', ['ngRoute', 'ngResource'])
         var job = new Jobs();
         job.id = 'new';
         job.remote_folder = '/';
-        job.directory = '/Path/to/local';
-        job.workspace = 'ws-watched';
+        job.directory = '';
+        job.workspace = '';
         job.__type__ = 'JobConfig'
         $scope.job = job;
         currentJob.setJob($scope.job);
@@ -240,11 +240,13 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 job_id:$routeParams.jobId
             }, function(resp){
                 $scope.job = resp;
-                $scope.loadWorkspaces();
+                //$scope.loadWorkspaces();
             }));
         }else{
             $scope.job = currentJob.getJob();
-            $scope.loadWorkspaces();
+            if($scope.job.id == 'new') {
+                $scope.loadWorkspaces();
+            }
         }
 
         $scope.save = function() {
@@ -258,7 +260,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 });
             }else{
                 $scope.job.$save();
-                $location.path('/summary/'+$scope.job.id);
+                $location.path('/');
             }
         };
     });
