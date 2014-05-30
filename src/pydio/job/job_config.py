@@ -20,6 +20,7 @@
 
 import keyring
 import json
+import urlparse
 
 
 class Singleton:
@@ -105,7 +106,7 @@ class JobConfig:
 
     def make_id(self):
         i = 1
-        test_id = self.server.replace("http://", '') + '-' + self.workspace + '-' + str(i)
+        test_id = urlparse.urlparse(self.server).netloc + '-' + self.workspace + '-' + str(i)
         while JobsLoader.Instance().contains_job(test_id):
             test_id.replace(str(i), str(i+1))
         self.id = test_id
