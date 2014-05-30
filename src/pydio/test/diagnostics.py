@@ -74,4 +74,3 @@ class PydioDiagnostics():
             self.status = -1
             self.status_message = "Server ping test: failure"
             return
-

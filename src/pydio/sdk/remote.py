@@ -36,7 +36,7 @@ from urlparse import urlparse
 
 from exceptions import SystemSdkException, PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException
 from pydio.utils.functions import hashfile
-from .utils import upload_file_showing_progress
+from src.pydio.sdk.utils import upload_file_showing_progress
 
 
 class PydioSdk():
@@ -60,7 +60,7 @@ class PydioSdk():
         try:
             tokens = json.loads(resp.content)
         except ValueError as v:
-            return false
+            return False
         keyring.set_password(self.url, self.user_id +'-token' , tokens['t']+':'+tokens['p'])
         return tokens
 
