@@ -64,7 +64,7 @@ if __name__ == "__main__":
         sys.path.insert(0, os.path.dirname(pydio_module))
 
 from pydio.job.continous_merger import ContinuousDiffMerger
-from pydio.job.job_config import JobConfig
+from pydio.job.job_config import JobConfig, JobsLoader
 from pydio.test.diagnostics import PydioDiagnostics
 from pydio.utils.config_ports import PortsDetector
 from pydio.ui.web_api import PydioApi
@@ -103,13 +103,15 @@ def main(argv=sys.argv[1:]):
         pydio.autostart.setup(argv)
         return 0
 
+    jobs_loader = JobsLoader.Instance(str(jobs_root_path / 'configs.json'))
+
     if args.file or not argv:
         fp = args.file
         if not fp or fp == '.':
             fp = DEFAULT_CONFIG_FILE
         logging.info("Loading config from %s", fp)
-        with open(fp) as fp:
-            data = json.load(fp, object_hook=JobConfig.object_decoder)
+        jobs_loader.load_config()
+        data = jobs_loader.get_jobs()
     else:
         job_config = JobConfig()
         job_config.load_from_cliargs(args)
@@ -146,8 +148,8 @@ def main(argv=sys.argv[1:]):
 
     zmq_bus = ZmqBus(ports_detector)
     zmq_bus.open()
-    scheduler = PydioScheduler(jobs_root_path, data, args.file)
-    server = PydioApi(jobs_root_path, ports_detector.get_open_port('flask_api'), scheduler)
+    scheduler = PydioScheduler(jobs_root_path, jobs_loader)
+    server = PydioApi(jobs_loader, jobs_root_path, ports_detector.get_open_port('flask_api'), scheduler)
 
     try:
 
