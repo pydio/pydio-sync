@@ -86,6 +86,9 @@ class WorkspacesManager(Resource):
 
         resp = requests.get(url,stream = True,auth=auth)
         data = json.loads(resp.content)
+        if 'repositories' in data and 'repo' in data['repositories'] and isinstance(data['repositories']['repo'], types.DictType):
+            data['repositories']['repo'] = [data['repositories']['repo']]
+
         return data
 
     @classmethod
