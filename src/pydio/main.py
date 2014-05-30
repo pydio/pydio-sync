@@ -37,7 +37,6 @@ logging.debug("PYTHONPATH: %s", "\n\t".join(os.environ.get('PYTHONPATH', "").spl
 # from flask_restful import Api
 import argparse
 import json
-import zmq
 import thread
 import time
 import pydio.monkeypatch
@@ -68,7 +67,6 @@ from pydio.job.job_config import JobConfig
 from pydio.test.diagnostics import PydioDiagnostics
 from pydio.utils.config_ports import PortsDetector
 from pydio.ui.web_api import PydioApi
-from pydio.job.bus_zmq import ZmqBus
 from pydio.job.scheduler import PydioScheduler
 
 DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
@@ -144,8 +142,8 @@ def main(argv=sys.argv[1:]):
     ports_detector = PortsDetector(args.zmq_port, args.auto_detect_port, store_file=str(jobs_root_path / 'ports_config') )
     ports_detector.create_config_file()
 
-    zmq_bus = ZmqBus(ports_detector)
-    zmq_bus.open()
+#    zmq_bus = ZmqBus(ports_detector)
+#    zmq_bus.open()
     scheduler = PydioScheduler(jobs_root_path, data, args.file)
     server = PydioApi(jobs_root_path, ports_detector.get_open_port('flask_api'), scheduler)
 
