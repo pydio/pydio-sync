@@ -11,7 +11,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
     .factory('Logs', ['$resource',
         function($resource){
             return $resource('/jobs/:job_id/logs', {}, {
-                query: {method:'GET', params:{job_id:''}, isArray:true}
+                query: {method:'GET', params:{job_id:''}, isArray:false}
             });
         }])
 
@@ -141,15 +141,16 @@ angular.module('project', ['ngRoute', 'ngResource'])
         var tO;
         var t1;
         (function tickLog() {
-            var logs = Logs.query({job_id:$routeParams.jobId}, function(){
-                $scope.logs = logs;
+            var all = Logs.query({job_id:$routeParams.jobId}, function(){
+                $scope.logs = all.logs;
+                $scope.running = all.running;
                 tO = $timeout(tickLog, 2000);
             });
         })();
         (function tickConflict() {
             var conflicts = Conflicts.query({job_id:$routeParams.jobId}, function(){
                 $scope.conflicts = conflicts;
-                t1 = $timeout(tickConflict, 2000);
+                t1 = $timeout(tickConflict, 3000);
             });
         })();
         $scope.$on('$destroy', function(){

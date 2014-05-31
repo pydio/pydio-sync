@@ -1,4 +1,37 @@
-<div style="float: right;margin-top: 40px;"><a href="#/summary/{{job_id}}" class="btn btn-info">Back</a></div>
+<div style="float: right;margin-top: 7px;"><a href="#/summary/{{job_id}}" class="btn btn-info">Back</a></div>
+
+<h1>Current tasks</h1>
+<p ng-if="!running.tasks.length" class="lead">Nothing to do</p>
+<p ng-if="running.tasks.length" class="lead">Currently processing {{running.tasks.length}} tasks ({{running.global|number:0}}% completed)</p>
+<table ng-if="running.tasks.length" class="table">
+    <thead>
+    <tr>
+        <th>Direction</th>
+        <th>Type</th>
+        <th>File</th>
+        <th>Progress</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-if="running.tasks.length" ng-repeat="task in running.tasks|limitTo:5">
+        <td>{{task.direction=='remote'?'Down':'Up'}}</td>
+        <td>{{task.type}}</td>
+        <td>{{task.target && task.target != 'NULL'?task.target:task.source}}</td>
+        <td ng-if="!task.progress">Queued</td>
+        <td ng-if="task.progress">
+            <div class="progress progress-striped active">
+                <div class="progress-bar" role="progressbar" aria-valuenow="{{task.progress | number:0}}" aria-valuemin="0" aria-valuemax="100" style="width: {{task.progress | number:0}}%;">
+                    {{task.progress | number:0}}%
+                </div>
+            </div>
+        </td>
+    </tr>
+    <tr ng-if="running.tasks.length > 5">
+        <td>{{running.tasks.length - 5}} more ... </td>
+    </tr>
+    </tbody>
+</table>
+
 
 <div ng-if="conflicts">
     <h1>Conflicts</h1>
@@ -26,15 +59,14 @@
 </div>
 
 <h1>Logs</h1>
-<p class="lead">Current job logs</p>
+<p class="lead">Previous operations</p>
 <table class="table">
     <thead>
     <tr>
         <th></th>
         <th>Date</th>
         <th>Action</th>
-        <th>Source</th>
-        <th>Target</th>
+        <th>File / Folder</th>
         <th>Status</th>
     </tr>
     </thead>
@@ -44,9 +76,8 @@
         <td ng-if="log[1] == 'local'"><span class="glyphicon glyphicon-cloud-download"></span></td>
         <td>{{log[7]}}</td>
         <td>{{log[5]}}</td>
-        <td>{{log[3]}}</td>
-        <td>{{log[4]}}</td>
-        <td>{{log[6]}}</td>
+        <td>{{log[4] && log[4]!=NULL ? log[4]:log[3]}}</td>
+        <td>{{log[6] == 'undefined' ? 'OK' : log[6]}}</td>
     </tr>
     </tbody>
 </table>

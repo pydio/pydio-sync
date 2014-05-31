@@ -119,7 +119,7 @@ class PydioSdk():
             data['auth_hash']  = auth_hash
             if with_progress:
                 fields = dict(files, **data)
-                resp = upload_file_showing_progress(url, fields, stream)
+                resp = upload_file_showing_progress(url, fields, stream, with_progress)
             elif files:
                 resp = requests.post(url=url, data=data, files=files, stream=stream)
             else:
@@ -239,7 +239,7 @@ class PydioSdk():
         resp = self.perform_request(url=url)
         return resp.content
 
-    def upload(self, local, local_stat, path):
+    def upload(self, local, local_stat, path, callback_dict=None):
         if not local_stat:
             raise PydioSdkException('upload', path, 'local file to upload not found!')
         if local_stat['size'] == 0:
@@ -259,13 +259,13 @@ class PydioSdk():
             'force_post':'true',
             'urlencoded_filename':self.urlencode_normalized(os.path.basename(path))
         }
-        resp = self.perform_request(url=url, type='post', data=data, files=files, with_progress=True)
+        resp = self.perform_request(url=url, type='post', data=data, files=files, with_progress=callback_dict)
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
             raise PydioSdkException('upload', path, 'File not correct after upload')
         return True
 
-    def download(self, path, local):
+    def download(self, path, local, callback_dict=None):
         orig = self.stat(path)
         if not orig:
             raise PydioSdkException('download', path, 'Original not found on server')
@@ -290,6 +290,9 @@ class PydioSdk():
                         done = int(50 * dl / int(total_length))
                         if done != previous_done:
                             logging.debug("\r[%s%s] %s bps" % ('=' * done, ' ' * (50-done), dl//(time.clock() - start)))
+                            if callback_dict:
+                                callback_dict['progress'] = float( float(dl) / float(total_length) * 100)
+                                callback_dict['transfer_rate'] = dl//(time.clock() - start)
                         previous_done = done
             if not os.path.exists(local_tmp):
                 raise PydioSdkException('download', local, 'File not found after download')

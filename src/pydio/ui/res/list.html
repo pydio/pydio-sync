@@ -18,7 +18,8 @@
             </table>
         </div>
         <div class="panel-footer" ng-if="job.active && job.running">
-                <span class="pull-right">Status: running <a ng-click="applyCmd('pause', job.id)" style="cursor: pointer;">[Pause]</a></span>&nbsp;
+            <span class="pull-right">Status: running <a ng-click="applyCmd('pause', job.id)" style="cursor: pointer;">[Pause]</a></span>&nbsp;
+            <span ng-if="job.running_data.tasks && job.running_data.tasks.length">{{job.running_data.tasks[0].type}}</span>
         </div>
         <div class="panel-footer" ng-if="job.active && !job.running">
                 <span class="pull-right">Status: paused <a ng-click="applyCmd('resume', job.id)" style="cursor: pointer;">[Resume]</a></span>&nbsp;

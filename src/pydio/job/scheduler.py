@@ -25,6 +25,15 @@ from pydio.job.job_config import JobsLoader
 
 class PydioScheduler():
 
+    @classmethod
+    def init_instance(cls, jobs_root_path, jobs_loader):
+        cls.__INSTANCE = PydioScheduler(jobs_root_path, jobs_loader)
+        return cls.__INSTANCE
+
+    @classmethod
+    def get_instance(cls):
+        return cls.__INSTANCE
+
     def __init__(self, jobs_root_path, jobs_loader):
         self.control_threads = {}
         self.jobs_loader = jobs_loader
@@ -74,6 +83,12 @@ class PydioScheduler():
         if not thread:
             return False
         return thread.is_running()
+
+    def get_job_progress(self, job_id):
+        thread = self.get_thread(job_id)
+        if not thread:
+            return False
+        return {"global": thread.get_global_progress(), "tasks": thread.get_current_tasks()}
 
     def pause_job(self, job_id):
         thread = self.get_thread(job_id)

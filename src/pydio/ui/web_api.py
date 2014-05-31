@@ -6,6 +6,7 @@ from flask.ext.restful import Resource
 from pydio.job.job_config import JobConfig
 from pydio.job.EventLogger import EventLogger
 from pydio.job.localdb import LocalDbHandler
+from pydio.job.scheduler import PydioScheduler
 import json
 import requests
 import keyring
@@ -18,16 +19,15 @@ from pydio import PUBLISH_SIGNAL, PROGRESS_SIGNAL, COMMAND_SIGNAL, JOB_COMMAND_S
 
 class PydioApi(Api):
 
-    def __init__(self, jobs_loader, jobs_root_path, server_port, pydio_scheduler):
+    def __init__(self, jobs_loader, jobs_root_path, server_port):
         self.port = server_port
         self.app = Flask(__name__, static_folder = 'res', static_url_path='/res')
         super(PydioApi, self).__init__(self.app)
-        job_manager = JobManager.make_job_manager(jobs_loader, pydio_scheduler)
+        job_manager = JobManager.make_job_manager(jobs_loader)
         ws_manager = WorkspacesManager.make_ws_manager(jobs_loader)
         folders_manager = FoldersManager.make_folders_manager(jobs_loader)
         logs_manager = LogManager.make_log_manager(jobs_loader, jobs_root_path)
         conflicts_manager = ConflictsManager.make_conflicts_manager(jobs_loader, jobs_root_path)
-        cmd_manager = CmdManager.make_cmd_manager(pydio_scheduler)
         self.add_resource(job_manager, '/','/jobs', '/jobs/<string:job_id>')
         self.add_resource(ws_manager, '/ws/<string:job_id>')
         self.add_resource(folders_manager, '/folders/<string:job_id>')
@@ -117,7 +117,7 @@ class JobManager(Resource):
         new_job = JobConfig.object_decoder(json_req)
         jobs[new_job.id] = new_job
         self.loader.save_jobs(jobs)
-        self.scheduler.reload_configs()
+        PydioScheduler.get_instance().reload_configs()
         return JobConfig.encoder(new_job)
 
     def get(self, job_id = None):
@@ -128,25 +128,26 @@ class JobManager(Resource):
             std_obj = []
             for k in jobs:
                 data = JobConfig.encoder(jobs[k])
-                data['running'] = self.scheduler.is_job_running(k)
+                data['running'] = PydioScheduler.get_instance().is_job_running(k)
+                data['running_data'] = PydioScheduler.get_instance().get_job_progress(k)
                 std_obj.append(data)
             return std_obj
         logging.info("Job ID : "+job_id)
         data = JobConfig.encoder(jobs[job_id])
-        data['running'] = self.scheduler.is_job_running(job_id)
+        data['running'] = PydioScheduler.get_instance().is_job_running(job_id)
+        data['running_data'] = PydioScheduler.get_instance().get_job_progress(job_id)
         return data
 
     def delete(self, job_id):
         jobs = self.loader.get_jobs()
         del jobs[job_id]
         self.loader.save_jobs(jobs)
-        self.scheduler.reload_configs()
+        PydioScheduler.get_instance().reload_configs()
         return job_id + "deleted", 204
 
     @classmethod
-    def make_job_manager(cls, loader, scheduler):
+    def make_job_manager(cls, loader):
         cls.loader = loader
-        cls.scheduler = scheduler
         return cls
 
 class ConflictsManager(Resource):
@@ -180,16 +181,19 @@ class LogManager(Resource):
         self.events = {}
 
     def get(self, job_id):
-        if job_id in self.loader.get_jobs():
-            logger = EventLogger(str(self.data_path)+ '/' + job_id)
-            if not request.args:
-                return logger.get_all()
-            else:
-                filter = request.args.keys()[0]
-                filter_parameter = request.args.get(filter)
-                return logger.filter(filter, filter_parameter)
-        else:
+        if not job_id in self.loader.get_jobs():
             return "Can't find any job config with this ID.", 404
+
+        logger = EventLogger(str(self.data_path)+ '/' + job_id)
+        if not request.args:
+            logs = logger.get_all()
+        else:
+            filter = request.args.keys()[0]
+            filter_parameter = request.args.get(filter)
+            logs = logger.filter(filter, filter_parameter)
+
+        tasks = PydioScheduler.get_instance().get_job_progress(job_id)
+        return {"logs":logs, "running":tasks}
 
     @classmethod
     def make_log_manager(cls, loader, data_path):
@@ -201,12 +205,7 @@ class CmdManager(Resource):
 
     def get(self, cmd, job_id):
         if job_id:
-            self.scheduler.handle_job_signal(self, cmd, job_id)
+            PydioScheduler.get_instance().handle_job_signal(self, cmd, job_id)
         else:
-            self.scheduler.handle_generic_signal(self, cmd)
+            PydioScheduler.get_instance().handle_generic_signal(self, cmd)
         return ('success',)
-
-    @classmethod
-    def make_cmd_manager(cls, scheduler):
-        cls.scheduler = scheduler
-        return cls

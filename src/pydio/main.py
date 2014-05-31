@@ -141,8 +141,8 @@ def main(argv=sys.argv[1:]):
 
     zmq_bus = ZmqBus(ports_detector)
     zmq_bus.open()
-    scheduler = PydioScheduler(jobs_root_path, jobs_loader)
-    server = PydioApi(jobs_loader, jobs_root_path, ports_detector.get_open_port('flask_api'), scheduler)
+    scheduler = PydioScheduler.init_instance(jobs_root_path, jobs_loader)
+    server = PydioApi(jobs_loader, jobs_root_path, ports_detector.get_open_port('flask_api'))
 
     try:
 

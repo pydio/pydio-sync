@@ -25,7 +25,7 @@ import pickle
 import logging
 
 from requests.exceptions import ConnectionError
-
+from collections import deque
 from pydio.job.localdb import LocalDbHandler
 from pydio.job.local_watcher import LocalWatcher
 from pydio.sdk.exceptions import ProcessException
@@ -86,10 +86,19 @@ class ContinuousDiffMerger(threading.Thread):
         dispatcher.connect( self.handle_progress_event, signal=PROGRESS_SIGNAL, sender=dispatcher.Any )
 
     def handle_progress_event(self, sender, progress):
+        self.progress = progress
         self.info('Job progress is %s' % progress)
 
     def is_running(self):
         return self.job_status_running
+
+    def get_global_progress(self):
+        return self.progress
+
+    def get_current_tasks(self):
+        if not self.tasks:
+            return []
+        return list(self.tasks)
 
     def start_now(self):
         self.resume()
@@ -130,6 +139,7 @@ class ContinuousDiffMerger(threading.Thread):
             #logging.debug("ContinuousDiffMerger.run loop enter: %s" % self)
 
             try:
+                self.tasks = []
                 interval = int(time.time() - self.last_run)
                 if (self.online_status and interval < self.online_timer) or (not self.online_status and interval < self.offline_timer):
                     time.sleep(self.event_timer)
@@ -183,9 +193,11 @@ class ContinuousDiffMerger(threading.Thread):
                     continue
 
                 if len(changes):
+                    self.tasks = deque(changes)
                     logging.info('Processing %i changes' % len(changes))
                     i = 1
-                    for change in changes:
+                    while len(self.tasks):
+                        change = self.tasks[0]
                         try:
                             self.process_change(change)
                             self.remove_seq(change['seq'], change['location'])
@@ -193,7 +205,8 @@ class ContinuousDiffMerger(threading.Thread):
                             logging.error(pe.message)
                         except OSError as e:
                             logging.error(e.message)
-                        progress_percent = "{0:.2f}%".format(float(i)/len(changes) * 100)
+                        self.tasks.popleft()
+                        progress_percent = (float(i)/len(changes) * 100)
                         dispatcher.send(signal=PROGRESS_SIGNAL, sender=self, progress=progress_percent)
                         i += 1
                         if self.interrupt:
@@ -356,17 +369,17 @@ class ContinuousDiffMerger(threading.Thread):
         self.event_logger.log(type='remote', action='move', status='undefined', target=target, source=source, message=message)
         self.sdk.rename(source, target)
 
-    def process_DOWNLOAD(self, path):
+    def process_DOWNLOAD(self, path, callback_dict=None):
         self.db_handler.update_node_status(path, 'DOWN')
-        self.sdk.download(path, self.basepath + path)
+        self.sdk.download(path, self.basepath + path, callback_dict)
         self.db_handler.update_node_status(path, 'IDLE')
         message = path + ' <=============== ' + path
         self.info(message, 'File ' + path + ' downloaded from server')
         self.event_logger.log(type='local', action='download', status='undefined', target=path, message=message)
 
-    def process_UPLOAD(self, path):
+    def process_UPLOAD(self, path, callback_dict=None):
         self.db_handler.update_node_status(path, 'UP')
-        self.sdk.upload(self.basepath+path, self.system.stat(path), path)
+        self.sdk.upload(self.basepath+path, self.system.stat(path), path, callback_dict)
         self.db_handler.update_node_status(path, 'IDLE')
         message = path + ' ===============> ' + path
         self.info(message, 'File ' + path + ' uploaded to server')
@@ -376,6 +389,7 @@ class ContinuousDiffMerger(threading.Thread):
     def process_change(self, item):
 
         location = item['location']
+        item['progress'] = 0
         if self.direction == 'up' and location == 'remote':
             return
         if self.direction == 'down' and location == 'local':
@@ -393,13 +407,13 @@ class ContinuousDiffMerger(threading.Thread):
             else:
                 if item['node']['node_path']:
                     if location == 'remote':
-                        self.process_DOWNLOAD(item['node']['node_path'])
+                        self.process_DOWNLOAD(item['node']['node_path'], callback_dict=item )
                         if item['type'] == 'create':
                             self.db_handler.buffer_real_operation(item['type'], 'NULL', item['node']['node_path'])
                         else:
                             self.db_handler.buffer_real_operation(item['type'], item['node']['node_path'], item['node']['node_path'])
                     else:
-                        self.process_UPLOAD(item['node']['node_path'])
+                        self.process_UPLOAD(item['node']['node_path'], item)
 
         elif item['type'] == 'delete':
             logging.info('[' + location + '] Should delete ' + item['source'])
