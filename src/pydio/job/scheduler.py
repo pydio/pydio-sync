@@ -21,16 +21,15 @@ from pydio.job.continous_merger import ContinuousDiffMerger
 from pydispatch import dispatcher
 from pydio import PUBLISH_SIGNAL, PROGRESS_SIGNAL, COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
 import logging, json
-from pydio.job.job_config import JobConfig
+from pydio.job.job_config import JobsLoader
 
 class PydioScheduler():
 
-    def __init__(self, jobs_root_path, job_configs, config_file=None):
+    def __init__(self, jobs_root_path, jobs_loader):
         self.control_threads = {}
-        self.job_configs = job_configs
+        self.jobs_loader = jobs_loader
+        self.job_configs = jobs_loader.get_jobs()
         self.jobs_root_path = jobs_root_path
-        if config_file:
-            self.config_file = config_file
         dispatcher.connect(self.handle_job_signal, signal=JOB_COMMAND_SIGNAL, sender=dispatcher.Any)
         dispatcher.connect(self.handle_generic_signal, signal=COMMAND_SIGNAL, sender=dispatcher.Any)
 
@@ -126,9 +125,7 @@ class PydioScheduler():
         return False
 
     def reload_configs(self):
-        if not self.config_file:
-            return
-        logging.info("Loading config from %s", self.config_file)
-        with open(self.config_file) as fp:
-            self.job_configs = json.load(fp, object_hook=JobConfig.object_decoder)
+        logging.info("Loading config")
+        self.jobs_loader.load_config()
+        self.job_configs = self.jobs_loader.get_jobs()
 

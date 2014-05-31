@@ -18,9 +18,8 @@ from pydio import PUBLISH_SIGNAL, PROGRESS_SIGNAL, COMMAND_SIGNAL, JOB_COMMAND_S
 
 class PydioApi(Api):
 
-    def __init__(self, jobs_root_path, server_port, pydio_scheduler):
+    def __init__(self, jobs_loader, jobs_root_path, server_port, pydio_scheduler):
         self.port = server_port
-        jobs_loader = JobsLoader(str(jobs_root_path / 'configs.json'))
         self.app = Flask(__name__, static_folder = 'res', static_url_path='/res')
         super(PydioApi, self).__init__(self.app)
         job_manager = JobManager.make_job_manager(jobs_loader, pydio_scheduler)
@@ -38,31 +37,6 @@ class PydioApi(Api):
 
     def start_server(self):
         self.app.run(port=self.port)
-
-class JobsLoader():
-
-    config_file = ''
-    jobs = None
-
-    def __init__(self, config_file):
-        self.config_file = config_file
-
-    def get_jobs(self):
-        if self.jobs:
-            return self.jobs
-        jobs = {}
-        if not self.config_file:
-            return jobs
-        with open(self.config_file) as fp:
-            jobs = json.load(fp, object_hook=JobConfig.object_decoder)
-            self.jobs = jobs
-        return jobs
-
-    def save_jobs(self, jobs):
-        self.jobs.update(jobs)
-        with open(self.config_file, "w") as fp:
-            json.dump(self.jobs, fp, default=JobConfig.encoder, indent=2)
-
 
 class WorkspacesManager(Resource):
 

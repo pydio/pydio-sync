@@ -19,7 +19,72 @@
 #
 
 import keyring
-import hashlib
+import json
+import urlparse
+
+
+class Singleton:
+
+    def __init__(self, decorated):
+        self._decorated = decorated
+
+    def Instance(self, config_file=None):
+        try:
+            return self._instance
+        except AttributeError:
+            self._instance = self._decorated(config_file)
+            return self._instance
+
+    def __call__(self):
+        raise TypeError('Singletons must be accessed through `Instance()`.')
+
+    def __instancecheck__(self, inst):
+        return isinstance(inst, self._decorated)
+
+
+@Singleton
+class JobsLoader():
+
+    config_file = ''
+    jobs = None
+
+    def __init__(self, config_file):
+        self.config_file = config_file
+
+    def contains_job(self, id):
+        if self.jobs:
+            if id in self.jobs:
+                return True
+        return False
+
+    def load_config(self):
+        with open(self.config_file) as fp:
+            jobs = json.load(fp, object_hook=JobConfig.object_decoder)
+            self.jobs = jobs
+
+    def get_jobs(self):
+        if self.jobs:
+            return self.jobs
+        jobs = {}
+        if not self.config_file:
+            return jobs
+        self.load_config()
+        return self.jobs
+
+    def get_job(self, id_to_get):
+        if not id in self.jobs:
+            return "no job with this id"
+        return self.jobs[id_to_get]
+
+    def save_jobs(self, jobs):
+        if self.jobs:
+            self.jobs.update(jobs)
+        else:
+            self.jobs = jobs
+        with open(self.config_file, "w") as fp:
+            json.dump(self.jobs, fp, default=JobConfig.encoder, indent=2)
+
+
 
 class JobConfig:
 
@@ -39,15 +104,12 @@ class JobConfig:
             excludes=['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store', '.~lock.*']
         )
 
-    def uuid(self):
-        if hasattr(self, '__uuid'):
-            return self.__uuid
-        uuid_str = self.server + '/@' + self.user_id + '/' + self.workspace + '/' + self.remote_folder
-        m = hashlib.md5()
-        m.update(uuid_str)
-        uuid = m.hexdigest()
-        self.__uuid = str(uuid)[0:10]
-        return self.__uuid
+    def make_id(self):
+        i = 1
+        test_id = urlparse.urlparse(self.server).netloc + '-' + self.workspace + '-' + str(i)
+        while JobsLoader.Instance().contains_job(test_id):
+            test_id.replace(str(i), str(i+1))
+        self.id = test_id
 
     def encoder(obj):
         if isinstance(obj, JobConfig):
@@ -75,7 +137,8 @@ class JobConfig:
         self.user_id = args.user
         if args.direction:
             self.direction = args.direction
-        self.id = self.uuid()
+        self.make_id()
+        self.__type__ = "JobConfig"
 
     @staticmethod
     def object_decoder(obj):
@@ -99,7 +162,7 @@ class JobConfig:
             if 'active' in obj and obj['active'] in [True, False]:
                 job_config.active = obj['active']
             if 'id' not in obj:
-                job_config.id = job_config.workspace + "-" + job_config.user_id
+                job_config.make_id()
             else:
                 job_config.id = obj['id']
             return job_config

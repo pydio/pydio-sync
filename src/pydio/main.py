@@ -64,7 +64,7 @@ if __name__ == "__main__":
         sys.path.insert(0, os.path.dirname(pydio_module))
 
 from pydio.job.continous_merger import ContinuousDiffMerger
-from pydio.job.job_config import JobConfig
+from pydio.job.job_config import JobConfig, JobsLoader
 from pydio.test.diagnostics import PydioDiagnostics
 from pydio.utils.config_ports import PortsDetector
 from pydio.ui.web_api import PydioApi
@@ -88,7 +88,7 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('--diag', help='Run self diagnostic', action='store_true', default=False)
     parser.add_argument('--diag-http', help='Check server connection', action='store_true', default=False)
     parser.add_argument('--diag-imports', help='Check imports and exit', action='store_true', default=False)
-    parser.add_argument('--save-cfg', action='store_true')
+    parser.add_argument('--save-cfg', action='store_true', default=True)
     parser.add_argument('--auto-start', action='store_true')
     parser.add_argument('--auto_detect_port', type=bool, help='Auto detect available ports', default=False)
     parser.add_argument('-v', '--verbose', action='count', )
@@ -103,27 +103,22 @@ def main(argv=sys.argv[1:]):
         pydio.autostart.setup(argv)
         return 0
 
+    jobs_loader = JobsLoader.Instance(str(jobs_root_path / 'configs.json'))
+
     if args.file or not argv:
         fp = args.file
         if not fp or fp == '.':
             fp = DEFAULT_CONFIG_FILE
         logging.info("Loading config from %s", fp)
-        with open(fp) as fp:
-            data = json.load(fp, object_hook=JobConfig.object_decoder)
+        jobs_loader.load_config()
+        data = jobs_loader.get_jobs()
     else:
         job_config = JobConfig()
         job_config.load_from_cliargs(args)
-        data = (job_config,)
+        data = {job_config.id : job_config}
         if args.save_cfg:
-            logging.info("Storing config in %s", DEFAULT_CONFIG_FILE)
-            with open(DEFAULT_CONFIG_FILE, 'w') as fp:
-                # TODO: 07.05.14 wooyek This should be taken care of in the JobConfig
-                cfg = job_config.__dict__.copy()
-                cfg["__type__"] = "JobConfig"  # this is needed for the hoo above to work properly.
-                cfg.pop("save_cfg", None)
-                cfg.pop("auto_start", None)
-                cfg["user"] = cfg.pop("user_id", None)
-                json.dump((cfg,), fp, indent=2)
+            logging.info("Storing config in %s", str(jobs_root_path / 'configs.json'))
+            jobs_loader.save_jobs(data)
 
     logging.debug("data: %s" % json.dumps(data, default=JobConfig.encoder, indent=2))
 
@@ -146,8 +141,8 @@ def main(argv=sys.argv[1:]):
 
     zmq_bus = ZmqBus(ports_detector)
     zmq_bus.open()
-    scheduler = PydioScheduler(jobs_root_path, data, args.file)
-    server = PydioApi(jobs_root_path, ports_detector.get_open_port('flask_api'), scheduler)
+    scheduler = PydioScheduler(jobs_root_path, jobs_loader)
+    server = PydioApi(jobs_loader, jobs_root_path, ports_detector.get_open_port('flask_api'), scheduler)
 
     try:
 
