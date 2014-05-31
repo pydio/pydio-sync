@@ -142,9 +142,15 @@ angular.module('project', ['ngRoute', 'ngResource'])
         var t1;
         (function tickLog() {
             var all = Logs.query({job_id:$routeParams.jobId}, function(){
+                $scope.error = null;
                 $scope.logs = all.logs;
                 $scope.running = all.running;
                 tO = $timeout(tickLog, 2000);
+            }, function(response){
+                if(!response.status){
+                    $scope.error = 'Ooops, cannot contact agent! Make sure it\'s running correctly, we\'ll try to reconnect in 20s';
+                    tO = $timeout(tickLog, 20000);
+                }
             });
         })();
         (function tickConflict() {

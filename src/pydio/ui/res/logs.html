@@ -1,6 +1,7 @@
 <div style="float: right;margin-top: 7px;"><a href="#/summary/{{job_id}}" class="btn btn-info">Back</a></div>
 
 <h1>Current tasks</h1>
+<div class="alert alert-danger alert-dismissable" ng-if="error">{{error}}</div>
 <p ng-if="!running.tasks.length" class="lead">Nothing to do</p>
 <p ng-if="running.tasks.length" class="lead">Currently processing {{running.tasks.length}} tasks ({{running.global|number:0}}% completed)</p>
 <table ng-if="running.tasks.length" class="table">
