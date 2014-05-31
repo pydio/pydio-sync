@@ -91,7 +91,7 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('--save-cfg', action='store_true', default=True)
     parser.add_argument('--auto-start', action='store_true')
     parser.add_argument('--auto_detect_port', type=bool, help='Auto detect available ports', default=False)
-    parser.add_argument('-v', '--verbose', action='count', )
+    parser.add_argument('-v', '--verbose', action='count', default=1)
     args, _ = parser.parse_known_args(argv)
 
     setup_logging(args.verbose)
