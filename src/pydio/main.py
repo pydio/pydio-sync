@@ -103,7 +103,7 @@ def main(argv=sys.argv[1:]):
         pydio.autostart.setup(argv)
         return 0
 
-    jobs_loader = JobsLoader.Instance(str(jobs_root_path / 'configs.json'))
+    jobs_loader = JobsLoader.Instance(data_path=str(jobs_root_path))
 
     if args.file or not argv:
         fp = args.file
@@ -141,8 +141,8 @@ def main(argv=sys.argv[1:]):
 
     zmq_bus = ZmqBus(ports_detector)
     zmq_bus.open()
-    scheduler = PydioScheduler.init_instance(jobs_root_path, jobs_loader)
-    server = PydioApi(jobs_loader, jobs_root_path, ports_detector.get_open_port('flask_api'))
+    scheduler = PydioScheduler.Instance(jobs_root_path=jobs_root_path, jobs_loader=jobs_loader)
+    server = PydioApi(ports_detector.get_open_port('flask_api'))
 
     try:
 

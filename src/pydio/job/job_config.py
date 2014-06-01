@@ -21,35 +21,22 @@
 import keyring
 import json
 import urlparse
-
-
-class Singleton:
-
-    def __init__(self, decorated):
-        self._decorated = decorated
-
-    def Instance(self, config_file=None):
-        try:
-            return self._instance
-        except AttributeError:
-            self._instance = self._decorated(config_file)
-            return self._instance
-
-    def __call__(self):
-        raise TypeError('Singletons must be accessed through `Instance()`.')
-
-    def __instancecheck__(self, inst):
-        return isinstance(inst, self._decorated)
-
+import os
+from pydio.utils.functions import Singleton
 
 @Singleton
 class JobsLoader():
 
     config_file = ''
     jobs = None
+    data_path = None
 
-    def __init__(self, config_file):
-        self.config_file = config_file
+    def __init__(self, data_path, config_file=None):
+        self.data_path = data_path
+        if not config_file:
+            self.config_file = data_path + '/configs.json'
+        else:
+            self.config_file = config_file
 
     def contains_job(self, id):
         if self.jobs:
@@ -76,13 +63,35 @@ class JobsLoader():
             return "no job with this id"
         return self.jobs[id_to_get]
 
-    def save_jobs(self, jobs):
-        if self.jobs:
-            self.jobs.update(jobs)
-        else:
-            self.jobs = jobs
+    def update_job(self, job):
+        self.jobs[job.id] = job
+        self.save_jobs()
+
+    def delete_job(self, job_id):
+        if self.jobs and job_id in self.jobs:
+            del self.jobs[job_id]
+            self.save_jobs()
+
+    def save_jobs(self, jobs=None):
+        if jobs:
+            if self.jobs:
+                self.jobs.update(jobs)
+            else:
+                self.jobs = jobs
         with open(self.config_file, "w") as fp:
             json.dump(self.jobs, fp, default=JobConfig.encoder, indent=2)
+
+    def build_job_data_path(self, job_id):
+        return self.data_path + '/' + job_id
+
+    def clear_job_data(self, job_id, parent=False):
+        job_data_path = self.build_job_data_path(job_id)
+        if os.path.exists(job_data_path + "/sequences"):
+            os.remove(job_data_path + "/sequences")
+        if os.path.exists(job_data_path + "/pydio.sqlite"):
+            os.remove(job_data_path + "/pydio.sqlite")
+        if parent and os.path.exists(job_data_path):
+            os.rmdir(job_data_path)
 
 
 

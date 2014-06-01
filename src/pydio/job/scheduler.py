@@ -22,17 +22,10 @@ from pydispatch import dispatcher
 from pydio import PUBLISH_SIGNAL, PROGRESS_SIGNAL, COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
 import logging, json
 from pydio.job.job_config import JobsLoader
+from pydio.utils.functions import Singleton
 
+@Singleton
 class PydioScheduler():
-
-    @classmethod
-    def init_instance(cls, jobs_root_path, jobs_loader):
-        cls.__INSTANCE = PydioScheduler(jobs_root_path, jobs_loader)
-        return cls.__INSTANCE
-
-    @classmethod
-    def get_instance(cls):
-        return cls.__INSTANCE
 
     def __init__(self, jobs_root_path, jobs_loader):
         self.control_threads = {}
@@ -99,8 +92,7 @@ class PydioScheduler():
     def enable_job(self, job_id):
         thread = self.get_thread(job_id)
         if thread:
-            thread.resume()
-            thread.start()
+            thread.start_now()
         elif job_id in self.job_configs:
             self.start_from_config(self.job_configs[job_id])
 
