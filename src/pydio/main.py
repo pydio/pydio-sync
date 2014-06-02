@@ -110,6 +110,7 @@ def main(argv=sys.argv[1:]):
         if not fp or fp == '.':
             fp = DEFAULT_CONFIG_FILE
         logging.info("Loading config from %s", fp)
+        jobs_loader.config_file = fp
         jobs_loader.load_config()
         data = jobs_loader.get_jobs()
     else:
