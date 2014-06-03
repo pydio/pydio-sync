@@ -9,19 +9,19 @@ from pydio.sdk.remote import PydioSdk
 class PydioDiagnostics():
     # zmq_address = 'tcp://127.0.0.1:5678'
     #
-    # def __init__(self, url, basepath, ws_id, user_id):
-    #     self.url = url
-    #     self.basepath = basepath
-    #     self.ws_id = ws_id
-    #     self.user_id = user_id
-    #     self.status = 0
-    #     self.status_message = None
-    #
-    # def run(self):
-    #     self.run_zmq_smoke_test()
-    #     self.run_ping_server_test()
-    #     return self.status
-    #
+    def __init__(self, url, basepath, ws_id, user_id):
+        self.url = url
+        self.basepath = basepath
+        self.ws_id = ws_id
+        self.user_id = user_id
+        self.status = 0
+        self.status_message = None
+
+    def run(self):
+        self.run_zmq_smoke_test()
+        self.run_ping_server_test()
+        return self.status
+
     # @classmethod
     # def run_zmq_smoke_test(cls):
     #     logging.info('Start ZMQ test')
