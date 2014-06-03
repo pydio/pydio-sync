@@ -13,6 +13,8 @@ import keyring
 import xmltodict
 import types
 import logging
+import sys
+from pathlib import *
 from collections import OrderedDict
 from pydispatch import dispatcher
 from pydio import PUBLISH_SIGNAL, PROGRESS_SIGNAL, COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
@@ -21,7 +23,11 @@ class PydioApi(Api):
 
     def __init__(self, server_port):
         self.port = server_port
-        self.app = Flask(__name__, static_folder = 'res', static_url_path='/res')
+        if getattr(sys, 'frozen', False):
+            static_folder = str( (Path(sys._MEIPASS)) / 'ui' / 'res' )
+        else:
+            static_folder = 'res'
+        self.app = Flask(__name__, static_folder = static_folder, static_url_path='/res')
         super(PydioApi, self).__init__(self.app)
         self.add_resource(JobManager, '/','/jobs', '/jobs/<string:job_id>')
         self.add_resource(WorkspacesManager, '/ws/<string:job_id>')
