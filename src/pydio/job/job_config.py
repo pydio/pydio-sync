@@ -19,9 +19,11 @@
 #
 
 import keyring
+from keyring.errors import PasswordSetError
 import json
 import urlparse
 import os
+import logging
 from pydio.utils.functions import Singleton
 
 @Singleton
@@ -145,7 +147,10 @@ class JobConfig:
         else:
             self.remote_folder = ''
         if args.password:
-            keyring.set_password(self.server, args.user, args.password)
+            try:
+                keyring.set_password(self.server, args.user, args.password)
+            except keyring.errors.PasswordSetError as e:
+                logging.error("Error while storing password in keychain, should we store it cyphered in the config?")
         self.user_id = args.user
         if args.direction:
             self.direction = args.direction
@@ -164,7 +169,10 @@ class JobConfig:
             if 'user' in obj:
                 job_config.user_id = obj['user']
             if 'password' in obj:
-                keyring.set_password(job_config.server, job_config.user_id, obj['password'])
+                try:
+                    keyring.set_password(job_config.server, job_config.user_id, obj['password'])
+                except keyring.errors.PasswordSetError as e:
+                    logging.error("Error while storing password in keychain, should we store it cyphered in the config?")
             if 'filters' in obj:
                 job_config.filters = obj['filters']
             if 'direction' in obj and obj['direction'] in ['up', 'down', 'bi']:
