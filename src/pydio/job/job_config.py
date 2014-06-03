@@ -19,7 +19,81 @@
 #
 
 import keyring
-import hashlib
+import json
+import urlparse
+import os
+from pydio.utils.functions import Singleton
+
+@Singleton
+class JobsLoader():
+
+    config_file = ''
+    jobs = None
+    data_path = None
+
+    def __init__(self, data_path, config_file=None):
+        self.data_path = data_path
+        if not config_file:
+            self.config_file = data_path + '/configs.json'
+        else:
+            self.config_file = config_file
+
+    def contains_job(self, id):
+        if self.jobs:
+            if id in self.jobs:
+                return True
+        return False
+
+    def load_config(self):
+        with open(self.config_file) as fp:
+            jobs = json.load(fp, object_hook=JobConfig.object_decoder)
+            self.jobs = jobs
+
+    def get_jobs(self):
+        if self.jobs:
+            return self.jobs
+        jobs = {}
+        if not self.config_file:
+            return jobs
+        self.load_config()
+        return self.jobs
+
+    def get_job(self, id_to_get):
+        if not id in self.jobs:
+            return "no job with this id"
+        return self.jobs[id_to_get]
+
+    def update_job(self, job):
+        self.jobs[job.id] = job
+        self.save_jobs()
+
+    def delete_job(self, job_id):
+        if self.jobs and job_id in self.jobs:
+            del self.jobs[job_id]
+            self.save_jobs()
+
+    def save_jobs(self, jobs=None):
+        if jobs:
+            if self.jobs:
+                self.jobs.update(jobs)
+            else:
+                self.jobs = jobs
+        with open(self.config_file, "w") as fp:
+            json.dump(self.jobs, fp, default=JobConfig.encoder, indent=2)
+
+    def build_job_data_path(self, job_id):
+        return self.data_path + '/' + job_id
+
+    def clear_job_data(self, job_id, parent=False):
+        job_data_path = self.build_job_data_path(job_id)
+        if os.path.exists(job_data_path + "/sequences"):
+            os.remove(job_data_path + "/sequences")
+        if os.path.exists(job_data_path + "/pydio.sqlite"):
+            os.remove(job_data_path + "/pydio.sqlite")
+        if parent and os.path.exists(job_data_path):
+            os.rmdir(job_data_path)
+
+
 
 class JobConfig:
 
@@ -39,15 +113,12 @@ class JobConfig:
             excludes=['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store', '.~lock.*']
         )
 
-    def uuid(self):
-        if hasattr(self, '__uuid'):
-            return self.__uuid
-        uuid_str = self.server + '/@' + self.user_id + '/' + self.workspace + '/' + self.remote_folder
-        m = hashlib.md5()
-        m.update(uuid_str)
-        uuid = m.hexdigest()
-        self.__uuid = str(uuid)[0:10]
-        return self.__uuid
+    def make_id(self):
+        i = 1
+        test_id = urlparse.urlparse(self.server).hostname + '-' + self.workspace + '-' + str(i)
+        while JobsLoader.Instance().contains_job(test_id):
+            test_id.replace(str(i), str(i+1))
+        self.id = test_id
 
     def encoder(obj):
         if isinstance(obj, JobConfig):
@@ -75,7 +146,8 @@ class JobConfig:
         self.user_id = args.user
         if args.direction:
             self.direction = args.direction
-        self.id = self.uuid()
+        self.make_id()
+        self.__type__ = "JobConfig"
 
     @staticmethod
     def object_decoder(obj):
@@ -99,7 +171,7 @@ class JobConfig:
             if 'active' in obj and obj['active'] in [True, False]:
                 job_config.active = obj['active']
             if 'id' not in obj:
-                job_config.id = job_config.workspace + "-" + job_config.user_id
+                job_config.make_id()
             else:
                 job_config.id = obj['id']
             return job_config

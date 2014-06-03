@@ -1,4 +1,63 @@
-<div style="float: right;margin-top: 40px;"><a href="#/summary/{{job_id}}" class="btn btn-info">Back</a></div>
+<div style="float: right;margin-top: 7px;"><a href="#" class="btn btn-info">Back</a></div>
+<h1>Job Summary</h1>
+
+<div style="padding: 20px 40px;margin: 40px 0;" class="well">
+    <table style="width:100%; text-align:center;color:slategray">
+        <tr>
+            <td style="width:40%;font-size: 16px;font-weight: 200;letter-spacing: 1px;">
+                <span class="glyphicon glyphicon-cloud" style="font-size: 150px;color: slategray;"></span><br>
+                Server <a href="{{job.server}}" target="_blank">{{job.server}}</a> on workspace <em>{{job.workspace}}</em><span ng-if="job.remote_folder!=''"> (folder <em>{{job.remote_folder}}</em>)</span>, logged as <em>{{job.user}}</em>
+            </td>
+            <td><small>
+                <span ng-if="job.direction=='bi'">Bidirectional Sync</span>
+                <span ng-if="job.direction=='down'">Download only (mirror)</span>
+                <span ng-if="job.direction=='up'">Upload only (backup)</span>
+                <br/><span class="glyphicon glyphicon-transfer" style="font-size: 130px;color: white;"></span>
+            </small>
+            </td>
+            <td style="width:40%;word-break: break-all;font-size: 16px;font-weight: 200;letter-spacing: 1px;">
+                <span class="glyphicon glyphicon-hdd" style="font-size: 110px;color: slategrey;"></span><br><br>
+                Local folder <em>{{job.directory}}</em> on your computer
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+
+<h1>Pending tasks</h1>
+<div class="alert alert-danger alert-dismissable" ng-if="error">{{error}}</div>
+<p ng-if="!running.tasks.length" class="lead">Nothing to do</p>
+<p ng-if="running.tasks.length" class="lead">Currently processing {{running.tasks.length}} tasks ({{running.global|number:0}}% completed)</p>
+<table ng-if="running.tasks.length" class="table">
+    <thead>
+    <tr>
+        <th>Direction</th>
+        <th>Type</th>
+        <th>File</th>
+        <th>Progress</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-if="running.tasks.length" ng-repeat="task in running.tasks|limitTo:5">
+        <td>{{task.direction=='remote'?'Down':'Up'}}</td>
+        <td>{{task.type}}</td>
+        <td>{{task.target && task.target != 'NULL'?task.target:task.source}}</td>
+        <td ng-if="!task.progress">Queued</td>
+        <td ng-if="task.progress">
+            <div class="progress progress-striped active">
+                <div class="progress-bar" role="progressbar" aria-valuenow="{{task.progress | number:0}}" aria-valuemin="0" aria-valuemax="100" style="width: {{task.progress | number:0}}%;">
+                    {{task.progress | number:0}}%
+                </div>
+            </div>
+        </td>
+    </tr>
+    <tr ng-if="running.tasks.length > 5">
+        <td>{{running.tasks.length - 5}} more ... </td>
+    </tr>
+    </tbody>
+</table>
+
 
 <div ng-if="conflicts">
     <h1>Conflicts</h1>
@@ -26,15 +85,14 @@
 </div>
 
 <h1>Logs</h1>
-<p class="lead">Current job logs</p>
+<p class="lead">Previous operations</p>
 <table class="table">
     <thead>
     <tr>
         <th></th>
         <th>Date</th>
         <th>Action</th>
-        <th>Source</th>
-        <th>Target</th>
+        <th>File / Folder</th>
         <th>Status</th>
     </tr>
     </thead>
@@ -44,9 +102,8 @@
         <td ng-if="log[1] == 'local'"><span class="glyphicon glyphicon-cloud-download"></span></td>
         <td>{{log[7]}}</td>
         <td>{{log[5]}}</td>
-        <td>{{log[3]}}</td>
-        <td>{{log[4]}}</td>
-        <td>{{log[6]}}</td>
+        <td>{{log[4] && log[4]!=NULL ? log[4]:log[3]}}</td>
+        <td>{{log[6] == 'undefined' ? 'OK' : log[6]}}</td>
     </tr>
     </tbody>
 </table>

@@ -7,6 +7,8 @@ class EventLogger():
 
     def __init__(self, job_data_path=''):
         self.db = job_data_path + '/pydio.sqlite'
+        if not os.path.exists(job_data_path):
+            os.mkdir(job_data_path)
         if not os.path.exists(self.db):
             self.init_db()
 
@@ -27,10 +29,13 @@ class EventLogger():
         except sqlite3.Error as e:
             print 'sql insert error : ', e.args[0]
 
-    def get_all(self):
+    def get_all(self, limit=-1, offset=0):
         conn = sqlite3.connect(self.db)
         c = conn.cursor()
-        c.execute("SELECT * FROM events ORDER BY date DESC")
+        if limit > 0:
+            c.execute("SELECT * FROM events ORDER BY date DESC LIMIT ?,?", (offset, limit))
+        else:
+            c.execute("SELECT * FROM events ORDER BY date DESC")
         events = c.fetchall()
         c.close()
         return events

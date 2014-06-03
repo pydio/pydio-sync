@@ -11,7 +11,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
     .factory('Logs', ['$resource',
         function($resource){
             return $resource('/jobs/:job_id/logs', {}, {
-                query: {method:'GET', params:{job_id:''}, isArray:true}
+                query: {method:'GET', params:{job_id:''}, isArray:false}
             });
         }])
 
@@ -85,10 +85,6 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 controller:'EditCtrl',
                 templateUrl:'03-Workspace.html'
             })
-            .when('/summary/:jobId', {
-                controller:'EditCtrl',
-                templateUrl:'04-Summary.html'
-            })
             .when('/new', {
                 controller:'CreateCtrl',
                 templateUrl:'01-Connection.html'
@@ -102,21 +98,49 @@ angular.module('project', ['ngRoute', 'ngResource'])
             });
     })
 
-    .controller('ListCtrl', function($scope, $location, Jobs, currentJob, Commands) {
+    .controller('ListCtrl', function($scope, $location, $timeout, Jobs, currentJob, Commands) {
+
+        var t2;
+        (function tickJobs() {
+            var all = Jobs.query(function(){
+                $scope.error = null;
+                if(!all.length){
+                    $location.path('/new');
+                    return;
+                }
+                $scope.jobs = all;
+                t2 = $timeout(tickJobs, 2000);
+            }, function(response){
+                if(!response.status){
+                    $scope.error = 'Ooops, cannot contact agent! Make sure it\'s running correctly, we\'ll try to reconnect in 20s';
+                    t2 = $timeout(tickJobs, 20000);
+                }
+            });
+        })();
+
+        $scope.$on('$destroy', function(){
+            $timeout.cancel(t2);
+        });
+        /*
         $scope.jobs = Jobs.query(function(resp){
             if(!resp.length) $location.path('/new');
         });
+        */
         currentJob.setJob(null);
+        $scope.applyCmd = function(cmd, jobId){
+            Commands.query({cmd:cmd, job_id:jobId}, function(){
+                var newJobs = Jobs.query({}, function(){
+                    $scope.jobs = newJobs;
+                });
+            });
+        }
         $scope.toggleJobActive = function(jobId){
             angular.forEach($scope.jobs, function(j){
                 if(j.id != jobId) return;
                 j.active = !j.active;
+                j.toggle_status = true;
                 j.$save(function(){
-                    Commands.query({cmd:(j.active?'enable':'disable'), job_id:jobId}, function(){
-                        var newJobs = Jobs.query({}, function(){
-                            $scope.jobs = newJobs;
-                        });
-                    });
+                    $scope.applyCmd((j.active?'enable':'disable'), jobId);
                 });
             });
         };
@@ -127,35 +151,36 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 j.$delete({job_id:jobId});
             });
         };
-        $scope.applyCmd = function(cmd, jobId){
-            Commands.query({cmd:cmd, job_id:jobId}, function(){
-                var newJobs = Jobs.query({}, function(){
-                    $scope.jobs = newJobs;
-                });
-            });
-        }
 
     })
 
-    .controller('ListLogsCtrl', function($scope, $routeParams, $timeout, Logs, Conflicts){
+    .controller('ListLogsCtrl', function($scope, $routeParams, $timeout, Jobs, Logs, Conflicts){
         var tO;
         var t1;
         (function tickLog() {
-            var logs = Logs.query({job_id:$routeParams.jobId}, function(){
-                $scope.logs = logs;
+            var all = Logs.query({job_id:$routeParams.jobId}, function(){
+                $scope.error = null;
+                $scope.logs = all.logs;
+                $scope.running = all.running;
                 tO = $timeout(tickLog, 2000);
+            }, function(response){
+                if(!response.status){
+                    $scope.error = 'Ooops, cannot contact agent! Make sure it\'s running correctly, we\'ll try to reconnect in 20s';
+                    tO = $timeout(tickLog, 20000);
+                }
             });
         })();
         (function tickConflict() {
             var conflicts = Conflicts.query({job_id:$routeParams.jobId}, function(){
                 $scope.conflicts = conflicts;
-                t1 = $timeout(tickConflict, 2000);
+                t1 = $timeout(tickConflict, 3000);
             });
         })();
         $scope.$on('$destroy', function(){
             $timeout.cancel(tO);
             $timeout.cancel(t1);
         });
+        $scope.job = Jobs.get({job_id:$routeParams.jobId});
         $scope.job_id = $routeParams.jobId;
         $scope.solveConflict = function(nodeId, status){
             angular.forEach($scope.conflicts, function(conflict){
@@ -256,7 +281,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
             if($scope.job.id == 'new') {
                 delete $scope.job.id;
                 $scope.job.$save(function(resp){
-                    $location.path('/summary/'+resp.id);
+                    $location.path('/logs/'+resp.id);
                 });
             }else{
                 $scope.job.$save();

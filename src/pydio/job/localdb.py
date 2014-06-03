@@ -325,11 +325,13 @@ class LocalDbHandler():
                 if item == to_del_item:
                     continue
                 if item['seq'] > to_del_seq:
-                    del accumulator['data'][to_del_seq]
-                    accumulator['path_to_seqs'][key].remove(to_del_seq)
+                    if to_del_seq in accumulator['data']:
+                        del accumulator['data'][to_del_seq]
+                        accumulator['path_to_seqs'][key].remove(to_del_seq)
                 else:
-                    del accumulator['data'][item['seq']]
-                    accumulator['path_to_seqs'][key].remove(item['seq'])
+                    if item['seq'] in accumulator['data']:
+                        del accumulator['data'][item['seq']]
+                        accumulator['path_to_seqs'][key].remove(item['seq'])
 
         for seq, row in accumulator['data'].items():
             logging.debug('LOCAL CHANGE : ' + str(row['seq']) + '-' + row['type'] + '-' + row['source'] + '-' + row['target'])

@@ -28,9 +28,15 @@ class BytesIOWithCallback(BytesIO):
         return chunk
 
 
-def upload_file_showing_progress(url, fields, stream):
+def upload_file_showing_progress(url, fields, stream, with_progress=None):
     (data, content_type) = requests.packages.urllib3.filepost.encode_multipart_formdata(fields)
-    body = BytesIOWithCallback(data, log_progress)
+    if with_progress:
+        def cb(size=0, progress=0):
+            with_progress['progress'] = float(progress)/size*100
+    else:
+        cb = log_progress
+
+    body = BytesIOWithCallback(data, cb)
 
     return requests.post(
         url,
