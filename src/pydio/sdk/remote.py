@@ -25,6 +25,7 @@ import urllib
 import json
 import os
 import keyring
+from keyring.errors import PasswordSetError
 import hmac
 import hashlib
 import stat
@@ -93,7 +94,10 @@ class PydioSdk():
             tokens = json.loads(resp.content)
         except ValueError as v:
             return false
-        keyring.set_password(self.url, self.user_id +'-token' , tokens['t']+':'+tokens['p'])
+        try:
+            keyring.set_password(self.url, self.user_id +'-token' , tokens['t']+':'+tokens['p'])
+        except PasswordSetError:
+            logging.error("Cannot store tokens in keychain, basic auth will be performed each time!")
         return tokens
 
 
