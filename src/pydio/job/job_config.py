@@ -45,6 +45,9 @@ class JobsLoader():
         return False
 
     def load_config(self):
+        if not os.path.exists(self.config_file):
+            self.jobs = {}
+            return
         with open(self.config_file) as fp:
             jobs = json.load(fp, object_hook=JobConfig.object_decoder)
             self.jobs = jobs

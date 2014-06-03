@@ -69,7 +69,8 @@ from pydio.utils.config_ports import PortsDetector
 from pydio.ui.web_api import PydioApi
 from pydio.job.scheduler import PydioScheduler
 
-DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".pydio.json")
+DEFAULT_DATA_PATH   = os.path.join(os.path.expanduser("~"), ".pydio_data")
+#DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), "/pydio_data/configs.json")
 
 def main(argv=sys.argv[1:]):
 
@@ -95,6 +96,10 @@ def main(argv=sys.argv[1:]):
     setup_logging(args.verbose)
 
     jobs_root_path = Path(__file__).parent / 'data'
+    if not jobs_root_path.exists():
+        jobs_root_path = Path(DEFAULT_DATA_PATH)
+        if not jobs_root_path.exists():
+            jobs_root_path.mkdir()
 
     if args.auto_start:
         import pydio.autostart
@@ -105,11 +110,10 @@ def main(argv=sys.argv[1:]):
 
     if args.file or not argv:
         fp = args.file
-        if not fp or fp == '.':
-            fp = DEFAULT_CONFIG_FILE
-        logging.info("Loading config from %s", fp)
-        jobs_loader.config_file = fp
-        jobs_loader.load_config()
+        if fp and fp != '.':
+            logging.info("Loading config from %s", fp)
+            jobs_loader.config_file = fp
+            jobs_loader.load_config()
         data = jobs_loader.get_jobs()
     else:
         job_config = JobConfig()
