@@ -27,6 +27,7 @@ class PydioApi(Api):
             static_folder = str( (Path(sys._MEIPASS)) / 'ui' / 'res' )
         else:
             static_folder = 'res'
+        logging.debug('Starting Flask server with following static folder : '+ static_folder)
         self.app = Flask(__name__, static_folder = static_folder, static_url_path='/res')
         super(PydioApi, self).__init__(self.app)
         self.add_resource(JobManager, '/','/jobs', '/jobs/<string:job_id>')
