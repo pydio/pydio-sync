@@ -18,7 +18,7 @@ class PydioDiagnostics():
         self.status_message = None
 
     def run(self):
-        self.run_zmq_smoke_test()
+        # self.run_zmq_smoke_test()
         self.run_ping_server_test()
         return self.status
 
