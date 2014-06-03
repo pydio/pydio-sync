@@ -41,7 +41,7 @@ class PydioDiagnostics():
         else:
             pydio_sdk = PydioSdk(self.url, self.basepath, self.ws_id or '', user_id=self.user_id)
         success = pydio_sdk.stat(unicode('/', 'utf-8'))
-        logging.info('Server ping on %s with user %s: %s' % (self.url, self.user_id, 'success' if success else 'failure'))
+        logging.info('Server ping on %s with user/pass %s/%s: %s' % (self.url, self.user_id, self.password, 'success' if success else 'failure'))
         if not success:
             self.status = 147
             self.status_message = "Server ping test: failure"
