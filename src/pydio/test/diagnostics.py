@@ -8,11 +8,12 @@ from pydio.sdk.remote import PydioSdk
 
 class PydioDiagnostics():
 
-    def __init__(self, url, basepath, ws_id, user_id):
+    def __init__(self, url, basepath, ws_id, user_id, password):
         self.url = url
         self.basepath = basepath
         self.ws_id = ws_id
         self.user_id = user_id
+        self.password = password
         self.status = 0
         self.status_message = None
 
@@ -35,7 +36,7 @@ class PydioDiagnostics():
             self.status_message = "Can not run ping server test, please provide configuration arguments"
             return
 
-        pydio_sdk = PydioSdk(self.url, self.basepath, self.ws_id or '', self.user_id)
+        pydio_sdk = PydioSdk(self.url, self.basepath, self.ws_id or '', user_id='', auth=(self.user_id, self.password))
         success = pydio_sdk.stat(unicode('/', 'utf-8'))
         logging.info('Server ping on %s with user %s: %s' % (self.url, self.user_id, 'success' if success else 'failure'))
         if not success:

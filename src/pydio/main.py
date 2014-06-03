@@ -131,8 +131,12 @@ def main(argv=sys.argv[1:]):
 
     if args.diag_http:
         keys = data.keys()
-        smoke_tests = PydioDiagnostics(
-            data[keys[0]].server, data[keys[0]].workspace, data[keys[0]].remote_folder, data[keys[0]].user_id)
+        if args.password:
+            smoke_tests = PydioDiagnostics(
+                data[keys[0]].server, data[keys[0]].workspace, data[keys[0]].remote_folder, data[keys[0]].user_id, args.password)
+        else:
+            smoke_tests = PydioDiagnostics(
+                data[keys[0]].server, data[keys[0]].workspace, data[keys[0]].remote_folder, data[keys[0]].user_id)
         rc = smoke_tests.run()
         if rc != 0:
             logging.error("Diagnostics failed: %s %s" % (str(rc), smoke_tests.status_message))
