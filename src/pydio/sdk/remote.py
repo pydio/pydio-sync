@@ -166,15 +166,15 @@ class PydioSdk():
             url = self.url + action + self.urlencode_normalized(path)
             resp = self.perform_request(url)
             data = json.loads(resp.content)
+            logging.debug("data: %s" % data)
             if not data:
                 return False
             if len(data) > 0 and 'size' in data:
                 return data
             else:
                 return False
-        except ValueError:
-            return False
-        except:
+        except Exception, ex:
+            logging.warning("Stat failed", exc_info=ex)
             return False
 
     def bulk_stat(self, pathes, result=None, with_hash=False):
