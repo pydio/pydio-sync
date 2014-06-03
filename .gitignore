@@ -13,3 +13,4 @@ pydio.spec
 src/pydio.egg-info/
 *.spec
 .pve/
+src/run.cmd
