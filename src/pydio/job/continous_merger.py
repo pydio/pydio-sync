@@ -211,7 +211,7 @@ class ContinuousDiffMerger(threading.Thread):
                         i += 1
                         if self.interrupt:
                             break
-                        time.sleep(0.01)
+                        time.sleep(0.05)
                 else:
                     logging.info('No changes detected')
             except OSError as e:
