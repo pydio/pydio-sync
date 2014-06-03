@@ -57,13 +57,16 @@ class PydioDiagnostics():
 
     def run_ping_server_test(self):
         logging.info('---- Server ping test ---')
+        logging.debug("self.url: %s" % self.url)
+        logging.debug("self.basepath: %s" % self.basepath)
+        logging.debug("self.user_id: %s" % self.user_id)
         assert self.url
         assert self.basepath
         assert self.user_id
         if not all([self.url, self.basepath, self.user_id]):
             logging.info('Can not run ping server test, please provide: ')
             logging.info('--server --directory --workspace --user --password')
-            self.status = -1
+            self.status = 146
             self.status_message = "Can not run ping server test, please provide configuration arguments"
             return
 
@@ -71,7 +74,7 @@ class PydioDiagnostics():
         success = pydio_sdk.stat('/')
         logging.info('Server ping test: %s' % ('success' if success else 'failure'))
         if not success:
-            self.status = -1
+            self.status = 147
             self.status_message = "Server ping test: failure"
             return
 
