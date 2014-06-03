@@ -6,7 +6,6 @@ argh==0.24.1
 keyring==3.6
 pathlib==0.97
 pathtools==0.1.2
-pyzmq>=14.3
 requests==2.2.1
 watchdog==0.7.1
 cffi>=0.8
