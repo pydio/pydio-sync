@@ -10,8 +10,8 @@
                 <div style="font-size: 12px;font-weight: 700;color: #bbb;text-transform: uppercase;letter-spacing: 1px;">Currently Running
                     <a href="#/logs/{{job.id}}">[More]</a>
                 </div>
-                Time remaining : {{job.state.global['eta'] | number:1}}s<br>
-                Remaining bytes to transfer : {{job.state.global['queue_bytesize'] | number:0}}s
+                Time remaining : {{job.state.global['eta'] | seconds}}s<br>
+                Remaining bytes to transfer : {{job.state.global['queue_bytesize'] | bytes:1}}
             </div>
             <div style="font-size: 12px;font-weight: 700;color: #bbb;text-transform: uppercase;letter-spacing: 1px;">Last operation
                 <a href="#/logs/{{job.id}}">[More]</a>

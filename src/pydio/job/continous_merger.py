@@ -102,7 +102,10 @@ class ContinuousDiffMerger(threading.Thread):
         self.info('Job progress is %s' % progress)
 
     def handle_transfer_rate_event(self, sender, transfer_rate):
-        self.global_progress['last_transfer_rate'] = float(transfer_rate)
+        if self.global_progress['last_transfer_rate'] > 0:
+            self.global_progress['last_transfer_rate'] = (float(transfer_rate) + self.global_progress['last_transfer_rate']) / 2.0
+        else:
+            self.global_progress['last_transfer_rate'] = float(transfer_rate)
 
     def is_running(self):
         return self.job_status_running
@@ -251,7 +254,7 @@ class ContinuousDiffMerger(threading.Thread):
                         self.handle_progress_event(progress_percent)
                         self.global_progress['queue_done'] = i
                         i += 1
-                        if self.interrupt:
+                        if self.interrupt or not self.job_status_running:
                             break
                         time.sleep(0.05)
                 else:
@@ -333,9 +336,9 @@ class ContinuousDiffMerger(threading.Thread):
 
         if res:
             if item['type'] != 'delete':
-                logging.info('['+location+'] Filtering out ' + item['type'] + ': ' + item['node']['node_path'])
+                logging.debug('['+location+'] Filtering out ' + item['type'] + ': ' + item['node']['node_path'])
             else:
-                logging.info('['+location+'] Filtering out ' + item['type'] + ' ' + item['source'])
+                logging.debug('['+location+'] Filtering out ' + item['type'] + ' ' + item['source'])
             self.remove_seq(item['seq'], location)
             return True
 
