@@ -42,6 +42,8 @@ from exceptions import SystemSdkException, PydioSdkException, PydioSdkBasicAuthE
 from pydio.utils.functions import hashfile
 from .utils import upload_file_showing_progress
 
+from pydispatch import dispatcher
+from pydio import TRANSFER_RATE_SIGNAL
 
 class PydioSdk():
 
@@ -293,10 +295,14 @@ class PydioSdk():
                         fd.write(chunk)
                         done = int(50 * dl / int(total_length))
                         if done != previous_done:
-                            logging.debug("\r[%s%s] %s bps" % ('=' * done, ' ' * (50-done), dl//(time.clock() - start)))
+                            transfer_rate = dl//(time.clock() - start)
+                            logging.debug("\r[%s%s] %s bps" % ('=' * done, ' ' * (50-done), transfer_rate))
+                            dispatcher.send(signal=TRANSFER_RATE_SIGNAL, send=self, transfer_rate=transfer_rate)
                             if callback_dict:
                                 callback_dict['progress'] = float( float(dl) / float(total_length) * 100)
-                                callback_dict['transfer_rate'] = dl//(time.clock() - start)
+                                callback_dict['remaining_bytes'] = total_length - dl
+                                callback_dict['transfer_rate'] = transfer_rate
+
                         previous_done = done
             if not os.path.exists(local_tmp):
                 raise PydioSdkException('download', local, 'File not found after download')

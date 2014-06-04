@@ -17,7 +17,7 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
-PROGRESS_SIGNAL = 'progress'
 COMMAND_SIGNAL = 'command'
 JOB_COMMAND_SIGNAL = 'job_command'
 PUBLISH_SIGNAL = 'publish'
+TRANSFER_RATE_SIGNAL = 'transfer_rate'

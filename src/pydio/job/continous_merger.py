@@ -34,7 +34,7 @@ from pydio.sdk.local import SystemSdk
 from pydio.job.EventLogger import EventLogger
 
 from pydispatch import dispatcher
-from pydio import PUBLISH_SIGNAL, PROGRESS_SIGNAL
+from pydio import PUBLISH_SIGNAL, TRANSFER_RATE_SIGNAL
 # -*- coding: utf-8 -*-
 
 
@@ -46,6 +46,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.data_base = job_data_path
         self.job_config = job_config
         self.progress = 0
+        self.init_global_progress()
 
         self.basepath = job_config.directory
         self.ws_id = job_config.workspace
@@ -83,17 +84,44 @@ class ContinuousDiffMerger(threading.Thread):
                                         job_config.filters['includes'],
                                         job_config.filters['excludes'],
                                         job_data_path)
-        dispatcher.connect( self.handle_progress_event, signal=PROGRESS_SIGNAL, sender=dispatcher.Any )
+        dispatcher.connect( self.handle_transfer_rate_event, signal=TRANSFER_RATE_SIGNAL, sender=dispatcher.Any )
 
-    def handle_progress_event(self, sender, progress):
+    def init_global_progress(self):
+        self.global_progress = {
+            'queue_length'      :0,
+            'queue_done'        :0,
+            'queue_bytesize'    :0,
+            'last_transfer_rate':-1,
+            'queue_start_time'  :time.clock(),
+            'total_time'        :0
+        }
+
+
+    def handle_progress_event(self, progress):
         self.progress = progress
         self.info('Job progress is %s' % progress)
+
+    def handle_transfer_rate_event(self, sender, transfer_rate):
+        self.global_progress['last_transfer_rate'] = float(transfer_rate)
 
     def is_running(self):
         return self.job_status_running
 
     def get_global_progress(self):
-        return self.progress
+        self.global_progress['total_time'] = time.clock() - self.global_progress['queue_start_time']
+        self.global_progress["queue_bytesize"] = self.compute_queue_bytesize()
+        # compute an eta
+        eta = -1
+        if self.global_progress['last_transfer_rate'] > -1 and self.global_progress['queue_bytesize'] > 0 :
+            eta = self.global_progress['queue_bytesize'] / self.global_progress['last_transfer_rate']
+        elif self.global_progress['queue_done']:
+            remaining_operations = self.global_progress['queue_length'] - self.global_progress['queue_done']
+            eta = remaining_operations * self.global_progress['total_time'] / self.global_progress['queue_done']
+
+        self.global_progress['eta'] = eta
+
+        logging.debug(self.global_progress)
+        return self.global_progress
 
     def get_current_tasks(self):
         if not self.tasks:
@@ -129,6 +157,15 @@ class ContinuousDiffMerger(threading.Thread):
         self.last_run = time.time()
         time.sleep(self.event_timer)
 
+    def compute_queue_bytesize(self):
+        total = 0
+        for task in self.tasks:
+            if 'remaining_bytes' in task:
+                total += float(task['remaining_bytes'])
+            elif "node" in task and task["node"]["md5"] != "directory" and task["node"]["bytesize"]:
+                total += float(task["node"]["bytesize"])
+        return float(total)
+
     def run(self):
         if hasattr(self, 'watcher'):
             self.watcher.start()
@@ -140,6 +177,7 @@ class ContinuousDiffMerger(threading.Thread):
 
             try:
                 self.tasks = []
+                self.init_global_progress()
                 interval = int(time.time() - self.last_run)
                 if (self.online_status and interval < self.online_timer) or (not self.online_status and interval < self.offline_timer):
                     time.sleep(self.event_timer)
@@ -193,6 +231,7 @@ class ContinuousDiffMerger(threading.Thread):
                     continue
 
                 if len(changes):
+                    self.global_progress['queue_length'] = len(changes)
                     self.tasks = deque(changes)
                     logging.info('Processing %i changes' % len(changes))
                     i = 1
@@ -207,7 +246,8 @@ class ContinuousDiffMerger(threading.Thread):
                             logging.error(e.message)
                         self.tasks.popleft()
                         progress_percent = (float(i)/len(changes) * 100)
-                        dispatcher.send(signal=PROGRESS_SIGNAL, sender=self, progress=progress_percent)
+                        self.handle_progress_event(progress_percent)
+                        self.global_progress['queue_done'] = i
                         i += 1
                         if self.interrupt:
                             break
@@ -217,6 +257,7 @@ class ContinuousDiffMerger(threading.Thread):
             except OSError as e:
                 logging.error('Type Error! ')
             logging.info('Finished this cycle, waiting for %i seconds' % self.online_timer)
+            self.init_global_progress()
             self.sleep_online()
 
     def remove_seq(self, seq_id, location):
@@ -435,14 +476,14 @@ class ContinuousDiffMerger(threading.Thread):
                         self.process_localMKDIR(item['target'])
                     else:
                         logging.debug('Cannot find source, switching to DOWNLOAD')
-                        self.process_DOWNLOAD(item['target'])
+                        self.process_DOWNLOAD(item['target'], callback_dict=item)
                     self.db_handler.buffer_real_operation('create', 'NULL', item['target'])
             else:
                 if self.sdk.stat(item['source']):
                     self.process_remoteMOVE(item['source'], item['target'])
                 elif item['node']['md5'] != 'directory':
                     logging.debug('Cannot find source, switching to UPLOAD')
-                    self.process_UPLOAD(item['target'])
+                    self.process_UPLOAD(item['target'], item)
 
     def reduce_changes(self, local_changes=dict(), remote_changes=dict(), conflicts=[]):
 

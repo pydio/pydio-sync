@@ -19,7 +19,7 @@
 #
 from pydio.job.continous_merger import ContinuousDiffMerger
 from pydispatch import dispatcher
-from pydio import PUBLISH_SIGNAL, PROGRESS_SIGNAL, COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
+from pydio import PUBLISH_SIGNAL, COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
 import logging, json
 from pydio.job.job_config import JobsLoader
 from pydio.utils.functions import Singleton

@@ -16,8 +16,6 @@ import logging
 import sys
 from pathlib import *
 from collections import OrderedDict
-from pydispatch import dispatcher
-from pydio import PUBLISH_SIGNAL, PROGRESS_SIGNAL, COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
 
 class PydioApi(Api):
 
@@ -81,7 +79,7 @@ class FoldersManager(Resource):
         else:
             args = request.args
             base = args['url'].rstrip('/')
-            url = base + '/api/'+args['ws']+'/ls/?options=d&recursive=true'
+            url = base + '/api/'+args['ws']+'/ls/?options=d&recursive=true&max_depth=2'
             if 'password' in args:
                 auth = (args['user'], args['password'])
             else:

@@ -8,9 +8,10 @@
         <div style="line-height: 1.8em;" class="panel-body">
             <div ng-if="job.state.tasks && job.state.tasks.length">
                 <div style="font-size: 12px;font-weight: 700;color: #bbb;text-transform: uppercase;letter-spacing: 1px;">Currently Running
-                    display tasks here
                     <a href="#/logs/{{job.id}}">[More]</a>
                 </div>
+                Time remaining : {{job.state.global['eta'] | number:1}}s<br>
+                Remaining bytes to transfer : {{job.state.global['queue_bytesize'] | number:0}}s
             </div>
             <div style="font-size: 12px;font-weight: 700;color: #bbb;text-transform: uppercase;letter-spacing: 1px;">Last operation
                 <a href="#/logs/{{job.id}}">[More]</a>
