@@ -27,12 +27,36 @@ import shutil
 class SystemSdk(object):
 
     def __init__(self, basepath):
+        """
+        Encapsulate some filesystem functions. We should try to make SystemSdk and PydioSdk converge
+        with a same interface, wich would allow syncing any "nodes", not necessarily one remote and one local.
+        :param basepath: root folder path
+        :return:
+        """
         self.basepath = basepath
 
     def check_basepath(self):
+        """
+        Check if basepath exists or not
+        :return: bool
+        """
         return os.path.exists(self.basepath)
 
     def stat(self, path, full_path=False, with_hash=False):
+        """
+        Format filesystem stat in the same way as it's returned by server for remote stats.
+        :param path:local path (starting from basepath)
+        :param full_path:optionaly pass full path
+        :param with_hash:add file content hash in the result
+        :return:dict() an fstat lile result:
+        {
+            'size':1231
+            'mtime':1214365
+            'mode':0255
+            'inode':3255
+            'hash':'1F3R4234RZEdgFGD'
+        }
+        """
         if not path:
             return False
         if not full_path:
@@ -54,6 +78,11 @@ class SystemSdk(object):
             return s
 
     def rmdir(self, path):
+        """
+        Delete a folder recursively on filesystem
+        :param path:Path of the folder to remove, starting from basepath
+        :return:bool True
+        """
         if not os.path.exists(self.basepath + path):
             return True
         try:

@@ -1,3 +1,23 @@
+#
+#  Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
+#  This file is part of Pydio.
+#
+#  Pydio is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  Pydio is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+#
+#  You should have received a copy of the GNU Affero General Public License
+#  along with Pydio.  If not, see <http://www.gnu.org/licenses/>.
+#
+#  The latest code can be found at <http://pyd.io/>.
+#
+
 import logging
 import requests
 import time
@@ -9,10 +29,26 @@ from io import BytesIO, FileIO
 from pydispatch import dispatcher
 from pydio import TRANSFER_RATE_SIGNAL
 from six import b
+# -*- coding: utf-8 -*-
 
 class BytesIOWithFile(BytesIO):
 
     def __init__(self, data_buffer, closing_boundary, filename, callback=None, chunk_size=0, file_part=0):
+        """
+        Class extending the standard BytesIO to read data directly from file instead of loading all file content
+        in memory. It's initially started with all the necessary data to build the full body of the POST request,
+        in an multipart-form-data encoded way.
+        It can also feed progress data and transfer rates. When uploading file chunks through various queries, the
+        progress takes also into account the fact that this may be the part XX of a larger file.
+
+        :param data_buffer: All the beginning of the multipart data, until the opening of the file content field
+        :param closing_boundary: Last data to add after the file content has been sent.
+        :param filename: Path of the file on the filesystem
+        :param callback: dict() that can be updated with progress data
+        :param chunk_size: maximum size that can be posted at once
+        :param file_part: if file is bigger that chunk_size, can be 1, 2, 3, etc...
+        :return:
+        """
 
         self.callback = callback
         self.cursor = 0
@@ -39,10 +75,18 @@ class BytesIOWithFile(BytesIO):
         BytesIO.__init__(self, data_buffer)
 
     def __len__(self):
+        """
+        Override parent method
+        :return:int
+        """
         return self.length
 
     def read(self, n=-1):
-
+        """
+        Override parent method to send the body in correct order
+        :param n:int
+        :return:data
+        """
         transfer_rate = self.cursor//(time.clock() - self.start)
         if self.callback:
             try:
@@ -72,7 +116,12 @@ class BytesIOWithFile(BytesIO):
 
 
 def encode_multiparts(fields):
-
+    """
+    Breaks up the multipart_encoded content into first and last part, to be able to "insert" the file content
+    itself in-between
+    :param fields: dict() fields to encode
+    :return:(header_body, close_body, content_type)
+    """
     (data, content_type) = requests.packages.urllib3.filepost.encode_multipart_formdata(fields)
     logging.debug(data)
 
@@ -95,7 +144,16 @@ def encode_multiparts(fields):
 
 
 def upload_file_with_progress(url, fields, files, stream, with_progress, max_size=0):
-
+    """
+    Upload a file with progress, file chunking if necessary, and stream content directly from file.
+    :param url: url to post
+    :param fields: dict() query parameters
+    :param files: dict() {'fieldname' : '/path/to/file'}
+    :param stream: whether to get response as stream or not
+    :param with_progress: dict() updatable dict with progress data
+    :param max_size: upload max size
+    :return: response of the last requests if there were many of them
+    """
     if with_progress:
         def cb(size=0, progress=0, rate=0):
             with_progress['progress'] = float(progress)/size*100

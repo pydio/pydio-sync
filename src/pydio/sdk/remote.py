@@ -44,6 +44,7 @@ from .utils import upload_file_with_progress
 
 from pydispatch import dispatcher
 from pydio import TRANSFER_RATE_SIGNAL
+# -*- coding: utf-8 -*-
 
 PYDIO_SDK_MAX_UPLOAD_PIECES = 60 * 1024 * 1024
 
@@ -62,10 +63,21 @@ class PydioSdk():
             self.auth = auth
 
     def set_server_configs(self, configs):
+        """
+        Server specific capacities and limitations, provided by the server itself
+        :param configs: dict()
+        :return:
+        """
         if 'UPLOAD_MAX_SIZE' in configs and configs['UPLOAD_MAX_SIZE']:
             self.upload_max_size = min(int(configs['UPLOAD_MAX_SIZE']), PYDIO_SDK_MAX_UPLOAD_PIECES)
 
     def urlencode_normalized(self, unicode_path):
+        """
+        Make sure the urlencoding is consistent between various platforms
+        E.g, we force the accented chars to be encoded as one char, not the ascci + accent.
+        :param unicode_path:
+        :return:
+        """
         if platform.system() == 'Darwin':
             try:
                 test = unicodedata.normalize('NFC', unicode_path)
@@ -95,6 +107,11 @@ class PydioSdk():
             return unicode_path
 
     def basic_authenticate(self):
+        """
+        Use basic-http authenticate to get a key/pair token instead of passing the
+        users credentials at each requests
+        :return:dict()
+        """
         url = self.base_url + 'pydio/keystore_generate_auth_token/python_client'
         resp = requests.get(url=url, auth=self.auth)
         if resp.status_code == 401:
@@ -111,7 +128,17 @@ class PydioSdk():
 
 
     def perform_with_tokens(self, token, private, url, type='get', data=None, files=None, stream=False, with_progress=False):
-
+        """
+        :param token: str the token.
+        :param private: str private key associated to token
+        :param url: str url to query
+        :param type: str http method, default is "get"
+        :param data: dict query parameters
+        :param files: dict files, described as {'fieldname':'path/to/file'}
+        :param stream: bool get response as a stream
+        :param with_progress: dict an object that can be updated with various progress data
+        :return: Http response
+        """
         nonce =  sha1(str(random.random())).hexdigest()
         uri = urlparse(url).path.rstrip('/')
         msg = uri+ ':' + nonce + ':'+private
@@ -144,7 +171,20 @@ class PydioSdk():
 
 
     def perform_request(self, url, type='get', data=None, files=None, stream=False, with_progress=False):
+        """
+        Perform an http request.
+        There's a one-time loop, as it first tries to use the auth tokens. If the the token auth fails, it may just
+        mean that the token key/pair is expired. So we try once to get fresh new tokens with basic_http auth and
+        re-run query with new tokens.
 
+        :param url: str url to query
+        :param type: str http method, default is "get"
+        :param data: dict query parameters
+        :param files: dict files, described as {'fieldname':'path/to/file'}
+        :param stream: bool get response as a stream
+        :param with_progress: dict an object that can be updated with various progress data
+        :return:
+        """
         tokens = keyring.get_password(self.url, self.user_id +'-token')
         if not tokens:
             tokens = self.basic_authenticate()
@@ -161,6 +201,12 @@ class PydioSdk():
 
 
     def changes(self, last_seq):
+        """
+        Get the list of changes detected on server since a given sequence number
+
+        :param last_seq:int
+        :return:list a list of changes
+        """
         url = self.url + '/changes/' + str(last_seq)
         if self.remote_folder:
             url += '?filter=' + self.remote_folder
@@ -171,6 +217,27 @@ class PydioSdk():
             raise Exception("Invalid JSON value received while getting remote changes")
 
     def stat(self, path, with_hash=False):
+        """
+        Equivalent of the local fstat() on the remote server.
+        :param path: path of node from the workspace root
+        :param with_hash: stat result can be enriched with the node hash
+        :return:dict a list of key like
+        {
+            dev: 16777218,
+            ino: 4062280,
+            mode: 16895,
+            nlink: 15,
+            uid: 70,
+            gid: 20,
+            rdev: 0,
+            size: 510,
+            atime: 1401915891,
+            mtime: 1399883020,
+            ctime: 1399883020,
+            blksize: 4096,
+            blocks: 0
+        }
+        """
         path = self.remote_folder + path;
         action = '/stat_hash' if with_hash else '/stat'
         try:
@@ -189,6 +256,16 @@ class PydioSdk():
             return False
 
     def bulk_stat(self, pathes, result=None, with_hash=False):
+        """
+        Perform a stat operation (see self.stat()) but on a set of nodes. Very important to use that method instead
+        of sending tons of small stat requests to server. To keep POST content reasonable, pathes will be sent 200 by
+        200.
+
+        :param pathes: list() of node pathes
+        :param result: dict() an accumulator for the results
+        :param with_hash: bool whether to ask for files hash or not (md5)
+        :return:
+        """
         action = '/stat_hash' if with_hash else '/stat'
         data = dict()
         maxlen = min(len(pathes), 200)
@@ -224,16 +301,32 @@ class PydioSdk():
         return replaced
 
     def mkdir(self, path):
+        """
+        Create a directory of the server
+        :param path: path of the new directory to create
+        :return: result of the server query, see API
+        """
         url = self.url + '/mkdir' + self.urlencode_normalized((self.remote_folder + path))
         resp = self.perform_request(url=url)
         return resp.content
 
     def mkfile(self, path):
+        """
+        Create an empty file on the server
+        :param path: node path
+        :return: result of the server query
+        """
         url = self.url + '/mkfile' + self.urlencode_normalized((self.remote_folder + path))
         resp = self.perform_request(url=url)
         return resp.content
 
     def rename(self, source, target):
+        """
+        Rename a path to another. Will decide automatically to trigger a rename or a move in the API.
+        :param source: origin path
+        :param target: target path
+        :return: response of the server
+        """
         if os.path.dirname(source) == os.path.dirname(target):
             url = self.url + '/rename'
             data = dict(file=(self.remote_folder + source).encode('utf-8'), dest=(self.remote_folder + target).encode('utf-8'))
@@ -246,11 +339,21 @@ class PydioSdk():
         return resp.content
 
     def delete(self, path):
+        """
+        Delete a resource on the server
+        :param path: node path
+        :return: response of the server
+        """
         url = self.url + '/delete' + self.urlencode_normalized((self.remote_folder + path))
         resp = self.perform_request(url=url)
         return resp.content
 
     def load_server_configs(self):
+        """
+        Load the plugins from the registry and parse some of the exposed parameters of the plugins.
+        Currently supports the uploaders paramaters, and the filehasher.
+        :return: dict() parsed configs
+        """
         url = self.base_url + 'pydio/state/plugins?format=json'
         resp = self.perform_request(url=url)
         server_data = dict()
@@ -275,6 +378,16 @@ class PydioSdk():
 
 
     def upload(self, local, local_stat, path, callback_dict=None, max_upload_size=-1):
+        """
+        Upload a file to the server.
+        :param local: file path
+        :param local_stat: stat of the file
+        :param path: target path on the server
+        :param callback_dict: an dict that can be fed with progress data
+        :param max_upload_size: a known or arbitrary upload max size. If the file file is bigger, it will be
+        chunked into many POST requests
+        :return: Server response
+        """
         if not local_stat:
             raise PydioSdkException('upload', path, 'local file to upload not found!')
         if local_stat['size'] == 0:
@@ -306,6 +419,13 @@ class PydioSdk():
         return True
 
     def download(self, path, local, callback_dict=None):
+        """
+        Download the content of a server file to a local file.
+        :param path: node path on the server
+        :param local: local path on filesystem
+        :param callback_dict: a dict() than can be updated by with progress data
+        :return: Server response
+        """
         orig = self.stat(path)
         if not orig:
             raise PydioSdkException('download', path, 'Original not found on server')

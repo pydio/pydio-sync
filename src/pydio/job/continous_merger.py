@@ -42,10 +42,15 @@ class ContinuousDiffMerger(threading.Thread):
     """Main Thread grabbing changes from both sides, computing the necessary changes to apply, and applying them"""
 
     def __init__(self, job_config, job_data_path):
+        """
+        Initialize thread internals
+        :param job_config: JobConfig instance
+        :param job_data_path: Filesystem path where the job data are stored
+        :return:
+        """
         threading.Thread.__init__(self)
         self.data_base = job_data_path
         self.job_config = job_config
-        self.progress = 0
         self.init_global_progress()
 
         self.basepath = job_config.directory
@@ -87,6 +92,10 @@ class ContinuousDiffMerger(threading.Thread):
         dispatcher.connect( self.handle_transfer_rate_event, signal=TRANSFER_RATE_SIGNAL, sender=dispatcher.Any )
 
     def init_global_progress(self):
+        """
+        Initialize the internal progress data
+        :return:None
+        """
         self.global_progress = {
             'queue_length'      :0,
             'queue_done'        :0,
@@ -97,20 +106,30 @@ class ContinuousDiffMerger(threading.Thread):
         }
 
 
-    def handle_progress_event(self, progress):
-        self.progress = progress
-        self.info('Job progress is %s' % progress)
-
     def handle_transfer_rate_event(self, sender, transfer_rate):
+        """
+        Handler for TRANSFER_SIGNAL to update the transfer rate internally. It's averaged with previous value.
+        :param sender:Any
+        :param transfer_rate:float
+        :return:
+        """
         if self.global_progress['last_transfer_rate'] > 0:
             self.global_progress['last_transfer_rate'] = (float(transfer_rate) + self.global_progress['last_transfer_rate']) / 2.0
         else:
             self.global_progress['last_transfer_rate'] = float(transfer_rate)
 
     def is_running(self):
+        """
+        Whether the job is in Running state or not.
+        :return:bool
+        """
         return self.job_status_running
 
     def get_global_progress(self):
+        """
+        Compute a dict representation with many indications about the current state of the queue
+        :return: dict
+        """
         self.global_progress['total_time'] = time.clock() - self.global_progress['queue_start_time']
         self.global_progress["queue_bytesize"] = self.compute_queue_bytesize()
         # compute an eta
@@ -127,23 +146,43 @@ class ContinuousDiffMerger(threading.Thread):
         return self.global_progress
 
     def get_current_tasks(self):
+        """
+        Get a list of the current tasks
+        :return: list()
+        """
         if not self.tasks:
             return []
         return list(self.tasks)
 
     def start_now(self):
+        """
+        Resume task (set it in running mode) and make sure the cycle starts now
+        :return:
+        """
         self.resume()
         self.last_run = 0
 
     def pause(self):
+        """
+        Set the task in pause. The thread is still running, but the cycle does nothing.
+        :return:None
+        """
         self.job_status_running = False
         self.info('Job Paused', toUser='PAUSE', channel='status')
 
     def resume(self):
+        """
+        Set the task out of pause mode.
+        :return:
+        """
         self.job_status_running = True
         self.info('Job Started', toUser='START', channel='status')
 
     def stop(self):
+        """
+        Set the thread in "interrupt" mode : will try to stop cleanly, and then the thread will stop.
+        :return:
+        """
         if hasattr(self, 'watcher'):
             logging.debug("Stopping watcher: %s" % self.watcher)
             self.watcher.stop()
@@ -151,16 +190,28 @@ class ContinuousDiffMerger(threading.Thread):
         self.interrupt = True
 
     def sleep_offline(self):
+        """
+        Sleep the thread for a "long" time (offline time)
+        :return:
+        """
         self.online_status = False
         self.last_run = time.time()
         time.sleep(self.event_timer)
 
     def sleep_online(self):
+        """
+        Sleep the thread for a "short" time (online time)
+        :return:
+        """
         self.online_status = True
         self.last_run = time.time()
         time.sleep(self.event_timer)
 
     def compute_queue_bytesize(self):
+        """
+        Sum all the bytesize of the nodes that are planned to be uploaded/downloaded in the queue.
+        :return:float
+        """
         total = 0
         for task in self.tasks:
             if 'remaining_bytes' in task:
@@ -170,6 +221,9 @@ class ContinuousDiffMerger(threading.Thread):
         return float(total)
 
     def run(self):
+        """
+        Start the thread
+        """
         if hasattr(self, 'watcher'):
             self.watcher.start()
 
@@ -251,7 +305,6 @@ class ContinuousDiffMerger(threading.Thread):
                             logging.error(e.message)
                         self.tasks.popleft()
                         progress_percent = (float(i)/len(changes) * 100)
-                        self.handle_progress_event(progress_percent)
                         self.global_progress['queue_done'] = i
                         i += 1
                         if self.interrupt or not self.job_status_running:
@@ -266,6 +319,12 @@ class ContinuousDiffMerger(threading.Thread):
             self.sleep_online()
 
     def remove_seq(self, seq_id, location):
+        """
+        Remove a sequence
+        :param seq_id:
+        :param location:
+        :return:
+        """
         if location == 'local':
             self.local_seqs.remove(seq_id)
             if len(self.local_seqs):
@@ -284,6 +343,14 @@ class ContinuousDiffMerger(threading.Thread):
         ), open(self.data_base + '/sequences', 'wb'))
 
     def stat_path(self, path, location, stats=None, with_hash=False):
+        """
+        Stat a path, calling the correct SDK depending on the location passed.
+        :param path:Node path
+        :param location:"remote" or "local"
+        :param stats: if they were already previously bulk_loaded, will just look for the path in that dict()
+        :param with_hash:bool ask for content hash or not
+        :return:
+        """
         try:
             if stats:
                 return stats[path]
@@ -296,10 +363,22 @@ class ContinuousDiffMerger(threading.Thread):
             return self.system.stat(path, with_hash=True)
 
     def ping_remote(self):
+        """
+        Simple stat of the remote server root, to know if it's reachable.
+        :return:bool
+        """
         test = self.sdk.stat('/')
         return (test != False)
 
     def filter_change(self, item, my_stat=None, other_stats=None):
+        """
+        Try to detect if a change can be ignored, depending on the state of the "target". For example, if a delete
+        is registered and the file already cannot be found, we can just ignore it.
+        :param item:change item
+        :param my_stat:stats of the files on the same side as source
+        :param other_stats:stats of the files of the other side
+        :return:
+        """
 
         location = item['location']
         opposite = 'local' if item['location'] == 'remote' else 'remote'
@@ -345,7 +424,12 @@ class ContinuousDiffMerger(threading.Thread):
         return False
 
     def changes_sorter(self, i1, i2):
-        # no node: delete on top
+        """
+        Make sure to have the directories appearing on top
+        :param i1:
+        :param i2:
+        :return:
+        """
         if not i1['node']:
             return -1
         if not i2['node']:
@@ -436,7 +520,11 @@ class ContinuousDiffMerger(threading.Thread):
 
 
     def process_change(self, item):
-
+        """
+        Now really process a "change"
+        :param item:change item
+        :return:
+        """
         location = item['location']
         item['progress'] = 0
         if self.direction == 'up' and location == 'remote':
@@ -494,7 +582,14 @@ class ContinuousDiffMerger(threading.Thread):
                     self.process_UPLOAD(item['target'], item)
 
     def reduce_changes(self, local_changes=dict(), remote_changes=dict(), conflicts=[]):
-
+        """
+        Merge local changes and remote changes by trying to detect when they are similar (can be ignored), or
+        where they conflict. This is the core of the algorithm.
+        :param local_changes:dict() all local changes since last sync
+        :param remote_changes: dict() all remote changes since last sync
+        :param conflicts: An accumulator
+        :return:
+        """
         rchanges = remote_changes['data'].values()
         lchanges = local_changes['data'].values()
 
@@ -600,6 +695,11 @@ class ContinuousDiffMerger(threading.Thread):
         return rchanges
 
     def store_conflicts(self, conflicts):
+        """
+        Store conflicts in the DB.
+        :param conflicts:list()
+        :return:
+        """
         for conflict in conflicts:
             local = conflict["local"]
             remote = conflict["remote"]
@@ -612,7 +712,12 @@ class ContinuousDiffMerger(threading.Thread):
             self.db_handler.update_node_status(path, 'CONFLICT', pickle.dumps(remote))
 
     def get_remote_changes(self, seq_id, changes=dict()):
-
+        """
+        Load changes from remote server using the API.
+        :param seq_id:
+        :param changes:
+        :return:
+        """
         logging.debug('Remote sequence ' + str(seq_id))
         data = self.sdk.changes(seq_id)
         for (i, item) in enumerate(data['changes']):
