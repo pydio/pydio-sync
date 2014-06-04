@@ -11,4 +11,5 @@ watchdog==0.7.1
 cffi>=0.8
 flask==0.10.1
 flask-restful==0.2.12
+six>=1.6.1
 

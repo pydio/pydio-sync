@@ -40,10 +40,12 @@ from urlparse import urlparse
 
 from exceptions import SystemSdkException, PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException
 from pydio.utils.functions import hashfile
-from .utils import upload_file_showing_progress
+from .utils import upload_file_with_progress
 
 from pydispatch import dispatcher
 from pydio import TRANSFER_RATE_SIGNAL
+
+PYDIO_SDK_MAX_UPLOAD_PIECES = 60 * 1024 * 1024
 
 class PydioSdk():
 
@@ -53,10 +55,15 @@ class PydioSdk():
         self.url = url.rstrip('/') +'/api/'+ws_id
         self.remote_folder = remote_folder
         self.user_id = user_id
+        self.upload_max_size=PYDIO_SDK_MAX_UPLOAD_PIECES
         if user_id:
             self.auth = (user_id, keyring.get_password(url, user_id))
         else:
             self.auth = auth
+
+    def set_server_configs(self, configs):
+        if 'UPLOAD_MAX_SIZE' in configs and configs['UPLOAD_MAX_SIZE']:
+            self.upload_max_size = min(int(configs['UPLOAD_MAX_SIZE']), PYDIO_SDK_MAX_UPLOAD_PIECES)
 
     def urlencode_normalized(self, unicode_path):
         if platform.system() == 'Darwin':
@@ -123,11 +130,9 @@ class PydioSdk():
                 data = {}
             data['auth_token'] = token
             data['auth_hash']  = auth_hash
-            if with_progress:
-                fields = dict(files, **data)
-                resp = upload_file_showing_progress(url, fields, stream, with_progress)
-            elif files:
-                resp = requests.post(url=url, data=data, files=files, stream=stream)
+            if files:
+                resp = upload_file_with_progress(url, dict(**data), files, stream, with_progress,
+                                                 max_size=self.upload_max_size)
             else:
                 resp = requests.post(url=url, data=data, stream=stream)
         else:
@@ -152,7 +157,7 @@ class PydioSdk():
             except PydioSdkTokenAuthException as pTok:
                 # Tokens may be revoked? Retry
                 tokens = self.basic_authenticate()
-                return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files, stream)
+                return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files, stream, with_progress)
 
 
     def changes(self, last_seq):
@@ -245,7 +250,31 @@ class PydioSdk():
         resp = self.perform_request(url=url)
         return resp.content
 
-    def upload(self, local, local_stat, path, callback_dict=None):
+    def load_server_configs(self):
+        url = self.base_url + 'pydio/state/plugins?format=json'
+        resp = self.perform_request(url=url)
+        server_data = dict()
+        try:
+            data = json.loads(resp.content)
+            plugins = data['plugins']
+            for p in plugins['ajxpcore']:
+                if p['@id'] == 'core.uploader':
+                    if 'plugin_configs' in p and 'property' in p['plugin_configs']:
+                        properties = p['plugin_configs']['property']
+                        for prop in properties:
+                            server_data[prop['@name']] = prop['$']
+            for p in plugins['meta']:
+                if p['@id'] == 'meta.filehasher':
+                    if 'plugin_configs' in p and 'property' in p['plugin_configs']:
+                        properties = p['plugin_configs']['property']
+                        for prop in properties:
+                            server_data[prop['@name']] = prop['$']
+        except KeyError,ValueError:
+            pass
+        return server_data
+
+
+    def upload(self, local, local_stat, path, callback_dict=None, max_upload_size=-1):
         if not local_stat:
             raise PydioSdkException('upload', path, 'local file to upload not found!')
         if local_stat['size'] == 0:
@@ -260,12 +289,17 @@ class PydioSdk():
             if not folder:
                 self.mkdir(os.path.dirname(path))
         url = self.url + '/upload/put' + self.urlencode_normalized((self.remote_folder + os.path.dirname(path)))
-        files = {'userfile_0': ('my-name',open(local, 'rb').read())}
+        #files = {'userfile_0': ('my-name',open(local, 'rb').read())}
+        files = {'userfile_0': local} #{'userfile_0': ('name', '%%--PYDIO__FILEBODY__DATA--%%')}
         data = {
             'force_post':'true',
             'urlencoded_filename':self.urlencode_normalized(os.path.basename(path))
         }
-        resp = self.perform_request(url=url, type='post', data=data, files=files, with_progress=callback_dict)
+        if max_upload_size > 0 and local_stat['size'] >= max_upload_size:
+            # Upload Chunked
+            pass
+        else:
+            resp = self.perform_request(url=url, type='post', data=data, files=files, with_progress=callback_dict)
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
             raise PydioSdkException('upload', path, 'File not correct after upload')
@@ -300,7 +334,7 @@ class PydioSdk():
                             dispatcher.send(signal=TRANSFER_RATE_SIGNAL, send=self, transfer_rate=transfer_rate)
                             if callback_dict:
                                 callback_dict['progress'] = float( float(dl) / float(total_length) * 100)
-                                callback_dict['remaining_bytes'] = total_length - dl
+                                callback_dict['remaining_bytes'] = int(total_length) - dl
                                 callback_dict['transfer_rate'] = transfer_rate
 
                         previous_done = done

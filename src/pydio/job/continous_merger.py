@@ -173,7 +173,6 @@ class ContinuousDiffMerger(threading.Thread):
         self.last_run = 0
 
         while not self.interrupt:
-            #logging.debug("ContinuousDiffMerger.run loop enter: %s" % self)
 
             try:
                 self.tasks = []
@@ -212,6 +211,9 @@ class ContinuousDiffMerger(threading.Thread):
                     self.sleep_offline()
                     continue
                 self.online_status = True
+                if not self.job_config.server_configs:
+                    self.job_config.server_configs = self.sdk.load_server_configs()
+                self.sdk.set_server_configs(self.job_config.server_configs)
 
                 if self.job_config.direction != 'down':
                     logging.info('Loading local changes with sequence ' + str(self.local_seq))
@@ -420,7 +422,10 @@ class ContinuousDiffMerger(threading.Thread):
 
     def process_UPLOAD(self, path, callback_dict=None):
         self.db_handler.update_node_status(path, 'UP')
-        self.sdk.upload(self.basepath+path, self.system.stat(path), path, callback_dict)
+        max_upload_size = -1
+        if self.job_config.server_configs and 'UPLOAD_MAX_SIZE' in self.job_config.server_configs:
+            max_upload_size = int( self.job_config.server_configs['UPLOAD_MAX_SIZE'] )
+        self.sdk.upload(self.basepath+path, self.system.stat(path), path, callback_dict, max_upload_size=max_upload_size)
         self.db_handler.update_node_status(path, 'IDLE')
         message = path + ' ===============> ' + path
         self.info(message, 'File ' + path + ' uploaded to server')

@@ -110,6 +110,7 @@ class JobConfig:
         self.remote_folder = ''
         self.user_id = ''
         # Default values
+        self.server_configs = None
         self.active = True
         self.direction = 'bi'
         self.monitor = True
