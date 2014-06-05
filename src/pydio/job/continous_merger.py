@@ -23,6 +23,7 @@ import os
 import threading
 import pickle
 import logging
+import psutil
 
 from requests.exceptions import ConnectionError
 from collections import deque
@@ -80,9 +81,13 @@ class ContinuousDiffMerger(threading.Thread):
         dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel='status', message='START')
 
         if os.path.exists(self.data_base + "/sequences"):
-            sequences = pickle.load(open(self.data_base + "/sequences", "rb"))
-            self.remote_seq = sequences['remote']
-            self.local_seq = sequences['local']
+            try:
+                sequences = pickle.load(open(self.data_base + "/sequences", "rb"))
+                self.remote_seq = sequences['remote']
+                self.local_seq = sequences['local']
+            except Exception:
+                # Wrong content, remove sequences file.
+                os.unlink(self.data_base + "/sequences")
 
         if job_config.direction != 'down':
             self.watcher = LocalWatcher(job_config.directory,
@@ -228,6 +233,9 @@ class ContinuousDiffMerger(threading.Thread):
             self.watcher.start()
 
         self.last_run = 0
+
+        usage = psutil.disk_usage(self.job_config.directory)
+        logging.info(usage)
 
         while not self.interrupt:
 
@@ -718,6 +726,17 @@ class ContinuousDiffMerger(threading.Thread):
         :param changes:
         :return:
         """
+        # Test for loading changes as stream. Drastically reduces memory for huge
+        # number of changes
+        #
+        # from change_stores import SqliteChangeStore
+        # store = SqliteChangeStore(self.data_base + '/changes.sqlite')
+        # store.open()
+        # last_seq = self.sdk.changes_stream(seq_id, store.store)
+        # store.sync()
+        # store.close()
+        # return last_seq
+
         logging.debug('Remote sequence ' + str(seq_id))
         data = self.sdk.changes(seq_id)
         for (i, item) in enumerate(data['changes']):

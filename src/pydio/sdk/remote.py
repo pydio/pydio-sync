@@ -216,6 +216,31 @@ class PydioSdk():
         except ValueError as v:
             raise Exception("Invalid JSON value received while getting remote changes")
 
+    def changes_stream(self, last_seq, change_callback):
+        """
+        Get the list of changes detected on server since a given sequence number
+
+        :param last_seq:int
+        :change_store: AbstractChangeStore
+        :return:list a list of changes
+        """
+        url = self.url + '/changes/' + str(last_seq) + '/?stream=true'
+        if self.remote_folder:
+            url += '?filter=' + self.remote_folder
+        resp = self.perform_request(url=url, stream=True)
+        for line in resp.iter_lines(chunk_size=512):
+            if line:
+                if str(line).startswith('LAST_SEQ'):
+                    return int(line.split(':')[1])
+                else:
+                    try:
+                        one_change = json.loads(line)
+                        change_callback(one_change)
+                    except ValueError as v:
+                        raise Exception("Invalid JSON value received while getting remote changes")
+                    except Exception as e:
+                        raise e
+
     def stat(self, path, with_hash=False):
         """
         Equivalent of the local fstat() on the remote server.
