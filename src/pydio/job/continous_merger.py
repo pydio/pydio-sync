@@ -23,7 +23,6 @@ import os
 import threading
 import pickle
 import logging
-import psutil
 
 from requests.exceptions import ConnectionError
 from collections import deque
@@ -233,9 +232,6 @@ class ContinuousDiffMerger(threading.Thread):
             self.watcher.start()
 
         self.last_run = 0
-
-        usage = psutil.disk_usage(self.job_config.directory)
-        logging.info(usage)
 
         while not self.interrupt:
 
