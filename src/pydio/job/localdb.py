@@ -219,8 +219,10 @@ class LocalDbHandler():
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         operations = []
-        for row in c.execute("SELECT type,source,target FROM ajxp_last_buffer"):
+        for row in c.execute("SELECT type,location,source,target FROM ajxp_last_buffer"):
             dRow = dict()
+            location = row['location']
+            dRow['location'] = row['location']
             dRow['type'] = row['type']
             dRow['source'] = row['source']
             dRow['target'] = row['target']
@@ -228,20 +230,21 @@ class LocalDbHandler():
         c.close()
         return operations
 
-    def is_last_operation(self, type, source, target):
+    def is_last_operation(self, location, type, source, target):
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        for row in c.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND source=? AND target=?", (type,source,target)):
+        for row in c.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (type,location,source,target)):
             c.close()
             return True
         c.close()
         return False
 
 
-    def buffer_real_operation(self, type, source, target):
+    def buffer_real_operation(self, location, type, source, target):
+        location = 'remote' if location == 'local' else 'local'
         conn = sqlite3.connect(self.db)
-        conn.execute("INSERT INTO ajxp_last_buffer (type,source,target) VALUES (?,?,?)", (type, source, target))
+        conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (type, location, source, target))
         conn.commit()
         conn.close()
 
@@ -271,7 +274,7 @@ class LocalDbHandler():
             drow['node'] = dict()
             if not row['node_path'] and (not row['source'] or row['source'] == 'NULL') and (not row['target'] or row['source'] == 'NULL'):
                 continue
-            if self.is_last_operation(row['type'], row['source'], row['target']):
+            if self.is_last_operation('local', row['type'], row['source'], row['target']):
                 continue
             for att in ('mtime', 'md5', 'bytesize', 'node_path',):
                 drow['node'][att] = row[att]

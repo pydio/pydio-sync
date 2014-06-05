@@ -542,48 +542,53 @@ class ContinuousDiffMerger(threading.Thread):
                     logging.info('[' + location + '] Create folder ' + item['node']['node_path'])
                     if location == 'remote':
                         self.process_localMKDIR(item['node']['node_path'])
-                        self.db_handler.buffer_real_operation(item['type'], 'NULL', item['node']['node_path'])
                     else:
                         self.process_remoteMKDIR(item['node']['node_path'])
+                    self.db_handler.buffer_real_operation(location, item['type'], 'NULL', item['node']['node_path'])
             else:
                 if item['node']['node_path']:
                     if location == 'remote':
                         self.process_DOWNLOAD(item['node']['node_path'], callback_dict=item )
                         if item['type'] == 'create':
-                            self.db_handler.buffer_real_operation(item['type'], 'NULL', item['node']['node_path'])
+                            self.db_handler.buffer_real_operation(location, item['type'], 'NULL', item['node']['node_path'])
                         else:
-                            self.db_handler.buffer_real_operation(item['type'], item['node']['node_path'], item['node']['node_path'])
+                            self.db_handler.buffer_real_operation(location, item['type'], item['node']['node_path'], item['node']['node_path'])
                     else:
                         self.process_UPLOAD(item['node']['node_path'], item)
+                        self.db_handler.buffer_real_operation(location, item['type'], 'NULL', item['node']['node_path'])
 
         elif item['type'] == 'delete':
             logging.info('[' + location + '] Should delete ' + item['source'])
             if location == 'remote':
                 self.process_localDELETE(item['source'])
-                self.db_handler.buffer_real_operation('delete', item['source'], 'NULL')
             else:
                 self.process_remoteDELETE(item['source'])
+            self.db_handler.buffer_real_operation(location, 'delete', item['source'], 'NULL')
 
         else:
             logging.info('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
             if location == 'remote':
                 if os.path.exists(self.basepath + item['source']):
                     if self.process_localMOVE(item['source'], item['target']):
-                        self.db_handler.buffer_real_operation(item['type'], item['source'], item['target'])
+                        self.db_handler.buffer_real_operation(location, item['type'], item['source'], item['target'])
                 else:
                     if item["node"]["md5"] == "directory":
                         logging.debug('Cannot find folder to move, switching to creation')
                         self.process_localMKDIR(item['target'])
+                        self.db_handler.buffer_real_operation(location, 'create', 'NULL', item['target'])
                     else:
                         logging.debug('Cannot find source, switching to DOWNLOAD')
                         self.process_DOWNLOAD(item['target'], callback_dict=item)
-                    self.db_handler.buffer_real_operation('create', 'NULL', item['target'])
+                    self.db_handler.buffer_real_operation(location, 'create', 'NULL', item['target'])
             else:
                 if self.sdk.stat(item['source']):
                     self.process_remoteMOVE(item['source'], item['target'])
+                    self.db_handler.buffer_real_operation(location, item['type'], item['source'], item['target'])
                 elif item['node']['md5'] != 'directory':
                     logging.debug('Cannot find source, switching to UPLOAD')
                     self.process_UPLOAD(item['target'], item)
+                    self.db_handler.buffer_real_operation(location, 'create', 'NULL', item['target'])
+
 
     def reduce_changes(self, local_changes=dict(), remote_changes=dict(), conflicts=[]):
         """
@@ -645,11 +650,22 @@ class ContinuousDiffMerger(threading.Thread):
 
         new_rchanges = []
 
+        for item in rchanges:
+            logging.debug("item: %s" % item)
+            ignore = False
+            for last in last_ops:
+                if last['location'] == item['location'] and last['type'] == item['type'] and last['source'] == item['source'] and last['target'] == item['target']:
+                    logging.info('IGNORING, RECENT MOVE TO SERVER', last)
+                    ignore = True
+                    break
+            if ignore:
+                rchanges.remove(item)
+
         for item in lchanges:
             logging.debug("item: %s" % item)
             ignore = False
             for last in last_ops:
-                if last['type'] == item['type'] and last['source'] == item['source'] and last['target'] == item['target']:
+                if last['location'] == item['location'] and last['type'] == item['type'] and last['source'] == item['source'] and last['target'] == item['target']:
                     logging.info('IGNORING, RECENT MOVE FROM SERVER', last)
                     ignore = True
                     break
