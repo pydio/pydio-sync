@@ -760,3 +760,22 @@ class ContinuousDiffMerger(threading.Thread):
             changes['data'][item['seq']] = item
 
         return data['last_seq']
+
+    @staticmethod
+    def compute_remote_data_size(pydio_sdk, seq_id=0):
+        total = 0.0
+        def callback(change):
+            if "node" in change and change["node"]["md5"] != "directory" and change["node"]["bytesize"]:
+                total += float(change["node"]["bytesize"])
+        pydio_sdk.changes_stream(seq_id, callback)
+        return total
+
+    @staticmethod
+    def compute_local_data_size(local_data_path):
+        total = 0.0
+        for dirpath, dirnames, filenames in os.walk(local_data_path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                total += os.path.getsize(fp)
+        return total
+
