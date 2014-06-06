@@ -279,6 +279,14 @@ class ContinuousDiffMerger(threading.Thread):
                 if self.job_config.direction != 'down':
                     logging.info('Loading local changes with sequence ' + str(self.local_seq))
                     self.local_target_seq = self.db_handler.get_local_changes(self.local_seq, local_changes)
+
+                    ##############################################################################################
+                    #                   temporary added to compare new getchanges methodes to the above called one
+                    accumulator = dict(data=dict(), path_to_seqs=dict())
+                    target_seq = self.db_handler.get_local_changes_new(self.local_seq, accumulator)
+                    #                   add breakpoint to print instruction when debugging :p
+                    ##############################################################################################
+                    print
                 else:
                     self.local_target_seq = 1
 
