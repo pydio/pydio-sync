@@ -270,69 +270,84 @@ class LocalDbHandler():
         conn.close()
 
 
-    def get_local_changes_2(self, seq_id, function):
+    def get_local_changes_with_callback(self, seq_id, accumulator, accumulator_callback):
         logging.debug("Local sequence " + str(seq_id))
-        last = seq_id
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         reduced_changes = dict()
+        max_seq = 0
         for line in c.execute("SELECT seq , ajxp_changes.node_id ,  type ,  "
                              "source , target, ajxp_index.bytesize, ajxp_index.md5, ajxp_index.mtime, "
                              "ajxp_index.node_path, ajxp_index.stat_result FROM ajxp_changes LEFT JOIN ajxp_index "
                              "ON ajxp_changes.node_id = ajxp_index.node_id "
                              "WHERE seq > ? ORDER BY ajxp_changes.node_id, seq ASC", (seq_id,)):
-
             row = dict(line)
             source = row.pop('source')
             if source == 'NULL':
                source = os.path.sep
-
             target = row.pop('target')
             if target == 'NULL':
                target = os.path.sep
+
+            seq = row.pop('seq')
+            max_seq = seq if seq > max_seq else max_seq
+
             content = row.pop('type')
-
             charged_row = reduced_changes[row['node_id']] if reduced_changes.has_key(row['node_id']) else dict()
-
             if not charged_row:
                 charged_row['source'] = source
                 charged_row['dp'] = PathOperation.path_sub(target, source)
                 charged_row['dc'] = (content == 'content')
+                charged_row['seq'] = seq
                 charged_row['node'] = row
                 reduced_changes[row['node_id']] = charged_row
             else:
                 charged_row['dp'] = PathOperation.path_add(charged_row['dp'], PathOperation.path_sub(target, source))
                 charged_row['dc'] = (content == 'content') or charged_row['dc']
-
+                charged_row['seq'] = seq
 
         for key, change in reduced_changes.iteritems():
-            source = change['source']
-            target = PathOperation.path_add(source, change['dp'])
-
-            if source == os.path.sep:
-                source = 'NULL'
-            if target == os.path.sep:
-                target = 'NULL'
-            if target != 'NULL' and source == 'NULL':
-                function( {'location': 'local', 'source': source, 'target': target, 'type':'create', 'node': change['node']} )
-            elif target == 'NULL' and source != 'NULL':
-                function( {'location': 'local', 'source':source, 'target':target, 'type':'delete'} )
-            else:
-                if target == source and change['dc']:
-                    function( {'location': 'local', 'source':source, 'target':'NULL', 'type':'content'} )
-                    function( {'location': 'local', 'source':'NULL', 'target':target, 'type':'content', 'node':change['node']} )
-                elif target == source:
-                    function( {'location': 'local', 'source':source, 'target':target, 'type':'content', 'node':change['node']} )
-        print
+            accumulator_callback(change, accumulator)
+        return max_seq
 
 
-    def display(self, element):
-        print element
+    def update_seq_index(self, change, accumulator=dict()):
+        source = change['source']
+        target = PathOperation.path_add(source, change['dp'])
+        if source == os.path.sep:
+            source = 'NULL'
+        if target == os.path.sep:
+            target = 'NULL'
+
+        if target != 'NULL' and source == 'NULL':
+            accumulator['data'][change['seq']]= ({'location': 'local', 'source': source, 'target': target, 'type':'create', 'node': change['node']})
+        elif target == 'NULL' and source != 'NULL':
+            accumulator['data'][change['seq']] = ( {'location': 'local', 'source':source, 'target':target, 'type':'delete'} )
+        else:
+            #trick here for double-change : move and edit
+            if target == source and change['dc']:
+                accumulator['data'].append( {'location': 'local', 'source':source, 'target':'NULL', 'type':'content'} )
+                accumulator['data'].append( {'location': 'local', 'source':'NULL', 'target':target, 'type':'content', 'node':change['node']} )
+            elif target == source:
+                accumulator['data'].append( {'location': 'local', 'source':source, 'target':target, 'type':'content', 'node':change['node']} )
+
+        if(not accumulator['path_to_seqs'].has_key(source)):
+            accumulator['path_to_seqs'][source] = list()
+        if source != 'NULL' :
+            accumulator['path_to_seqs'][source].append(change['seq'])
+
+        if(not accumulator['path_to_seqs'].has_key(target)):
+            accumulator['path_to_seqs'][target] = list()
+        if target != 'NULL':
+            accumulator['path_to_seqs'][target].append(change['seq'])
+
+
+
+    def get_local_changes_new(self, seq_id, accumulator=dict()):
+        return self.get_local_changes_with_callback(seq_id, accumulator, self.update_seq_index)
 
     def get_local_changes(self, seq_id, accumulator=dict()):
-
-        self.get_local_changes_2(seq_id, self.display)
 
         logging.debug("Local sequence " + str(seq_id))
         last = seq_id
