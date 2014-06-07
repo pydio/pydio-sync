@@ -17,7 +17,6 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
-from curses import has_key
 import os
 import logging
 from pydispatch import dispatcher
