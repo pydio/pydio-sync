@@ -336,7 +336,7 @@ class ContinuousDiffMerger(threading.Thread):
                             progress_percent = (float(counter[0])/len(self.current_store) * 100)
                             self.global_progress['queue_done'] = counter[0]
                             counter[0] += 1
-                            time.sleep(0.02)
+                            time.sleep(0.05)
                             if self.interrupt or not self.job_status_running:
                                 raise InterruptException()
                         except ProcessException as pe:

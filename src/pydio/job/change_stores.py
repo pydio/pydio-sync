@@ -38,10 +38,22 @@ class SqliteChangeStore():
         self.conn.row_factory = sqlite3.Row
         cursor = self.conn.cursor()
         if self.create:
-            cursor.execute("CREATE TABLE ajxp_changes (row_id INTEGER PRIMARY KEY AUTOINCREMENT , seq_id, location TEXT, type TEXT, source TEXT, target TEXT, content INTEGER, md5 TEXT, bytesize INTEGER, data TEXT)")
-            cursor.execute("CREATE TABLE ajxp_last_buffer ( id INTEGER PRIMARY KEY AUTOINCREMENT, location TEXT, type TEXT, source TEXT, target TEXT )")
+            self.conn.execute("CREATE TABLE ajxp_changes (row_id INTEGER PRIMARY KEY AUTOINCREMENT , seq_id, location TEXT, type TEXT, source TEXT, target TEXT, content INTEGER, md5 TEXT, bytesize INTEGER, data TEXT)")
+            self.conn.execute("CREATE TABLE ajxp_last_buffer ( id INTEGER PRIMARY KEY AUTOINCREMENT, location TEXT, type TEXT, source TEXT, target TEXT )")
+            self.conn.execute("CREATE INDEX changes_seq_id ON ajxp_changes (seq_id)")
+            self.conn.execute("CREATE INDEX changes_location ON ajxp_changes (location)")
+            self.conn.execute("CREATE INDEX changes_type ON ajxp_changes (type)")
+            self.conn.execute("CREATE INDEX changes_source ON ajxp_changes (source)")
+            self.conn.execute("CREATE INDEX changes_target ON ajxp_changes (target)")
+            self.conn.execute("CREATE INDEX changes_md5 ON ajxp_changes (md5)")
+            self.conn.execute("CREATE INDEX buffer_location ON ajxp_last_buffer (location)")
+            self.conn.execute("CREATE INDEX buffer_type ON ajxp_last_buffer (type)")
+            self.conn.execute("CREATE INDEX buffer_source ON ajxp_last_buffer (source)")
+            self.conn.execute("CREATE INDEX buffer_target ON ajxp_last_buffer (target)")
         else:
-            cursor.execute("DELETE FROM ajxp_changes")
+            self.conn.execute("DELETE FROM ajxp_changes")
+        self.conn.commit()
+
 
     def __len__(self):
         return self.get_row_count()

@@ -151,7 +151,7 @@ class PydioSdk():
                 url += '&' + auth_string
             else:
                 url += '?' + auth_string
-            resp = requests.get(url=url, stream=stream)
+            resp = requests.get(url=url, stream=stream, timeout=20)
         elif type == 'post':
             if not data:
                 data = {}
@@ -161,7 +161,7 @@ class PydioSdk():
                 resp = upload_file_with_progress(url, dict(**data), files, stream, with_progress,
                                                  max_size=self.upload_max_size)
             else:
-                resp = requests.post(url=url, data=data, stream=stream)
+                resp = requests.post(url=url, data=data, stream=stream, timeout=20)
         else:
             raise PydioSdkTokenAuthException("Unsupported HTTP method")
 

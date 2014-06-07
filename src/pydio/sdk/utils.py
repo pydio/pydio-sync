@@ -171,7 +171,8 @@ def upload_file_with_progress(url, fields, files, stream, with_progress, max_siz
         url,
         data=body,
         headers={'Content-Type':content_type},
-        stream=True
+        stream=True,
+        timeout=20
     )
 
     if resp.status_code == 401:
