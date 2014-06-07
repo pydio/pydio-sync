@@ -22,6 +22,7 @@ import json
 import os
 import logging
 import fnmatch
+from pydio.sdk.exceptions import InterruptException
 
 class SqliteChangeStore():
 
@@ -71,15 +72,21 @@ class SqliteChangeStore():
 
         res = c.execute('SELECT * FROM ajxp_changes WHERE md5="directory" ORDER BY source,target')
         for row in res:
-            callback(self.sqlite_row_to_dict(row, load_node=True))
-            self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (row['row_id'],))
+            try:
+                callback(self.sqlite_row_to_dict(row, load_node=True))
+                self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (row['row_id'],))
+            except InterruptException as e:
+                break
         self.conn.commit()
 
         #now go to the rest
         res = c.execute('SELECT * FROM ajxp_changes ORDER BY source,target')
         for row in res:
-            callback(self.sqlite_row_to_dict(row, load_node=True))
-            self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (row['row_id'],))
+            try:
+                callback(self.sqlite_row_to_dict(row, load_node=True))
+                self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (row['row_id'],))
+            except InterruptException as e:
+                break
         self.conn.commit()
 
     def list_changes(self, cursor=0, limit=5, where='', other_thread=False):

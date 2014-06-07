@@ -330,6 +330,8 @@ class ContinuousDiffMerger(threading.Thread):
                     counter = [1]
                     def processor_callback(change):
                         try:
+                            if self.interrupt or not self.job_status_running:
+                                raise InterruptException()
                             proc = ChangeProcessor(change, self.current_store, self.job_config, self.system, self.sdk, self.db_handler, self.event_logger)
                             proc.process_change()
                             self.update_min_seqs_from_store()
@@ -341,6 +343,8 @@ class ContinuousDiffMerger(threading.Thread):
                                 raise InterruptException()
                         except ProcessException as pe:
                             logging.error(pe.message)
+                        except InterruptException as i:
+                            raise i
                         except Exception as e:
                             logging.error(e.message)
 
