@@ -43,7 +43,7 @@ from pydio.utils.functions import hashfile
 from .utils import upload_file_with_progress
 
 from pydispatch import dispatcher
-from pydio import TRANSFER_RATE_SIGNAL
+from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
 # -*- coding: utf-8 -*-
 
 PYDIO_SDK_MAX_UPLOAD_PIECES = 60 * 1024 * 1024
@@ -235,7 +235,7 @@ class PydioSdk():
                 else:
                     try:
                         one_change = json.loads(line)
-                        change_callback(one_change)
+                        change_callback('remote', one_change['seq'], one_change)
                     except ValueError as v:
                         raise Exception("Invalid JSON value received while getting remote changes")
                     except Exception as e:
@@ -268,7 +268,10 @@ class PydioSdk():
         try:
             url = self.url + action + self.urlencode_normalized(path)
             resp = self.perform_request(url)
-            data = json.loads(resp.content)
+            try:
+                data = json.loads(resp.content)
+            except ValueError as ve:
+                return False
             logging.debug("data: %s" % data)
             if not data:
                 return False
@@ -316,11 +319,17 @@ class PydioSdk():
         for (p, stat) in data.items():
             if self.remote_folder:
                 p = p[len(self.remote_folder):]
-            replaced[os.path.normpath(p)] = stat
-            try:
-                pathes.remove(os.path.normpath(self.normalize_reverse(p)))
-            except:
-                pass
+            #replaced[os.path.normpath(p)] = stat
+            p1 = os.path.normpath(p)
+            p2 = os.path.normpath(self.normalize_reverse(p))
+            if p2 in pathes:
+                replaced[p2] = stat
+                pathes.remove(p2)
+            elif p1 in pathes:
+                replaced[p1] = stat
+                pathes.remove(p1)
+            else:
+                raise PydioSdkException('bulk_stat', p1, 'Encoding problem, failed emptying bulk_stat, exiting instead of infinite loop')
         if len(pathes):
             self.bulk_stat(pathes, result=replaced, with_hash=with_hash)
         return replaced
@@ -484,6 +493,7 @@ class PydioSdk():
                                 callback_dict['progress'] = float( float(dl) / float(total_length) * 100)
                                 callback_dict['remaining_bytes'] = int(total_length) - dl
                                 callback_dict['transfer_rate'] = transfer_rate
+                                dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, send=self, change=callback_dict)
 
                         previous_done = done
             if not os.path.exists(local_tmp):

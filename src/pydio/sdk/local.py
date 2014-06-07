@@ -42,6 +42,10 @@ class SystemSdk(object):
         """
         return os.path.exists(self.basepath)
 
+    def bulk_stat(self, pathes, with_hash=False):
+        return None
+
+
     def stat(self, path, full_path=False, with_hash=False):
         """
         Format filesystem stat in the same way as it's returned by server for remote stats.

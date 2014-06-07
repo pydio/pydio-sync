@@ -190,8 +190,25 @@ class LocalDbHandler():
         c.close()
         return rows
 
+    def list_solved_nodes_w_callback(self, cb):
+        conn = sqlite3.connect(self.db)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        status = False
+        for row in c.execute("SELECT * FROM ajxp_index,ajxp_node_status "
+                             "WHERE ajxp_node_status.status LIKE 'SOLVED%' AND ajxp_node_status.node_id = ajxp_index.node_id"):
+            d = {}
+            for idx, col in enumerate(c.description):
+                if col[0] == 'stat_result':
+                    continue
+                d[col[0]] = row[idx]
+            cb(d)
+        c.close()
+
 
     def update_node_status(self, node_path, status='IDLE', detail=''):
+        if detail:
+            detail = pickle.dumps(detail)
         node_id = self.find_node_by_id(node_path, with_status=True)
         conn = sqlite3.connect(self.db)
         if not node_id:

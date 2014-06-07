@@ -27,7 +27,7 @@ import math
 
 from io import BytesIO, FileIO
 from pydispatch import dispatcher
-from pydio import TRANSFER_RATE_SIGNAL
+from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
 from six import b
 # -*- coding: utf-8 -*-
 
@@ -91,10 +91,10 @@ class BytesIOWithFile(BytesIO):
         if self.callback:
             try:
                 self.callback(self.full_length, self.cursor * (self.file_part+1), transfer_rate)
-            except:
+            except Exception as e:
                 logging.warning('Buffered reader callback error')
                 return None
-        dispatcher.send(signal=TRANSFER_RATE_SIGNAL, send=self, transfer_rate=transfer_rate)
+        dispatcher.send(signal=TRANSFER_RATE_SIGNAL, transfer_rate=transfer_rate)
 
         if self.cursor >= self.length:
             # EOF
@@ -159,6 +159,7 @@ def upload_file_with_progress(url, fields, files, stream, with_progress, max_siz
             with_progress['progress'] = float(progress)/size*100
             with_progress['remaining_bytes'] = size - progress
             with_progress['transfer_rate'] = rate
+            dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, change=with_progress)
     else:
         cb = log_progress
 

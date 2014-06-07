@@ -45,3 +45,7 @@ class PydioSdkTokenAuthException(Exception):
     def __init__(self, type):
         super(PydioSdkTokenAuthException, self).__init__('Token-based authentication failed, reload credentials?')
 
+
+class InterruptException(Exception):
+    def __init__(self):
+        super(InterruptException, self).__init__('Stop tasks')
