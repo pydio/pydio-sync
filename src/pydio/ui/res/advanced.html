@@ -1,0 +1,38 @@
+<div>
+    <h4>Folder on your computer</h4>
+    <div class="form-group">
+        <div class="input-group">
+            <input type="text" ng-model="job.directory" readonly class="form-control">
+            <span class="input-group-addon"><span ng-click="openDirChooser()" style="cursor: pointer;" class="glyphicon glyphicon-list-alt"></span></span>
+        </div>
+    </div>
+</div>
+
+<div>
+    <h4>Sync Direction</h4>
+    <p class="small">By default, modifications from both sides (local/remote) are automatically reflected on the other side. You can limit this to one direction, enabling a backup-like job ('up' only) or a mirroring job ('down' only).</p>
+    <div class="form-group">
+        <select class="form-control" ng-model="job.direction">
+            <option value="bi">Bi-directionnal</option>
+            <option value="up">Upload only (backup style)</option>
+            <option value="down">Download only (mirroring style)</option>
+        </select>
+    </div>
+</div>
+
+<div>
+    <h4>Conflicts</h4>
+    <p class="small">Conflicts are cases where a file was modified on both local and remote sides at the same time. When they happen, sync is stopped until you manually decide which version to keep. You can automatically force the conflict resolution.</p>
+    <div class="form-group">
+        <input type="radio" name="conflict"> Solve keeping remote version <br>
+        <input type="radio" name="conflict"> Solve keeping local version
+    </div>
+</div>
+
+<div>
+    <h4>Monitoring</h4>
+    <p class="small">If you are synchronizing a huge amount of files, you can disable the continuous monitoring of the local folder and let the synchro run at a fixed period instead.</p>
+    <div class="form-group center-block">
+        <input type="checkbox" name="disable_monitoring" ng-model="monitoring"> Disable Folder Monitoring and check every <input type="number" style="width:45px" value="60" ng-disabled="!monitoring"> mn instead.<br>
+    </div>
+</div>

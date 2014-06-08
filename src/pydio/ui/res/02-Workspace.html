@@ -1,0 +1,95 @@
+<div ng-show="job.id!='new'">
+    <h1>Task Configuration</h1>
+    <p class="lead">
+        Update the connection parameters and advanced options of this synchronization task.
+    </p>
+</div>
+
+<div ng-show="job.id=='new'">
+    <h3>2/3 Select a workspace</h3>
+    <p class="lead">
+        <img src="images/earth.png" style="float: left;width: 100px;margin-top: -20px;">
+        Welcome!<br>
+        You are connecting to {{job.server}} [<a href="#/new">change</a>]
+        <br style="clear: left;">
+    </p>
+</div>
+
+<div class="well">
+
+    <form ng-show="job.id!='new'" class="">
+        <h4>Server Connexion</h4>
+        <div class="form-group">
+            <label>Server Address</label>
+            <input style="width:300px;" type="url" name="site" ng-model="job.server" class="form-control" placeholder="http:// .... " required>
+            <span ng-show="myForm.site.$error.required && !myForm.site.$pristine" class="help-inline">Required</span>
+            <span ng-show="myForm.site.$error.url" class="help-inline">Not a URL</span>
+        </div>
+        <div class="form-group">
+            <label>Login</label>
+            <input style="width:150px;" type="text" name="user" ng-model="job.user" class="form-control" placeholder="Login" required>
+            <span ng-show="myForm.user.$error.required && !myForm.user.$pristine" class="help-inline">Required</span>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input style="width:150px;" type="password" name="pwd" ng-model="job.password" class="form-control" placeholder="Password" required>
+            <span ng-show="myForm.pwd.$error.required && !myForm.pwd.$pristine" class="help-inline">Required</span>
+        </div>
+    </form>
+
+    <h4>Remote workspace
+        <a ng-if="!repositories && job.workspace" class="btn" ng-click="loadWorkspaces()">Change workspace / folder</a>
+    </h4>
+    <div ng-if="repositories">
+        <select autofocus="true" ng-change="loadFolders()" ng-model="job.repoObject" ng-options="repo as repo.label for repo in repositories" class="form-control">
+            <option value="">-- Select a workspace --</option>
+        </select>
+        <div ng-show="folders && folders.length" class="well" style="background-color: white; padding: 10px; margin-top: 7px;">
+            <div ng-click="job.remote_folder = ''" ng-class="{'list-group-item-success':!job.remote_folder}" style="cursor: pointer;padding: 5px;border-radius: 3px;">
+                <span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;Whole workspace<span ng-if="folders_loading"> [loading...]</span> <span>{{folders_loading_error}}</span>
+            </div>
+            <!-- Want to loose the div in the repeat as well -->
+            <div style="padding-left:25px;">
+
+                <ng-include
+                        ng-repeat="child in folders"
+                        src="'tree_node.html'"
+                        onload="data = child;job = job"/>
+            </div>
+        </div>
+    </div>
+    <div ng-if="!repositories && job.workspace">
+        <div class="form-group">
+            <label>Workspace</label>
+            <input type="text" readonly class="form-control" ng-model="job.workspace">
+        </div>
+        <div class="form-group">
+            <label>Folder</label>
+            <input type="text"readonly class="form-control" ng-model="job.remote_folder">
+        </div>
+    </div>
+
+    <div ng-show="job.id!='new'">
+        <h4>Local Folder</h4>
+        <p>The path to the local folder on your computer.</p>
+        <div class="form-group">
+            <div class="input-group">
+                <input type="text" ng-model="job.directory" readonly class="form-control">
+                <span class="input-group-addon"><span ng-click="openDirChooser()" style="cursor: pointer;" class="glyphicon glyphicon-list-alt"></span></span>
+            </div>
+        </div>
+    </div>
+
+    <p ng-show="job.id!='new'"  style="margin-top: 21px;">
+        <a ng-click="showAdvanced=!showAdvanced;" style="cursor: pointer;"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': !showAdvanced, 'glyphicon-chevron-down': showAdvanced}"></span> Advanced Parameters</a>
+    </p>
+
+    <div ng-show="showAdvanced" style="margin-top: 20px;">
+        <ng-include src="'advanced.html'" onload="job = job"/>
+    </div>
+</div>
+<div class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
+    <a href="#" class="btn" ng-show="job.id!='new'">Cancel</a>
+    <a ng-click="save('step2')" class="btn btn-info pull-right" ng-disabled="!job.remote_folder && !(job.workspace || job.repoObject)">Next</a>
+</div>
+

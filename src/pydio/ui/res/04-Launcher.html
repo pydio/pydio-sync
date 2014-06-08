@@ -1,0 +1,55 @@
+<script type="text/ng-template" id="task_detail.html">
+    <p>SYNC NAME</p>
+    <p class="small">{{job.label}}</p>
+
+    <p>DATA SIZE</p>
+    <p class="small">1,2Go</p>
+
+    <p>ESTIMATED SIZE</p>
+    <p class="small">1h42mn</p>
+</script>
+
+        <div ng-show="!task">
+            <h3>Ready for ignition!</h3>
+            <div style="text-align: center" class="well">
+
+                Are you ready to launch the synchronization? You're data will be in orbit in no time!<br>
+
+                <img src="images/rocket.png"/>
+
+                <ng-include src="'task_detail.html'"
+                            onload="job=job"
+                        ></ng-include>
+
+                <a class="btn btn-primary" ng-click="save('step4')">FIRE THE ROCKET!</a>
+                <br>
+                <br>
+                [<a>change parameters</a>]
+
+            </div>
+        </div>
+
+        <div ng-show="task">
+            <h3>Synchronization running...</h3>
+            <div style="text-align: center" class="well">
+
+                <img src="images/rocket.png">
+
+                <div class="progress progress-striped active" style="width: 70%;margin: 20px auto;">
+                    <div class="progress-bar" role="progressbar" aria-valuenow="{{task.progress | number:0}}" aria-valuemin="0" aria-valuemax="100" style="width: {{task.progress | number:0}}%;"></div>
+                </div>
+
+                <h1 style="text-align: center;">{{task.progress | number:0}}%</h1>
+
+                <ng-include src="'task_detail.html'"
+                            onload="job=job"/>
+
+            </div>
+
+            <!-- NAV BAR -->
+            <div class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
+                <a class="btn btn-info pull-left" href="#/new">CREATE NEW SYNCHRO</a>
+                <a class="btn btn-info pull-right" href="#">DONE</a>
+            </div>
+
+        </div>

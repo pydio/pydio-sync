@@ -91,7 +91,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
             })
             .when('/edit/:jobId/full', {
                 controller:'EditCtrl',
-                templateUrl:'03-Workspace.html'
+                templateUrl:'02-Workspace.html'
             })
             .when('/edit/:jobId/step1', {
                 controller:'EditCtrl',
@@ -99,11 +99,15 @@ angular.module('project', ['ngRoute', 'ngResource'])
             })
             .when('/edit/:jobId/step2', {
                 controller:'EditCtrl',
-                templateUrl:'02-Credentials.html'
+                templateUrl:'02-Workspace.html'
             })
             .when('/edit/:jobId/step3', {
                 controller:'EditCtrl',
-                templateUrl:'03-Workspace.html'
+                templateUrl:'03-Advanced.html'
+            })
+            .when('/edit/:jobId/step4', {
+                controller:'EditCtrl',
+                templateUrl:'04-Launcher.html'
             })
             .when('/new', {
                 controller:'CreateCtrl',
@@ -212,15 +216,53 @@ angular.module('project', ['ngRoute', 'ngResource'])
         };
     })
 
-    .controller('CreateCtrl', function($scope, $location, $timeout, Jobs, currentJob) {
+    .controller('CreateCtrl', function($scope, $location, $timeout, Jobs, Ws, currentJob) {
         var job = new Jobs();
+        $scope.inline_protocol='https://';
+        $scope.inline_host='';
         job.id = 'new';
         job.remote_folder = '/';
+        job.user_directory = 'C:/path/to/My Documents';
         job.directory = '';
         job.workspace = '';
+        job.direction = 'bi';
+        job.label = 'New Job';
         job.__type__ = 'JobConfig'
         $scope.job = job;
         currentJob.setJob($scope.job);
+        $scope.next = function(){
+            $scope.loading = true;
+            $scope.loadWorkspaces();
+        }
+
+        $scope.loadWorkspaces = function(){
+            if($scope.job.id == 'new' && !$scope.job.password) {
+                return;
+            }
+            Ws.get({
+                job_id:'request',
+                url:$scope.job.server,
+                user:$scope.job.user,
+                password:$scope.job.password
+            }, function(response){
+                job.repositories = response.repositories.repo;
+                angular.forEach($scope.repositories, function(r){
+                    if(r['@repositorySlug'] == $scope.job.workspace){
+                        $scope.job.repoObject = r;
+                    }
+                });
+                $scope.loading = false;
+                $location.path('/edit/new/step2');
+            }, function(resp){
+                if(resp.data && resp.data.message){
+                    $scope.error = resp.data.message;
+                } else if(resp.statusText){
+                    $scope.error = resp.status;
+                }
+                $scope.loading = false;
+            });
+        };
+
     })
 
     .controller('EditCtrl', function($scope, $location, $routeParams, Jobs, currentJob, Ws, Folders) {
@@ -261,6 +303,11 @@ angular.module('project', ['ngRoute', 'ngResource'])
                     }
                 });
                 $scope.loadFolders();
+            }, function(resp){
+                if(resp[0] && resp[0].error){
+                    $scope.folders_loading_error = resp[0].error;
+                }
+                $scope.folders_loading = false;
             });
         };
 
@@ -289,20 +336,41 @@ angular.module('project', ['ngRoute', 'ngResource'])
             }));
         }else{
             $scope.job = currentJob.getJob();
-            if($scope.job.id == 'new') {
+            if(!$scope.job.repositories) {
                 $scope.loadWorkspaces();
             }
+            $scope.repositories = $scope.job.repositories
         }
 
-        $scope.save = function() {
+        $scope.save = function(stepName) {
             if($scope.job.repoObject){
                 $scope.job.workspace = $scope.job.repoObject['@repositorySlug'];
             }
-            if($scope.job.id == 'new') {
-                delete $scope.job.id;
-                $scope.job.$save(function(resp){
-                    $location.path('/logs/'+resp.id);
-                });
+            var basename = function(path){
+                return path.split(/[\\/]/).pop();
+            };
+            if($scope.job.id == 'new' && stepName && stepName == 'step2') {
+                var label;
+                if($scope.job.remote_folder){
+                    label = basename($scope.job.remote_folder);
+                }else{
+                    label = $scope.job.repoObject['@display'];
+                }
+                $scope.job.label = label;
+                if(!$scope.job.directory){
+                    $scope.job.directory = $scope.job.user_directory + '/Pydio/' + label;
+                }
+                $scope.job.directory_label = '.../' + basename($scope.job.user_directory) + '/Pydio/' + label;
+
+                $location.path('/edit/new/step3');
+            }else if(stepName == 'step3'){
+                $location.path('/edit/new/step4');
+            }else if(stepName == 'step4'){
+
+                $scope.task = {
+                    progress:56
+                };
+
             }else{
                 $scope.job.$save();
                 $location.path('/');

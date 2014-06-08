@@ -1,0 +1,20 @@
+<div ng-class="{'list-group-item-success':job.remote_folder == data['@filename']}" style="padding: 5px;border-radius: 3px;">
+        <span style="cursor: pointer;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]"  ng-class="{'glyphicon-folder-open': !pathes[data['@filename']] && data.tree, 'glyphicon-folder-close': pathes[data['@filename']] || !data.tree }"
+              class="glyphicon"></span>&nbsp;&nbsp;
+    <span style="cursor: pointer;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]" ng-bind="data['@text']"></span>
+    <span style="cursor: pointer; float: right;" ng-click="job.remote_folder=data['@filename']" ng-class="{'glyphicon-unchecked':job.remote_folder != data['@filename'],'glyphicon-ok':job.remote_folder == data['@filename']}" class="glyphicon"> </span>
+</div>
+<!-- Want to loose the div in the repeat as well -->
+<div ng-hide="pathes[data['@filename']]" style="padding-left:25px;">
+    <ng-include
+            ng-if="data.tree && data.tree.length > 0"
+            onload="data = child"
+            ng-repeat="child in data.tree"
+            src="'tree_node.html'"/>
+</div>
+<div ng-hide="pathes[data['@filename']]" style="padding-left:25px;">
+    <ng-include
+            ng-if="data.tree && data.tree['@text']"
+            onload="data = data.tree"
+            src="'tree_node.html'"/>
+</div>

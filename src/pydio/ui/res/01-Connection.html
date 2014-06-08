@@ -1,17 +1,49 @@
-<h1>1. Configure Connection</h1>
-<p class="lead">Connect to the server with the same URL as the one you would use to access through a web browser, e.g. http://mydomain.com/pydio</p>
+<div class="well" ng-show="panel_tips" style="position: absolute;top: 60px;right: 20px;left: 20px;bottom: 50px;z-index: 100;box-shadow: 2px 2px 15px rgba(0,0,0,0.25);" >
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true" ng-click="panel_tips=false">&times;</button>
+    How can I find my server URL ?
+    Explaining image here
+</div>
+<div ng-show="loading" style="position: absolute;top: 0;right: 0;left: 0;bottom: 0;z-index: 1300; background-color: #ededed; padding: 45% 0; text-align: center;" >
+    <img src="images/pydio.png">
+    <br>Connecting ...
+</div>
+<h3>1/3 Configure Connection</h3>
+<div class="alert alert-danger" ng-show="error">
+    Error while trying to connect to {{job.server}}: <br>
+    Error was : {{error}}<br>
+    Are you sure you entered the correct URL and login / password?
+</div>
 <div class="well">
+    <div class="small" style="margin-bottom: 1.5em;">Connect to the server with the same URL as the one you would use to access through a web browser, e.g. http://mydomain.com/pydio</div>
     <form name="myForm" class="form-inline">
-    <div class="form-group">
-        <label>Server URL</label>
-        <input style="width:300px;" type="url" name="site" ng-model="job.server" class="form-control" placeholder="http:// .... " required>
-        <span ng-show="myForm.site.$error.required && !myForm.site.$pristine" class="help-inline">Required</span>
-        <span ng-show="myForm.site.$error.url" class="help-inline">Not a URL</span>
-    </div>
-
+        <div class="form-group">
+            <input ng-change="job.server = inline_protocol + inline_host" type="radio" value="http://" ng-model="inline_protocol" name="protocol" id="protocol_http"><label for="protocol_http">http://</label>
+            <input ng-change="job.server = inline_protocol + inline_host" style="margin-left: 20px;" type="radio" value="https://" ng-model="inline_protocol" name="protocol" id="protocol_https" checked="true"><label for="protocol_https">https://</label>
+        </div>
+        <div class="form-group">
+            <div class="input-group">
+                <span class="input-group-addon" style="min-width: 70px;">{{inline_protocol}}</span>
+                <input autofocus="true" ng-change="job.server = inline_protocol + inline_host; error=false" type="text" name="site" ng-model="inline_host" class="form-control" placeholder="Server URL" required>
+                <span ng-show="myForm.site.$error.required && !myForm.site.$pristine" class="help-inline">Required</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <input type="text" name="user" ng-model="job.user" class="form-control" placeholder="Login" required>
+            <span ng-show="myForm.user.$error.required && !myForm.user.$pristine" class="help-inline">Required</span>
+        </div>
+        <div class="form-group">
+            <input type="password" name="pwd" ng-model="job.password" class="form-control" placeholder="Password" required>
+            <span ng-show="myForm.pwd.$error.required && !myForm.pwd.$pristine" class="help-inline">Required</span>
+        </div>
     </form>
 </div>
-<div class="pull-right">
-    <a href="#/" class="btn previous">Cancel</a>
-    <a href="#/edit/{{job.id}}/step2" class="btn btn-primary next" ng-disabled="myForm.$invalid">&gt;&gt;</a>
+    <div>
+        Tips: <a href="" ng-click="panel_tips=true" tabindex="8">where can I find the server URL ?</a>
+    </div>
+
+<div class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
+    <div class="pull-right">
+        <a href="#/" class="btn previous" tabindex="7">Cancel</a>
+        <a href="" ng-click="next()" class="btn btn-info" tabindex="0" ng-disabled="myForm.$invalid">Next</a>
+    </div>
 </div>
