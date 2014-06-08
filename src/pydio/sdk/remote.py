@@ -18,45 +18,39 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 import logging
-import sys
-
-import requests
 import urllib
 import json
 import os
-import keyring
-from keyring.errors import PasswordSetError
 import hmac
-import hashlib
-import stat
 import time
 import random
 import unicodedata
 import platform
-
 from hashlib import sha256
 from hashlib import sha1
 from urlparse import urlparse
 
-from exceptions import SystemSdkException, PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException
-from pydio.utils.functions import hashfile
-from .utils import upload_file_with_progress
-
+import requests
+import keyring
+from keyring.errors import PasswordSetError
 from pydispatch import dispatcher
+
+from exceptions import PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException
+from .utils import upload_file_with_progress
 from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
 # -*- coding: utf-8 -*-
 
 PYDIO_SDK_MAX_UPLOAD_PIECES = 60 * 1024 * 1024
 
-class PydioSdk():
 
+class PydioSdk():
     def __init__(self, url='', ws_id='', remote_folder='', user_id='', auth=()):
         self.ws_id = ws_id
         self.base_url = url.rstrip('/') + '/api/'
-        self.url = url.rstrip('/') +'/api/'+ws_id
+        self.url = url.rstrip('/') + '/api/' + ws_id
         self.remote_folder = remote_folder
         self.user_id = user_id
-        self.upload_max_size=PYDIO_SDK_MAX_UPLOAD_PIECES
+        self.upload_max_size = PYDIO_SDK_MAX_UPLOAD_PIECES
         if user_id:
             self.auth = (user_id, keyring.get_password(url, user_id))
         else:
@@ -121,13 +115,14 @@ class PydioSdk():
         except ValueError as v:
             return false
         try:
-            keyring.set_password(self.url, self.user_id +'-token' , tokens['t']+':'+tokens['p'])
+            keyring.set_password(self.url, self.user_id + '-token', tokens['t'] + ':' + tokens['p'])
         except PasswordSetError:
             logging.error("Cannot store tokens in keychain, basic auth will be performed each time!")
         return tokens
 
 
-    def perform_with_tokens(self, token, private, url, type='get', data=None, files=None, stream=False, with_progress=False):
+    def perform_with_tokens(self, token, private, url, type='get', data=None, files=None, stream=False,
+                            with_progress=False):
         """
         :param token: str the token.
         :param private: str private key associated to token
@@ -139,9 +134,9 @@ class PydioSdk():
         :param with_progress: dict an object that can be updated with various progress data
         :return: Http response
         """
-        nonce =  sha1(str(random.random())).hexdigest()
+        nonce = sha1(str(random.random())).hexdigest()
         uri = urlparse(url).path.rstrip('/')
-        msg = uri+ ':' + nonce + ':'+private
+        msg = uri + ':' + nonce + ':' + private
         the_hash = hmac.new(str(token), str(msg), sha256);
         auth_hash = nonce + ':' + the_hash.hexdigest()
 
@@ -156,7 +151,7 @@ class PydioSdk():
             if not data:
                 data = {}
             data['auth_token'] = token
-            data['auth_hash']  = auth_hash
+            data['auth_hash'] = auth_hash
             if files:
                 resp = upload_file_with_progress(url, dict(**data), files, stream, with_progress,
                                                  max_size=self.upload_max_size)
@@ -185,7 +180,7 @@ class PydioSdk():
         :param with_progress: dict an object that can be updated with various progress data
         :return:
         """
-        tokens = keyring.get_password(self.url, self.user_id +'-token')
+        tokens = keyring.get_password(self.url, self.user_id + '-token')
         if not tokens:
             tokens = self.basic_authenticate()
             return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files, stream)
@@ -226,7 +221,7 @@ class PydioSdk():
         """
         url = self.url + '/changes/' + str(last_seq) + '/?stream=true'
         if self.remote_folder:
-            url += '?filter=' + self.remote_folder
+            url += '&filter=' + self.remote_folder
         resp = self.perform_request(url=url, stream=True)
         for line in resp.iter_lines(chunk_size=512):
             if line:
@@ -297,8 +292,9 @@ class PydioSdk():
         action = '/stat_hash' if with_hash else '/stat'
         data = dict()
         maxlen = min(len(pathes), 200)
-        clean_pathes = map(lambda t: self.remote_folder + t.replace('\\', '/'), filter(lambda x: x !='', pathes[:maxlen]))
-        data['nodes[]'] = map(lambda p:self.normalize(p), clean_pathes)
+        clean_pathes = map(lambda t: self.remote_folder + t.replace('\\', '/'),
+                           filter(lambda x: x != '', pathes[:maxlen]))
+        data['nodes[]'] = map(lambda p: self.normalize(p), clean_pathes)
         url = self.url + action + self.urlencode_normalized(clean_pathes[0])
         resp = self.perform_request(url, type='post', data=data)
         try:
@@ -319,17 +315,26 @@ class PydioSdk():
         for (p, stat) in data.items():
             if self.remote_folder:
                 p = p[len(self.remote_folder):]
-            #replaced[os.path.normpath(p)] = stat
+                #replaced[os.path.normpath(p)] = stat
             p1 = os.path.normpath(p)
             p2 = os.path.normpath(self.normalize_reverse(p))
+            p3 = p
+            p4 = self.normalize_reverse(p)
             if p2 in pathes:
                 replaced[p2] = stat
                 pathes.remove(p2)
             elif p1 in pathes:
                 replaced[p1] = stat
                 pathes.remove(p1)
+            elif p3 in pathes:
+                replaced[p3] = stat
+                pathes.remove(p3)
+            elif p4 in pathes:
+                replaced[p4] = stat
+                pathes.remove(p4)
             else:
-                raise PydioSdkException('bulk_stat', p1, 'Encoding problem, failed emptying bulk_stat, exiting instead of infinite loop')
+                raise PydioSdkException('bulk_stat', p1, "Encoding problem, failed emptying bulk_stat, "
+                                                         "exiting instead of infinite loop")
         if len(pathes):
             self.bulk_stat(pathes, result=replaced, with_hash=with_hash)
         return replaced
@@ -363,12 +368,13 @@ class PydioSdk():
         """
         if os.path.dirname(source) == os.path.dirname(target):
             url = self.url + '/rename'
-            data = dict(file=(self.remote_folder + source).encode('utf-8'), dest=(self.remote_folder + target).encode('utf-8'))
+            data = dict(file=(self.remote_folder + source).encode('utf-8'),
+                        dest=(self.remote_folder + target).encode('utf-8'))
         else:
             url = self.url + '/move'
             data = dict(
-                file= (self.normalize(self.remote_folder + source)).encode('utf-8'),
-                dest= os.path.dirname((self.normalize(self.remote_folder + target).encode('utf-8'))))
+                file=(self.normalize(self.remote_folder + source)).encode('utf-8'),
+                dest=os.path.dirname((self.normalize(self.remote_folder + target).encode('utf-8'))))
         resp = self.perform_request(url=url, type='post', data=data)
         return resp.content
 
@@ -409,7 +415,7 @@ class PydioSdk():
                         else:
                             for prop in properties:
                                 server_data[prop['@name']] = prop['$']
-        except KeyError,ValueError:
+        except KeyError, ValueError:
             pass
         return server_data
 
@@ -439,11 +445,10 @@ class PydioSdk():
             if not folder:
                 self.mkdir(os.path.dirname(path))
         url = self.url + '/upload/put' + self.urlencode_normalized((self.remote_folder + os.path.dirname(path)))
-        #files = {'userfile_0': ('my-name',open(local, 'rb').read())}
-        files = {'userfile_0': local} #{'userfile_0': ('name', '%%--PYDIO__FILEBODY__DATA--%%')}
+        files = {'userfile_0': local}
         data = {
-            'force_post':'true',
-            'urlencoded_filename':self.urlencode_normalized(os.path.basename(path))
+            'force_post': 'true',
+            'urlencoded_filename': self.urlencode_normalized(os.path.basename(path))
         }
         if max_upload_size > 0 and local_stat['size'] >= max_upload_size:
             # Upload Chunked
@@ -486,11 +491,11 @@ class PydioSdk():
                         fd.write(chunk)
                         done = int(50 * dl / int(total_length))
                         if done != previous_done:
-                            transfer_rate = dl//(time.clock() - start)
-                            logging.debug("\r[%s%s] %s bps" % ('=' * done, ' ' * (50-done), transfer_rate))
+                            transfer_rate = dl // (time.clock() - start)
+                            logging.debug("\r[%s%s] %s bps" % ('=' * done, ' ' * (50 - done), transfer_rate))
                             dispatcher.send(signal=TRANSFER_RATE_SIGNAL, send=self, transfer_rate=transfer_rate)
                             if callback_dict:
-                                callback_dict['progress'] = float( float(dl) / float(total_length) * 100)
+                                callback_dict['progress'] = float(float(dl) / float(total_length) * 100)
                                 callback_dict['remaining_bytes'] = int(total_length) - dl
                                 callback_dict['transfer_rate'] = transfer_rate
                                 dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, send=self, change=callback_dict)
@@ -504,9 +509,10 @@ class PydioSdk():
                     os.unlink(local_tmp)
                     raise PydioSdkException('download', path, 'File not correct after download')
                 else:
+                    os.unlink(local)
                     os.rename(local_tmp, local)
             return True
         except Exception as e:
-            if(os.path.exists(local_tmp)):
+            if os.path.exists(local_tmp):
                 os.unlink(local_tmp)
-            raise PydioSdkException('download', path, 'Error opening local file for writing')
+            raise PydioSdkException('download', path, 'Error while downloading file: %s' % e.message)
