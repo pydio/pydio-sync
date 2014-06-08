@@ -46,22 +46,69 @@
     </div>
 
 </script>
+<script id="job_2.html" type="text/ng-template">
+    <div class="well" style="clear: both;padding: 10px;">
+        <table style="width: 100%;">
+            <tr>
+                <td style="width:90px;">
+                    <img src="images/rocket.png" width="80"/>
+                </td>
+                <td style="vertical-align: top;padding-top: 10px;">
+                    <p style="margin-bottom: 2px;">SYNC {{job.label?job.label:job.id}} <a href="#/edit/{{job.id}}/step2" title="Edit parameters"><span style="opacity: 0.5;" class="small glyphicon glyphicon-info-sign"></span></a></p>
+                    <div class="small" ng-if="job.state.tasks && job.state.tasks.length">
+                        Size : {{job.state.global['queue_bytesize'] | bytes:1}} -
+                        Estimated time : {{job.state.global['eta'] | seconds}}s<br>
+                        <div class="progress progress-striped active">
+                            <div class="progress-bar" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 20%;"></div>
+                        </div>
+                    </div>
+                    <div class="small" ng-if="!job.state.tasks || !job.state.tasks.length">
+                        Last synchronization on May, 30th at 8p.m.
+                        5 files modified
+                    </div>
+                </td>
+                <td style="width:100px; font-size: 2em; text-align: right;padding-right: 5px;">
+                    <a href ng-click="applyCmd(job.active?'pause':'resume', job.id)">
+                        <span class="glyphicon" ng-class="{'glyphicon-pause':job.active,'glyphicon-play':!job.active}"
+                              style="color: white; display: inline-block; padding:5px; border-radius: 200px; background-color: #0079a1"></span>
+                    </a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div style="text-align: center;
+                background-color: #fafafa;
+                width: 21px;
+                border-radius: 200px;
+                padding: 5px;
+                height: 21px;
+                font-size: 0.7em;
+                margin: 0 auto;
+                margin-top: -32px;
+                margin-bottom: 11px;
+                border-bottom: 1px solid #ddd;
+                color: #555;">
+        <a title="See logs" href="#/logs/{{job.id}}"><span class="glyphicon glyphicon-chevron-down"></span></a>
+    </div>
+</script>
 
-<p style="margin-top: 10px;" class="lead">You have {{(jobs|filter:{active:true}).length}} jobs running. <a class="btn"><span class="glyphicon glyphicon-pause"></span> Pause all</a>
-</p>
+<!--
+<p style="margin-top: 10px;" class="lead">You have {{(jobs|filter:{active:true}).length}} jobs running. <a class="btn"><span class="glyphicon glyphicon-pause"></span> Pause all</a></p>
+-->
 <div class="alert alert-danger alert-dismissable" ng-if="error">{{error}}</div>
-
+<div style="margin-top: 15px;"></div>
 <ng-include
         onload="job = job_d"
         ng-repeat="job_d in jobs | filter:{active:true} | orderBy:'workspace'"
-        src="'job.html'"></ng-include>
-
-<h1>Disabled Jobs</h1>
-<p class="lead">Not launched</p>
-
+        src="'job_2.html'"></ng-include>
 <ng-include
         onload="job = job_desc"
         ng-repeat="job_desc in jobs | filter:{active:false} | orderBy:'workspace'"
-        src="'job.html'"></ng-include>
+        src="'job_2.html'"></ng-include>
 
-
+<div class="well" style="text-align: center; padding: 35px;">
+    <a href="#/new">
+        <span class="glyphicon glyphicon-plus" style="color: white; display: inline-block; padding:5px; border-radius: 200px; background-color: #0079a1"></span>
+        Create a new synchronization
+    </a>
+</div>

@@ -204,6 +204,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
             $timeout.cancel(tO);
             $timeout.cancel(t1);
         });
+        $scope.title = $routeParams.jobId;
         $scope.job = Jobs.get({job_id:$routeParams.jobId});
         $scope.job_id = $routeParams.jobId;
         $scope.solveConflict = function(nodeId, status){

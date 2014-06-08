@@ -1,31 +1,4 @@
-<div style="float: right;margin-top: 7px;"><a href="#" class="btn btn-info">Back</a></div>
-<h1>Job Summary</h1>
-
-<div style="padding: 20px 40px;margin: 40px 0;" class="well">
-    <table style="width:100%; text-align:center;color:slategray">
-        <tr>
-            <td style="width:40%;font-size: 16px;font-weight: 200;letter-spacing: 1px;">
-                <span class="glyphicon glyphicon-cloud" style="font-size: 150px;color: slategray;"></span><br>
-                Server <a href="{{job.server}}" target="_blank">{{job.server}}</a> on workspace <em>{{job.workspace}}</em><span ng-if="job.remote_folder!=''"> (folder <em>{{job.remote_folder}}</em>)</span>, logged as <em>{{job.user}}</em>
-            </td>
-            <td><small>
-                <span ng-if="job.direction=='bi'">Bidirectional Sync</span>
-                <span ng-if="job.direction=='down'">Download only (mirror)</span>
-                <span ng-if="job.direction=='up'">Upload only (backup)</span>
-                <br/><span class="glyphicon glyphicon-transfer" style="font-size: 130px;color: white;"></span>
-            </small>
-            </td>
-            <td style="width:40%;word-break: break-all;font-size: 16px;font-weight: 200;letter-spacing: 1px;">
-                <span class="glyphicon glyphicon-hdd" style="font-size: 110px;color: slategrey;"></span><br><br>
-                Local folder <em>{{job.directory}}</em> on your computer
-            </td>
-        </tr>
-    </table>
-</div>
-
-
-
-<h1>Pending tasks</h1>
+<h4>Pending tasks</h4>
 <div class="alert alert-danger alert-dismissable" ng-if="error">{{error}}</div>
 <p ng-if="!running.tasks.length" class="lead">Nothing to do</p>
 <p ng-if="running.tasks.length" class="lead">Currently processing {{running.tasks.length}} tasks ({{running.global|number:0}}% completed)</p>
@@ -60,7 +33,7 @@
 
 
 <div ng-if="conflicts">
-    <h1>Conflicts</h1>
+    <h4>Conflicts</h4>
     <p class="lead">There are some conflicts, synchro is currently stopped</p>
     <table class="table">
         <thead>
@@ -84,7 +57,7 @@
     </table>
 </div>
 
-<h1>Logs</h1>
+<h4>Logs</h4>
 <p class="lead">Previous operations</p>
 <table class="table">
     <thead>
