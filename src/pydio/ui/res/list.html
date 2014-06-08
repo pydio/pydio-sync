@@ -68,8 +68,8 @@
                     </div>
                 </td>
                 <td style="width:100px; font-size: 2em; text-align: right;padding-right: 5px;">
-                    <a href ng-click="applyCmd(job.active?'pause':'resume', job.id)">
-                        <span class="glyphicon" ng-class="{'glyphicon-pause':job.active,'glyphicon-play':!job.active}"
+                    <a href ng-click="job.active?applyCmd(job.running?'pause':'resume', job.id):toggleJobActive(job.id)">
+                        <span class="glyphicon" ng-class="{'glyphicon-pause':job.active && job.running,'glyphicon-play':!job.active || !job.running}"
                               style="color: white; display: inline-block; padding:5px; border-radius: 200px; background-color: #0079a1"></span>
                     </a>
                 </td>
