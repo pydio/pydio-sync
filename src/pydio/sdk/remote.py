@@ -509,7 +509,8 @@ class PydioSdk():
                     os.unlink(local_tmp)
                     raise PydioSdkException('download', path, 'File not correct after download')
                 else:
-                    os.unlink(local)
+                    if platform.system().startswith('win') and os.path.exists(local):
+                        os.unlink(local)
                     os.rename(local_tmp, local)
             return True
         except Exception as e:

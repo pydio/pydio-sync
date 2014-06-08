@@ -123,6 +123,7 @@ class JobConfig:
         test_id = urlparse.urlparse(self.server).hostname + '-' + self.workspace + '-' + str(i)
         while JobsLoader.Instance().contains_job(test_id):
             test_id.replace(str(i), str(i + 1))
+            i += 1
         self.id = test_id
 
     @staticmethod
