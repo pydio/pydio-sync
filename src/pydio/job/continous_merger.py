@@ -159,7 +159,7 @@ class ContinuousDiffMerger(threading.Thread):
         Get a list of the current tasks
         :return: list()
         """
-        if self.current_store == None:
+        if not hasattr(self, 'current_store'):
             return []
         list = self.current_store.list_changes(cursor, limit, other_thread=True)
         for change in list:
@@ -227,6 +227,8 @@ class ContinuousDiffMerger(threading.Thread):
         Sum all the bytesize of the nodes that are planned to be uploaded/downloaded in the queue.
         :return:float
         """
+        if not hasattr(self, 'current_store'):
+            return 0
         total = 0
         exclude_pathes = []
         for task in self.processing_signals:
