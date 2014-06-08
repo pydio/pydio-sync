@@ -113,7 +113,7 @@ class PydioSdk():
         try:
             tokens = json.loads(resp.content)
         except ValueError as v:
-            return false
+            return False
         try:
             keyring.set_password(self.url, self.user_id + '-token', tokens['t'] + ':' + tokens['p'])
         except PasswordSetError:

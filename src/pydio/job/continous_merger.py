@@ -396,12 +396,12 @@ class ContinuousDiffMerger(threading.Thread):
 
     @staticmethod
     def compute_remote_data_size(pydio_sdk, seq_id=0):
-        total = 0.0
+        total = [0.0]
         def callback(change):
             if "node" in change and change["node"]["md5"] != "directory" and change["node"]["bytesize"]:
-                total += float(change["node"]["bytesize"])
+                total[0] += float(change["node"]["bytesize"])
         pydio_sdk.changes_stream(seq_id, callback)
-        return total
+        return total[0]
 
     @staticmethod
     def compute_local_data_size(local_data_path):

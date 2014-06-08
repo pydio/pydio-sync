@@ -1,5 +1,5 @@
 #
-#  Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
+# Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 #  This file is part of Pydio.
 #
 #  Pydio is free software: you can redistribute it and/or modify
@@ -26,9 +26,9 @@ import os
 import logging
 from pydio.utils.functions import Singleton
 
+
 @Singleton
 class JobsLoader():
-
     config_file = ''
     jobs = None
     data_path = None
@@ -99,7 +99,6 @@ class JobsLoader():
             os.rmdir(job_data_path)
 
 
-
 class JobConfig:
 
     def __init__(self):
@@ -123,20 +122,21 @@ class JobConfig:
         i = 1
         test_id = urlparse.urlparse(self.server).hostname + '-' + self.workspace + '-' + str(i)
         while JobsLoader.Instance().contains_job(test_id):
-            test_id.replace(str(i), str(i+1))
+            test_id.replace(str(i), str(i + 1))
         self.id = test_id
 
+    @staticmethod
     def encoder(obj):
         if isinstance(obj, JobConfig):
-            return {"__type__"      : 'JobConfig',
-                    "server"        : obj.server,
-                    "id"            : obj.id,
-                    "workspace"     : obj.workspace,
-                    "directory"     : obj.directory,
-                    "remote_folder" : obj.remote_folder,
-                    "user"          : obj.user_id,
-                    "direction"     : obj.direction,
-                    "active"        : obj.active}
+            return {"__type__": 'JobConfig',
+                    "server": obj.server,
+                    "id": obj.id,
+                    "workspace": obj.workspace,
+                    "directory": obj.directory,
+                    "remote_folder": obj.remote_folder,
+                    "user": obj.user_id,
+                    "direction": obj.direction,
+                    "active": obj.active}
         raise TypeError(repr(JobConfig) + " can't be encoded")
 
     def load_from_cliargs(self, args):
@@ -173,7 +173,8 @@ class JobConfig:
                 try:
                     keyring.set_password(job_config.server, job_config.user_id, obj['password'])
                 except keyring.errors.PasswordSetError as e:
-                    logging.error("Error while storing password in keychain, should we store it cyphered in the config?")
+                    logging.error(
+                        "Error while storing password in keychain, should we store it cyphered in the config?")
             if 'filters' in obj:
                 job_config.filters = obj['filters']
             if 'direction' in obj and obj['direction'] in ['up', 'down', 'bi']:

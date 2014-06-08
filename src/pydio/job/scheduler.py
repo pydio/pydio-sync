@@ -1,6 +1,6 @@
 #
-#  Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
-#  This file is part of Pydio.
+# Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
+# This file is part of Pydio.
 #
 #  Pydio is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU Affero General Public License as published by
@@ -17,16 +17,17 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
-from pydio.job.continous_merger import ContinuousDiffMerger
+import logging
+
 from pydispatch import dispatcher
-from pydio import PUBLISH_SIGNAL, COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
-import logging, json
-from pydio.job.job_config import JobsLoader
+
+from pydio.job.continous_merger import ContinuousDiffMerger
+from pydio import COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
 from pydio.utils.functions import Singleton
+
 
 @Singleton
 class PydioScheduler():
-
     def __init__(self, jobs_root_path, jobs_loader):
         self.control_threads = {}
         self.jobs_loader = jobs_loader
@@ -34,7 +35,6 @@ class PydioScheduler():
         self.jobs_root_path = jobs_root_path
         dispatcher.connect(self.handle_job_signal, signal=JOB_COMMAND_SIGNAL, sender=dispatcher.Any)
         dispatcher.connect(self.handle_generic_signal, signal=COMMAND_SIGNAL, sender=dispatcher.Any)
-
 
     def start_all(self):
         for job_id in self.job_configs:
@@ -48,10 +48,10 @@ class PydioScheduler():
 
     def start_job(self, job_id):
         config = self.get_config(job_id)
-        if config == False:
+        if not config:
             return
         thread = self.get_thread(job_id)
-        if thread == False:
+        if not thread:
             self.start_from_config(config)
         else:
             thread.start_now()

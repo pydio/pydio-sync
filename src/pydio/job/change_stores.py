@@ -1,8 +1,8 @@
 #
 # Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
-#  This file is part of Pydio.
+# This file is part of Pydio.
 #
-#  Pydio is free software: you can redistribute it and/or modify
+# Pydio is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU Affero General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
@@ -22,9 +22,12 @@ import json
 import os
 import logging
 import fnmatch
+
 from pydio.sdk.exceptions import InterruptException
 
+
 class SqliteChangeStore():
+    conn = None
 
     def __init__(self, filename, includes, excludes):
         self.db = filename
@@ -37,10 +40,13 @@ class SqliteChangeStore():
     def open(self):
         self.conn = sqlite3.connect(self.db)
         self.conn.row_factory = sqlite3.Row
-        cursor = self.conn.cursor()
         if self.create:
-            self.conn.execute("CREATE TABLE ajxp_changes (row_id INTEGER PRIMARY KEY AUTOINCREMENT , seq_id, location TEXT, type TEXT, source TEXT, target TEXT, content INTEGER, md5 TEXT, bytesize INTEGER, data TEXT)")
-            self.conn.execute("CREATE TABLE ajxp_last_buffer ( id INTEGER PRIMARY KEY AUTOINCREMENT, location TEXT, type TEXT, source TEXT, target TEXT )")
+            self.conn.execute(
+                'CREATE TABLE ajxp_changes (row_id INTEGER PRIMARY KEY AUTOINCREMENT , seq_id, location TEXT, '
+                'type TEXT, source TEXT, target TEXT, content INTEGER, md5 TEXT, bytesize INTEGER, data TEXT)')
+            self.conn.execute(
+                "CREATE TABLE ajxp_last_buffer ( id INTEGER PRIMARY KEY AUTOINCREMENT, location TEXT, type TEXT, "
+                "source TEXT, target TEXT )")
             self.conn.execute("CREATE INDEX changes_seq_id ON ajxp_changes (seq_id)")
             self.conn.execute("CREATE INDEX changes_location ON ajxp_changes (location)")
             self.conn.execute("CREATE INDEX changes_type ON ajxp_changes (type)")
@@ -132,12 +138,14 @@ class SqliteChangeStore():
               '     WHERE (type="delete" OR type="path") ' \
               '     AND md5="directory" ' \
               '     AND EXISTS( ' \
-              '         SELECT * FROM ajxp_changes t2 WHERE t2.type=t1.type AND t2.location=t1.location AND t2.source LIKE t1.source || "/%" )'
+              '         SELECT * FROM ajxp_changes t2 WHERE t2.type=t1.type AND t2.location=t1.location ' \
+              '                 AND t2.source LIKE t1.source || "/%" )'
         c = self.conn.cursor()
         res = c.execute(sql)
         for row in res:
             r = self.sqlite_row_to_dict(row)
-            res = self.conn.execute("DELETE FROM ajxp_changes WHERE location=? AND type=? AND source LIKE ?", (row['location'],row['type'], row['source']+"/%"))
+            res = self.conn.execute("DELETE FROM ajxp_changes WHERE location=? AND type=? AND source LIKE ?",
+                                    (row['location'], row['type'], row['source'] + "/%"))
             logging.info('Pruning %i rows', res.rowcount)
         self.conn.commit()
 
@@ -192,7 +200,7 @@ class SqliteChangeStore():
 
 
     def detect_unnecessary_changes(self, local_sdk, remote_sdk):
-        self.local_sdk  = local_sdk
+        self.local_sdk = local_sdk
         self.remote_sdk = remote_sdk
         self.filter_w_stat('local', self.local_sdk, self.remote_sdk)
         self.filter_w_stat('remote', self.remote_sdk, self.local_sdk)
@@ -228,10 +236,12 @@ class SqliteChangeStore():
         def handle_solved(node):
             if node['status'] == 'SOLVED:KEEPREMOTE':
                 # remove local operation
-                self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?', ('local', node['node_path']))
+                self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
+                                  ('local', node['node_path']))
             elif node['status'] == 'SOLVED:KEEPLOCAL':
                 # remove remote operation
-                self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?', ('remote', node['node_path']))
+                self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
+                                  ('remote', node['node_path']))
 
         status_handler.list_solved_nodes_w_callback(handle_solved)
         self.conn.commit()
@@ -256,7 +266,7 @@ class SqliteChangeStore():
         return conflicts
 
     def sqlite_row_to_dict(self, sqlrow, load_node=False):
-        keys = ('row_id','location', 'source', 'target', 'type', 'content','md5', 'bytesize')
+        keys = ('row_id', 'location', 'source', 'target', 'type', 'content', 'md5', 'bytesize')
         change = {}
         for key in keys:
             change[key] = sqlrow[key]
@@ -298,21 +308,22 @@ class SqliteChangeStore():
             test_stat = self.stat_path(item['source'], location=opposite, stats=other_stats)
             if not test_stat:
                 res = True
-        else:#MOVE
+        else:  #MOVE
             source_stat = self.stat_path(item['source'], location=opposite, stats=other_stats)
             target_stat = self.stat_path(item['target'], location=opposite, stats=other_stats, with_hash=True)
             if not target_stat or source_stat:
                 return False
             elif item['md5'] == 'directory':
                 res = True
-            elif target_stat['size'] == item['bytesize'] and 'hash' in target_stat and target_stat['hash'] == item['md5']:
+            elif target_stat['size'] == item['bytesize'] and 'hash' in target_stat and target_stat['hash'] == item[
+                'md5']:
                 res = True
 
         if res:
             if item['type'] != 'delete':
-                logging.info('['+location+'] Filtering out ' + item['type'] + ': ' + item['target'])
+                logging.info('[' + location + '] Filtering out ' + item['type'] + ': ' + item['target'])
             else:
-                logging.info('['+location+'] Filtering out ' + item['type'] + ' ' + item['source'])
+                logging.info('[' + location + '] Filtering out ' + item['type'] + ' ' + item['source'])
             return True
 
         return False
@@ -320,7 +331,8 @@ class SqliteChangeStore():
 
     def buffer_real_operation(self, location, type, source, target):
         location = 'remote' if location == 'local' else 'local'
-        self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (type, location, source, target))
+        self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)",
+                          (type, location, source, target))
         self.conn.commit()
 
 
@@ -348,7 +360,6 @@ class SqliteChangeStore():
             return self.remote_sdk.stat(path, with_hash)
         else:
             return self.local_sdk.stat(path, with_hash=True)
-
 
 
     def get_min_seq(self, location):

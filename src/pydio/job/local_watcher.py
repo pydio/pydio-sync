@@ -1,6 +1,6 @@
 #
-#  Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
-#  This file is part of Pydio.
+# Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
+# This file is part of Pydio.
 #
 #  Pydio is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU Affero General Public License as published by
@@ -17,9 +17,6 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
-
-
-import time
 import threading
 import logging
 import stat
@@ -36,68 +33,65 @@ from pydio.job.localdb import SqlEventHandler, SqlSnapshot
 
 # -*- coding: utf-8 -*-
 class SnapshotDiffStart(DirectorySnapshotDiff):
-
-  def __init__(self, ref_dirsnap, dirsnap):
+    def __init__(self, ref_dirsnap, dirsnap):
+        """
     """
-    """
-    self._files_deleted = list()
-    self._files_modified = list()
-    self._files_created = list()
-    self._files_moved = list()
+        self._files_deleted = list()
+        self._files_modified = list()
+        self._files_created = list()
+        self._files_moved = list()
 
-    self._dirs_modified = list()
-    self._dirs_moved = list()
-    self._dirs_deleted = list()
-    self._dirs_created = list()
+        self._dirs_modified = list()
+        self._dirs_moved = list()
+        self._dirs_deleted = list()
+        self._dirs_created = list()
 
-    # Detect all the modifications.
-    for path, stat_info in dirsnap.stat_snapshot.items():
-      if path in ref_dirsnap.stat_snapshot:
-        ref_stat_info = ref_dirsnap.stat_info(path)
-        if stat_info.st_mtime != ref_stat_info.st_mtime:
-          if stat.S_ISDIR(stat_info.st_mode):
-            self._dirs_modified.append(path)
-          else:
-            self._files_modified.append(path)
+        # Detect all the modifications.
+        for path, stat_info in dirsnap.stat_snapshot.items():
+            if path in ref_dirsnap.stat_snapshot:
+                ref_stat_info = ref_dirsnap.stat_info(path)
+                if stat_info.st_mtime != ref_stat_info.st_mtime:
+                    if stat.S_ISDIR(stat_info.st_mode):
+                        self._dirs_modified.append(path)
+                    else:
+                        self._files_modified.append(path)
 
-    paths_deleted = set(ref_dirsnap.paths) - set(dirsnap.paths)
-    paths_created = set(dirsnap.paths) - set(ref_dirsnap.paths)
+        paths_deleted = set(ref_dirsnap.paths) - set(dirsnap.paths)
+        paths_created = set(dirsnap.paths) - set(ref_dirsnap.paths)
 
-    # Detect all the moves/renames.
-    # Doesn't work on Windows, so exlude on Windows.
-    if not sys.platform.startswith('win'):
-      for created_path in set(paths_created).copy():
-        created_stat_info = dirsnap.stat_info(created_path)
-        for deleted_path in paths_deleted.copy():
-          deleted_stat_info = ref_dirsnap.stat_info(deleted_path)
-          if created_stat_info.st_ino == deleted_stat_info.st_ino:
-            paths_deleted.remove(deleted_path)
-            paths_created.remove(created_path)
-            if stat.S_ISDIR(created_stat_info.st_mode):
-              self._dirs_moved.append((deleted_path, created_path))
+        # Detect all the moves/renames.
+        # Doesn't work on Windows, so exlude on Windows.
+        if not sys.platform.startswith('win'):
+            for created_path in set(paths_created).copy():
+                created_stat_info = dirsnap.stat_info(created_path)
+                for deleted_path in paths_deleted.copy():
+                    deleted_stat_info = ref_dirsnap.stat_info(deleted_path)
+                    if created_stat_info.st_ino == deleted_stat_info.st_ino:
+                        paths_deleted.remove(deleted_path)
+                        paths_created.remove(created_path)
+                        if stat.S_ISDIR(created_stat_info.st_mode):
+                            self._dirs_moved.append((deleted_path, created_path))
+                        else:
+                            self._files_moved.append((deleted_path, created_path))
+
+        # Now that we have renames out of the way, enlist the deleted and
+        # created files/directories.
+        for path in paths_deleted:
+            stat_info = ref_dirsnap.stat_info(path)
+            if stat.S_ISDIR(stat_info.st_mode):
+                self._dirs_deleted.append(path)
             else:
-              self._files_moved.append((deleted_path, created_path))
+                self._files_deleted.append(path)
 
-    # Now that we have renames out of the way, enlist the deleted and
-    # created files/directories.
-    for path in paths_deleted:
-      stat_info = ref_dirsnap.stat_info(path)
-      if stat.S_ISDIR(stat_info.st_mode):
-        self._dirs_deleted.append(path)
-      else:
-        self._files_deleted.append(path)
-
-    for path in paths_created:
-      stat_info = dirsnap.stat_info(path)
-      if stat.S_ISDIR(stat_info.st_mode):
-        self._dirs_created.append(path)
-      else:
-        self._files_created.append(path)
-
+        for path in paths_created:
+            stat_info = dirsnap.stat_info(path)
+            if stat.S_ISDIR(stat_info.st_mode):
+                self._dirs_created.append(path)
+            else:
+                self._files_created.append(path)
 
 
 class LocalWatcher(threading.Thread):
-
     def __init__(self, local_path, includes, excludes, data_path):
         threading.Thread.__init__(self)
         self.basepath = unicode(local_path)
@@ -105,7 +99,8 @@ class LocalWatcher(threading.Thread):
         self.includes = includes
         self.excludes = excludes
 
-        self.event_handler = SqlEventHandler(includes=self.includes, excludes=self.excludes, basepath=self.basepath, job_data_path=data_path)
+        self.event_handler = SqlEventHandler(includes=self.includes, excludes=self.excludes, basepath=self.basepath,
+                                             job_data_path=data_path)
 
         logging.info('Scanning for changes since last application launch')
         if os.path.exists(self.basepath):
@@ -141,7 +136,5 @@ class LocalWatcher(threading.Thread):
         self.observer = Observer()
         self.observer.schedule(self.event_handler, self.basepath, recursive=True)
         self.observer.start()
-        # while True:
-        #     time.sleep(1)
         self.observer.join()
 

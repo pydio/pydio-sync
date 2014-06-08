@@ -1,5 +1,5 @@
 #
-#  Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
+# Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 #  This file is part of Pydio.
 #
 #  Pydio is free software: you can redistribute it and/or modify
@@ -21,7 +21,6 @@
 import logging
 import sys
 import os
-from pydio.job import run_loop
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-7s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logging.getLogger().setLevel(logging.DEBUG)
@@ -38,7 +37,6 @@ logging.debug("PYTHONPATH: %s", "\n\t".join(os.environ.get('PYTHONPATH', "").spl
 import argparse
 import json
 import thread
-import time
 import pydio.monkeypatch
 from pathlib import Path
 
@@ -62,28 +60,29 @@ if __name__ == "__main__":
         logging.debug("Prepending to sys.path: %s" % os.path.dirname(pydio_module))
         sys.path.insert(0, os.path.dirname(pydio_module))
 
-from pydio.job.continous_merger import ContinuousDiffMerger
 from pydio.job.job_config import JobConfig, JobsLoader
 from pydio.test.diagnostics import PydioDiagnostics
 from pydio.utils.config_ports import PortsDetector
 from pydio.ui.web_api import PydioApi
 from pydio.job.scheduler import PydioScheduler
 
-DEFAULT_DATA_PATH   = os.path.join(os.path.expanduser("~"), ".pydio_data")
-#DEFAULT_CONFIG_FILE = os.path.join(os.path.expanduser("~"), "/pydio_data/configs.json")
+DEFAULT_DATA_PATH = os.path.join(os.path.expanduser("~"), ".pydio_data")
+
 
 def main(argv=sys.argv[1:]):
-
     parser = argparse.ArgumentParser('Pydio Synchronization Tool')
-    parser.add_argument('-s', '--server', help='Server URL, with http(s) and path to pydio', type=unicode, default='http://localhost')
+    parser.add_argument('-s', '--server', help='Server URL, with http(s) and path to pydio', type=unicode,
+                        default='http://localhost')
     parser.add_argument('-d', '--directory', help='Local directory', type=unicode, default=None)
     parser.add_argument('-w', '--workspace', help='Id or Alias of workspace to synchronize', type=unicode, default=None)
-    parser.add_argument('-r', '--remote_folder', help='Path to an existing folder of the workspace to synchronize', type=unicode, default=None)
+    parser.add_argument('-r', '--remote_folder', help='Path to an existing folder of the workspace to synchronize',
+                        type=unicode, default=None)
     parser.add_argument('-u', '--user', help='User name', type=unicode, default=None)
     parser.add_argument('-p', '--password', help='Password', type=unicode, default=None)
     parser.add_argument('-dir', '--direction', help='Synchro Direction', type=str, default='bi')
     parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
-    parser.add_argument('-z', '--zmq_port', type=int, help='Available port for zmq, both this port and this port +1 will be used', default=5556)
+    parser.add_argument('-z', '--zmq_port', type=int,
+                        help='Available port for zmq, both this port and this port +1 will be used', default=5556)
     parser.add_argument('--diag', help='Run self diagnostic', action='store_true', default=False)
     parser.add_argument('--diag-http', help='Check server connection', action='store_true', default=False)
     parser.add_argument('--diag-imports', help='Check imports and exit', action='store_true', default=False)
@@ -103,6 +102,7 @@ def main(argv=sys.argv[1:]):
 
     if args.auto_start:
         import pydio.autostart
+
         pydio.autostart.setup(argv)
         return 0
 
@@ -118,7 +118,7 @@ def main(argv=sys.argv[1:]):
     else:
         job_config = JobConfig()
         job_config.load_from_cliargs(args)
-        data = {job_config.id : job_config}
+        data = {job_config.id: job_config}
         if args.save_cfg:
             logging.info("Storing config in %s", str(jobs_root_path / 'configs.json'))
             jobs_loader.save_jobs(data)
@@ -133,7 +133,8 @@ def main(argv=sys.argv[1:]):
         keys = data.keys()
         if args.password:
             smoke_tests = PydioDiagnostics(
-                data[keys[0]].server, data[keys[0]].workspace, data[keys[0]].remote_folder, data[keys[0]].user_id, args.password)
+                data[keys[0]].server, data[keys[0]].workspace, data[keys[0]].remote_folder, data[keys[0]].user_id,
+                args.password)
         else:
             smoke_tests = PydioDiagnostics(
                 data[keys[0]].server, data[keys[0]].workspace, data[keys[0]].remote_folder, data[keys[0]].user_id)
@@ -142,8 +143,8 @@ def main(argv=sys.argv[1:]):
             logging.error("Diagnostics failed: %s %s" % (str(rc), smoke_tests.status_message))
         return sys.exit(rc)
 
-
-    ports_detector = PortsDetector(args.zmq_port, args.auto_detect_port, store_file=str(jobs_root_path / 'ports_config') )
+    ports_detector = PortsDetector(args.zmq_port, args.auto_detect_port,
+                                   store_file=str(jobs_root_path / 'ports_config'))
     ports_detector.create_config_file()
 
     scheduler = PydioScheduler.Instance(jobs_root_path=jobs_root_path, jobs_loader=jobs_loader)
@@ -164,6 +165,7 @@ def main(argv=sys.argv[1:]):
 
 def setup_logging(verbosity=None):
     import appdirs
+
     location = Path(str(appdirs.user_log_dir("pydio", "pydio")))
     if not location.exists():
         location.mkdir(parents=True)
@@ -212,6 +214,7 @@ def setup_logging(verbosity=None):
 
     }
     from logging.config import dictConfig
+
     dictConfig(configuration)
     logging.info("Logging setup changed")
     logging.debug("verbosity: %s" % verbosity)
@@ -220,4 +223,5 @@ def setup_logging(verbosity=None):
 if __name__ == "__main__":
     main()
     from pydio.job import manager
+
     manager.wait()

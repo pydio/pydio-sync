@@ -432,8 +432,6 @@ class SqlEventHandler(FileSystemEventHandler):
                 conn.close()
         except Exception as ex:
             logging.error(ex)
-        except Error as e:
-            logging.error(e)
 
     def on_created(self, event):
         if not self.included(event):
@@ -448,8 +446,6 @@ class SqlEventHandler(FileSystemEventHandler):
             self.updateOrInsert(src_path, is_directory=event.is_directory, skip_nomodif=False)
         except Exception as ex:
             logging.error(ex)
-        except Error as e:
-            logging.error(e)
 
     def on_deleted(self, event):
         if not self.included(event):
@@ -464,8 +460,6 @@ class SqlEventHandler(FileSystemEventHandler):
             conn.close()
         except Exception as ex:
             logging.error(ex)
-        except Error as e:
-            logging.error(e)
 
     def on_modified(self, event):
         super(SqlEventHandler, self).on_modified(event)
@@ -493,8 +487,6 @@ class SqlEventHandler(FileSystemEventHandler):
                 self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
         except Exception as ex:
             logging.error(ex)
-        except Error as e:
-            logging.error(e)
 
     def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert = False):
         search_key = self.remove_prefix(src_path)
