@@ -95,13 +95,8 @@ class SqliteChangeStore():
                 break
         self.conn.commit()
 
-    def list_changes(self, cursor=0, limit=5, where='', other_thread=False):
-        if other_thread:
-            conn = sqlite3.connect(self.db)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
-        else:
-            c = self.conn.cursor()
+    def list_changes(self, cursor=0, limit=5, where=''):
+        c = self.conn.cursor()
         sql = 'SELECT * FROM ajxp_changes ORDER BY source,target LIMIT ?,?'
         if where:
             sql = 'SELECT * FROM ajxp_changes WHERE ' + where + ' ORDER BY source,target LIMIT ?,?'
@@ -109,17 +104,10 @@ class SqliteChangeStore():
         changes = []
         for row in res:
             changes.append(self.sqlite_row_to_dict(row, load_node=True))
-        if other_thread:
-            conn.close()
         return changes
 
-    def sum_sizes(self, where='', other_thread=False):
-        if other_thread:
-            conn = sqlite3.connect(self.db)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
-        else:
-            c = self.conn.cursor()
+    def sum_sizes(self, where=''):
+        c = self.conn.cursor()
         sql = 'SELECT SUM(bytesize) as total FROM ajxp_changes ORDER BY source,target'
         if where:
             sql = 'SELECT SUM(bytesize) as total FROM ajxp_changes WHERE ' + where + ' ORDER BY source,target'
@@ -128,8 +116,6 @@ class SqliteChangeStore():
         for row in res:
             if row['total']:
                 total = float(row['total'])
-        if other_thread:
-            conn.close()
         return total
 
 

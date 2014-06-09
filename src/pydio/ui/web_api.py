@@ -133,7 +133,9 @@ class JobManager(Resource):
         running = PydioScheduler.Instance().is_job_running(job_id)
         job_data['running'] = running
         logger = EventLogger(JobsLoader.Instance().build_job_data_path(job_id))
-        job_data['last_events'] = logger.get_all(2,0)
+        last_events = logger.get_all(1, 0)
+        if len(last_events):
+            job_data['last_event'] = last_events.pop()
         if running:
             job_data['state'] = PydioScheduler.Instance().get_job_progress(job_id)
 

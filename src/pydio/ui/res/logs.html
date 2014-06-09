@@ -1,8 +1,8 @@
 <h4>Pending tasks</h4>
 <div class="alert alert-danger alert-dismissable" ng-if="error">{{error}}</div>
-<p ng-if="!running.tasks.length" class="lead">Nothing to do</p>
-<p ng-if="running.tasks.length" class="lead">Currently processing {{running.tasks.length}} tasks ({{running.global|number:0}}% completed)</p>
-<table ng-if="running.tasks.length" class="table">
+<p ng-if="!running.tasks.total" class="lead">Nothing to do</p>
+<p ng-if="running.tasks.total" class="lead">Currently processing {{running.tasks.total}} tasks ({{running.global|number:0}}% completed)</p>
+<table ng-if="running.tasks.total" class="table">
     <thead>
     <tr>
         <th>Direction</th>
@@ -12,7 +12,7 @@
     </tr>
     </thead>
     <tbody>
-    <tr ng-if="running.tasks.length" ng-repeat="task in running.tasks|limitTo:5">
+    <tr ng-if="running.tasks.total" ng-repeat="task in running.tasks.current">
         <td>{{task.direction=='remote'?'Down':'Up'}}</td>
         <td>{{task.type}}</td>
         <td>{{task.target && task.target != 'NULL'?task.target:task.source}}</td>
@@ -25,8 +25,8 @@
             </div>
         </td>
     </tr>
-    <tr ng-if="running.tasks.length > 5">
-        <td>{{running.tasks.length - 5}} more ... </td>
+    <tr ng-if="running.tasks.total > 5">
+        <td>{{running.tasks.total - 5}} more ... </td>
     </tr>
     </tbody>
 </table>

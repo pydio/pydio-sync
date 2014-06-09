@@ -78,6 +78,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.direction = job_config.direction
         self.event_logger = EventLogger(self.data_base)
         self.processing_signals = {}
+        self.current_tasks = []
         dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel='status', message='START')
 
         if os.path.exists(self.data_base + "/sequences"):
@@ -97,20 +98,6 @@ class ContinuousDiffMerger(threading.Thread):
                                         job_data_path)
         dispatcher.connect( self.handle_transfer_rate_event, signal=TRANSFER_RATE_SIGNAL, sender=dispatcher.Any )
         dispatcher.connect( self.handle_transfer_callback_event, signal=TRANSFER_CALLBACK_SIGNAL, sender=dispatcher.Any )
-
-    def init_global_progress(self):
-        """
-        Initialize the internal progress data
-        :return:None
-        """
-        self.global_progress = {
-            'queue_length'      :0,
-            'queue_done'        :0,
-            'queue_bytesize'    :0,
-            'last_transfer_rate':-1,
-            'queue_start_time'  :time.clock(),
-            'total_time'        :0
-        }
 
     def handle_transfer_callback_event(self, sender, change):
         self.processing_signals[change['target']] = change
@@ -134,7 +121,21 @@ class ContinuousDiffMerger(threading.Thread):
         """
         return self.job_status_running
 
-    def get_global_progress(self):
+    def init_global_progress(self):
+        """
+        Initialize the internal progress data
+        :return:None
+        """
+        self.global_progress = {
+            'queue_length'      :0,
+            'queue_done'        :0,
+            'queue_bytesize'    :0,
+            'last_transfer_rate':-1,
+            'queue_start_time'  :time.clock(),
+            'total_time'        :0
+        }
+
+    def update_global_progress(self):
         """
         Compute a dict representation with many indications about the current state of the queue
         :return: dict
@@ -151,23 +152,51 @@ class ContinuousDiffMerger(threading.Thread):
 
         self.global_progress['eta'] = eta
 
-        logging.debug(self.global_progress)
+        logging.info(self.global_progress)
         return self.global_progress
 
-    def get_current_tasks(self, cursor=0, limit=5):
+    def get_global_progress(self):
+        return self.global_progress
+
+    def update_current_tasks(self, cursor=0, limit=5):
         """
         Get a list of the current tasks
         :return: list()
         """
         if not hasattr(self, 'current_store'):
             return []
-        list = self.current_store.list_changes(cursor, limit, other_thread=True)
-        for change in list:
+        self.current_tasks = self.current_store.list_changes(cursor, limit)
+        for change in self.current_tasks:
             if change['target'] in self.processing_signals:
                 progress = self.processing_signals[change['target']]
                 for key in progress.keys():
                     change[key] = progress[key]
-        return list
+
+    def get_current_tasks(self):
+        return {
+            'total': self.global_progress['queue_length'],
+            'current': self.current_tasks
+        }
+
+    def compute_queue_bytesize(self):
+        """
+        Sum all the bytesize of the nodes that are planned to be uploaded/downloaded in the queue.
+        :return:float
+        """
+        if not hasattr(self, 'current_store'):
+            return 0
+        total = 0
+        exclude_pathes = []
+        for task in self.processing_signals:
+            if 'remaining_bytes' in task:
+                total += float(task['remaining_bytes'])
+                exclude_pathes.append('"' + task['target'] + '"')
+        where = ''
+        if len(exclude_pathes):
+            where = "target IN (" + ','.join(exclude_pathes) + ")"
+            return self.current_store.sum_sizes(where)
+        else:
+            return self.current_store.sum_sizes()
 
     def start_now(self):
         """
@@ -221,26 +250,6 @@ class ContinuousDiffMerger(threading.Thread):
         self.online_status = True
         self.last_run = time.time()
         time.sleep(self.event_timer)
-
-    def compute_queue_bytesize(self):
-        """
-        Sum all the bytesize of the nodes that are planned to be uploaded/downloaded in the queue.
-        :return:float
-        """
-        if not hasattr(self, 'current_store'):
-            return 0
-        total = 0
-        exclude_pathes = []
-        for task in self.processing_signals:
-            if 'remaining_bytes' in task:
-                total += float(task['remaining_bytes'])
-                exclude_pathes.append('"' + task['target'] + '"')
-        where = ''
-        if len(exclude_pathes):
-            where = "target IN (" + ','.join(exclude_pathes) + ")"
-            return self.current_store.sum_sizes(where, other_thread=True)
-        else:
-            return self.current_store.sum_sizes(other_thread=True)
 
     def run(self):
         """
@@ -326,21 +335,27 @@ class ContinuousDiffMerger(threading.Thread):
 
                 changes_length = len(self.current_store)
                 if changes_length:
+                    logger = EventLogger(self.data_base)
                     import change_processor
                     self.global_progress['queue_length'] = changes_length
                     logging.info('Processing %i changes' % changes_length)
+                    logger.log("sync", 'Processing %i changes' % changes_length, "start", "starting")
                     counter = [1]
                     def processor_callback(change):
                         try:
                             if self.interrupt or not self.job_status_running:
                                 raise InterruptException()
-                            proc = ChangeProcessor(change, self.current_store, self.job_config, self.system, self.sdk, self.db_handler, self.event_logger)
+                            self.update_current_tasks()
+                            self.update_global_progress()
+                            proc = ChangeProcessor(change, self.current_store, self.job_config, self.system, self.sdk,
+                                                   self.db_handler, self.event_logger)
                             proc.process_change()
                             self.update_min_seqs_from_store()
-                            progress_percent = (float(counter[0])/len(self.current_store) * 100)
                             self.global_progress['queue_done'] = counter[0]
                             counter[0] += 1
-                            time.sleep(0.05)
+                            self.update_current_tasks()
+                            self.update_global_progress()
+                            time.sleep(0.1)
                             if self.interrupt or not self.job_status_running:
                                 raise InterruptException()
                         except ProcessException as pe:
@@ -354,6 +369,7 @@ class ContinuousDiffMerger(threading.Thread):
                         self.current_store.process_changes_with_callback(processor_callback)
                     except InterruptException as iexc:
                         pass
+                    logger.log("sync", '%i files modified' % self.global_progress['queue_done'], "stop", "success")
                 else:
                     logging.info('No changes detected')
 
