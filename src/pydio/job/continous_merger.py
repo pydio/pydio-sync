@@ -259,6 +259,7 @@ class ContinuousDiffMerger(threading.Thread):
             self.watcher.start()
 
         self.last_run = 0
+        logger = EventLogger(self.data_base)
 
         while not self.interrupt:
 
@@ -276,7 +277,9 @@ class ContinuousDiffMerger(threading.Thread):
                     continue
 
                 if not self.system.check_basepath():
-                    logging.info('Cannot find local folder! Did you disconnect a volume? Waiting %s seconds before retry' % self.offline_timer)
+                    log = 'Cannot find local folder! Did you disconnect a volume? Waiting %s seconds before retry' % self.offline_timer
+                    logging.error(log)
+                    logger.log_state('Cannot find local folder! Did you disconnect a volume?', "error")
                     self.sleep_offline()
                     continue
 
@@ -293,11 +296,15 @@ class ContinuousDiffMerger(threading.Thread):
                         self.remote_target_seq = 1
                         self.ping_remote()
                 except ConnectionError as ce:
-                    logging.info('No connection detected, waiting %s seconds to retry' % self.offline_timer)
+                    error = 'No connection detected, waiting %s seconds to retry' % self.offline_timer
+                    logging.info(error)
+                    logger.log_state(error, "wait")
                     self.sleep_offline()
                     continue
                 except Exception as e:
-                    logging.info('Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer))
+                    error = 'Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer)
+                    logging.error(error)
+                    logger.log_state('Error while connecting to remote server (%s)' % e.message, "error")
                     self.sleep_offline()
                     continue
                 self.online_status = True
@@ -329,17 +336,17 @@ class ContinuousDiffMerger(threading.Thread):
                 store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
                 if store_conflicts:
                     logging.info('Conflicts detected, cannot continue!')
+                    logger.log_state('Conflicts detected, cannot continue!', 'error')
                     self.current_store.close()
                     self.sleep_offline()
                     continue
 
                 changes_length = len(self.current_store)
                 if changes_length:
-                    logger = EventLogger(self.data_base)
                     import change_processor
                     self.global_progress['queue_length'] = changes_length
                     logging.info('Processing %i changes' % changes_length)
-                    logger.log("sync", 'Processing %i changes' % changes_length, "start", "starting")
+                    logger.log_state('Processing %i changes' % changes_length, "start")
                     counter = [1]
                     def processor_callback(change):
                         try:
@@ -369,13 +376,14 @@ class ContinuousDiffMerger(threading.Thread):
                         self.current_store.process_changes_with_callback(processor_callback)
                     except InterruptException as iexc:
                         pass
-                    logger.log("sync", '%i files modified' % self.global_progress['queue_done'], "stop", "success")
+                    logger.log_state('%i files modified' % self.global_progress['queue_done'], "success")
                 else:
                     logging.info('No changes detected')
 
             except Exception as e:
                 # TODO STORE ERROR - UPDATE A GLOBAL STATE
                 logging.error('Unexpected Error: %s' % e.message)
+                logger.log_state('Unexpected Error: %s' % e.message, 'error')
 
             logging.info('Finished this cycle, waiting for %i seconds' % self.online_timer)
             self.current_store.close()

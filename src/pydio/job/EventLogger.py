@@ -39,6 +39,9 @@ class EventLogger():
                        "target text, action text, status text, date text)")
         conn.close()
 
+    def log_state(self, message, status):
+        self.log('sync', message, 'loop', status)
+
     def log(self, type, message, action, status, source='', target=''):
         try:
             date_time = str(datetime.datetime.now())
@@ -46,6 +49,7 @@ class EventLogger():
             conn.execute("INSERT INTO events('type', 'message', 'source', 'action', 'target', 'status', 'date') "
                          "VALUES (?, ?, ?, ?, ?, ?, ?)", (type, message, source, action, target, status, date_time))
             conn.commit()
+            conn.close()
         except sqlite3.Error as e:
             print 'sql insert error : ', e.args[0]
 

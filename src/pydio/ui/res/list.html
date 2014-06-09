@@ -64,7 +64,7 @@
                     </div>
                     <div class="small" ng-if="(!job.state.tasks || !job.state.tasks.total) && job.last_event">
                         Last synchronization on {{job.last_event[7]}}<br>
-                        {{job.last_event[2]}}
+                        <span ng-if="job.last_event[6] == 'error'">ERROR: </span>{{job.last_event[2]}}
                     </div>
                 </td>
                 <td style="width:100px; font-size: 2em; text-align: right;padding-right: 5px;">
