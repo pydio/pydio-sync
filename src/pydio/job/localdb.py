@@ -284,9 +284,10 @@ class LocalDbHandler():
                              "WHERE seq > ? ORDER BY ajxp_changes.node_id, seq ASC", (seq_id,)):
             row = dict(line)
             source = row.pop('source')
+            target = row.pop('target')
+
             if source == 'NULL':
                source = os.path.sep
-            target = row.pop('target')
             if target == 'NULL':
                target = os.path.sep
 
@@ -299,13 +300,13 @@ class LocalDbHandler():
                 charged_row['source'] = source
                 charged_row['dp'] = PathOperation.path_sub(target, source)
                 charged_row['dc'] = (content == 'content')
-                charged_row['seq'] = seq
+                charged_row['seq'] = max_seq
                 charged_row['node'] = row
                 reduced_changes[row['node_id']] = charged_row
             else:
                 charged_row['dp'] = PathOperation.path_add(charged_row['dp'], PathOperation.path_sub(target, source))
                 charged_row['dc'] = (content == 'content') or charged_row['dc']
-                charged_row['seq'] = seq
+                charged_row['seq'] = max_seq
 
         for key, change in reduced_changes.iteritems():
             accumulator_callback(change, accumulator)
@@ -333,12 +334,15 @@ class LocalDbHandler():
                 accumulator['data'].append( {'location': 'local', 'source':source, 'target':target, 'type':'content', 'node':change['node']} )
 
         if(not accumulator['path_to_seqs'].has_key(source)):
-            accumulator['path_to_seqs'][source] = list()
-        if source != 'NULL' :
+            if source != 'NULL':
+                accumulator['path_to_seqs'][source] = list()
+
+        if source != 'NULL':
             accumulator['path_to_seqs'][source].append(change['seq'])
 
         if(not accumulator['path_to_seqs'].has_key(target)):
-            accumulator['path_to_seqs'][target] = list()
+            if target != 'NULL':
+                accumulator['path_to_seqs'][target] = list()
         if target != 'NULL':
             accumulator['path_to_seqs'][target].append(change['seq'])
 
