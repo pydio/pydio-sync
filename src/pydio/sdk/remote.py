@@ -40,7 +40,7 @@ from .utils import upload_file_with_progress
 from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
 # -*- coding: utf-8 -*-
 
-PYDIO_SDK_MAX_UPLOAD_PIECES = 60 * 1024 * 1024
+PYDIO_SDK_MAX_UPLOAD_PIECES = 40 * 1024 * 1024
 
 
 class PydioSdk():
@@ -164,7 +164,6 @@ class PydioSdk():
             raise PydioSdkTokenAuthException("Authentication Exception")
         return resp
 
-
     def perform_request(self, url, type='get', data=None, files=None, stream=False, with_progress=False):
         """
         Perform an http request.
@@ -192,8 +191,11 @@ class PydioSdk():
             except PydioSdkTokenAuthException as pTok:
                 # Tokens may be revoked? Retry
                 tokens = self.basic_authenticate()
-                return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files, stream, with_progress)
-
+                try:
+                    return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files, stream, with_progress)
+                except PydioSdkTokenAuthException as secTok:
+                    logging.error('Second Auth Error, what is wrong?')
+                    raise secTok
 
     def changes(self, last_seq):
         """
@@ -495,8 +497,9 @@ class PydioSdk():
                             logging.debug("\r[%s%s] %s bps" % ('=' * done, ' ' * (50 - done), transfer_rate))
                             dispatcher.send(signal=TRANSFER_RATE_SIGNAL, send=self, transfer_rate=transfer_rate)
                             if callback_dict:
-                                callback_dict['progress'] = float(float(dl) / float(total_length) * 100)
-                                callback_dict['remaining_bytes'] = int(total_length) - dl
+                                callback_dict['bytes_sent'] = float(len(chunk))
+                                callback_dict['total_bytes_sent'] = float(dl)
+                                callback_dict['total_size'] = float(total_length)
                                 callback_dict['transfer_rate'] = transfer_rate
                                 dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, send=self, change=callback_dict)
 

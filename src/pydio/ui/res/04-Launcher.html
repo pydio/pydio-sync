@@ -41,7 +41,8 @@
                     <div class="progress-bar" role="progressbar" aria-valuenow="{{job.state.progress | number:0}}" aria-valuemin="0" aria-valuemax="100" style="width: {{job.state.progress | number:0}}%;"></div>
                 </div>
 
-                <h1 style="text-align: center;">{{job.state.progress | number:0}}%</h1>
+                <div ng-if="!job.state.progress">{{job.last_event[2]}}</div>
+                <h1 ng-if="job.state.progress" style="text-align: center;">{{job.state.progress | number:0}}%</h1>
 
                 <ng-include src="'task_detail.html'"
                             onload="job=job"/>

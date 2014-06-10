@@ -87,14 +87,6 @@ class BytesIOWithFile(BytesIO):
         :param n:int
         :return:data
         """
-        transfer_rate = self.cursor//(time.clock() - self.start)
-        if self.callback:
-            try:
-                self.callback(self.full_length, self.cursor * (self.file_part+1), transfer_rate)
-            except Exception as e:
-                logging.warning('Buffered reader callback error')
-                return None
-        dispatcher.send(signal=TRANSFER_RATE_SIGNAL, transfer_rate=transfer_rate)
 
         if self.cursor >= self.length:
             # EOF
@@ -112,6 +104,15 @@ class BytesIOWithFile(BytesIO):
             chunk = BytesIO.read(self, n)
 
         self.cursor += int(len(chunk))
+
+        transfer_rate = self.cursor//(time.clock() - self.start)
+        if self.callback:
+            try:
+                self.callback(self.full_length, self.cursor * (self.file_part+1), len(chunk), transfer_rate)
+            except Exception as e:
+                logging.warning('Buffered reader callback error')
+        dispatcher.send(signal=TRANSFER_RATE_SIGNAL, transfer_rate=transfer_rate)
+
         return chunk
 
 
@@ -155,13 +156,14 @@ def upload_file_with_progress(url, fields, files, stream, with_progress, max_siz
     :return: response of the last requests if there were many of them
     """
     if with_progress:
-        def cb(size=0, progress=0, rate=0):
-            with_progress['progress'] = float(progress)/size*100
-            with_progress['remaining_bytes'] = size - progress
+        def cb(size=0, progress=0, delta=0, rate=0):
+            with_progress['total_size'] = size
+            with_progress['bytes_sent'] = delta
+            with_progress['total_bytes_sent'] = progress
             with_progress['transfer_rate'] = rate
             dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, change=with_progress)
     else:
-        def cb(size=0, progress=0, rate=0):
+        def cb(size=0, progress=0, delta=0, rate=0):
             logging.debug('Current transfer rate ' + rate)
 
     filesize = os.stat(files['userfile_0']).st_size

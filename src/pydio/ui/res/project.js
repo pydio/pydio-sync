@@ -420,7 +420,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
                         var j = Jobs.get({job_id:job_id}, function(){
                             $scope.job = j;
                             if($scope.job.state){
-                                if($scope.job.state.global.queue_length > 0 && $scope.job.state.global.queue_done == $scope.job.state.global.queue_length){
+                                if($scope.job.state.global.queue_length > 0 && $scope.job.state.global.queue_done >= (90 / 100 * $scope.job.state.global.queue_length)){
                                     $location.path('/');
                                     return;
                                 }

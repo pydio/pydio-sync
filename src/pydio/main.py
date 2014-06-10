@@ -216,7 +216,7 @@ def setup_logging(verbosity=None):
     from logging.config import dictConfig
 
     dictConfig(configuration)
-    logging.info("Logging setup changed")
+    #logging.info("Logging setup changed")
     logging.debug("verbosity: %s" % verbosity)
 
 

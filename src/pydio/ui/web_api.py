@@ -28,6 +28,7 @@ class PydioApi(Api):
             static_folder = 'res'
         logging.debug('Starting Flask server with following static folder : '+ static_folder)
         self.app = Flask(__name__, static_folder = static_folder, static_url_path='/res')
+        self.app.logger.setLevel(logging.DEBUG)
         super(PydioApi, self).__init__(self.app)
         self.add_resource(JobManager, '/','/jobs', '/jobs/<string:job_id>')
         self.add_resource(WorkspacesManager, '/ws/<string:job_id>')
@@ -157,7 +158,6 @@ class JobManager(Resource):
                 self.enrich_job(data, k)
                 std_obj.append(data)
             return std_obj
-        logging.info("Job ID : "+job_id)
         data = JobConfig.encoder(jobs[job_id])
         self.enrich_job(data, job_id)
         return data

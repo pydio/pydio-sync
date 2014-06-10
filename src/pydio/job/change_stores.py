@@ -122,7 +122,6 @@ class SqliteChangeStore():
     def prune_folders_moves(self):
         sql = 'SELECT * FROM ajxp_changes t1 ' \
               '     WHERE (type="delete" OR type="path") ' \
-              '     AND md5="directory" ' \
               '     AND EXISTS( ' \
               '         SELECT * FROM ajxp_changes t2 WHERE t2.type=t1.type AND t2.location=t1.location ' \
               '                 AND t2.source LIKE t1.source || "/%" )'
@@ -132,7 +131,7 @@ class SqliteChangeStore():
             r = self.sqlite_row_to_dict(row)
             res = self.conn.execute("DELETE FROM ajxp_changes WHERE location=? AND type=? AND source LIKE ?",
                                     (row['location'], row['type'], row['source'] + "/%"))
-            logging.info('Pruning %i rows', res.rowcount)
+            logging.debug('[change store] Pruning %i rows', res.rowcount)
         self.conn.commit()
 
     def dedup_changes(self):
@@ -157,7 +156,7 @@ class SqliteChangeStore():
               '             )'
         res = self.conn.execute(sql)
         self.conn.commit()
-        logging.info('Dedup: pruned %i rows', res.rowcount)
+        logging.debug('[change store] Dedup: pruned %i rows', res.rowcount)
 
     def filter_out_echoes_events(self):
         """
@@ -182,7 +181,7 @@ class SqliteChangeStore():
         cursor = self.conn.cursor()
         res = cursor.execute(sql)
         self.conn.commit()
-        logging.info('Echo : pruned %i rows', res.rowcount)
+        logging.debug('[change store] Echo : pruned %i rows', res.rowcount)
 
 
     def detect_unnecessary_changes(self, local_sdk, remote_sdk):
@@ -214,7 +213,7 @@ class SqliteChangeStore():
         to_remove = filter(lambda it: self.filter_change(it, local_stats, opposite_stats), changes)
         ids = map(lambda row: str(row['row_id']), to_remove)
         res = self.conn.execute('DELETE FROM ajxp_changes WHERE row_id IN (' + str(','.join(ids)) + ')')
-        logging.info('RealFilter : pruned %i rows', res.rowcount)
+        logging.debug('[change store] RealFilter : pruned %i rows', res.rowcount)
 
     def clean_and_detect_conflicts(self, status_handler):
 
@@ -238,7 +237,10 @@ class SqliteChangeStore():
               '                     SELECT * ' \
               '                     FROM ajxp_changes t2 ' \
               '                     WHERE t1.location <> t2.location ' \
-              '                     AND   t1.target != "NULL" AND t1.target = t2.target' \
+              '                     AND   t1.target != "NULL" AND t1.target = t2.target ' \
+              '                     AND (  ' \
+              '                         t1.md5 != t2.md5 OR ( t1.md5 != "directory" AND t1.bytesize != t2.bytesize) ' \
+              '                     )   ' \
               '                 )'
         res = self.conn.execute(sql)
         conflicts = 0
@@ -246,7 +248,7 @@ class SqliteChangeStore():
             if row['location'] == 'remote':
                 conflicts += 1
                 path = row['target']
-                logging.info('Storing CONFLICT on node %s' % path)
+                logging.debug('[change store] Storing CONFLICT on node %s' % path)
                 status_handler.update_node_status(path, 'CONFLICT', self.sqlite_row_to_dict(row, load_node=True))
 
         return conflicts
@@ -307,9 +309,9 @@ class SqliteChangeStore():
 
         if res:
             if item['type'] != 'delete':
-                logging.info('[' + location + '] Filtering out ' + item['type'] + ': ' + item['target'])
+                logging.debug('[' + location + '] Filtering out ' + item['type'] + ': ' + item['target'])
             else:
-                logging.info('[' + location + '] Filtering out ' + item['type'] + ' ' + item['source'])
+                logging.debug('[' + location + '] Filtering out ' + item['type'] + ' ' + item['source'])
             return True
 
         return False
@@ -393,13 +395,16 @@ class SqliteChangeStore():
             bytesize = change['node']['bytesize']
         else:
             bytesize = ''
+        content = 0
+        if md5 != 'directory' and (change['type'] == 'content' or change['type'] == 'create'):
+            content = 1
         data = (
             seq_id,
             location,
             change['type'],
             change['source'].rstrip('/'),
             change['target'].rstrip('/'),
-            1 if change['type'] == 'content' or change['type'] == 'create' else 0,
+            content,
             md5,
             bytesize,
             json.dumps(change)

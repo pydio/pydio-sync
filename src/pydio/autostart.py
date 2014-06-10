@@ -10,7 +10,7 @@ def setup(argv):
     executable = sys.executable  # TODO: 01.04.14 wooyek Make sure it's pythonw to run without console
     call = "{} {} {}".format(executable, script, " ".join(argv))
     call = call.replace("--auto-start", "")
-    logging.info("Setting up auto start on system startup: %s", call)
+    logging.debug("Setting up auto start on system startup: %s", call)
     globals()["_setup_"+sys.platform](call)
 
 

@@ -65,7 +65,7 @@ class EventLogger():
         return events
 
     def filter(self, filter, filter_parameter):
-        logging.info("Filtering logs on '%s' with filter '%s'" %(filter, filter_parameter))
+        logging.debug("Filtering logs on '%s' with filter '%s'" %(filter, filter_parameter))
         if filter=='type':
             return self.get_all_from_type(filter_parameter)
         elif filter=='action':
@@ -78,7 +78,7 @@ class EventLogger():
     def get_all_from_type(self, type):
         type_list = ['local', 'remote']
         if type in type_list:
-            logging.info("type ok")
+            logging.debug("type ok")
             conn = sqlite3.connect(self.db)
             c = conn.cursor()
             events = c.execute("SELECT * FROM events WHERE type = '%s' ORDER BY date DESC" % type).fetchall()

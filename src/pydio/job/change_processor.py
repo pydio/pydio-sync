@@ -54,7 +54,7 @@ class ChangeProcessor:
         if item['type'] == 'create' or item['type'] == 'content':
             if item['node']['md5'] == 'directory':
                 if item['node']['node_path']:
-                    logging.info('[' + location + '] Create folder ' + item['node']['node_path'])
+                    logging.debug('[' + location + '] Create folder ' + item['node']['node_path'])
                     if location == 'remote':
                         self.process_local_mkdir(item['node']['node_path'])
                     else:
@@ -76,7 +76,7 @@ class ChangeProcessor:
                                                                 item['node']['node_path'])
 
         elif item['type'] == 'delete':
-            logging.info('[' + location + '] Should delete ' + item['source'])
+            logging.debug('[' + location + '] Should delete ' + item['source'])
             if location == 'remote':
                 self.process_local_delete(item['source'])
             else:
@@ -84,7 +84,7 @@ class ChangeProcessor:
             self.change_store.buffer_real_operation(location, 'delete', item['source'], 'NULL')
 
         else:
-            logging.info('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
+            logging.debug('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
             if location == 'remote':
                 if os.path.exists(self.job_config.directory + item['source']):
                     if self.process_local_move(item['source'], item['target']):

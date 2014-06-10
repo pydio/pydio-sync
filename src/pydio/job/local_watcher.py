@@ -125,7 +125,10 @@ class LocalWatcher(threading.Thread):
     def stop(self):
         if self.observer:
             logging.debug("Stopping: %s" % self.observer)
-            self.observer.stop()
+            try:
+                self.observer.stop()
+            except Exception:
+                logging.error("Error while stopping watchdog thread!")
 
     def run(self):
 

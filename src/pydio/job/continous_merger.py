@@ -101,6 +101,8 @@ class ContinuousDiffMerger(threading.Thread):
 
     def handle_transfer_callback_event(self, sender, change):
         self.processing_signals[change['target']] = change
+        self.global_progress["queue_bytesize"] -= change['bytes_sent']
+        self.global_progress["queue_done"] += float(change['bytes_sent']) / float(change["total_size"])
 
     def handle_transfer_rate_event(self, sender, transfer_rate):
         """
@@ -128,7 +130,7 @@ class ContinuousDiffMerger(threading.Thread):
         """
         self.global_progress = {
             'queue_length'      :0,
-            'queue_done'        :0,
+            'queue_done'        :0.0,
             'queue_bytesize'    :0,
             'last_transfer_rate':-1,
             'queue_start_time'  :time.clock(),
@@ -152,7 +154,7 @@ class ContinuousDiffMerger(threading.Thread):
 
         self.global_progress['eta'] = eta
 
-        logging.info(self.global_progress)
+        #logging.info(self.global_progress)
         return self.global_progress
 
     def get_global_progress(self):
@@ -290,6 +292,8 @@ class ContinuousDiffMerger(threading.Thread):
                 try:
                     if self.job_config.direction != 'up':
                         logging.info('Loading remote changes with sequence ' + str(self.remote_seq))
+                        if self.remote_seq == 0:
+                            logger.log_state('Computing data that will be loaded from workspace, this can take a while for the first time', 'sync')
                         self.remote_target_seq = self.load_remote_changes_in_store(self.remote_seq, self.current_store)
                         self.current_store.sync()
                     else:
@@ -297,7 +301,7 @@ class ContinuousDiffMerger(threading.Thread):
                         self.ping_remote()
                 except ConnectionError as ce:
                     error = 'No connection detected, waiting %s seconds to retry' % self.offline_timer
-                    logging.info(error)
+                    logging.error(error)
                     logger.log_state(error, "wait")
                     self.sleep_offline()
                     continue
@@ -357,8 +361,7 @@ class ContinuousDiffMerger(threading.Thread):
                             proc = ChangeProcessor(change, self.current_store, self.job_config, self.system, self.sdk,
                                                    self.db_handler, self.event_logger)
                             proc.process_change()
-                            self.update_min_seqs_from_store()
-                            self.global_progress['queue_done'] = counter[0]
+                            self.global_progress['queue_done'] = float(counter[0])
                             counter[0] += 1
                             self.update_current_tasks()
                             self.update_global_progress()
@@ -371,6 +374,7 @@ class ContinuousDiffMerger(threading.Thread):
                             raise i
                         except Exception as e:
                             logging.error(e.message)
+                        self.update_min_seqs_from_store()
 
                     try:
                         self.current_store.process_changes_with_callback(processor_callback)
