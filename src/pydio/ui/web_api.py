@@ -115,7 +115,8 @@ class JobManager(Resource):
             up_rate = 0.1 * 1024 * 1024
             # COMPUTE REMOTE SIZE
             from pydio.sdk.remote import PydioSdk
-            sdk = PydioSdk(json_req['server'], json_req['workspace'], '', auth=(json_req['user'], json_req['password']))
+            sdk = PydioSdk(json_req['server'], json_req['workspace'], json_req['remote_folder'], '',
+                           auth=(json_req['user'], json_req['password']))
             up = [0.0]
             def callback(location, seq_id, change):
                 if "node" in change and change["node"]["md5"] != "directory" and change["node"]["bytesize"]:

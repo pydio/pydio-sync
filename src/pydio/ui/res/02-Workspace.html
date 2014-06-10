@@ -15,11 +15,6 @@
             {{job.directory_label?job.directory_label:job.directory}}<br>
         </div>
         <br style="clear: both;">
-        <br/>
-        <a ng-if="job.active" ng-click="toggleJobActive()" class="btn btn-info" style="width: 49%;" href>Stop Task</a>
-        <a ng-if="!job.active" ng-click="toggleJobActive()" class="btn btn-info" style="width: 49%;" href>Start Task</a>
-        <a class="btn btn-danger" ng-click="deleteJob()" style="width: 49%; float: right;" href>Delete Task</a>
-        <br style="clear: both;">
     </div>
     <h3>Change parameters</h3>
 </div>
@@ -119,4 +114,10 @@
     <a href="#/new" class="btn btn-info pull-left">Back</a>
     <a ng-click="save('step2')" class="btn btn-info pull-right" ng-disabled="!(job.workspace || job.repoObject)">Next</a>
 </div>
-
+<div ng-if="job.id!='new'">
+    <br/>
+    <a ng-if="job.active" ng-click="toggleJobActive()" class="btn btn-info" style="width: 49%;" href>Stop Task</a>
+    <a ng-if="!job.active" ng-click="toggleJobActive()" class="btn btn-info" style="width: 49%;" href>Start Task</a>
+    <a class="btn btn-danger" ng-click="deleteJob()" style="width: 49%; float: right;" href>Delete Task</a>
+    <br style="clear: both;">
+</div>

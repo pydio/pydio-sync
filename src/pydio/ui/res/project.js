@@ -31,6 +31,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
 
     .filter('bytes', function() {
         return function(bytes, precision) {
+            if (bytes == 0) return bytes;
             if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return bytes;
             if (typeof precision === 'undefined') precision = 1;
             var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
