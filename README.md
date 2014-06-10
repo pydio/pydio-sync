@@ -5,21 +5,32 @@ New Python version of the Pydio synchronization client [work in progress]
 
 This is a python rewrite of the current java-based synchro client. The work is still in progress and requires a couple of stuff to be deployed on the server-side to work. 
 
-Server Setup
---
+## Server Requirements
 Pydio server needs the following to be turned on:
  * *RESTfull access* point (see /rest.php file) and a working pair of credentials for that (rest_user/rest_password)
  * *DB-based setup* : serial-based will soon be deprecated anyway
  * *Meta.syncable plugin* applied to the workspace you want to synchronize. This will track all the changes in a specific db-table, making it very quick for the sync client to load the last changes.
  * *php_rsync* extension on the server to allow transferring files deltas instead of complete files contents when modified. Not yet implemented but will be back at one point.
 
-Client Setup
--- 
+##Client Setup
+
+### Installing
+
  * Make sure to install Python 2.7
- * Install Zero MQ on the client (see http://zeromq.org/area:download)
- * Install pip
+ * Install pip - Make sure to have a version 1.4 or upper on Linux
  * Run: ```pip install git+https://github.com/pydio/pydio-sync.git```
- * Either start main module with the following parameters: 
+
+### Quick start
+Start main module
+```
+python -m pydio.main
+```
+If the UI is not installed, simply launched your webbrowser at http://127.0.0.1:5556/, you can now create a synchronisation task. Your data will be stored in USER_HOME/.pydio_data/
+
+### Alternative parameters
+
+Alternatively, you can start the program with the following parameters:
+ * Pass a server configuration through parameters (will be added to the config file) 
 ```
 python -m pydio.main 
         --server=http://yourserver 
@@ -28,7 +39,7 @@ python -m pydio.main
         --user=rest_user 
         --password=rest_password
 ```
- * Or start passing a path to a json file containing a server config: 
+ * Pass a path to a json file containing the server configs: 
 ```
 python -m pydio.main 
         --file=/path/to/config.json
