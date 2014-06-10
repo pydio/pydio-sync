@@ -212,19 +212,40 @@ angular.module('project', ['ngRoute', 'ngResource'])
     })
 
     .controller('CreateCtrl', function($scope, $location, $timeout, Jobs, Ws, currentJob) {
-        var job = new Jobs();
-        $scope.inline_protocol='https://';
-        $scope.inline_host='';
-        job.id = 'new';
-        job.remote_folder = '/';
-        job.user_directory = 'C:/path/to/My Documents';
-        job.directory = '';
-        job.workspace = '';
-        job.direction = 'bi';
-        job.label = 'New Job';
-        job.__type__ = 'JobConfig'
-        $scope.job = job;
-        currentJob.setJob($scope.job);
+
+        $scope.parseURL = function(){
+            if(!$scope.inline_host) return;
+
+            if ($scope.inline_host.indexOf('http://') === 0){
+                $scope.inline_protocol = 'http://';
+                $scope.inline_host = $scope.inline_host.substr(7)
+            } else if ($scope.inline_host.indexOf('https://') === 0){
+                $scope.inline_protocol = 'https://';
+                $scope.inline_host = $scope.inline_host.substr(8)
+            }
+            $scope.job.server = $scope.inline_protocol + $scope.inline_host
+        };
+
+        var job;
+        if(currentJob.getJob() == null){
+            job = new Jobs();
+            $scope.inline_protocol='https://';
+            $scope.inline_host='';
+            job.id = 'new';
+            job.remote_folder = '';
+            job.user_directory = 'C:/path/to/My Documents';
+            job.directory = '';
+            job.workspace = '';
+            job.direction = 'bi';
+            job.label = 'New Job';
+            job.__type__ = 'JobConfig'
+            $scope.job = job;
+            currentJob.setJob($scope.job);
+        }else{
+            job = $scope.job = currentJob.getJob();
+            $scope.inline_host = $scope.job.server;
+            $scope.parseURL();
+        }
         $scope.next = function(){
             $scope.loading = true;
             $scope.loadWorkspaces();
@@ -234,6 +255,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
             if($scope.job.id == 'new' && !$scope.job.password) {
                 return;
             }
+            $scope.job.workspace = '';
             Ws.get({
                 job_id:'request',
                 url:$scope.job.server,
@@ -241,11 +263,6 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 password:$scope.job.password
             }, function(response){
                 job.repositories = response.repositories.repo;
-                angular.forEach($scope.repositories, function(r){
-                    if(r['@repositorySlug'] == $scope.job.workspace){
-                        $scope.job.repoObject = r;
-                    }
-                });
                 $scope.loading = false;
                 $location.path('/edit/new/step2');
             }, function(resp){
@@ -319,6 +336,8 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 $scope.job.directory = res;
             }
 
+            $scope.job.directory_label = $scope.job.directory;
+
         };
 
         $scope.toggleJobActive = function(){
@@ -350,8 +369,10 @@ angular.module('project', ['ngRoute', 'ngResource'])
             $scope.job = currentJob.getJob();
             if(!$scope.job.repositories) {
                 $scope.loadWorkspaces();
+            }else{
+                $scope.repositories = $scope.job.repositories
+                if($scope.job.workspace) $scope.loadFolders()
             }
-            $scope.repositories = $scope.job.repositories
         }
 
         $scope.save = function(stepName) {
@@ -363,10 +384,10 @@ angular.module('project', ['ngRoute', 'ngResource'])
             };
             if($scope.job.id == 'new' && stepName && stepName == 'step2') {
                 var label;
-                if($scope.job.remote_folder){
+                if($scope.job.remote_folder && $scope.job.remote_folder != '/'){
                     label = basename($scope.job.remote_folder);
                 }else{
-                    label = $scope.job.repoObject['@display'];
+                    label = $scope.job.repoObject['label'];
                 }
                 $scope.job.label = label;
                 if(!$scope.job.directory){
@@ -381,7 +402,8 @@ angular.module('project', ['ngRoute', 'ngResource'])
 
             }else if(stepName == 'step4'){
 
-                $scope.job.$save();
+                delete $scope.job.id;
+                $scope.job = $scope.job.$save();
                 $scope.task = {
                     progress:56
                 };

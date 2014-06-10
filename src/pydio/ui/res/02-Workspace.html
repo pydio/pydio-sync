@@ -116,6 +116,7 @@
 </div>
 <div ng-if="job.id=='new'" class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
     <a href="#" class="btn" ng-show="job.id!='new'">Cancel</a>
-    <a ng-click="save('step2')" class="btn btn-info pull-right" ng-disabled="!job.remote_folder && !(job.workspace || job.repoObject)">Next</a>
+    <a href="#/new" class="btn btn-info pull-left">Back</a>
+    <a ng-click="save('step2')" class="btn btn-info pull-right" ng-disabled="!(job.workspace || job.repoObject)">Next</a>
 </div>
 

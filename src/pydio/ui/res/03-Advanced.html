@@ -6,7 +6,7 @@
 
     <div class="small pull-left" style="text-align: center; width: 30%; overflow: visible;">
         <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
-        {{job.workspace}}: {{job.remote_folder}}<br>
+        {{job.repoObject['label']}}{{job.remote_folder?': job.remote_folder ': ' (whole workspace)'}}<br>
         [<a href="#/edit/new/step2">change</a>]
     </div>
 
