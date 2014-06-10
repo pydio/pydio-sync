@@ -3,13 +3,15 @@
     <p class="small">{{job.label}}</p>
 
     <p>DATA SIZE</p>
-    <p class="small">{{job.byte_size | bytes}}</p>
+    <p class="small" ng-if="job.state">{{job.state.global.queue_bytesize | bytes}}</p>
+    <p class="small" ng-if="!job.state">{{job.byte_size | bytes}}</p>
 
-    <p>ESTIMATED SIZE</p>
-    <p class="small">{{job.eta | seconds}}</p>
+    <p>ESTIMATED TIME</p>
+    <p class="small" ng-if="job.state">{{job.state.global.eta | seconds}}</p>
+    <p class="small" ng-if="!job.state">{{job.eta | seconds}}</p>
 </script>
 
-        <div ng-show="!task">
+        <div ng-show="!job.state">
             <h3>Ready for ignition!</h3>
             <div style="text-align: center" class="well">
 
@@ -29,17 +31,17 @@
             </div>
         </div>
 
-        <div ng-show="task">
+        <div ng-show="job.state">
             <h3>Synchronization running...</h3>
             <div style="text-align: center" class="well">
 
                 <img src="images/rocket.png">
 
                 <div class="progress progress-striped active" style="width: 70%;margin: 20px auto;">
-                    <div class="progress-bar" role="progressbar" aria-valuenow="{{task.progress | number:0}}" aria-valuemin="0" aria-valuemax="100" style="width: {{task.progress | number:0}}%;"></div>
+                    <div class="progress-bar" role="progressbar" aria-valuenow="{{job.state.progress | number:0}}" aria-valuemin="0" aria-valuemax="100" style="width: {{job.state.progress | number:0}}%;"></div>
                 </div>
 
-                <h1 style="text-align: center;">{{task.progress | number:0}}%</h1>
+                <h1 style="text-align: center;">{{job.state.progress | number:0}}%</h1>
 
                 <ng-include src="'task_detail.html'"
                             onload="job=job"/>

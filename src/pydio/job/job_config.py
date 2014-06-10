@@ -109,6 +109,7 @@ class JobConfig:
         self.workspace = ''
         self.remote_folder = ''
         self.user_id = ''
+        self.label = ''
         # Default values
         self.server_configs = None
         self.active = True
@@ -124,7 +125,7 @@ class JobConfig:
         base_id = urlparse.urlparse(self.server).hostname + '-' + self.workspace
         test_id = base_id
         while JobsLoader.Instance().contains_job(test_id):
-            test_id = base_id + '-' + i
+            test_id = base_id + '-' + str(i)
             i += 1
         self.id = test_id
 
@@ -134,6 +135,7 @@ class JobConfig:
             return {"__type__": 'JobConfig',
                     "server": obj.server,
                     "id": obj.id,
+                    "label": obj.label if obj.label else obj.id,
                     "workspace": obj.workspace,
                     "directory": obj.directory,
                     "remote_folder": obj.remote_folder,
@@ -172,6 +174,8 @@ class JobConfig:
                 job_config.remote_folder = obj['remote_folder'].rstrip('/').rstrip('\\')
             if 'user' in obj:
                 job_config.user_id = obj['user']
+            if 'label' in obj:
+                job_config.label = obj['label']
             if 'password' in obj:
                 try:
                     keyring.set_password(job_config.server, job_config.user_id, obj['password'])

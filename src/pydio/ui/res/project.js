@@ -277,7 +277,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
 
     })
 
-    .controller('EditCtrl', function($scope, $location, $routeParams, $window, Jobs, currentJob, Ws, Folders, Commands) {
+    .controller('EditCtrl', function($scope, $location, $routeParams, $window, $timeout, Jobs, currentJob, Ws, Folders, Commands) {
 
         $scope.loadFolders = function(){
             if($scope.job.repoObject && $scope.job.repoObject['@repositorySlug'] != $scope.job.workspace){
@@ -410,10 +410,31 @@ angular.module('project', ['ngRoute', 'ngResource'])
 
                 delete $scope.job.compute_sizes;
                 delete $scope.job.id;
-                $scope.job = $scope.job.$save();
-                $scope.task = {
-                    progress:56
-                };
+                $scope.job.$save(function(){
+
+                    // Update reads
+                    var t2;
+                    var job_id = $scope.job.id;
+                    (function tickJob() {
+                        var j = Jobs.get({job_id:job_id}, function(){
+                            $scope.job = j;
+                            if($scope.job.state){
+                                if($scope.job.state.global.queue_length > 0 && $scope.job.state.global.queue_done == $scope.job.state.global.queue_length){
+                                    $location.path('/');
+                                    return;
+                                }
+                                $scope.job = j;
+                                $scope.job.state.progress = 100 * parseFloat($scope.job.state.global.queue_done) / parseFloat($scope.job.state.global.queue_length)
+                            }
+                            t2 = $timeout(tickJob, 1000);
+                        });
+                    })();
+                    $scope.$on('$destroy', function(){
+                        $timeout.cancel(t2);
+                    });
+
+                });
+
 
             }else{
                 $scope.job.$save();
