@@ -4,9 +4,9 @@ import keyring
 import mock
 import random
 import requests
+import time
 import unittest
 from requests.packages.urllib3 import response
-from flask import Response
 
 from src.pydio.sdk.exceptions import (
     PydioSdkTokenAuthException,
@@ -14,12 +14,13 @@ from src.pydio.sdk.exceptions import (
     PydioSdkException
 )
 from src.pydio.sdk.remote import PydioSdk
-from src.pydio.sdk.utils import upload_file_showing_progress
 
 
 class RemoteSdkLocalTests(unittest.TestCase):
 
-    def setUp(self):
+    @mock.patch('keyring.get_password')
+    def setUp(self, mock_get):
+        mock_get.return_value = ('user_id', 'passwd')
         self.sdk = PydioSdk(
             'url',
             'basepath',
@@ -32,11 +33,12 @@ class RemoteSdkLocalTests(unittest.TestCase):
     @mock.patch.object(json, 'loads')
     @mock.patch.object(requests, 'get')
     def test_basic_authenticate(self, mock_get, mock_loads, mock_set):
-        resp = mock.Mock(sped=response)
+        resp = mock.Mock(spec=response)
         resp.status_code = 401
 
-        resp_ok = mock.Mock(sped=response)
+        resp_ok = mock.Mock(spec=response)
         resp_ok.status_code = 200
+        resp_ok.content = ''
 
         mock_get.side_effect = [resp, resp_ok, resp_ok]
         tokens = {'t': '123', 'p': '456'}
@@ -66,7 +68,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
     @mock.patch.object(random, 'random')
     @mock.patch.object(requests, 'get')
     def test_perform_with_token_get(self, mock_get, mock_random):
-        resp_ok = mock.Mock(sped=response)
+        resp_ok = mock.Mock(spec=response)
         resp_ok.status_code = 200
         mock_get.return_value = resp_ok
         mock_random.return_value = 5
@@ -177,7 +179,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
     @mock.patch.object(PydioSdkTokenAuthException, '__init__')
     @mock.patch.object(requests, 'get')
     def test_perform_with_token_exception_raised(self, mock_get, mock_init):
-        resp = mock.Mock(sped=response)
+        resp = mock.Mock(spec=response)
         resp.status_code = 401
         mock_get.return_value = resp
         mock_init.return_value = None
@@ -214,7 +216,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
     @mock.patch.object(keyring, 'get_password')
     @mock.patch.object(PydioSdk, 'perform_with_tokens')
     def test_perform_request(self, mock_perform, mock_get, mock_basic):
-        resp = mock.Mock(sped=response)
+        resp = mock.Mock(spec=response)
         resp.status_code = 200
 
         mock_get.side_effect = [None, 'test:password', 'test:password']
@@ -245,7 +247,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
 
     @mock.patch.object(PydioSdk, 'perform_request')
     def test_changes_valid_json(self, mock_perform):
-        resp = mock.Mock(spec=Response)
+        resp = mock.Mock(spec=response)
         resp.content = '["foo", {"bar":["baz", null, 1.0, 2]}]'
         mock_perform.return_value = resp
 
@@ -256,7 +258,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
 
     @mock.patch.object(PydioSdk, 'perform_request')
     def test_changes_invalid_json_exception_raised(self, mock_perform):
-        resp = mock.Mock(spec=Response)
+        resp = mock.Mock(spec=response)
         resp.content = '["foo", {"bar"["baz", null, 1.0, 2]}]'
         mock_perform.return_value = resp
         exception_message = 'Invalid JSON value received while getting remote changes'
@@ -267,7 +269,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
 
     @mock.patch.object(PydioSdk, 'perform_request')
     def test_stat(self, mock_perform):
-        resp = mock.Mock(spec=Response)
+        resp = mock.Mock(spec=response)
         test_data = [
             {
                 'content': '["size", {"bar":["baz", null, 1.0, 2]}]',
@@ -305,7 +307,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
 
     @mock.patch.object(PydioSdk, 'perform_request')
     def test_bulk_stat(self, mock_perform):
-        resp = mock.Mock(spec=Response)
+        resp = mock.Mock(spec=response)
         resp.content = '["foo", {"bar":["baz", null, 1.0, 2]}]'
         mock_perform.return_value = resp
         result_string = ''.join(['{"/path1": ', resp.content, '}'])
@@ -321,7 +323,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
     @mock.patch.object(json, 'loads')
     @mock.patch.object(PydioSdk, 'perform_request')
     def test_bulk_stat_exception_raised(self, mock_perform, mock_loads):
-        resp = mock.Mock(spec=Response)
+        resp = mock.Mock(spec=response)
         resp.content = '["foo", {"bar":["baz", null, 1.0, 2]}]'
         mock_perform.return_value = resp
         mock_loads.side_effect = ValueError
@@ -331,7 +333,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
 
     @mock.patch.object(PydioSdk, 'perform_request')
     def test_mkdir(self, mock_perform):
-        resp = mock.Mock(spec=Response)
+        resp = mock.Mock(spec=response)
         resp.content = '["foo", {"bar":["baz", null, 1.0, 2]}]'
         mock_perform.return_value = resp
 
@@ -342,7 +344,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
 
     @mock.patch.object(PydioSdk, 'perform_request')
     def test_mkfile(self, mock_perform):
-        resp = mock.Mock(spec=Response)
+        resp = mock.Mock(spec=response)
         resp.content = '["foo", {"bar":["baz", null, 1.0, 2]}]'
         mock_perform.return_value = resp
 
@@ -353,7 +355,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
 
     @mock.patch.object(PydioSdk, 'perform_request')
     def test_rename(self, mock_perform):
-        resp = mock.Mock(spec=Response)
+        resp = mock.Mock(spec=response)
         resp.content = '["foo", {"bar":["baz", null, 1.0, 2]}]'
         mock_perform.return_value = resp
 
@@ -376,7 +378,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
 
     @mock.patch.object(PydioSdk, 'perform_request')
     def test_delete(self, mock_perform):
-        resp = mock.Mock(spec=Response)
+        resp = mock.Mock(spec=response)
         resp.content = '["foo", {"bar":["baz", null, 1.0, 2]}]'
         mock_perform.return_value = resp
 
@@ -480,6 +482,102 @@ class RemoteSdkLocalTests(unittest.TestCase):
             assert mock_mkdir.called == data['mkdir_called']
             mock_mkfile.called = False
             mock_mkdir.called = False
+
+    @mock.patch('os.stat')
+    @mock.patch('os.path.exists')
+    @mock.patch('os.unlink')
+    @mock.patch('os.makedirs')
+    @mock.patch('__builtin__.open')
+    @mock.patch.object(PydioSdk, 'stat')
+    def test_download_exception_raised(self, mock_stat, mock_open, mock_make, mock_unlink, mock_exists, mock_osstat):
+        mock_make.return_value = True
+
+        stat_result = mock.Mock(spec=requests.Response)
+        stat_result.st_size = 0
+        mock_osstat.return_value = stat_result
+
+        test_data = [
+            {
+                'exception_message': '[sdk operation] [download] /tmp (Original not found on server)',
+                'open': True,
+                'stat': None,
+                'exists': False,
+            },
+            {
+                'exception_message': '[sdk operation] [download] /tmp (Error opening local file for writing)',
+                'open': Exception,
+                'stat': 'orig',
+                'exists': True,
+            },
+            {
+                'exception_message': '[sdk operation] [download] /tmp (Error opening local file for writing)',
+                'open': True,
+                'stat': 'orig',
+                'exists': True,
+            },
+            {
+                'exception_message': '[sdk operation] [download] /tmp (Error opening local file for writing)',
+                'open': True,
+                'stat': {'size': 0},
+                'exists': True,
+            },
+        ]
+
+        for data in test_data:
+            mock_open.return_value = data['open']
+            mock_stat.return_value = data['stat']
+            mock_exists.return_value = data['exists']
+            try:
+                self.sdk.download('/tmp', 'local')
+            except PydioSdkException, e:
+                assert e.message == data['exception_message']
+            else:
+                assert False
+
+    @mock.patch.object(time, 'clock')
+    @mock.patch('os.stat')
+    @mock.patch('os.rename')
+    @mock.patch('os.path.exists')
+    @mock.patch.object(PydioSdk, 'perform_request')
+    @mock.patch.object(PydioSdk, 'stat')
+    def test_download(self, mock_stat, mock_perform, mock_exists, mock_rename, mock_osstat, mock_clock):
+        mock_stat.return_value = {'size': 0}
+        mock_exists.return_value = True
+
+        stat_result = mock.Mock(spec=requests.Response)
+        stat_result.st_size = 0
+        mock_osstat.return_value = stat_result
+
+        test_data = [
+            {'perform_headers': {'content-length': 2}, 'write_args': [mock.call('a'), mock.call('b')]},
+            {'perform_headers': {'content-length': None}, 'write_args': [mock.call(['a', 'b'])]},
+        ]
+
+        for data in test_data:
+            resp = mock.Mock()
+            resp.headers = data['perform_headers']
+            resp.content = ['a', 'b']
+            resp.iter_content = lambda size: resp.content
+            mock_perform.return_value = resp
+            m = self.mock_open()
+            with mock.patch('__builtin__.open', m, create=True):
+                assert self.sdk.download('/tmp', 'local')
+                h = m()
+                assert h.write.call_args_list == data['write_args']
+                assert mock_rename.called
+
+    def mock_open(self, data=None):
+        m = mock.MagicMock(spec=file)
+        h = mock.MagicMock(spec=file)
+        h.write.return_value = None
+
+        if data is None:
+            h.__enter__.return_value = h
+        else:
+            h.__enter__.return_value = data
+        m.return_value = h
+        return m
+
 
 if __name__ == '__main__':
     unittest.main()
