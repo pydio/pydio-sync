@@ -3,10 +3,10 @@
     <p class="small">{{job.label}}</p>
 
     <p>DATA SIZE</p>
-    <p class="small">1,2Go</p>
+    <p class="small">{{job.byte_size | bytes}}</p>
 
     <p>ESTIMATED SIZE</p>
-    <p class="small">1h42mn</p>
+    <p class="small">{{job.eta | seconds}}</p>
 </script>
 
         <div ng-show="!task">
@@ -24,7 +24,7 @@
                 <a class="btn btn-primary" ng-click="save('step4')">FIRE THE ROCKET!</a>
                 <br>
                 <br>
-                [<a>change parameters</a>]
+                [<a href="#/edit/new/step3">change parameters</a>]
 
             </div>
         </div>

@@ -31,7 +31,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
 
     .filter('bytes', function() {
         return function(bytes, precision) {
-            if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
+            if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return bytes;
             if (typeof precision === 'undefined') precision = 1;
             var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
                 number = Math.floor(Math.log(bytes) / Math.log(1024));
@@ -42,6 +42,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
     .filter('seconds', function(){
 
         return function(sec){
+            if (isNaN(parseFloat(sec)) || !isFinite(sec)) return sec;
             var d=new Date(0,0,0);
             d.setSeconds(+sec);
             return (d.getHours() ? d.getHours()+'h ' : '')+d.getMinutes()+'mn '+d.getSeconds();
@@ -233,7 +234,6 @@ angular.module('project', ['ngRoute', 'ngResource'])
             $scope.inline_host='';
             job.id = 'new';
             job.remote_folder = '';
-            job.user_directory = 'C:/path/to/My Documents';
             job.directory = '';
             job.workspace = '';
             job.direction = 'bi';
@@ -336,8 +336,6 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 $scope.job.directory = res;
             }
 
-            $scope.job.directory_label = $scope.job.directory;
-
         };
 
         $scope.toggleJobActive = function(){
@@ -391,17 +389,26 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 }
                 $scope.job.label = label;
                 if(!$scope.job.directory){
-                    $scope.job.directory = $scope.job.user_directory + '/Pydio/' + label;
+                    $scope.job.test_path = true;
+                    $scope.job.$save();
+                    $scope.job.test_path = false;
                 }
-                $scope.job.directory_label = '.../' + basename($scope.job.user_directory) + '/Pydio/' + label;
 
                 $location.path('/edit/new/step3');
             }else if(stepName == 'step3'){
 
+                delete $scope.job.test_path;
+                $scope.job.compute_sizes = true;
+                $scope.job.$save();
+
+                $scope.job.byte_size = 'computing...'
+                $scope.job.eta = 'computing...'
                 $location.path('/edit/new/step4');
 
             }else if(stepName == 'step4'){
 
+
+                delete $scope.job.compute_sizes;
                 delete $scope.job.id;
                 $scope.job = $scope.job.$save();
                 $scope.task = {

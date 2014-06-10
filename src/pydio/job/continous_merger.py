@@ -381,7 +381,6 @@ class ContinuousDiffMerger(threading.Thread):
                     logging.info('No changes detected')
 
             except Exception as e:
-                # TODO STORE ERROR - UPDATE A GLOBAL STATE
                 logging.error('Unexpected Error: %s' % e.message)
                 logger.log_state('Unexpected Error: %s' % e.message, 'error')
 
@@ -419,22 +418,3 @@ class ContinuousDiffMerger(threading.Thread):
     def load_remote_changes_in_store(self, seq_id, store):
         last_seq = self.sdk.changes_stream(seq_id, store.store)
         return last_seq
-
-    @staticmethod
-    def compute_remote_data_size(pydio_sdk, seq_id=0):
-        total = [0.0]
-        def callback(change):
-            if "node" in change and change["node"]["md5"] != "directory" and change["node"]["bytesize"]:
-                total[0] += float(change["node"]["bytesize"])
-        pydio_sdk.changes_stream(seq_id, callback)
-        return total[0]
-
-    @staticmethod
-    def compute_local_data_size(local_data_path):
-        total = 0.0
-        for dirpath, dirnames, filenames in os.walk(local_data_path):
-            for f in filenames:
-                fp = os.path.join(dirpath, f)
-                total += os.path.getsize(fp)
-        return total
-

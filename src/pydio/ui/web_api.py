@@ -14,6 +14,7 @@ import xmltodict
 import types
 import logging
 import sys
+import os
 from pathlib import *
 from collections import OrderedDict
 
@@ -88,7 +89,7 @@ class FoldersManager(Resource):
         resp = requests.get( url, stream = True, auth=auth )
         o = xmltodict.parse(resp.content)
         if not 'tree' in o or 'message' in o['tree']:
-            return [{'error':'Cannot load workspace'}];
+            return [{'error':'Cannot load workspace'}]
         if not 'tree' in o['tree']:
             return []
         if isinstance(o['tree']['tree'], types.DictType):
@@ -104,6 +105,37 @@ class JobManager(Resource):
         JobsLoader.Instance().get_jobs()
         json_req = request.get_json()
         new_job = JobConfig.object_decoder(json_req)
+
+        if 'test_path' in json_req:
+            from os.path import expanduser
+            json_req['directory'] = expanduser("~") + '/Pydio/' + json_req['repoObject']['label']
+            return json_req
+        elif 'compute_sizes' in json_req:
+            dl_rate = 2 * 1024 * 1024
+            up_rate = 0.1 * 1024 * 1024
+            # COMPUTE REMOTE SIZE
+            from pydio.sdk.remote import PydioSdk
+            sdk = PydioSdk(json_req['server'], json_req['workspace'], '', auth=(json_req['user'], json_req['password']))
+            up = [0.0]
+            def callback(location, seq_id, change):
+                if "node" in change and change["node"]["md5"] != "directory" and change["node"]["bytesize"]:
+                    up[0] += float(change["node"]["bytesize"])
+            sdk.changes_stream(0, callback)
+            # COMPUTE LOCAL SIZE
+            down = 0.0
+            if os.path.exists(json_req['directory']):
+                for dirpath, dirnames, filenames in os.walk(json_req['directory']):
+                    for f in filenames:
+                        fp = os.path.join(dirpath, f)
+                        try:
+                            down += os.path.getsize(fp)
+                        except OSError:
+                            pass
+
+            json_req['byte_size'] = up[0] + down
+            json_req['eta'] = up[0] * 8 / up_rate + down * 8 / dl_rate
+            return json_req
+
         JobsLoader.Instance().update_job(new_job)
         scheduler = PydioScheduler.Instance()
         scheduler.reload_configs()
