@@ -1,3 +1,4 @@
+import io
 import json
 import keyring
 import mock
@@ -7,7 +8,11 @@ import unittest
 from requests.packages.urllib3 import response
 from flask import Response
 
-from src.pydio.sdk.exceptions import PydioSdkTokenAuthException, PydioSdkBasicAuthException
+from src.pydio.sdk.exceptions import (
+    PydioSdkTokenAuthException,
+    PydioSdkBasicAuthException,
+    PydioSdkException
+)
 from src.pydio.sdk.remote import PydioSdk
 from src.pydio.sdk.utils import upload_file_showing_progress
 
@@ -205,39 +210,38 @@ class RemoteSdkLocalTests(unittest.TestCase):
 
             mock_init.call_args_list = []
 
-    # def perform_with_tokens(self, token, private, url, type='get', data=None, files=None, stream=False, with_progress=False):
-    #
-    #     nonce =  sha1(str(random.random())).hexdigest()
-    #     uri = urlparse(url).path.rstrip('/')
-    #     msg = uri+ ':' + nonce + ':'+private
-    #     the_hash = hmac.new(str(token), str(msg), sha256);
-    #     auth_hash = nonce + ':' + the_hash.hexdigest()
-    #
-    #     if type == 'get':
-    #         auth_string = 'auth_token=' + token + '&auth_hash=' + auth_hash
-    #         if '?' in url:
-    #             url += '&' + auth_string
-    #         else:
-    #             url += '?' + auth_string
-    #         resp = requests.get(url=url, stream=stream)
-    #     elif type == 'post':
-    #         if not data:
-    #             data = {}
-    #         data['auth_token'] = token
-    #         data['auth_hash']  = auth_hash
-    #         if with_progress:
-    #             fields = dict(files, **data)
-    #             resp = upload_file_showing_progress(url, fields, stream)
-    #         elif files:
-    #             resp = requests.post(url=url, data=data, files=files, stream=stream)
-    #         else:
-    #             resp = requests.post(url=url, data=data, stream=stream)
-    #     else:
-    #         raise PydioSdkTokenAuthException("Unsupported HTTP method")
-    #
-    #     if resp.status_code == 401:
-    #         raise PydioSdkTokenAuthException("Authentication Exception")
-    #     return resp
+    @mock.patch.object(PydioSdk, 'basic_authenticate')
+    @mock.patch.object(keyring, 'get_password')
+    @mock.patch.object(PydioSdk, 'perform_with_tokens')
+    def test_perform_request(self, mock_perform, mock_get, mock_basic):
+        resp = mock.Mock(sped=response)
+        resp.status_code = 200
+
+        mock_get.side_effect = [None, 'test:password', 'test:password']
+        mock_basic.return_value = {'t': 'test', 'p': 'password'}
+        mock_perform.side_effect = [resp, resp, PydioSdkTokenAuthException('test'), resp]
+
+        test_data = [
+            {
+                'basic_auth_called': True,
+                'perform_call_args': mock.call('test', 'password', 'http://url', 'get', None, None, False)
+            },
+            {
+                'basic_auth_called': False,
+                'perform_call_args': mock.call('test', 'password', 'http://url', 'get', None, None, False, False)
+            },
+            {
+                'basic_auth_called': True,
+                'perform_call_args': mock.call('test', 'password', 'http://url', 'get', None, None, False)
+            },
+        ]
+
+        for data in test_data:
+            self.sdk.perform_request('http://url')
+            assert mock_basic.called == data['basic_auth_called']
+            assert mock_perform.call_args == data['perform_call_args']
+            mock_basic.called = False
+            mock_perform.call_args_list = []
 
     @mock.patch.object(PydioSdk, 'perform_request')
     def test_changes_valid_json(self, mock_perform):
@@ -251,7 +255,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
         )
 
     @mock.patch.object(PydioSdk, 'perform_request')
-    def test_changes_invalid_json_exception_thrown(self, mock_perform):
+    def test_changes_invalid_json_exception_raised(self, mock_perform):
         resp = mock.Mock(spec=Response)
         resp.content = '["foo", {"bar"["baz", null, 1.0, 2]}]'
         mock_perform.return_value = resp
@@ -291,7 +295,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
         )
 
     @mock.patch.object(PydioSdk, 'perform_request')
-    def test_stat_exception_thrown(self, mock_perform):
+    def test_stat_exception_raised(self, mock_perform):
         errors_thrown = [ValueError, Exception]
         mock_perform.side_effect = errors_thrown
 
@@ -316,7 +320,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
 
     @mock.patch.object(json, 'loads')
     @mock.patch.object(PydioSdk, 'perform_request')
-    def test_bulk_stat_exception_thrown(self, mock_perform, mock_loads):
+    def test_bulk_stat_exception_raised(self, mock_perform, mock_loads):
         resp = mock.Mock(spec=Response)
         resp.content = '["foo", {"bar":["baz", null, 1.0, 2]}]'
         mock_perform.return_value = resp
@@ -380,6 +384,102 @@ class RemoteSdkLocalTests(unittest.TestCase):
         assert mock_perform.call_args == mock.call(
             url='url/api/basepath/deletews_id/path'
         )
+
+    @mock.patch('__builtin__.open')
+    @mock.patch.object(PydioSdk, 'perform_request')
+    @mock.patch.object(PydioSdk, 'mkfile')
+    @mock.patch.object(PydioSdk, 'stat')
+    def test_upload_exception_raised(self, mock_stat, mock_mkfile, mock_perform, mock_open):
+        mock_open.read = io.BytesIO(b'test data').read()
+
+        test_data = [
+            {
+                'local': None,
+                'local_stat': None,
+                'exception_message': '[sdk operation] [upload] /tmp (local file to upload not found!)',
+                'mkfile_called': False,
+                'stat_side_effect': [{'size': 1}],
+            },
+            {
+                'local': None,
+                'local_stat': {'size': 0},
+                'exception_message':
+                '[sdk operation] [upload] /tmp (File not correct after upload (expected size was 0 bytes))',
+                'mkfile_called': True,
+                'stat_side_effect': None,
+            },
+            {
+                'local': '/tmp',
+                'local_stat': {'size': 1},
+                'exception_message':
+                '[sdk operation] [upload] /tmp (File not correct after upload)',
+                'mkfile_called': False,
+                'stat_side_effect': [{'size': 0}, None],
+            },
+        ]
+
+        for data in test_data:
+            mock_stat.side_effect = data['stat_side_effect']
+            try:
+                self.sdk.upload(None, data['local_stat'], '/tmp')
+            except PydioSdkException, e:
+                assert e.message == data['exception_message']
+            else:
+                assert False
+
+            assert mock_mkfile.called == data['mkfile_called']
+            mock_mkfile.called = False
+
+    @mock.patch('__builtin__.open')
+    @mock.patch.object(PydioSdk, 'perform_request')
+    @mock.patch.object(PydioSdk, 'mkdir')
+    @mock.patch.object(PydioSdk, 'mkfile')
+    @mock.patch.object(PydioSdk, 'stat')
+    def test_upload(self, mock_stat, mock_mkfile, mock_mkdir, mock_perform, mock_open):
+        mock_open.read = io.BytesIO(b'test data').read()
+
+        test_data = [
+            {
+                'local': None,
+                'local_stat': {'size': 0},
+                'path': '/tmp',
+                'stat_side_effect': [{'size': 0}],
+                'mkfile_called': True,
+                'mkdir_called': False,
+            },
+            {
+                'local': '/tmp',
+                'local_stat': {'size': 1},
+                'path': '/tmp',
+                'stat_side_effect': [{'size': 1}],
+                'mkfile_called': False,
+                'mkdir_called': False,
+            },
+            {
+                'local': '/tmp',
+                'local_stat': {'size': 1},
+                'path': '/tmp/dir/',
+                'stat_side_effect': ['/folder', {'size': 1}],
+                'mkfile_called': False,
+                'mkdir_called': False,
+            },
+            {
+                'local': '/tmp',
+                'local_stat': {'size': 1},
+                'path': '/tmp/dir/',
+                'stat_side_effect': [None, {'size': 1}],
+                'mkfile_called': False,
+                'mkdir_called': True,
+            },
+        ]
+
+        for data in test_data:
+            mock_stat.side_effect = data['stat_side_effect']
+            assert self.sdk.upload(data['local'], data['local_stat'], data['path'])
+            assert mock_mkfile.called == data['mkfile_called']
+            assert mock_mkdir.called == data['mkdir_called']
+            mock_mkfile.called = False
+            mock_mkdir.called = False
 
 if __name__ == '__main__':
     unittest.main()
