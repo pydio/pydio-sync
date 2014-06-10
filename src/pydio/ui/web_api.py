@@ -101,7 +101,7 @@ class JobManager(Resource):
     loader = None
 
     def post(self):
-        jobs = JobsLoader.Instance().get_jobs()
+        JobsLoader.Instance().get_jobs()
         json_req = request.get_json()
         new_job = JobConfig.object_decoder(json_req)
         JobsLoader.Instance().update_job(new_job)
@@ -140,7 +140,6 @@ class JobManager(Resource):
             job_data['state'] = PydioScheduler.Instance().get_job_progress(job_id)
 
     def delete(self, job_id):
-        job_config = JobsLoader.Instance().get_jobs()[job_id]
         JobsLoader.Instance().delete_job(job_id)
         scheduler = PydioScheduler.Instance()
         scheduler.reload_configs()
@@ -194,6 +193,11 @@ class CmdManager(Resource):
 
     def get(self, cmd, job_id):
         if job_id:
+            if cmd == 'enable' or cmd == 'disable':
+                job_config = JobsLoader.Instance().get_job(job_id)
+                job_config.active = True if cmd == 'enable' else False
+                JobsLoader.Instance().update_job(job_config)
+                PydioScheduler.Instance().reload_configs()
             PydioScheduler.Instance().handle_job_signal(self, cmd, job_id)
         else:
             PydioScheduler.Instance().handle_generic_signal(self, cmd)

@@ -158,6 +158,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 });
             });
         }
+
         $scope.toggleJobActive = function(jobId){
             angular.forEach($scope.jobs, function(j){
                 if(j.id != jobId) return;
@@ -166,13 +167,6 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 j.$save(function(){
                     $scope.applyCmd((j.active?'enable':'disable'), jobId);
                 });
-            });
-        };
-        $scope.deleteJob = function(jobId){
-            angular.forEach($scope.jobs, function(j){
-                if(j.id != jobId) return;
-                j.active = !j.active;
-                j.$delete({job_id:jobId});
             });
         };
 
@@ -266,7 +260,8 @@ angular.module('project', ['ngRoute', 'ngResource'])
 
     })
 
-    .controller('EditCtrl', function($scope, $location, $routeParams, Jobs, currentJob, Ws, Folders) {
+    .controller('EditCtrl', function($scope, $location, $routeParams, $window, Jobs, currentJob, Ws, Folders, Commands) {
+
         $scope.loadFolders = function(){
             if($scope.job.repoObject && $scope.job.repoObject['@repositorySlug'] != $scope.job.workspace){
                 $scope.job.workspace = $scope.job.repoObject['@repositorySlug'];
@@ -326,6 +321,22 @@ angular.module('project', ['ngRoute', 'ngResource'])
 
         };
 
+        $scope.toggleJobActive = function(){
+            $scope.job.active = !$scope.job.active;
+            Commands.query({cmd:($scope.job.active?'enable':'disable'), job_id:$scope.job.id}, function(){
+                $location.path('/')
+            });
+        };
+
+        $scope.deleteJob = function(){
+            if($window.confirm('Are you sure you want to delete this synchro? No data will be deleted')){
+                Jobs.delete({job_id:$scope.job.id},function(){
+                    $location.path('/')
+                });
+            }
+        };
+
+
         $scope.pathes = {};
         $scope.jobs = Jobs.query();
         if(!currentJob.getJob()){
@@ -365,9 +376,12 @@ angular.module('project', ['ngRoute', 'ngResource'])
 
                 $location.path('/edit/new/step3');
             }else if(stepName == 'step3'){
+
                 $location.path('/edit/new/step4');
+
             }else if(stepName == 'step4'){
 
+                $scope.job.$save();
                 $scope.task = {
                     progress:56
                 };

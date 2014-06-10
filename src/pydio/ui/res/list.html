@@ -1,51 +1,3 @@
-<script id="job.html" type="text/ng-template">
-    <div class="panel" ng-class="{'panel-primary':job.active, 'panel-default':!job.active}" style="clear: both;">
-        <div class="panel-heading">
-            <a ng-if="job.active" href="#" ng-click="toggleJobActive(job.id)" class="pull-right" style="color: white;"><span class="glyphicon glyphicon-off"></span></a>
-            <a ng-if="!job.active" href="#" ng-click="toggleJobActive(job.id)" class="pull-right"><span class="glyphicon glyphicon-off"></span> Enable</a>
-            Job {{job.id}}</div>
-
-        <div style="line-height: 1.8em;" class="panel-body">
-            <div ng-if="job.state.tasks && job.state.tasks.length">
-                <div style="font-size: 12px;font-weight: 700;color: #bbb;text-transform: uppercase;letter-spacing: 1px;">Currently Running
-                    <a href="#/logs/{{job.id}}">[More]</a>
-                </div>
-                Time remaining : {{job.state.global['eta'] | seconds}}s<br>
-                Remaining bytes to transfer : {{job.state.global['queue_bytesize'] | bytes:1}}
-            </div>
-            <div style="font-size: 12px;font-weight: 700;color: #bbb;text-transform: uppercase;letter-spacing: 1px;">Last operation
-                <a href="#/logs/{{job.id}}">[More]</a>
-            </div>
-            <div ng-repeat="event in job.last_events | limitTo:1">
-                {{event[1]}} - {{event[2]}} - {{event[3]}}
-            </div>
-
-            <div style="margin-top: 15px; margin-bottom: 7px; font-size: 12px;font-weight: 700;color: #bbb;text-transform: uppercase;letter-spacing: 1px;">Parameters
-                <a href="#/edit/{{job.id}}/step3">[Edit]</a>
-            </div>
-            <table class="table">
-                <tbody>
-                    <tr><td style="width: 25%; text-align: right"><strong>Server</strong></td><td>{{job.server}}</td></tr>
-                    <tr><td style="width: 25%;text-align: right"><strong>Workspace</strong></td><td>{{job.workspace}}</td></tr>
-                    <tr ng-if="job.remote_folder"><td style="width: 25%;text-align: right"><strong>Workspace folder</strong></td><td>{{job.remote_folder}}</td></tr>
-                    <tr><td style="width: 25%;text-align: right"><strong>Local folder</strong></td><td>{{job.directory}}</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-
-        <div class="panel-footer" ng-if="job.active && job.running">
-            <span class="pull-right">Status: running <a ng-click="applyCmd('pause', job.id)" style="cursor: pointer;">[Pause]</a></span>&nbsp;
-        </div>
-        <div class="panel-footer" ng-if="job.active && !job.running">
-                <span class="pull-right">Status: paused <a ng-click="applyCmd('resume', job.id)" style="cursor: pointer;">[Resume]</a></span>&nbsp;
-        </div>
-        <div class="panel-footer" ng-if="!job.active">
-                <span class="pull-right"><a href="#" ng-click="deleteJob(job.id)"><span class="glyphicon glyphicon-trash"></span> Remove</a></span>&nbsp;
-        </div>
-    </div>
-
-</script>
 <script id="job_2.html" type="text/ng-template">
     <div class="well" style="clear: both;padding: 10px;">
         <table style="width: 100%;">
@@ -67,11 +19,12 @@
                         <span ng-if="job.last_event[6] == 'error'">ERROR: </span>{{job.last_event[2]}}
                     </div>
                 </td>
-                <td style="width:100px; font-size: 2em; text-align: right;padding-right: 5px;">
-                    <a href ng-click="job.active?applyCmd(job.running?'pause':'resume', job.id):toggleJobActive(job.id)">
-                        <span class="glyphicon" ng-class="{'glyphicon-pause':job.active && job.running,'glyphicon-play':!job.active || !job.running}"
+                <td style="width:100px; text-align: right;padding-right: 5px;">
+                    <a style="font-size: 2em;" href ng-if="job.active" ng-click="applyCmd(job.running?'pause':'resume', job.id)">
+                        <span class="glyphicon" ng-class="{'glyphicon-pause':job.running,'glyphicon-play':!job.running}"
                               style="color: white; display: inline-block; padding:5px; border-radius: 200px; background-color: #0079a1"></span>
                     </a>
+                    <span ng-if="!job.active">[DISABLED]</span>
                 </td>
             </tr>
         </table>

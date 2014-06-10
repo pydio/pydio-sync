@@ -1,8 +1,27 @@
 <div ng-show="job.id!='new'">
-    <h1>Task Configuration</h1>
-    <p class="lead">
-        Update the connection parameters and advanced options of this synchronization task.
-    </p>
+    <h3>{{job.label?job.label:job.id}}</h3>
+    <div class="well">
+        <p class="lead">Linking the following remote workspace to your local folder</p>
+
+        <div class="small pull-left" style="text-align: center; width: 30%; overflow: visible;">
+            <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
+            {{job.workspace}}: {{job.remote_folder?job.remote_folder:'Full workspace'}}<br>
+        </div>
+
+        <span style="display: block; float:left; width: 40%;margin: 50px auto; border-top: 1px dashed #000000;"></span>
+
+        <div class="small pull-right" style="text-align: center; width: 30%; overflow: visible; word-break: break-all;">
+            <img src="images/desktop.png" style="width: 100px;"><br>
+            {{job.directory_label?job.directory_label:job.directory}}<br>
+        </div>
+        <br style="clear: both;">
+        <br/>
+        <a ng-if="job.active" ng-click="toggleJobActive()" class="btn btn-info" style="width: 49%;" href>Stop Task</a>
+        <a ng-if="!job.active" ng-click="toggleJobActive()" class="btn btn-info" style="width: 49%;" href>Start Task</a>
+        <a class="btn btn-danger" ng-click="deleteJob()" style="width: 49%; float: right;" href>Delete Task</a>
+        <br style="clear: both;">
+    </div>
+    <h3>Change parameters</h3>
 </div>
 
 <div ng-show="job.id=='new'">
@@ -18,6 +37,7 @@
 <div class="well">
 
     <form ng-show="job.id!='new'" class="">
+
         <h4>Server Connexion</h4>
         <div class="form-group">
             <label>Server Address</label>
@@ -87,8 +107,14 @@
     <div ng-show="showAdvanced" style="margin-top: 20px;">
         <ng-include src="'advanced.html'" onload="job = job"/>
     </div>
+
+    <div ng-if="job.id != 'new'">
+        <a ng-click="save('full')" class="btn btn-info pull-right">Save</a>
+        <br style="clear: both">
+    </div>
+
 </div>
-<div class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
+<div ng-if="job.id=='new'" class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
     <a href="#" class="btn" ng-show="job.id!='new'">Cancel</a>
     <a ng-click="save('step2')" class="btn btn-info pull-right" ng-disabled="!job.remote_folder && !(job.workspace || job.repoObject)">Next</a>
 </div>

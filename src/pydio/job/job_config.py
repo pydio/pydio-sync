@@ -64,8 +64,8 @@ class JobsLoader():
         return self.jobs
 
     def get_job(self, id_to_get):
-        if not id in self.jobs:
-            return "no job with this id"
+        if not id_to_get in self.jobs:
+            raise Exception("Cannot find job with id %s" % id_to_get)
         return self.jobs[id_to_get]
 
     def update_job(self, job):
@@ -96,7 +96,8 @@ class JobsLoader():
         if os.path.exists(job_data_path + "/pydio.sqlite"):
             os.remove(job_data_path + "/pydio.sqlite")
         if parent and os.path.exists(job_data_path):
-            os.rmdir(job_data_path)
+            import shutil
+            shutil.rmtree(job_data_path)
 
 
 class JobConfig:
