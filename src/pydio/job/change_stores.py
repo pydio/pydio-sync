@@ -349,14 +349,16 @@ class SqliteChangeStore():
         else:
             return self.local_sdk.stat(path, with_hash=True)
 
-
-    def get_min_seq(self, location):
+    def get_min_seq(self, location, success=False):
         res = self.conn.execute("SELECT min(seq_id) FROM ajxp_changes WHERE location=?", (location,))
         for row in res:
             if not row[0]:
                 return -1
             else:
-                return row[0]
+                if success:
+                    return row[0]
+                else:
+                    return row[0] - 1
         return -1
 
     def close(self):

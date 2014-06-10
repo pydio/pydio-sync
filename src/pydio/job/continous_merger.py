@@ -205,8 +205,8 @@ class ContinuousDiffMerger(threading.Thread):
         Resume task (set it in running mode) and make sure the cycle starts now
         :return:
         """
-        self.resume()
         self.last_run = 0
+        self.resume()
 
     def pause(self):
         """
@@ -266,6 +266,7 @@ class ContinuousDiffMerger(threading.Thread):
         while not self.interrupt:
 
             try:
+                # logging.info('Starting cycle with cycles local %i and remote %is' % (self.local_seq, self.remote_seq))
                 self.processing_signals = {}
                 self.init_global_progress()
                 interval = int(time.time() - self.last_run)
@@ -361,6 +362,7 @@ class ContinuousDiffMerger(threading.Thread):
                             proc = ChangeProcessor(change, self.current_store, self.job_config, self.system, self.sdk,
                                                    self.db_handler, self.event_logger)
                             proc.process_change()
+                            self.update_min_seqs_from_store(success=True)
                             self.global_progress['queue_done'] = float(counter[0])
                             counter[0] += 1
                             self.update_current_tasks()
@@ -374,7 +376,6 @@ class ContinuousDiffMerger(threading.Thread):
                             raise i
                         except Exception as e:
                             logging.error(e.message)
-                        self.update_min_seqs_from_store()
 
                     try:
                         self.current_store.process_changes_with_callback(processor_callback)
@@ -393,11 +394,11 @@ class ContinuousDiffMerger(threading.Thread):
             self.init_global_progress()
             self.sleep_online()
 
-    def update_min_seqs_from_store(self):
-        self.local_seq = self.current_store.get_min_seq('local')
+    def update_min_seqs_from_store(self, success=False):
+        self.local_seq = self.current_store.get_min_seq('local', success=success)
         if self.local_seq == -1:
             self.local_seq = self.local_target_seq
-        self.remote_seq = self.current_store.get_min_seq('remote')
+        self.remote_seq = self.current_store.get_min_seq('remote', success=success)
         if self.remote_seq == -1:
             self.remote_seq = self.remote_target_seq
         logging.debug('Storing sequences remote %i local %i', self.local_seq, self.remote_seq)

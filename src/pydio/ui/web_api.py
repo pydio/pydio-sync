@@ -186,11 +186,17 @@ class ConflictsManager(Resource):
     def post(self):
         json_conflict = request.get_json()
         job_id = json_conflict['job_id']
-        if not job_id in JobsLoader.Instance().get_jobs():
+        try:
+            job_config = JobsLoader.Instance().get_job(job_id)
+        except Exception:
             return "Can't find any job config with this ID.", 404
 
         dbHandler = LocalDbHandler(JobsLoader.Instance().build_job_data_path(job_id))
         dbHandler.update_node_status(json_conflict['node_path'], json_conflict['status'])
+        if not dbHandler.count_conflicts() and job_config.active:
+            t = PydioScheduler.Instance().get_thread(job_id)
+            if t:
+                t.start_now()
         return json_conflict
 
     def get(self, job_id):

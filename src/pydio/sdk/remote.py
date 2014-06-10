@@ -452,11 +452,7 @@ class PydioSdk():
             'force_post': 'true',
             'urlencoded_filename': self.urlencode_normalized(os.path.basename(path))
         }
-        if max_upload_size > 0 and local_stat['size'] >= max_upload_size:
-            # Upload Chunked
-            pass
-        else:
-            resp = self.perform_request(url=url, type='post', data=data, files=files, with_progress=callback_dict)
+        self.perform_request(url=url, type='post', data=data, files=files, with_progress=callback_dict)
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
             raise PydioSdkException('upload', path, 'File not correct after upload')

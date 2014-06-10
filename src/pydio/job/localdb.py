@@ -190,6 +190,14 @@ class LocalDbHandler():
         c.close()
         return rows
 
+    def count_conflicts(self):
+        conn = sqlite3.connect(self.db)
+        c = 0
+        for row in conn.execute("SELECT count(node_id) FROM ajxp_node_status WHERE status='CONFLICT'"):
+            c = int(row[0])
+        conn.close()
+        return c
+
     def list_solved_nodes_w_callback(self, cb):
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
