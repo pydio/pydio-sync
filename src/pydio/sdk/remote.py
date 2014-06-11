@@ -44,8 +44,10 @@ PYDIO_SDK_MAX_UPLOAD_PIECES = 40 * 1024 * 1024
 
 
 class PydioSdk():
-    def __init__(self, url='', ws_id='', remote_folder='', user_id='', auth=()):
+
+    def __init__(self, url='', ws_id='', remote_folder='', user_id='', auth=(), device_id='python_client'):
         self.ws_id = ws_id
+        self.device_id = device_id
         self.base_url = url.rstrip('/') + '/api/'
         self.url = url.rstrip('/') + '/api/' + ws_id
         self.remote_folder = remote_folder
@@ -106,7 +108,7 @@ class PydioSdk():
         users credentials at each requests
         :return:dict()
         """
-        url = self.base_url + 'pydio/keystore_generate_auth_token/python_client'
+        url = self.base_url + 'pydio/keystore_generate_auth_token/' + self.device_id
         resp = requests.get(url=url, auth=self.auth)
         if resp.status_code == 401:
             raise PydioSdkBasicAuthException('Authentication Error')

@@ -37,6 +37,8 @@ from pydio.job.EventLogger import EventLogger
 from pydispatch import dispatcher
 from pydio import PUBLISH_SIGNAL, TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
 # -*- coding: utf-8 -*-
+from pydio.utils.global_config import ConfigManager
+
 
 class ContinuousDiffMerger(threading.Thread):
     """Main Thread grabbing changes from both sides, computing the necessary changes to apply, and applying them"""
@@ -59,7 +61,8 @@ class ContinuousDiffMerger(threading.Thread):
             job_config.server,
             ws_id=self.ws_id,
             remote_folder=job_config.remote_folder,
-            user_id=job_config.user_id
+            user_id=job_config.user_id,
+            device_id=ConfigManager.Instance().get_device_id()
         )
         self.system = SystemSdk(job_config.directory)
         self.remote_seq = 0

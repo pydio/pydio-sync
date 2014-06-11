@@ -4,7 +4,7 @@ import sys
 #import zmq
 
 from pydio.sdk.remote import PydioSdk
-
+from pydio.utils.global_config import ConfigManager
 
 class PydioDiagnostics():
 
@@ -37,9 +37,12 @@ class PydioDiagnostics():
             return
 
         if self.password:
-            pydio_sdk = PydioSdk(self.url, self.basepath, self.ws_id or '', user_id='', auth=(self.user_id, self.password))
+            pydio_sdk = PydioSdk(self.url, self.basepath, self.ws_id or '',
+                                 user_id='', auth=(self.user_id, self.password),
+                                 device_id=ConfigManager.Instance().get_device_id())
         else:
-            pydio_sdk = PydioSdk(self.url, self.basepath, self.ws_id or '', user_id=self.user_id)
+            pydio_sdk = PydioSdk(self.url, self.basepath, self.ws_id or '',
+                                 user_id=self.user_id, device_id=ConfigManager.Instance().get_device_id())
         success = pydio_sdk.stat(unicode('/', 'utf-8'))
         logging.info('Server ping on %s with user/pass %s/%s: %s' % (self.url, self.user_id, self.password, 'success' if success else 'failure'))
         if not success:

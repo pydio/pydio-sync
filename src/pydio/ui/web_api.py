@@ -16,7 +16,7 @@ import logging
 import sys
 import os
 from pathlib import *
-from collections import OrderedDict
+from pydio.utils.global_config import ConfigManager
 
 class PydioApi(Api):
 
@@ -28,7 +28,7 @@ class PydioApi(Api):
             static_folder = 'res'
         logging.debug('Starting Flask server with following static folder : '+ static_folder)
         self.app = Flask(__name__, static_folder = static_folder, static_url_path='/res')
-        self.app.logger.setLevel(logging.DEBUG)
+        self.app.logger.setLevel(logging.INFO)
         super(PydioApi, self).__init__(self.app)
         self.add_resource(JobManager, '/','/jobs', '/jobs/<string:job_id>')
         self.add_resource(WorkspacesManager, '/ws/<string:job_id>')
@@ -117,7 +117,8 @@ class JobManager(Resource):
             # COMPUTE REMOTE SIZE
             from pydio.sdk.remote import PydioSdk
             sdk = PydioSdk(json_req['server'], json_req['workspace'], json_req['remote_folder'], '',
-                           auth=(json_req['user'], json_req['password']))
+                           auth=(json_req['user'], json_req['password']),
+                           device_id=ConfigManager.getInstance().get_device_id())
             up = [0.0]
             def callback(location, seq_id, change):
                 if "node" in change and change["node"]["md5"] != "directory" and change["node"]["bytesize"]:

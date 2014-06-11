@@ -63,6 +63,7 @@ if __name__ == "__main__":
 from pydio.job.job_config import JobConfig, JobsLoader
 from pydio.test.diagnostics import PydioDiagnostics
 from pydio.utils.config_ports import PortsDetector
+from pydio.utils.global_config import ConfigManager
 from pydio.ui.web_api import PydioApi
 from pydio.job.scheduler import PydioScheduler
 
@@ -107,6 +108,7 @@ def main(argv=sys.argv[1:]):
         return 0
 
     jobs_loader = JobsLoader.Instance(data_path=str(jobs_root_path))
+    ConfigManager.Instance(data_path=str(jobs_root_path))
 
     if args.file or not argv:
         fp = args.file
