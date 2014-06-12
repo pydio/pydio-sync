@@ -56,7 +56,7 @@
         <a ng-if="!repositories && job.workspace" class="btn" ng-click="loadWorkspaces()">Change workspace / folder</a>
     </h4>
     <div ng-if="repositories">
-        <select autofocus="true" ng-change="loadFolders()" ng-model="job.repoObject" ng-options="repo as repo.label for repo in repositories" class="form-control">
+        <select autofocus="true" ng-change="loadFolders()" ng-model="job.repoObject" ng-options="repo as repo.label for repo in repositories | filter:{'@meta_syncable_REPO_SYNCABLE':'true'}" class="form-control">
             <option value="">-- Select a workspace --</option>
         </select>
         <div ng-show="folders && folders.length" class="well" style="background-color: white; padding: 10px; margin-top: 7px;">
