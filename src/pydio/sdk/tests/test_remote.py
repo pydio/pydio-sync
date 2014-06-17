@@ -8,12 +8,12 @@ import time
 import unittest
 from requests.packages.urllib3 import response
 
-from src.pydio.sdk.exceptions import (
+from pydio.sdk.exceptions import (
     PydioSdkTokenAuthException,
     PydioSdkBasicAuthException,
     PydioSdkException
 )
-from src.pydio.sdk.remote import PydioSdk
+from pydio.sdk.remote import PydioSdk
 
 
 class RemoteSdkLocalTests(unittest.TestCase):
@@ -101,7 +101,7 @@ class RemoteSdkLocalTests(unittest.TestCase):
 
     @mock.patch.object(random, 'random')
     @mock.patch.object(requests, 'post')
-    @mock.patch('src.pydio.sdk.remote.upload_file_showing_progress')
+    @mock.patch('pydio.sdk.remote.upload_file_showing_progress')
     def test_perform_with_token_post(self, mock_upload, mock_post, mock_random):
         resp = mock.Mock(spec=response)
         resp.status_code = 200

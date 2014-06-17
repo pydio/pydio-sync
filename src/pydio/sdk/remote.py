@@ -36,7 +36,7 @@ from urlparse import urlparse
 
 from exceptions import SystemSdkException, PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException
 from pydio.utils.functions import hashfile
-from src.pydio.sdk.utils import upload_file_showing_progress
+from pydio.sdk.utils import upload_file_showing_progress
 
 
 class PydioSdk():

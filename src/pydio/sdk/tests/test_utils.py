@@ -2,7 +2,7 @@ import io
 import mock
 import unittest
 
-from src.pydio.sdk.utils import upload_file_showing_progress, BytesIOWithCallback
+from pydio.sdk.utils import upload_file_showing_progress, BytesIOWithCallback
 
 
 class UtilsLocalTest(unittest.TestCase):
