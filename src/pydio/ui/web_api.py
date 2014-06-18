@@ -118,7 +118,7 @@ class JobManager(Resource):
             from pydio.sdk.remote import PydioSdk
             sdk = PydioSdk(json_req['server'], json_req['workspace'], json_req['remote_folder'], '',
                            auth=(json_req['user'], json_req['password']),
-                           device_id=ConfigManager.getInstance().get_device_id())
+                           device_id=ConfigManager.Instance().get_device_id())
             up = [0.0]
             def callback(location, seq_id, change):
                 if "node" in change and change["node"]["md5"] != "directory" and change["node"]["bytesize"]:
