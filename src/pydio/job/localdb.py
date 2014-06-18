@@ -31,7 +31,7 @@ from pathlib import *
 from watchdog.events import FileSystemEventHandler
 from watchdog.utils.dirsnapshot import DirectorySnapshotDiff
 
-from pydio.utils.functions import hashfile
+from pydio.utils.functions import hashfile, set_file_hidden
 
 
 class SqlSnapshot(object):
@@ -523,7 +523,32 @@ class SqlEventHandler(FileSystemEventHandler):
                 pickle.dumps(os.stat(src_path))
             )
             logging.debug("Real insert %s" % search_key)
-            conn.execute("INSERT INTO ajxp_index (node_path,bytesize,md5,mtime,stat_result) VALUES (?,?,?,?,?)", t)
+            c = conn.cursor()
+            del_element = None
+            if hash_key == 'directory':
+                existing_id = self.find_windows_folder_id(src_path)
+                if existing_id:
+                    del_element = self.find_deleted_element(c, 0, os.path.basename(src_path), node_id=existing_id)
+            else:
+                del_element = self.find_deleted_element(c, 0, os.path.basename(src_path), md5=hash_key)
+
+            if del_element:
+                logging.info("THIS IS A MOVE!")
+                t = (
+                    del_element['node_id'],
+                    del_element['source'],
+                    os.path.getsize(src_path),
+                    hash_key,
+                    os.path.getmtime(src_path),
+                    pickle.dumps(os.stat(src_path))
+                )
+                c.execute("INSERT INTO ajxp_index (node_id,node_path,bytesize,md5,mtime,stat_result) "
+                          "VALUES (?,?,?,?,?,?)", t)
+                c.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", (search_key, del_element['source']))
+            else:
+                c.execute("INSERT INTO ajxp_index (node_path,bytesize,md5,mtime,stat_result) VALUES (?,?,?,?,?)", t)
+                if hash_key == 'directory':
+                    self.set_windows_folder_id(c.lastrowid, src_path)
         else:
             if skip_nomodif:
                 bytesize = os.path.getsize(src_path)
@@ -550,3 +575,34 @@ class SqlEventHandler(FileSystemEventHandler):
                 conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=?", t)
         conn.commit()
         conn.close()
+
+    def set_windows_folder_id(self, node_id, path):
+        if os.name in ("nt", "ce"):
+            logging.debug("Created folder %s with node id %i" % (path, node_id))
+            try:
+                with open(path + "\\.pydio_id", "w") as hidden:
+                    hidden.write("%i" % (node_id,))
+                    hidden.close()
+                    set_file_hidden(path + "\\.pydio_id")
+            except Exception as e:
+                logging.error("Error while trying to save hidden file .pydio_id")
+
+    def find_windows_folder_id(self, path):
+        if os.name in("nt", "ce") and os.path.exists(path + "\\.pydio_id"):
+            with open(path + "\\.pydio_id") as hidden_file:
+                node_id = int(hidden_file.readline())
+                hidden_file.close()
+                return node_id
+        return None
+
+    def find_deleted_element(self, cursor, start_seq, basename, md5=None, node_id=None):
+        if md5:
+            res = cursor.execute('SELECT * FROM ajxp_changes WHERE type="delete" AND source LIKE ? AND deleted_md5=? '
+                               'AND seq >= ? ORDER BY seq DESC LIMIT 0,1', ("%\\"+basename, md5, start_seq))
+        elif node_id:
+            res = cursor.execute('SELECT * FROM ajxp_changes WHERE type="delete" AND source LIKE ? AND node_id=? '
+                               'AND seq >= ? ORDER BY seq DESC LIMIT 0,1', ("%\\"+basename, node_id, start_seq))
+        if not res:
+            return None
+        for row in res:
+            return {'source':row['source'], 'node_id':row['node_id']}
