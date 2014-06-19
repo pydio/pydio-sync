@@ -596,13 +596,13 @@ class SqlEventHandler(FileSystemEventHandler):
         return None
 
     def find_deleted_element(self, cursor, start_seq, basename, md5=None, node_id=None):
-        if md5:
-            res = cursor.execute('SELECT * FROM ajxp_changes WHERE type="delete" AND source LIKE ? AND deleted_md5=? '
-                               'AND seq >= ? ORDER BY seq DESC LIMIT 0,1', ("%\\"+basename, md5, start_seq))
-        elif node_id:
-            res = cursor.execute('SELECT * FROM ajxp_changes WHERE type="delete" AND source LIKE ? AND node_id=? '
-                               'AND seq >= ? ORDER BY seq DESC LIMIT 0,1', ("%\\"+basename, node_id, start_seq))
+        res = cursor.execute('SELECT * FROM ajxp_changes WHERE source LIKE ? '
+                           'AND seq >= ? ORDER BY seq DESC LIMIT 0,1', ("%\\"+basename, start_seq))
         if not res:
             return None
         for row in res:
-            return {'source':row['source'], 'node_id':row['node_id']}
+            if row['type'] != 'delete':
+                return None
+            if (md5 and row['deleted_md5'] == md5) or (node_id and row['node_id'] == node_id):
+                return {'source':row['source'], 'node_id':row['node_id']}
+        return None
