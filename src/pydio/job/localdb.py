@@ -124,7 +124,6 @@ class LocalDbHandler():
 
     def init_db(self):
         conn = sqlite3.connect(self.db)
-
         cursor = conn.cursor()
         if getattr(sys, 'frozen', False):
             respath = (Path(sys._MEIPASS)) / 'res' / 'create.sql'
@@ -279,8 +278,111 @@ class LocalDbHandler():
         conn.commit()
         conn.close()
 
-    def get_local_changes(self, seq_id, accumulator=dict()):
+    def get_local_changes_as_stream(self, seq_id, changes_callback):
+        cannot_read = (int(round(time.time() * 1000)) - SqlEventHandler.last_write_time) < (SqlEventHandler.db_wait_duration*1000)
+        while cannot_read:
+            print 'waiting db writing to end before retrieving local changes...'
+            cannot_read = (int(round(time.time() * 1000)) - SqlEventHandler.last_write_time) < (SqlEventHandler.db_wait_duration*1000)
+            time.sleep(SqlEventHandler.db_wait_duration)
 
+        print 'retrieving local changes'
+        SqlEventHandler.reading = True
+
+        try:
+            logging.debug("Local sequence " + str(seq_id))
+            conn = sqlite3.connect(self.db)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            max_seq = seq_id
+            previous_id = -1
+            change = dict()
+            for line in c.execute("SELECT seq , ajxp_changes.node_id ,  type ,  "
+                                 "source , target, ajxp_index.bytesize, ajxp_index.md5, ajxp_index.mtime, "
+                                 "ajxp_index.node_path, ajxp_index.stat_result FROM ajxp_changes LEFT JOIN ajxp_index "
+                                 "ON ajxp_changes.node_id = ajxp_index.node_id "
+                                 "WHERE seq > ? ORDER BY ajxp_changes.node_id, seq ASC", (seq_id,)):
+                row = dict(line)
+                logging.debug("processing " + row['source'] +  " -> " + row['target'])
+                source = row.pop('source')
+                target = row.pop('target')
+                if source == 'NULL':
+                   source = os.path.sep
+                if target == 'NULL':
+                   target = os.path.sep
+                seq = row.pop('seq')
+                content = row.pop('type')
+
+                max_seq = seq if seq > max_seq else max_seq
+                if previous_id != row['node_id']:
+                    if previous_id != -1:
+                        first, second = self.reformat(change)
+                        if first:
+                            changes_callback('local', max_seq, first)
+                        if second:
+                            changes_callback('local', max_seq, second)
+                    previous_id = row['node_id']
+                    change = dict()
+
+                if not change:
+                    change['source'] = source
+                    change['dp'] = PathOperation.path_sub(target, source)
+                    change['dc'] = (content == 'content')
+                    change['seq'] = max_seq
+                    change['node'] = row
+                else:
+                    dp = PathOperation.path_sub(target, source)
+                    change['dp'] = PathOperation.path_add(change['dp'], dp)
+                    change['dc'] = ((content == 'content') or change['dc'])
+                    change['seq'] = max_seq
+            if change:
+                first, second = self.reformat(change)
+                if first:
+                    changes_callback('local', max_seq, first)
+                if second:
+                    changes_callback('local', max_seq, second)
+            SqlEventHandler.reading = False
+            return max_seq
+        except Exception as ex:
+            logging.error(ex)
+            SqlEventHandler.reading = False
+            return seq_id
+
+
+    # from (path, dp, dc ) to (source, target, type,...)
+    def reformat(self, change):
+        source = change.pop('source')
+        target = PathOperation.path_add(source, change.pop('dp'))
+        if source == os.path.sep:
+            source = 'NULL'
+        if target == os.path.sep:
+            target = 'NULL'
+        content = ''
+        if target == source and (source == 'NULL' or not change['dc']):
+            return None, None
+        if target != 'NULL' and source == 'NULL':
+            content = 'create'
+        elif target == 'NULL' and source != 'NULL':
+            content = 'delete'
+        else:
+            dc = change.pop('dc')
+            if target != source and not dc:
+                content = 'path'
+            elif target != source and dc:
+                content = 'edit_move'
+            elif target == source and dc:
+               content = 'content'
+
+        if content != 'edit_move':
+            return {'location': 'local', 'node_id': change['node'].pop('node_id'), 'source':  source, 'target': target, 'type': content, 'seq':change.pop('seq'), 'stat_result':change['node'].pop('stat_result'), 'node': change['node']}, None
+        else:
+            seq = change.pop('seq')
+            node_id = change['node'].pop('node_id')
+            stat_result = change['node'].pop('stat_result')
+            return {'location': 'local', 'node_id': node_id, 'source':  source, 'target': 'NULL', 'type': 'delete', 'seq':seq, 'stat_result':stat_result, 'node':None},\
+                   {'location': 'local', 'node_id': node_id, 'source':  'NULL', 'target': target, 'type': 'create', 'seq':seq, 'stat_result':stat_result, 'node': change['node']}
+
+
+    def get_local_changes(self, seq_id, accumulator=dict()):
         logging.debug("Local sequence " + str(seq_id))
         last = seq_id
         conn = sqlite3.connect(self.db)
@@ -370,6 +472,10 @@ class LocalDbHandler():
 
 class SqlEventHandler(FileSystemEventHandler):
 
+    reading = False
+    last_write_time = 0
+    db_wait_duration = 1
+
     def __init__(self, basepath, includes, excludes, job_data_path):
         super(SqlEventHandler, self).__init__()
         self.base = basepath
@@ -413,6 +519,8 @@ class SqlEventHandler(FileSystemEventHandler):
         if not self.included(event):
             logging.debug('ignoring move event ' + event.src_path + event.dest_path)
             return
+
+        SqlEventHandler.lock_db()
         logging.debug("Event: move noticed: " + event.event_type + " on file " + event.dest_path + " at " + time.asctime())
         target_key = self.remove_prefix(self.get_unicode_path(event.dest_path))
         source_key = self.remove_prefix(self.get_unicode_path(event.src_path))
@@ -441,39 +549,47 @@ class SqlEventHandler(FileSystemEventHandler):
         except Exception as ex:
             logging.error(ex)
 
+        SqlEventHandler.last_write_time = int(round(time.time() * 1000))
+
     def on_created(self, event):
+
         if not self.included(event):
             return
+        SqlEventHandler.lock_db()
         logging.debug("Event: creation noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
         try:
             src_path = self.get_unicode_path(event.src_path)
             if not os.path.exists(src_path):
                 return
-
             self.updateOrInsert(src_path, is_directory=event.is_directory, skip_nomodif=False)
         except Exception as ex:
             logging.error(ex)
+        SqlEventHandler.last_write_time = int(round(time.time() * 1000))
 
     def on_deleted(self, event):
         if not self.included(event):
             return
         logging.debug("Event: deletion noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
+        SqlEventHandler.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
             conn = sqlite3.connect(self.db)
             conn.execute("DELETE FROM ajxp_index WHERE node_path LIKE ?", (self.remove_prefix(src_path) + '%',))
             conn.commit()
             conn.close()
+
         except Exception as ex:
             logging.error(ex)
+        SqlEventHandler.unlock_db()
 
     def on_modified(self, event):
         super(SqlEventHandler, self).on_modified(event)
         if not self.included(event):
             logging.debug('ignoring modified event ' + event.src_path)
             return
+        SqlEventHandler.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
             if event.is_directory:
@@ -495,6 +611,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
         except Exception as ex:
             logging.error(ex)
+        SqlEventHandler.unlock_db()
 
     def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert = False):
         search_key = self.remove_prefix(src_path)
@@ -603,6 +720,37 @@ class SqlEventHandler(FileSystemEventHandler):
         for row in res:
             if row['type'] != 'delete':
                 return None
+
             if (md5 and row['deleted_md5'] == md5) or (node_id and row['node_id'] == node_id):
                 return {'source':row['source'], 'node_id':row['node_id']}
         return None
+
+    @staticmethod
+    def lock_db():
+        ###################################################################
+        while SqlEventHandler.reading:
+            time.sleep(SqlEventHandler.db_wait_duration)
+        SqlEventHandler.last_write_time = int(round(time.time() * 1000))
+        ###################################################################
+
+    @staticmethod
+    def unlock_db():
+        SqlEventHandler.last_write_time = int(round(time.time() * 1000))
+
+
+
+
+
+
+class PathOperation(object):
+    @staticmethod
+    def path_add(path, delta):
+        return os.path.normpath(os.path.join(path, delta))
+
+    @staticmethod
+    def path_sub(path, path2):
+        return os.path.relpath(path, path2)
+
+    @staticmethod
+    def path_compare(path1, path2):
+        return os.path.normcase(os.path.normpath(path1)) == os.path.normcase(os.path.normpath(path2))
