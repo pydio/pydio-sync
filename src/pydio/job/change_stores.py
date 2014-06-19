@@ -130,7 +130,7 @@ class SqliteChangeStore():
         for row in res:
             r = self.sqlite_row_to_dict(row)
             res = self.conn.execute("DELETE FROM ajxp_changes WHERE location=? AND type=? AND source LIKE ?",
-                                    (row['location'], row['type'], row['source'] + "/%"))
+                                    (row['location'], row['type'], row['source'].replace("\\", "/") + "/%"))
             logging.debug('[change store] Pruning %i rows', res.rowcount)
         self.conn.commit()
 
@@ -385,6 +385,8 @@ class SqliteChangeStore():
                 return True
 
     def store(self, location, seq_id, change):
+        if location == 'local':
+            print change['type'], " : ", change['source'], " => ", change['target']
 
         if self.filter_path(change['source']) or self.filter_path(change['target']):
             return
@@ -404,8 +406,8 @@ class SqliteChangeStore():
             seq_id,
             location,
             change['type'],
-            change['source'].rstrip('/'),
-            change['target'].rstrip('/'),
+            change['source'].replace("\\", "/").rstrip('/'),
+            change['target'].replace("\\", "/").rstrip('/'),
             content,
             md5,
             bytesize,
