@@ -321,10 +321,15 @@ class ContinuousDiffMerger(threading.Thread):
                 self.sdk.set_server_configs(self.job_config.server_configs)
 
                 if self.job_config.direction != 'down':
+                    """
                     logging.info('Loading local changes with sequence ' + str(self.local_seq))
                     local_changes = dict(data=dict(), path_to_seqs=dict())
                     self.local_target_seq = self.db_handler.get_local_changes(self.local_seq, local_changes)
                     self.current_store.massive_store("local", local_changes)
+                    self.current_store.sync()
+                    """
+                    logging.info('Loading local changes with sequence ' + str(self.local_seq))
+                    self.local_target_seq = self.db_handler.get_local_changes_as_stream(self.local_seq, self.current_store.store)
                     self.current_store.sync()
                 else:
                     self.local_target_seq = 1
