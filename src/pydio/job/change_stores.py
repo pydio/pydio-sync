@@ -320,7 +320,7 @@ class SqliteChangeStore():
     def buffer_real_operation(self, location, type, source, target):
         location = 'remote' if location == 'local' else 'local'
         self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)",
-                          (type, location, source, target))
+                          (type, location, source.replace("\\", "/"), target.replace("\\", "/")))
         self.conn.commit()
 
 
@@ -422,3 +422,114 @@ class SqliteChangeStore():
 
     def sync(self):
         self.conn.commit()
+
+    def echo_match(self, location, change):
+        logging.info("trying to catch echo...")
+        source = change['source'].replace("\\", "/")
+        target = change['target'].replace("\\", "/")
+        action = change['type']
+        for _ in self.conn.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (action, location, source, target)):
+            return True
+        return False
+
+    def flatten_and_store(self, location, row, last_info=dict()):
+        previous_id = last_info['node_id'] if (last_info and last_info.has_key('node_id')) else -1
+        change = last_info['change'] if (last_info and last_info.has_key('change')) else dict()
+        max_seq = last_info['max_seq'] if (last_info and last_info.has_key('max_seq')) else -1
+
+        if not row:
+            if last_info and last_info.has_key('change') and change:
+                first, second = self.reformat(change)
+                if first:
+                    self.store(location, max_seq, first)
+                if second:
+                    self.store(location, max_seq, second)
+        else:
+            seq = row.pop('seq')
+            max_seq = seq if seq > max_seq else max_seq
+
+            if self.echo_match(location, row):
+                logging.info("Echo caught ["+location+"] : "+ row['source']+" -> "+ row['target'])
+                last_info['max_seq'] = max_seq
+            else:
+                logging.debug("processing " + row['source'] +  " -> " + row['target'])
+                source = row.pop('source')
+                target = row.pop('target')
+                if source == 'NULL':
+                    source = os.path.sep
+                if target == 'NULL':
+                    target = os.path.sep
+                content = row.pop('type')
+
+                if previous_id != row['node_id']:
+                    if previous_id != -1:
+                        first, second = self.reformat(change)
+                        if first:
+                            self.store(location, max_seq, first)
+                        if second:
+                            self.store(location, max_seq, second)
+                    last_info['change'] = None
+                    last_info['node_id'] = row['node_id']
+                    change = dict()
+
+                if not change:
+                    change['source'] = source
+                    change['dp'] = PathOperation.path_sub(target, source)
+                    change['dc'] = (content == 'content')
+                    change['seq'] = max_seq
+                    change['node'] = row
+                else:
+                    dp = PathOperation.path_sub(target, source)
+                    change['dp'] = PathOperation.path_add(change['dp'], dp)
+                    change['dc'] = ((content == 'content') or change['dc'])
+                    change['seq'] = max_seq
+
+                last_info['change'] = change
+                last_info['max_seq'] = max_seq
+
+    # from (path, dp, dc ) to (source, target, type,...)
+    def reformat(self, change):
+        source = change.pop('source')
+        target = PathOperation.path_add(source, change.pop('dp'))
+        if source == os.path.sep:
+            source = 'NULL'
+        if target == os.path.sep:
+            target = 'NULL'
+        content = ''
+        if target == source and (source == 'NULL' or not change['dc']):
+            return None, None
+        if target != 'NULL' and source == 'NULL':
+            content = 'create'
+        elif target == 'NULL' and source != 'NULL':
+            content = 'delete'
+        else:
+            dc = change.pop('dc')
+            if target != source and not dc:
+                content = 'path'
+            elif target != source and dc:
+                content = 'edit_move'
+            elif target == source and dc:
+               content = 'content'
+
+        if content != 'edit_move':
+            stat_result = change['node'].pop('stat_result') if change['node'].has_key('stat_result') else None
+            return {'location': 'local', 'node_id': change['node'].pop('node_id'), 'source':  source, 'target': target, 'type': content, 'seq':change.pop('seq'), 'stat_result': stat_result, 'node': change['node']}, None
+        else:
+            seq = change.pop('seq')
+            node_id = change['node'].pop('node_id')
+            stat_result = change['node'].pop('stat_result') if change['node'].has_key('stat_result') else None
+            return {'location': 'local', 'node_id': node_id, 'source':  source, 'target': 'NULL', 'type': 'delete', 'seq':seq, 'stat_result':stat_result, 'node':None},\
+                   {'location': 'local', 'node_id': node_id, 'source':  'NULL', 'target': target, 'type': 'create', 'seq':seq, 'stat_result':stat_result, 'node': change['node']}
+
+class PathOperation(object):
+    @staticmethod
+    def path_add(path, delta):
+        return os.path.normpath(os.path.join(path, delta))
+
+    @staticmethod
+    def path_sub(path, path2):
+        return os.path.relpath(path, path2)
+
+    @staticmethod
+    def path_compare(path1, path2):
+        return os.path.normcase(os.path.normpath(path1)) == os.path.normcase(os.path.normpath(path2))
