@@ -258,7 +258,7 @@ class LocalDbHandler():
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        for row in c.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (type,location,source,target)):
+        for row in c.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (type,location,source.replace("\\", "/"),target.replace("\\", "/"))):
             c.close()
             return True
         c.close()
@@ -268,7 +268,7 @@ class LocalDbHandler():
     def buffer_real_operation(self, location, type, source, target):
         location = 'remote' if location == 'local' else 'local'
         conn = sqlite3.connect(self.db)
-        conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (type, location, source, target))
+        conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (type, location, source.replace("\\", "/"), target.replace("\\", "/")))
         conn.commit()
         conn.close()
 
@@ -278,108 +278,36 @@ class LocalDbHandler():
         conn.commit()
         conn.close()
 
-    def get_local_changes_as_stream(self, seq_id, changes_callback):
+    def get_local_changes_as_stream(self, seq_id, flatten_and_store_callback):
         cannot_read = (int(round(time.time() * 1000)) - SqlEventHandler.last_write_time) < (SqlEventHandler.db_wait_duration*1000)
         while cannot_read:
-            print 'waiting db writing to end before retrieving local changes...'
+            logging.info('waiting db writing to end before retrieving local changes...')
             cannot_read = (int(round(time.time() * 1000)) - SqlEventHandler.last_write_time) < (SqlEventHandler.db_wait_duration*1000)
             time.sleep(SqlEventHandler.db_wait_duration)
-
-        print 'retrieving local changes'
         SqlEventHandler.reading = True
-
         try:
             logging.debug("Local sequence " + str(seq_id))
             conn = sqlite3.connect(self.db)
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
-            max_seq = seq_id
-            previous_id = -1
-            change = dict()
+            info = dict()
+            info['max_seq'] = seq_id
             for line in c.execute("SELECT seq , ajxp_changes.node_id ,  type ,  "
                                  "source , target, ajxp_index.bytesize, ajxp_index.md5, ajxp_index.mtime, "
                                  "ajxp_index.node_path, ajxp_index.stat_result FROM ajxp_changes LEFT JOIN ajxp_index "
                                  "ON ajxp_changes.node_id = ajxp_index.node_id "
                                  "WHERE seq > ? ORDER BY ajxp_changes.node_id, seq ASC", (seq_id,)):
                 row = dict(line)
-                logging.debug("processing " + row['source'] +  " -> " + row['target'])
-                source = row.pop('source')
-                target = row.pop('target')
-                if source == 'NULL':
-                   source = os.path.sep
-                if target == 'NULL':
-                   target = os.path.sep
-                seq = row.pop('seq')
-                content = row.pop('type')
-
-                max_seq = seq if seq > max_seq else max_seq
-                if previous_id != row['node_id']:
-                    if previous_id != -1:
-                        first, second = self.reformat(change)
-                        if first:
-                            changes_callback('local', max_seq, first)
-                        if second:
-                            changes_callback('local', max_seq, second)
-                    previous_id = row['node_id']
-                    change = dict()
-
-                if not change:
-                    change['source'] = source
-                    change['dp'] = PathOperation.path_sub(target, source)
-                    change['dc'] = (content == 'content')
-                    change['seq'] = max_seq
-                    change['node'] = row
-                else:
-                    dp = PathOperation.path_sub(target, source)
-                    change['dp'] = PathOperation.path_add(change['dp'], dp)
-                    change['dc'] = ((content == 'content') or change['dc'])
-                    change['seq'] = max_seq
-            if change:
-                first, second = self.reformat(change)
-                if first:
-                    changes_callback('local', max_seq, first)
-                if second:
-                    changes_callback('local', max_seq, second)
+                flatten_and_store_callback('local', row, info)
+            flatten_and_store_callback('local', None, info)
             SqlEventHandler.reading = False
-            return max_seq
+            return info['max_seq']
         except Exception as ex:
             logging.error(ex)
             SqlEventHandler.reading = False
-            return seq_id
+            return info['seq_id']
 
 
-    # from (path, dp, dc ) to (source, target, type,...)
-    def reformat(self, change):
-        source = change.pop('source')
-        target = PathOperation.path_add(source, change.pop('dp'))
-        if source == os.path.sep:
-            source = 'NULL'
-        if target == os.path.sep:
-            target = 'NULL'
-        content = ''
-        if target == source and (source == 'NULL' or not change['dc']):
-            return None, None
-        if target != 'NULL' and source == 'NULL':
-            content = 'create'
-        elif target == 'NULL' and source != 'NULL':
-            content = 'delete'
-        else:
-            dc = change.pop('dc')
-            if target != source and not dc:
-                content = 'path'
-            elif target != source and dc:
-                content = 'edit_move'
-            elif target == source and dc:
-               content = 'content'
-
-        if content != 'edit_move':
-            return {'location': 'local', 'node_id': change['node'].pop('node_id'), 'source':  source, 'target': target, 'type': content, 'seq':change.pop('seq'), 'stat_result':change['node'].pop('stat_result'), 'node': change['node']}, None
-        else:
-            seq = change.pop('seq')
-            node_id = change['node'].pop('node_id')
-            stat_result = change['node'].pop('stat_result')
-            return {'location': 'local', 'node_id': node_id, 'source':  source, 'target': 'NULL', 'type': 'delete', 'seq':seq, 'stat_result':stat_result, 'node':None},\
-                   {'location': 'local', 'node_id': node_id, 'source':  'NULL', 'target': target, 'type': 'create', 'seq':seq, 'stat_result':stat_result, 'node': change['node']}
 
 
     def get_local_changes(self, seq_id, accumulator=dict()):
@@ -742,15 +670,3 @@ class SqlEventHandler(FileSystemEventHandler):
 
 
 
-class PathOperation(object):
-    @staticmethod
-    def path_add(path, delta):
-        return os.path.normpath(os.path.join(path, delta))
-
-    @staticmethod
-    def path_sub(path, path2):
-        return os.path.relpath(path, path2)
-
-    @staticmethod
-    def path_compare(path1, path2):
-        return os.path.normcase(os.path.normpath(path1)) == os.path.normcase(os.path.normpath(path2))
