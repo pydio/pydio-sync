@@ -329,7 +329,7 @@ class ContinuousDiffMerger(threading.Thread):
                     self.current_store.sync()
                     """
                     logging.info('Loading local changes with sequence ' + str(self.local_seq))
-                    self.local_target_seq = self.db_handler.get_local_changes_as_stream(self.local_seq, self.current_store.store)
+                    self.local_target_seq = self.db_handler.get_local_changes_as_stream(self.local_seq, self.current_store.flatten_and_store)
                     self.current_store.sync()
                 else:
                     self.local_target_seq = 1
@@ -340,8 +340,8 @@ class ContinuousDiffMerger(threading.Thread):
                 self.update_min_seqs_from_store()
                 self.current_store.detect_unnecessary_changes(local_sdk=self.system, remote_sdk=self.sdk)
                 self.update_min_seqs_from_store()
-                self.current_store.filter_out_echoes_events()
-                self.update_min_seqs_from_store()
+                #self.current_store.filter_out_echoes_events()
+                #self.update_min_seqs_from_store()
                 self.current_store.clear_operations_buffer()
                 self.current_store.prune_folders_moves()
                 self.update_min_seqs_from_store()
@@ -429,5 +429,5 @@ class ContinuousDiffMerger(threading.Thread):
             dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel=channel, message=message)
 
     def load_remote_changes_in_store(self, seq_id, store):
-        last_seq = self.sdk.changes_stream(seq_id, store.store)
+        last_seq = self.sdk.changes_stream(seq_id, store.flatten_and_store)
         return last_seq
