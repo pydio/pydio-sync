@@ -215,7 +215,8 @@ class PydioSdk():
         except ValueError as v:
             raise Exception("Invalid JSON value received while getting remote changes")
 
-    def changes_stream(self, last_seq, change_callback):
+    def changes_stream(self, last_seq, flatten_and_store_callback):
+
         """
         Get the list of changes detected on server since a given sequence number
 
@@ -223,18 +224,31 @@ class PydioSdk():
         :change_store: AbstractChangeStore
         :return:list a list of changes
         """
+
+        perform_flatting = "false"
         url = self.url + '/changes/' + str(last_seq) + '/?stream=true'
         if self.remote_folder:
             url += '&filter=' + self.remote_folder
+        url += '&flatten='+perform_flatting
+
         resp = self.perform_request(url=url, stream=True)
+        info = dict()
+        info['max_seq'] = last_seq
         for line in resp.iter_lines(chunk_size=512):
             if line:
                 if str(line).startswith('LAST_SEQ'):
+                    #call the merge function with NULL row
+                    flatten_and_store_callback('remote', None, info)
                     return int(line.split(':')[1])
                 else:
                     try:
                         one_change = json.loads(line)
-                        change_callback('remote', one_change['seq'], one_change)
+                        #change_callback('remote', one_change['seq'], one_change)
+                        node = one_change.pop('node')
+                        one_change = dict(node.items() + one_change.items())
+                        print "REMOTE CHANGE : ", one_change['node_id']
+                        flatten_and_store_callback('remote', one_change, info)
+
                     except ValueError as v:
                         raise Exception("Invalid JSON value received while getting remote changes")
                     except Exception as e:
