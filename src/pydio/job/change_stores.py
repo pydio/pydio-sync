@@ -472,7 +472,6 @@ class SqliteChangeStore():
             max_seq = seq if seq > max_seq else max_seq
 
             if self.echo_match(location, row):
-                logging.info("Echo caught ["+location+"] : "+ row['source']+" -> "+ row['target'])
                 last_info['max_seq'] = max_seq
             else:
                 logging.debug("processing " + row['source'] +  " -> " + row['target'])
