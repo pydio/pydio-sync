@@ -27,7 +27,7 @@ import logging
 from requests.exceptions import ConnectionError
 from collections import deque
 from pydio.job.change_processor import ChangeProcessor
-from pydio.job.localdb import LocalDbHandler
+from pydio.job.localdb import LocalDbHandler, SqlEventHandler
 from pydio.job.local_watcher import LocalWatcher
 from pydio.sdk.exceptions import ProcessException, InterruptException
 from pydio.sdk.remote import PydioSdk
@@ -83,22 +83,29 @@ class ContinuousDiffMerger(threading.Thread):
         self.processing_signals = {}
         self.current_tasks = []
         dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel='status', message='START')
+        if job_config.direction != 'down':
+            self.event_handler = SqlEventHandler(includes=job_config.filters['includes'],
+                                                 excludes=job_config.filters['excludes'],
+                                                 basepath=job_config.directory,
+                                                 job_data_path=job_data_path)
+            self.watcher = LocalWatcher(job_config.directory,
+                                        job_data_path,
+                                        event_handler=self.event_handler)
+            self.db_handler.check_lock_on_event_handler(self.event_handler)
 
         if os.path.exists(self.data_base + "/sequences"):
             try:
                 sequences = pickle.load(open(self.data_base + "/sequences", "rb"))
                 self.remote_seq = sequences['remote']
                 self.local_seq = sequences['local']
+                if self.event_handler:
+                    self.event_handler.last_seq_id = self.local_seq
 
             except Exception:
                 # Wrong content, remove sequences file.
                 os.unlink(self.data_base + "/sequences")
 
-        if job_config.direction != 'down':
-            self.watcher = LocalWatcher(job_config.directory,
-                                        job_config.filters['includes'],
-                                        job_config.filters['excludes'],
-                                        job_data_path)
+
         dispatcher.connect( self.handle_transfer_rate_event, signal=TRANSFER_RATE_SIGNAL, sender=dispatcher.Any )
         dispatcher.connect( self.handle_transfer_callback_event, signal=TRANSFER_CALLBACK_SIGNAL, sender=dispatcher.Any )
 
@@ -321,13 +328,6 @@ class ContinuousDiffMerger(threading.Thread):
                 self.sdk.set_server_configs(self.job_config.server_configs)
 
                 if self.job_config.direction != 'down':
-                    """
-                    logging.info('Loading local changes with sequence ' + str(self.local_seq))
-                    local_changes = dict(data=dict(), path_to_seqs=dict())
-                    self.local_target_seq = self.db_handler.get_local_changes(self.local_seq, local_changes)
-                    self.current_store.massive_store("local", local_changes)
-                    self.current_store.sync()
-                    """
                     logging.info('Loading local changes with sequence ' + str(self.local_seq))
                     self.local_target_seq = self.db_handler.get_local_changes_as_stream(self.local_seq, self.current_store.flatten_and_store)
                     self.current_store.sync()
@@ -417,6 +417,8 @@ class ContinuousDiffMerger(threading.Thread):
             local=self.local_seq,
             remote=self.remote_seq
         ), open(self.data_base + '/sequences', 'wb'))
+        if self.event_handler:
+            self.event_handler.last_seq_id = self.local_seq
 
     def ping_remote(self):
         """

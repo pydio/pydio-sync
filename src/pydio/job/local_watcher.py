@@ -92,15 +92,12 @@ class SnapshotDiffStart(DirectorySnapshotDiff):
 
 
 class LocalWatcher(threading.Thread):
-    def __init__(self, local_path, includes, excludes, data_path):
+    def __init__(self, local_path, data_path, event_handler):
         threading.Thread.__init__(self)
         self.basepath = unicode(local_path)
         self.observer = None
-        self.includes = includes
-        self.excludes = excludes
 
-        self.event_handler = SqlEventHandler(includes=self.includes, excludes=self.excludes, basepath=self.basepath,
-                                             job_data_path=data_path)
+        self.event_handler = event_handler
 
         logging.info('Scanning for changes since last application launch')
         if os.path.exists(self.basepath):

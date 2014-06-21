@@ -119,8 +119,16 @@ class LocalDbHandler():
         self.base = base
         self.db = job_data_path + '/pydio.sqlite'
         self.job_data_path = job_data_path
+        self.event_handler = None
         if not os.path.exists(self.db):
             self.init_db()
+
+    def check_lock_on_event_handler(self, event_handler):
+        """
+        :param event_handler:SqlEventHandler
+        :return:
+        """
+        self.event_handler = event_handler
 
     def init_db(self):
         conn = sqlite3.connect(self.db)
@@ -279,12 +287,13 @@ class LocalDbHandler():
         conn.close()
 
     def get_local_changes_as_stream(self, seq_id, flatten_and_store_callback):
-        cannot_read = (int(round(time.time() * 1000)) - SqlEventHandler.last_write_time) < (SqlEventHandler.db_wait_duration*1000)
-        while cannot_read:
-            logging.info('waiting db writing to end before retrieving local changes...')
-            cannot_read = (int(round(time.time() * 1000)) - SqlEventHandler.last_write_time) < (SqlEventHandler.db_wait_duration*1000)
-            time.sleep(SqlEventHandler.db_wait_duration)
-        SqlEventHandler.reading = True
+        if self.event_handler:
+            cannot_read = (int(round(time.time() * 1000)) - self.event_handler.last_write_time) < (self.event_handler.db_wait_duration*1000)
+            while cannot_read:
+                logging.info('waiting db writing to end before retrieving local changes...')
+                cannot_read = (int(round(time.time() * 1000)) - self.event_handler.last_write_time) < (self.event_handler.db_wait_duration*1000)
+                time.sleep(self.event_handler.db_wait_duration)
+            self.event_handler.reading = True
         try:
             logging.debug("Local sequence " + str(seq_id))
             conn = sqlite3.connect(self.db)
@@ -300,11 +309,13 @@ class LocalDbHandler():
                 row = dict(line)
                 flatten_and_store_callback('local', row, info)
             flatten_and_store_callback('local', None, info)
-            SqlEventHandler.reading = False
+            if self.event_handler:
+                self.event_handler.reading = False
             return info['max_seq']
         except Exception as ex:
             logging.error(ex)
-            SqlEventHandler.reading = False
+            if self.event_handler:
+                self.event_handler.reading = False
             return info['seq_id']
 
 
@@ -411,6 +422,7 @@ class SqlEventHandler(FileSystemEventHandler):
         self.excludes = excludes
         db_handler = LocalDbHandler(job_data_path, basepath)
         self.db = db_handler.db
+        self.last_seq_id = 0
 
     def get_unicode_path(self, src):
         if isinstance(src, str):
@@ -448,7 +460,7 @@ class SqlEventHandler(FileSystemEventHandler):
             logging.debug('ignoring move event ' + event.src_path + event.dest_path)
             return
 
-        SqlEventHandler.lock_db()
+        self.lock_db()
         logging.debug("Event: move noticed: " + event.event_type + " on file " + event.dest_path + " at " + time.asctime())
         target_key = self.remove_prefix(self.get_unicode_path(event.dest_path))
         source_key = self.remove_prefix(self.get_unicode_path(event.src_path))
@@ -477,13 +489,13 @@ class SqlEventHandler(FileSystemEventHandler):
         except Exception as ex:
             logging.error(ex)
 
-        SqlEventHandler.last_write_time = int(round(time.time() * 1000))
+        self.last_write_time = int(round(time.time() * 1000))
 
     def on_created(self, event):
 
         if not self.included(event):
             return
-        SqlEventHandler.lock_db()
+        self.lock_db()
         logging.debug("Event: creation noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
         try:
@@ -493,14 +505,14 @@ class SqlEventHandler(FileSystemEventHandler):
             self.updateOrInsert(src_path, is_directory=event.is_directory, skip_nomodif=False)
         except Exception as ex:
             logging.error(ex)
-        SqlEventHandler.last_write_time = int(round(time.time() * 1000))
+        self.last_write_time = int(round(time.time() * 1000))
 
     def on_deleted(self, event):
         if not self.included(event):
             return
         logging.debug("Event: deletion noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
-        SqlEventHandler.lock_db()
+        self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
             conn = sqlite3.connect(self.db)
@@ -510,14 +522,14 @@ class SqlEventHandler(FileSystemEventHandler):
 
         except Exception as ex:
             logging.error(ex)
-        SqlEventHandler.unlock_db()
+        self.unlock_db()
 
     def on_modified(self, event):
         super(SqlEventHandler, self).on_modified(event)
         if not self.included(event):
             logging.debug('ignoring modified event ' + event.src_path)
             return
-        SqlEventHandler.lock_db()
+        self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
             if event.is_directory:
@@ -539,7 +551,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
         except Exception as ex:
             logging.error(ex)
-        SqlEventHandler.unlock_db()
+        self.unlock_db()
 
     def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert = False):
         search_key = self.remove_prefix(src_path)
@@ -573,9 +585,9 @@ class SqlEventHandler(FileSystemEventHandler):
             if hash_key == 'directory':
                 existing_id = self.find_windows_folder_id(src_path)
                 if existing_id:
-                    del_element = self.find_deleted_element(c, 0, os.path.basename(src_path), node_id=existing_id)
+                    del_element = self.find_deleted_element(c, self.last_seq_id, os.path.basename(src_path), node_id=existing_id)
             else:
-                del_element = self.find_deleted_element(c, 0, os.path.basename(src_path), md5=hash_key)
+                del_element = self.find_deleted_element(c, self.last_seq_id, os.path.basename(src_path), md5=hash_key)
 
             if del_element:
                 logging.info("THIS IS A MOVE!")
@@ -653,17 +665,15 @@ class SqlEventHandler(FileSystemEventHandler):
                 return {'source':row['source'], 'node_id':row['node_id']}
         return None
 
-    @staticmethod
-    def lock_db():
+    def lock_db(self):
         ###################################################################
-        while SqlEventHandler.reading:
-            time.sleep(SqlEventHandler.db_wait_duration)
-        SqlEventHandler.last_write_time = int(round(time.time() * 1000))
+        while self.reading:
+            time.sleep(self.db_wait_duration)
+        self.last_write_time = int(round(time.time() * 1000))
         ###################################################################
 
-    @staticmethod
-    def unlock_db():
-        SqlEventHandler.last_write_time = int(round(time.time() * 1000))
+    def unlock_db(self):
+        self.last_write_time = int(round(time.time() * 1000))
 
 
 
