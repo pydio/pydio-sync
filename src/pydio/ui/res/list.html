@@ -1,33 +1,60 @@
 <script id="job_2.html" type="text/ng-template">
-    <div class="well" style="clear: both;padding: 10px;">
-        <table style="width: 100%;">
+    <div class="panel panel-primary" style="clear: both;">
+        <p class="panel-heading">SYNC {{job.label?job.label:job.id}} <a class="pull-right" href="#/edit/{{job.id}}/step2" title="Edit parameters"><span style="color: white;" class="small glyphicon glyphicon-wrench"></span></a></p>
+        <table style="width: 100%;margin-bottom: 10px;">
             <tr>
-                <td style="width:90px;">
+                <td style="width:100px; padding-left: 10px;">
                     <img src="images/rocket.png" width="80"/>
                 </td>
-                <td style="vertical-align: top;padding-top: 10px;">
-                    <p style="margin-bottom: 2px;">SYNC {{job.label?job.label:job.id}} <a href="#/edit/{{job.id}}/step2" title="Edit parameters"><span style="opacity: 0.5;" class="small glyphicon glyphicon-info-sign"></span></a></p>
-                    <div class="small" ng-if="job.state.tasks && job.state.tasks.total">
+                <td style="vertical-align: middle;padding-top: 10px;">
+                    <div class="" ng-if="job.state.tasks && job.state.tasks.total">
                         Size : {{job.state.global['queue_bytesize'] | bytes:1}} -
                         Estimated time : {{job.state.global['eta'] | seconds}}s<br>
                         <div class="progress progress-striped active">
                             <div class="progress-bar" role="progressbar" aria-valuenow="{{100*job.state.global.queue_done/job.state.global.queue_length}}" aria-valuemin="0" aria-valuemax="100" style="width: {{100*job.state.global.queue_done/job.state.global.queue_length}}%;"></div>
                         </div>
                     </div>
-                    <div class="small" ng-if="(!job.state.tasks || !job.state.tasks.total) && job.last_event">
-                        Last synchronization on {{job.last_event[7]}}<br>
+                    <div class="" ng-if="(!job.state.tasks || !job.state.tasks.total) && job.last_event">
+                        <span ng-if="job.last_event[6] != 'error'">Last synchronization on {{job.last_event[7]}}<br></span>
                         <span ng-if="job.last_event[6] == 'error'">ERROR: </span>{{job.last_event[2]}}
                     </div>
                 </td>
-                <td style="width:100px; text-align: right;padding-right: 5px;">
-                    <a style="font-size: 2em;" href ng-if="job.active" ng-click="applyCmd(job.running?'pause':'resume', job.id)">
-                        <span class="glyphicon" ng-class="{'glyphicon-pause':job.running,'glyphicon-play':!job.running}"
+                <td style="width:100px; text-align: right;padding-right: 15px;">
+                    <a style="font-size: 2em;" href ng-if="job.active" ng-click="job.last_event[6]=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
+                        <span class="glyphicon" ng-if="job.last_event[6] != 'error'" ng-class="{'glyphicon-pause':job.running,'glyphicon-play':!job.running}"
                               style="color: white; display: inline-block; padding:5px; border-radius: 200px; background-color: #0079a1"></span>
+                        <span ng-if="job.last_event[6] == 'error'" style="color: white; display: inline-block; padding: 0 15px;
+                                border-radius: 200px; background-color: #0079a1">!</span>
                     </a>
                     <span ng-if="!job.active">[DISABLED]</span>
                 </td>
             </tr>
         </table>
+    </div>
+    <div ng-if="opened_logs_panel == job.id" class="well well-sm" style="margin: 0 5px 20px;border-top: 0;border-radius: 0;margin-top: -21px;">
+        <div class="alert alert-danger alert-dismissable" ng-if="error">{{error}}</div>
+        <div ng-if="conflicts.length">
+            <h4>Conflicts</h4>
+            <div ng-repeat="conflict in conflicts">
+                <span>{{conflict.node_path}}</span>
+                <a href class="small pull-right" ng-click="conflict_solver.current=conflict">Solve Conflict</a>
+            </div>
+        </div>
+        <h4 ng-if="logs.length">Last files synced</h4>
+        <div ng-repeat="log in logs | limitTo:4" ng-if="log[1]!='sync'">
+            <span ng-if="log.md5 != 'directory'" class="glyphicon glyphicon-file"></span>
+            <span ng-if="log.md5 == 'directory'" class="glyphicon glyphicon-folder-close"></span>
+            <span>{{log[4] && log[4]!=NULL ? log[4]:log[3] | basename}}</span>
+            <a style="float: right" class="small" href="file://{{log[4] && log[4]!=NULL ? log[4]:log[3]}}">Open File</a>
+        </div>
+
+        <h4 ng-if="running.tasks.total"  >Files in process <span class="small">({{running.tasks.total}})</span></h4>
+        <div ng-repeat="task in running.tasks.current | limitTo: 3">
+            <span ng-if="task.progress"><span class="small">{{task.progress | number:0}}%</span></span>
+            <span ng-if="task.location == 'local'" class="glyphicon glyphicon-cloud-upload"></span>
+            <span ng-if="task.location == 'remote'" class="glyphicon glyphicon-cloud-download"></span>
+            <span>{{task.target && task.target != 'NULL'?task.target:task.source | basename}}</span>
+        </div>
     </div>
     <div style="text-align: center;
                 background-color: #fafafa;
@@ -41,13 +68,25 @@
                 margin-bottom: 11px;
                 border-bottom: 1px solid #ddd;
                 color: #555;">
-        <a title="See logs" href="#/logs/{{job.id}}"><span class="glyphicon glyphicon-chevron-down"></span></a>
+        <a href title="See logs" ng-click="opened_logs_panel != job.id ? openLogsForJob(job.id) : closeLogs()"><span class="glyphicon" ng-class="{'glyphicon-chevron-down':opened_logs_panel != job.id,'glyphicon-chevron-up':opened_logs_panel == job.id}"></span></a>
     </div>
 </script>
 
-<!--
-<p style="margin-top: 10px;" class="lead">You have {{(jobs|filter:{active:true}).length}} jobs running. <a class="btn"><span class="glyphicon glyphicon-pause"></span> Pause all</a></p>
--->
+
+<div ng-if="conflict_solver.current" style="position: fixed;top: 0;right: 0;left: 0; bottom:0;z-index: 80;background-color: rgba(0,0,0,0.4)"></div>
+<div class="well" ng-if="conflict_solver.current" style="position: fixed;top: 80px;right: 20px;left: 20px;z-index: 100;box-shadow: 2px 2px 15px rgba(0,0,0,0.25);" >
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true" ng-click="conflict_solver.current=false">&times;</button>
+    An element named {{conflict_solver.current.node_path}} was modified on both the server and on your local computer.
+    Select how you want to solve this conflicting case:
+    <div style="text-align: center; margin: 20px 0 0;">
+        <input type="checkbox" id="apply-conflict"> <label>Apply to all conflicts</label><br>
+        <div class="btn btn-group">
+            <a href="" ng-click="conflict_solver.current=false" class="btn btn-default" tabindex="0">Mine</a>
+            <a href="" ng-click="conflict_solver.current=false" class="btn btn-default" tabindex="0">Both Versions</a>
+            <a href="" ng-click="conflict_solver.current=false" class="btn btn-default" tabindex="0">Theirs</a>
+        </div>
+    </div>
+</div>
 <div class="alert alert-danger alert-dismissable" ng-if="error">{{error}}</div>
 <div style="margin-top: 15px;"></div>
 <ng-include
@@ -59,9 +98,6 @@
         ng-repeat="job_desc in jobs | filter:{active:false} | orderBy:'workspace'"
         src="'job_2.html'"></ng-include>
 
-<div class="well" style="text-align: center; padding: 35px;">
-    <a href="#/new">
-        <span class="glyphicon glyphicon-plus" style="color: white; display: inline-block; padding:5px; border-radius: 200px; background-color: #0079a1"></span>
-        Create a new synchronization
-    </a>
-</div>
+<a href="#/new" class="btn btn-default btn-lg btn-block">
+    <span class="glyphicon glyphicon-plus-sign"></span> Create a new synchronization
+</a>

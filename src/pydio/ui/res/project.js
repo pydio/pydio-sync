@@ -51,6 +51,14 @@ angular.module('project', ['ngRoute', 'ngResource'])
 
     })
 
+    .filter('basename', function(){
+
+        return function(path){
+            return path.split(/[\\/]/).pop();
+        }
+
+    })
+
     .service('currentJob', function() {
         var objectValue = null;
         return {
@@ -124,7 +132,9 @@ angular.module('project', ['ngRoute', 'ngResource'])
             });
     })
 
-    .controller('ListCtrl', function($scope, $location, $timeout, Jobs, currentJob, Commands) {
+    .controller('ListCtrl', function($scope, $location, $timeout, Jobs, Logs, Conflicts, currentJob, Commands) {
+
+        $scope.conflict_solver = {current:false};
 
         var t2;
         (function tickJobs() {
@@ -135,7 +145,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
                     return;
                 }
                 $scope.jobs = all;
-                t2 = $timeout(tickJobs, 2000);
+                //t2 = $timeout(tickJobs, 2000);
             }, function(response){
                 if(!response.status){
                     $scope.error = 'Ooops, cannot contact agent! Make sure it\'s running correctly, we\'ll try to reconnect in 20s';
@@ -171,6 +181,51 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 });
             });
         };
+
+        var t0;
+        var t1;
+
+        $scope.openLogsForJob = function(jobId){
+
+            $scope.opened_logs_panel = jobId;
+
+            (function tickLog() {
+                var all = Logs.query({job_id:jobId}, function(){
+                    if($scope.opened_logs_panel != jobId) return;
+                    $scope.error = null;
+                    $scope.logs = all.logs;
+                    $scope.running = all.running;
+                    t0 = $timeout(tickLog, 2000);
+                }, function(response){
+                    if(!response.status){
+                        if($scope.opened_logs_panel != jobId) return;
+                        $scope.error = 'Ooops, cannot contact agent! Make sure it\'s running correctly, we\'ll try to reconnect in 20s';
+                        t0 = $timeout(tickLog, 20000);
+                    }
+                });
+            })();
+            (function tickConflict() {
+                var conflicts = Conflicts.query({job_id:jobId}, function(){
+                    if($scope.opened_logs_panel != jobId) return;
+                    $scope.conflicts = conflicts;
+                    t1 = $timeout(tickConflict, 3000);
+                });
+            })();
+            $scope.$on('$destroy', function(){
+                if(t0) $timeout.cancel(t0);
+                if(t1) $timeout.cancel(t1);
+            });
+
+        }
+
+        $scope.closeLogs = function(){
+
+            $scope.opened_logs_panel = null;
+            $scope.logs = null;
+            if(t0) $timeout.cancel(t0);
+            if(t1) $timeout.cancel(t1);
+
+        }
 
     })
 

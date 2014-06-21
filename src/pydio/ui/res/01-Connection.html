@@ -7,7 +7,7 @@
     <img src="images/pydio.png">
     <br>Connecting ...
 </div>
-<h3>1/3 Configure Connection</h3>
+<h3>Configure Connection</h3>
 <div class="alert alert-danger" ng-show="error">
     Error while trying to connect to {{job.server}}: <br>
     Error was : {{error}}<br>
@@ -41,9 +41,6 @@
         Tips: <a href="" ng-click="panel_tips=true" tabindex="8">where can I find the server URL ?</a>
     </div>
 
-<div class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
-    <div class="pull-right">
-        <a href="#/" class="btn previous" tabindex="7">Cancel</a>
-        <a href="" ng-click="next()" class="btn btn-info" tabindex="0" ng-disabled="myForm.$invalid">Next</a>
+    <div style="text-align: center; margin-top: 40px;">
+        <a href="" ng-click="next()" class="btn btn-primary" tabindex="0" ng-disabled="myForm.$invalid">Connect</a>
     </div>
-</div>

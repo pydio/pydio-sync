@@ -1,8 +1,35 @@
-<h3>3/3 Advanced Parameters</h3>
+<div ng-if="showAdvanced" style="position: fixed;top: 0;right: 0;left: 0; bottom:0;z-index: 80;background-color: rgba(0,0,0,0.4)"></div>
+<div class="well" ng-show="showAdvanced" style="position: absolute;top: 60px;right: 20px;left: 20px;bottom: 50px;z-index: 100;box-shadow: 2px 2px 15px rgba(0,0,0,0.25);" >
+    <!--<button type="button" class="close" data-dismiss="alert" aria-hidden="true" ng-click="showAdvanced=false">&times;</button>-->
+    <ng-include src="'advanced.html'" onload="job = job"></ng-include>
+    <div style="text-align: center; margin-top: 40px;">
+        <a href="" ng-click="showAdvanced=false" class="btn btn-primary" tabindex="0" ng-disabled="myForm.$invalid">Save</a>
+    </div>
+</div>
 
-<div class="well">
 
-    <p class="lead"> You are going to connect a remote workspace to a folder in your computer:</p>
+<h3>2/2 Select a destination</h3>
+
+<div ng-show="!destination_2" class="well">
+
+    By default a local folder will be created on your computer
+
+    <p style="text-align: center">
+        <img src="images/desktop.png"/>
+
+        <div class="form-group">
+            <div class="input-group">
+                <input type="text" ng-model="job.directory" readonly class="form-control">
+                <span class="input-group-addon"><span ng-click="openDirChooser()" style="cursor: pointer;" class="glyphicon glyphicon-list-alt"></span> Change </span>
+            </div>
+        </div>
+
+    </p>
+
+
+</div>
+
+<div  ng-show="destination_2" class="well">
 
     <div class="small pull-left" style="text-align: center; width: 30%; overflow: visible;">
         <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
@@ -22,7 +49,7 @@
 
     <p class="lead">
         <div class="form-group">
-            <span class="small">Give a name to this sync:</span>
+            <p class="small">Name this synchro:</p>
             <input class="form-control" type="text" ng-model="job.label">
         </div>
     </p>
@@ -32,16 +59,18 @@
     <p style="margin-top: 21px;">
         <a ng-click="showAdvanced=!showAdvanced;" style="cursor: pointer;"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': !showAdvanced, 'glyphicon-chevron-down': showAdvanced}"></span> Advanced Parameters</a>
     </p>
-    <div ng-show="showAdvanced" style="margin-top: 20px;">
-        <ng-include src="'advanced.html'" onload="job = job"/>
-    </div>
-
 
 </div>
 
 
 <!-- NAV BAR -->
-<div class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
+<div ng-show="!destination_2" class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
     <a class="btn btn-info pull-left" href="#/edit/new/step2">Previous</a>
+    <a class="btn btn-info pull-right" ng-click="destination_2=true">Next</a>
+</div>
+
+<!-- NAV BAR -->
+<div  ng-show="destination_2" class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
+    <a class="btn btn-info pull-left" ng-click="destination_2=false">Previous</a>
     <a class="btn btn-info pull-right" ng-click="save('step3')">Next</a>
 </div>

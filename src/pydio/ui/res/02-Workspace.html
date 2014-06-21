@@ -20,7 +20,7 @@
 </div>
 
 <div ng-show="job.id=='new'">
-    <h3>2/3 Select a workspace</h3>
+    <h3>1/2 Select a workspace</h3>
     <p class="lead">
         <img src="images/earth.png" style="float: left;width: 100px;margin-top: -20px;">
         Welcome!<br>
@@ -59,13 +59,15 @@
         <select autofocus="true" ng-change="loadFolders()" ng-model="job.repoObject" ng-options="repo as repo.label for repo in repositories | filter:{'@meta_syncable_REPO_SYNCABLE':'true'}" class="form-control">
             <option value="">-- Select a workspace --</option>
         </select>
-        <div ng-show="folders && folders.length" class="well" style="background-color: white; padding: 10px; margin-top: 7px;">
-            <div ng-click="job.remote_folder = ''" ng-class="{'list-group-item-success':!job.remote_folder}" style="cursor: pointer;padding: 5px;border-radius: 3px;">
+        <div class="input-group" ng-show="folders && folders.length" style="padding: 7px;">
+            <input type="checkbox" ng-model="showFoldersBox" id="show_folders" ng-click="job.remote_folder = ''" >&nbsp;<label for="show_folders">Synchronise only a subfolder of this workspace</label>
+        </div>
+        <div ng-show="folders && folders.length && showFoldersBox" class="well" style="background-color: white; padding: 10px; margin-top: 7px;">
+            <div ng-click="job.remote_folder = ''" ng-class="{'list-group-item-success':!job.remote_folder}" style="cursor: pointer;padding: 5px;border-radius: 3px; display: none;">
                 <span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;Whole workspace<span ng-if="folders_loading"> [loading...]</span> <span>{{folders_loading_error}}</span>
             </div>
             <!-- Want to loose the div in the repeat as well -->
-            <div style="padding-left:25px;">
-
+            <div>
                 <ng-include
                         ng-repeat="child in folders"
                         src="'tree_node.html'"
@@ -111,7 +113,6 @@
 </div>
 <div ng-if="job.id=='new'" class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
     <a href="#" class="btn" ng-show="job.id!='new'">Cancel</a>
-    <a href="#/new" class="btn btn-info pull-left">Back</a>
     <a ng-click="save('step2')" class="btn btn-info pull-right" ng-disabled="!(job.workspace || job.repoObject)">Next</a>
 </div>
 <div ng-if="job.id!='new'">

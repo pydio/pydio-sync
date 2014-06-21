@@ -1,38 +1,68 @@
-<div>
-    <h4>Folder on your computer</h4>
-    <div class="form-group">
-        <div class="input-group">
-            <input type="text" ng-model="job.directory" readonly class="form-control">
-            <span class="input-group-addon"><span ng-click="openDirChooser()" style="cursor: pointer;" class="glyphicon glyphicon-list-alt"></span></span>
-        </div>
-    </div>
-</div>
+<h3>Advanced Parameters</h3>
 
 <div>
     <h4>Sync Direction</h4>
-    <p class="small">By default, modifications from both sides (local/remote) are automatically reflected on the other side. You can limit this to one direction, enabling a backup-like job ('up' only) or a mirroring job ('down' only).</p>
-    <div class="form-group">
-        <select class="form-control" ng-model="job.direction">
-            <option value="bi">Bi-directionnal</option>
-            <option value="up">Upload only (backup style)</option>
-            <option value="down">Download only (mirroring style)</option>
-        </select>
+    <p class="small">By default, modifications from both sides (local/remote) are automatically reflected on the other side.</p>
+    <div class="form-group" style="text-align: center;">
+        <div style="width:27%;display:inline-block; text-align:center;">
+            <input type="radio" name="sync_dir" ng-model="job.direction" value="bi"><br>
+            <label>Bi-directional<br>&nbsp;</label>
+        </div>
+        <div style="width:27%;display:inline-block; text-align:center;">
+            <input type="radio" name="sync_dir" ng-model="job.direction" value="up"><br>
+            <label>Upload Only <br><span class="small">(computer to server)</span></label>
+        </div>
+        <div style="width:27%;display:inline-block; text-align:center;">
+            <input type="radio" name="sync_dir" ng-model="job.direction" value="down"><br>
+            <label>Download Only <br><span class="small">(server to computer)</span></label>
+        </div>
+        <br style="clear: left;">
     </div>
 </div>
 
-<div>
-    <h4>Conflicts</h4>
-    <p class="small">Conflicts are cases where a file was modified on both local and remote sides at the same time. When they happen, sync is stopped until you manually decide which version to keep. You can automatically force the conflict resolution.</p>
-    <div class="form-group">
-        <input type="radio" name="conflict"> Solve keeping remote version <br>
-        <input type="radio" name="conflict"> Solve keeping local version
+<div style="margin-top: 40px;">
+    <h4>Sync Frequency</h4>
+    <p class="small">By default, the application will synchronize automatically</p>
+
+    <div class="form-group" style="text-align: center;">
+        <div style="width:27%;display:inline-block; text-align:center;">
+            <input type="radio" name="freq" checked="true" value="auto"><br>
+            <label>Automatically</label>
+        </div>
+        <div style="width:27%;display:inline-block; text-align:center;">
+            <input type="radio" name="freq" ng-model="job.frequency" value="manual"><br>
+            <label>Manually</label>
+        </div>
+        <div style="width:27%;display:inline-block; text-align:center;">
+            <input type="radio" name="freq" ng-model="job.frequency" value="frequency"><br>
+            <label>Given Time</label>
+        </div>
+        <br style="clear: left;">
+    </div>
+
+
+    <div ng-show="job.frequency=='frequency'" class="form-group center-block">
+        Run the sync every day at <input type="number" style="width:45px" value="4:00" ng-disabled="!monitoring"><br>
     </div>
 </div>
 
-<div>
-    <h4>Monitoring</h4>
-    <p class="small">If you are synchronizing a huge amount of files, you can disable the continuous monitoring of the local folder and let the synchro run at a fixed period instead.</p>
-    <div class="form-group center-block">
-        <input type="checkbox" name="disable_monitoring" ng-model="monitoring"> Disable Folder Monitoring and check every <input type="number" style="width:45px" value="60" ng-disabled="!monitoring"> mn instead.<br>
+
+<div style="margin-top: 40px; clear: left;">
+    <h4>Versionning</h4>
+    <p class="small">The synchronization is stopped until you manually decide which version to keep when you have some conflicts between files.</p>
+    <div class="form-group" style="text-align: center;">
+        <div style="width:27%;display:inline-block; text-align:center;">
+            <input type="radio" name="conflict" checked="true" value="manual"><br>
+            <label>Stop sync and solve conflicts manually</label>
+        </div>
+        <div style="width:27%;display:inline-block; text-align:center;">
+            <input type="radio" name="conflict" ng-model="job.conflict_resolution" value="remote"><br>
+            <label>Solve by keeping remote version</label>
+        </div>
+        <div style="width:27%;display:inline-block; text-align:center;">
+            <input type="radio" name="conflict" ng-model="job.conflict_resolution" value="local"><br>
+            <label>Solve by keeping local version</label>
+        </div>
+        <br style="clear: left;">
     </div>
 </div>

@@ -1,0 +1,9 @@
+.well.well-sm h4{
+    border-bottom: 1px solid;
+    padding-bottom: 5px;
+}
+
+.progress{
+    height: 15px;
+    margin-top: 3px;
+}
