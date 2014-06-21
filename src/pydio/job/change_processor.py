@@ -83,6 +83,9 @@ class ChangeProcessor:
                 self.process_remote_delete(item['source'])
             self.change_store.buffer_real_operation(location, 'delete', item['source'], 'NULL')
 
+        elif item['type'] == 'bulk_mkdirs':
+            self.process_remote_bulk_mkdir(item['pathes'])
+
         else:
             logging.debug('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
             if location == 'remote':
@@ -110,7 +113,8 @@ class ChangeProcessor:
 
     def process_local_mkdir(self, path):
         message = path + ' <============ MKDIR'
-        os.makedirs(self.job_config.directory + path)
+        if not os.path.exists(self.job_config.directory + path):
+            os.makedirs(self.job_config.directory + path)
         self.log(type='local', action='mkdir', status='success',
                  target=path, console_message=message, message=('New folder created at %s' % path))
 
@@ -119,6 +123,13 @@ class ChangeProcessor:
         self.remote_sdk.mkdir(path)
         self.log(type='remote', action='mkdir', status='success', target=path,
                  console_message=message, message=('Folder created at %s' % path))
+
+    def process_remote_bulk_mkdir(self, pathes):
+        self.remote_sdk.bulk_mkdir(pathes)
+        for path in pathes:
+            message = 'MKDIR ============> ' + path
+            self.log(type='remote', action='mkdir', status='success', target=path,
+                     console_message=message, message=('Folder created at %s' % path))
 
     def process_local_delete(self, path):
         if os.path.isdir(self.job_config.directory + path):

@@ -22,6 +22,7 @@ import json
 import os
 import logging
 import fnmatch
+import math
 
 from pydio.sdk.exceptions import InterruptException
 
@@ -65,32 +66,48 @@ class SqliteChangeStore():
     def __len__(self):
         return self.get_row_count()
 
-    def get_row_count(self, type='all'):
-        if type == 'all':
+    def get_row_count(self, location='all'):
+        if location == 'all':
             res = self.conn.execute("SELECT count(row_id) FROM ajxp_changes")
         else:
-            res = self.conn.execute("SELECT count(row_id) FROM ajxp_changes WHERE type=?", (type,))
+            res = self.conn.execute("SELECT count(row_id) FROM ajxp_changes WHERE location=?", (location,))
         count = res.fetchone()
         return count[0]
 
     def process_changes_with_callback(self, callback):
         c = self.conn.cursor()
 
+        res = c.execute('SELECT * FROM ajxp_changes WHERE md5="directory" AND location="local" ORDER BY source,target')
+        mkdirs = []
+        ids = []
+        for row in res:
+            r = self.sqlite_row_to_dict(row, load_node=False)
+            ids.append(str(r['row_id']))
+            mkdirs.append(r['target'])
+        splitsize = 100
+        for i in range(0, int(math.ceil(float(len(mkdirs)) / float(splitsize)))):
+            callback({'type':'bulk_mkdirs', 'location':'local', 'pathes':mkdirs[i*splitsize:(i+1)*splitsize]})
+            ids_list = str(','.join(ids[i*splitsize:(i+1)*splitsize]))
+            self.conn.execute('DELETE FROM ajxp_changes WHERE row_id IN (' + ids_list + ')')
+        self.conn.commit()
+
         res = c.execute('SELECT * FROM ajxp_changes WHERE md5="directory" ORDER BY source,target')
         for row in res:
             try:
-                callback(self.sqlite_row_to_dict(row, load_node=True))
-                self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (row['row_id'],))
+                output = callback(self.sqlite_row_to_dict(row, load_node=True))
+                if output:
+                    self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (row['row_id'],))
             except InterruptException as e:
                 break
         self.conn.commit()
 
         #now go to the rest
-        res = c.execute('SELECT * FROM ajxp_changes ORDER BY source,target')
+        res = c.execute('SELECT * FROM ajxp_changes ORDER BY seq_id ASC')
         for row in res:
             try:
-                callback(self.sqlite_row_to_dict(row, load_node=True))
-                self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (row['row_id'],))
+                output = callback(self.sqlite_row_to_dict(row, load_node=True))
+                if output:
+                    self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (row['row_id'],))
             except InterruptException as e:
                 break
         self.conn.commit()
@@ -187,14 +204,23 @@ class SqliteChangeStore():
     def detect_unnecessary_changes(self, local_sdk, remote_sdk):
         self.local_sdk = local_sdk
         self.remote_sdk = remote_sdk
-        self.filter_w_stat('local', self.local_sdk, self.remote_sdk)
-        self.filter_w_stat('remote', self.remote_sdk, self.local_sdk)
+        local = self.get_row_count('local')
+        rem = self.get_row_count('remote')
+        bulk_size = 400
+        ids_to_delete = []
+        for i in range(0, int(math.ceil(float(local) / float(bulk_size)))):
+            ids_to_delete = ids_to_delete + self.filter_w_stat('local', self.local_sdk, self.remote_sdk, i*bulk_size, bulk_size)
+        for j in range(0, int(math.ceil(float(rem) / float(bulk_size)))):
+            ids_to_delete = ids_to_delete + self.filter_w_stat('remote', self.remote_sdk, self.local_sdk, j*bulk_size, bulk_size)
+
+        res = self.conn.execute('DELETE FROM ajxp_changes WHERE row_id IN (' + str(','.join(ids_to_delete)) + ')')
+        logging.info('[change store] Filtering unnecessary changes : pruned %i rows', res.rowcount)
         self.conn.commit()
 
     def filter_w_stat(self, location, sdk, opposite_sdk, offset=0, limit=1000):
         # Load 'limit' changes and filter them
         c = self.conn.cursor()
-        res = c.execute('SELECT * FROM ajxp_changes WHERE location=? LIMIT ?,?', (location, offset, limit))
+        res = c.execute('SELECT * FROM ajxp_changes WHERE location=? ORDER BY source,target LIMIT ?,?', (location, offset, limit))
         changes = []
         for row in res:
             changes.append(self.sqlite_row_to_dict(row))
@@ -211,9 +237,7 @@ class SqliteChangeStore():
             opposite_stats = opposite_sdk.bulk_stat(test_stats, with_hash=True)
 
         to_remove = filter(lambda it: self.filter_change(it, local_stats, opposite_stats), changes)
-        ids = map(lambda row: str(row['row_id']), to_remove)
-        res = self.conn.execute('DELETE FROM ajxp_changes WHERE row_id IN (' + str(','.join(ids)) + ')')
-        logging.debug('[change store] RealFilter : pruned %i rows', res.rowcount)
+        return map(lambda row: str(row['row_id']), to_remove)
 
     def clean_and_detect_conflicts(self, status_handler):
 
@@ -385,8 +409,8 @@ class SqliteChangeStore():
                 return True
 
     def store(self, location, seq_id, change):
-        if location == 'local':
-            print change['type'], " : ", change['source'], " => ", change['target']
+        #if location == 'local':
+        #    print change['type'], " : ", change['source'], " => ", change['target']
 
         if self.filter_path(change['source']) or self.filter_path(change['target']):
             return
@@ -424,7 +448,6 @@ class SqliteChangeStore():
         self.conn.commit()
 
     def echo_match(self, location, change):
-        logging.info("trying to catch echo...")
         source = change['source'].replace("\\", "/")
         target = change['target'].replace("\\", "/")
         action = change['type']

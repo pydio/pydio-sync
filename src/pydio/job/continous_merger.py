@@ -380,10 +380,13 @@ class ContinuousDiffMerger(threading.Thread):
                                 raise InterruptException()
                         except ProcessException as pe:
                             logging.error(pe.message)
+                            return False
                         except InterruptException as i:
                             raise i
                         except Exception as e:
                             logging.error(e.message)
+                            return False
+                        return True
 
                     try:
                         self.current_store.process_changes_with_callback(processor_callback)

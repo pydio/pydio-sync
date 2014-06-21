@@ -243,10 +243,8 @@ class PydioSdk():
                 else:
                     try:
                         one_change = json.loads(line)
-                        #change_callback('remote', one_change['seq'], one_change)
                         node = one_change.pop('node')
                         one_change = dict(node.items() + one_change.items())
-                        print "REMOTE CHANGE : ", one_change['node_id']
                         flatten_and_store_callback('remote', one_change, info)
 
                     except ValueError as v:
@@ -367,6 +365,14 @@ class PydioSdk():
         resp = self.perform_request(url=url)
         return resp.content
 
+    def bulk_mkdir(self, pathes):
+        data = dict()
+        data['ignore_exists'] = 'true'
+        data['nodes[]'] = map(lambda t: self.normalize(self.remote_folder + t), filter(lambda x: x != '', pathes))
+        url = self.url + '/mkdir' + self.urlencode_normalized(self.remote_folder + pathes[0])
+        resp = self.perform_request(url=url,type='post', data=data)
+        return resp.content
+
     def mkfile(self, path):
         """
         Create an empty file on the server
@@ -471,7 +477,7 @@ class PydioSdk():
         self.perform_request(url=url, type='post', data=data, files=files, with_progress=callback_dict)
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
-            raise PydioSdkException('upload', path, 'File not correct after upload')
+            raise PydioSdkException('upload', path, 'File incorrect after upload. Max chunk size was ' + str(self.upload_max_size))
         return True
 
     def download(self, path, local, callback_dict=None):
