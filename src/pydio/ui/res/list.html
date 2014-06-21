@@ -15,7 +15,7 @@
                         </div>
                     </div>
                     <div class="" ng-if="(!job.state.tasks || !job.state.tasks.total) && job.last_event">
-                        <span ng-if="job.last_event[6] != 'error'">Last synchronization on {{job.last_event[7]}}<br></span>
+                        <span ng-if="job.last_event[6] != 'error'">Last synchronization <br>{{job.last_event[7]}}<br></span>
                         <span ng-if="job.last_event[6] == 'error'">ERROR: </span>{{job.last_event[2]}}
                     </div>
                 </td>
@@ -74,12 +74,12 @@
 
 
 <div ng-if="conflict_solver.current" style="position: fixed;top: 0;right: 0;left: 0; bottom:0;z-index: 80;background-color: rgba(0,0,0,0.4)"></div>
-<div class="well" ng-if="conflict_solver.current" style="position: fixed;top: 80px;right: 20px;left: 20px;z-index: 100;box-shadow: 2px 2px 15px rgba(0,0,0,0.25);" >
+<div class="well" ng-if="conflict_solver.current" style="position: fixed;top: 35%;right: 20px;left: 20px;z-index: 100;box-shadow: 2px 2px 15px rgba(0,0,0,0.25);" >
     <button type="button" class="close" data-dismiss="alert" aria-hidden="true" ng-click="conflict_solver.current=false">&times;</button>
     An element named {{conflict_solver.current.node_path}} was modified on both the server and on your local computer.
     Select how you want to solve this conflicting case:
     <div style="text-align: center; margin: 20px 0 0;">
-        <input type="checkbox" id="apply-conflict"> <label>Apply to all conflicts</label><br>
+        <input type="checkbox" id="apply-conflict"> <label for="apply-conflict">Apply to all conflicts</label><br>
         <div class="btn btn-group">
             <a href="" ng-click="conflict_solver.current=false" class="btn btn-default" tabindex="0">Mine</a>
             <a href="" ng-click="conflict_solver.current=false" class="btn btn-default" tabindex="0">Both Versions</a>
@@ -98,6 +98,9 @@
         ng-repeat="job_desc in jobs | filter:{active:false} | orderBy:'workspace'"
         src="'job_2.html'"></ng-include>
 
-<a href="#/new" class="btn btn-default btn-lg btn-block">
-    <span class="glyphicon glyphicon-plus-sign"></span> Create a new synchronization
-</a>
+
+<!-- NAV BAR -->
+<div  class="navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
+    <a href="#/new" class="btn btn-default btn-lg btn-block"><span class="glyphicon glyphicon-plus-sign"></span> Create a new synchronization</a>
+</div>
+
