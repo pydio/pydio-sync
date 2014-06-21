@@ -224,12 +224,14 @@ class PydioSdk():
         :change_store: AbstractChangeStore
         :return:list a list of changes
         """
-
-        perform_flatting = "false"
+        if last_seq == 0:
+            perform_flattening = "true"
+        else:
+            perform_flattening = "false"
         url = self.url + '/changes/' + str(last_seq) + '/?stream=true'
         if self.remote_folder:
             url += '&filter=' + self.remote_folder
-        url += '&flatten='+perform_flatting
+        url += '&flatten=' + perform_flattening
 
         resp = self.perform_request(url=url, stream=True)
         info = dict()
