@@ -124,7 +124,7 @@ def encode_multiparts(fields):
     :return:(header_body, close_body, content_type)
     """
     (data, content_type) = requests.packages.urllib3.filepost.encode_multipart_formdata(fields)
-    logging.debug(data)
+    #logging.debug(data)
 
     header_body = BytesIO()
 
@@ -167,6 +167,9 @@ def upload_file_with_progress(url, fields, files, stream, with_progress, max_siz
             logging.debug('Current transfer rate ' + rate)
 
     filesize = os.stat(files['userfile_0']).st_size
+    if max_size:
+        # Reduce max size to leave some room for data header
+        max_size -= 4096
 
     (header_body, close_body, content_type) = encode_multiparts(fields)
     body = BytesIOWithFile(header_body, close_body, files['userfile_0'], callback=cb, chunk_size=max_size, file_part=0)
