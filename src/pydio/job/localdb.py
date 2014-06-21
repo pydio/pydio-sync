@@ -305,7 +305,7 @@ class LocalDbHandler():
                                  "source , target, ajxp_index.bytesize, ajxp_index.md5, ajxp_index.mtime, "
                                  "ajxp_index.node_path, ajxp_index.stat_result FROM ajxp_changes LEFT JOIN ajxp_index "
                                  "ON ajxp_changes.node_id = ajxp_index.node_id "
-                                 "WHERE seq >= ? ORDER BY ajxp_changes.node_id, seq ASC", (seq_id,)):
+                                 "WHERE seq > ? ORDER BY ajxp_changes.node_id, seq ASC", (seq_id,)):
                 row = dict(line)
                 flatten_and_store_callback('local', row, info)
             flatten_and_store_callback('local', None, info)
