@@ -51,6 +51,14 @@ angular.module('project', ['ngRoute', 'ngResource'])
 
     })
 
+    .filter('last_sync_time', function(){
+
+        return function(time_string){
+            return time_string.substring(0, time_string.lastIndexOf(':'));
+        }
+
+    })
+
     .filter('basename', function(){
 
         return function(path){
@@ -149,7 +157,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
                     return;
                 }
                 $scope.jobs = all;
-                //t2 = $timeout(tickJobs, 2000);
+                t2 = $timeout(tickJobs, 2000);
             }, function(response){
                 if(!response.status){
                     $scope.error = 'Ooops, cannot contact agent! Make sure it\'s running correctly, we\'ll try to reconnect in 20s';
@@ -230,6 +238,18 @@ angular.module('project', ['ngRoute', 'ngResource'])
             if(t1) $timeout.cancel(t1);
 
         }
+
+        $scope.solveConflict = function(nodeId, status){
+            $scope.conflict_solver.current = null;
+            var appToAll = $scope.applySolveConflictsToAll;
+            angular.forEach($scope.conflicts, function(conflict){
+                if(!appToAll && conflict.node_id != nodeId) return;
+                if(appToAll && conflict.status.indexOf('SOLVED:') === 0) return;
+                conflict.status = status;
+                conflict.job_id = $scope.opened_logs_panel;
+                conflict.$save();
+            });
+        };
 
     })
 

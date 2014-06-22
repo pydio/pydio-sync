@@ -15,7 +15,7 @@
                         </div>
                     </div>
                     <div class="" ng-if="(!job.state.tasks || !job.state.tasks.total) && job.last_event">
-                        <span ng-if="job.last_event[6] != 'error'">Last synchronization <br>{{job.last_event[7]}}<br></span>
+                        <span ng-if="job.last_event[6] != 'error'">Last synchronization <br>{{job.last_event[7] | last_sync_time }}<br></span>
                         <span ng-if="job.last_event[6] == 'error'">ERROR: </span>{{job.last_event[2]}}
                     </div>
                 </td>
@@ -35,21 +35,28 @@
         <div class="alert alert-danger alert-dismissable" ng-if="error">{{error}}</div>
         <div ng-if="conflicts.length">
             <h4>Conflicts</h4>
-            <div ng-repeat="conflict in conflicts">
-                <span>{{conflict.node_path}}</span>
-                <a href class="small pull-right" ng-click="conflict_solver.current=conflict">Solve Conflict</a>
-            </div>
+            <table style="width: 100%;">
+                <tr ng-repeat="conflict in conflicts">
+                    <td style="padding:2px 0;">{{conflict.node_path | basename}}</td>
+                    <td style="text-align: right;padding:2px 0;">
+                        <a href ng-if="conflict.status.indexOf('SOLVED:') === -1" class="small" style="text-decoration: none;" ng-click="conflict_solver.current=conflict">Solve Conflict</a>
+                        <span ng-if="conflict.status.indexOf('SOLVED:') === 0" class="small">Solved</span>
+                    </td>
+                </tr>
+            </table>
         </div>
         <h4 ng-if="logs.length">Last files synced</h4>
-        <div ng-repeat="log in logs | limitTo:4" ng-if="log[1]!='sync'">
-            <span ng-if="log.md5 != 'directory'" class="glyphicon glyphicon-file"></span>
-            <span ng-if="log.md5 == 'directory'" class="glyphicon glyphicon-folder-close"></span>
-            <span>{{log[4] && log[4]!=NULL ? log[4]:log[3] | basename}}</span>
-            <a style="float: right" class="small" href="file://{{log[4] && log[4]!=NULL ? log[4]:log[3]}}">Open File</a>
-        </div>
+        <table style="width: 100%;">
+            <tr ng-repeat="log in logs | limitTo:4" ng-if="log[1]!='sync'">
+                <td style="padding:2px 0; width: 12px;" class="glyphicon glyphicon-file"></td>
+                <td style="padding:2px 0;width: 80%;">{{log[4] && log[4]!=NULL ? log[4]:log[3] | basename}}</td>
+                <td style="text-align: right;padding:2px 0;"><a style="text-decoration: none;" class="small" href="file://{{log[4] && log[4]!=NULL ? log[4]:log[3]}}">Open File</a></td>
+            </tr>
+        </table>
 
-        <h4 ng-if="running.tasks.total"  >Files in process <span class="small">({{running.tasks.total}})</span></h4>
-        <div ng-repeat="task in running.tasks.current | limitTo: 3">
+
+        <h4 ng-if="running.tasks.current.length"  >Files in process <span class="small">({{running.tasks.total}})</span></h4>
+        <div ng-repeat="task in running.tasks.current | limitTo: 3" style="padding:2px 0;">
             <span ng-if="task.progress"><span class="small">{{task.progress | number:0}}%</span></span>
             <span ng-if="task.location == 'local'" class="glyphicon glyphicon-cloud-upload"></span>
             <span ng-if="task.location == 'remote'" class="glyphicon glyphicon-cloud-download"></span>
@@ -79,11 +86,11 @@
     An element named {{conflict_solver.current.node_path}} was modified on both the server and on your local computer.
     Select how you want to solve this conflicting case:
     <div style="text-align: center; margin: 20px 0 0;">
-        <input type="checkbox" id="apply-conflict"> <label for="apply-conflict">Apply to all conflicts</label><br>
+        <input type="checkbox" id="apply-conflict" ng-model="applySolveConflictsToAll"> <label for="apply-conflict">Apply to all conflicts</label><br>
         <div class="btn btn-group">
-            <a href="" ng-click="conflict_solver.current=false" class="btn btn-default" tabindex="0">Mine</a>
-            <a href="" ng-click="conflict_solver.current=false" class="btn btn-default" tabindex="0">Both Versions</a>
-            <a href="" ng-click="conflict_solver.current=false" class="btn btn-default" tabindex="0">Theirs</a>
+            <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPLOCAL');" class="btn btn-default" tabindex="0">Mine</a>
+            <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPBOTH');" class="btn btn-default" tabindex="0">Both Versions</a>
+            <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPREMOTE');" class="btn btn-default" tabindex="0">Theirs</a>
         </div>
     </div>
 </div>
