@@ -1,14 +1,24 @@
-<div ng-if="showAdvanced" style="position: fixed;top: 0;right: 0;left: 0; bottom:0;z-index: 80;background-color: rgba(0,0,0,0.4)"></div>
-<div class="well" ng-show="showAdvanced" style="position: absolute;top: 60px;right: 20px;left: 20px;bottom: 50px;z-index: 100;box-shadow: 2px 2px 15px rgba(0,0,0,0.25);" >
-    <!--<button type="button" class="close" data-dismiss="alert" aria-hidden="true" ng-click="showAdvanced=false">&times;</button>-->
-    <ng-include src="'advanced.html'" onload="job = job"></ng-include>
-    <div style="text-align: center; margin-top: 40px;">
-        <a href="" ng-click="showAdvanced=false" class="btn btn-primary" tabindex="0" ng-disabled="myForm.$invalid">Save</a>
+<div ng-if="showAdvanced" style="position: fixed;top: 0;right: 0;left: 0; bottom:0;z-index: 10000;background-color: rgba(0,0,0,0.4)"></div>
+<div ng-show="showAdvanced" style="position: absolute;top: 60px;right: 20px;left: 20px;bottom: 50px;z-index: 1000000;box-shadow: 2px 2px 15px rgba(0,0,0,0.25);" >
+    <div class="modal" style="display: block;">
+    <div class="modal-dialog" >
+    <div class="modal-content" >
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" style="color: #000000;" aria-hidden="true">&times;</button>
+            <div class="modal-title">Advanced Parameters</div>
+        </div>
+        <div class="modal-body">
+            <ng-include src="'advanced.html'" onload="job = job"></ng-include>
+        </div>
+        <div class="modal-footer">
+            <button type="button" ng-click="showAdvanced=false" class="btn btn-primary" tabindex="0" ng-disabled="myForm.$invalid">Save changes</button>
+        </div>
     </div>
+        </div></div>
 </div>
 
 
-<h3>2/2 Select a destination</h3>
+<h3 ng-show="!destination_2">2/3 Select a destination</h3>
 
 <div ng-show="!destination_2" class="well">
 
@@ -29,17 +39,20 @@
 
 </div>
 
+
+<h3 ng-show="destination_2">3/3 Optional Parameters</h3>
+
 <div  ng-show="destination_2" class="well">
 
-    <div class="small pull-left" style="text-align: center; width: 30%; overflow: visible;">
+    <div class="small pull-left" style="text-align: center; width: 40%; overflow: visible;">
         <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
         {{job.repoObject['label']}}{{job.remote_folder?': ' + job.remote_folder : ' (whole workspace)'}}<br>
         [<a href="#/edit/new/step2">change</a>]
     </div>
 
-    <span style="display: block; float:left; width: 40%;margin: 50px auto; border-top: 1px dashed #000000;"></span>
+    <span style="display: block; float:left; width: 20%;margin: 50px auto; border-top: 1px dashed #000000;"></span>
 
-    <div class="small pull-right" style="text-align: center; width: 30%; overflow: visible; word-break: break-all;">
+    <div class="small pull-right" style="text-align: center; width: 40%; overflow: visible; word-break: break-all;">
         <img src="images/desktop.png" style="width: 100px;"><br>
         {{job.directory}}<br>
         [<a href ng-click="showAdvanced=true">change</a>]

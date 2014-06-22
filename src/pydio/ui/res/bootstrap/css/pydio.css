@@ -7,3 +7,10 @@
     height: 15px;
     margin-top: 3px;
 }
+
+.advanced_radio_box{
+    width:27%;
+    display:inline-block;
+    text-align:center;
+    vertical-align: top;
+}

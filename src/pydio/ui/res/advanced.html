@@ -1,68 +1,68 @@
-<h3>Advanced Parameters</h3>
-
 <div>
     <h4>Sync Direction</h4>
-    <p class="small">By default, modifications from both sides (local/remote) are automatically reflected on the other side.</p>
-    <div class="form-group" style="text-align: center;">
-        <div style="width:27%;display:inline-block; text-align:center;">
-            <input type="radio" name="sync_dir" ng-model="job.direction" value="bi"><br>
-            <label>Bi-directional<br>&nbsp;</label>
+    <div class="well">
+        <p class="small">By default, modifications from both sides (local/remote) are automatically reflected on the other side.</p>
+        <div style="text-align: center;">
+            <div class="advanced_radio_box">
+                <input type="radio" name="sync_dir" ng-model="job.direction" value="bi"><br>
+                <label>Bi-directional</label>
+            </div>
+            <div class="advanced_radio_box">
+                <input type="radio" name="sync_dir" ng-model="job.direction" value="up"><br>
+                <label>Upload Only <br><span class="small">(computer to server)</span></label>
+            </div>
+            <div  class="advanced_radio_box">
+                <input type="radio" name="sync_dir" ng-model="job.direction" value="down"><br>
+                <label>Download Only <br><span class="small">(server to computer)</span></label>
+            </div>
         </div>
-        <div style="width:27%;display:inline-block; text-align:center;">
-            <input type="radio" name="sync_dir" ng-model="job.direction" value="up"><br>
-            <label>Upload Only <br><span class="small">(computer to server)</span></label>
-        </div>
-        <div style="width:27%;display:inline-block; text-align:center;">
-            <input type="radio" name="sync_dir" ng-model="job.direction" value="down"><br>
-            <label>Download Only <br><span class="small">(server to computer)</span></label>
-        </div>
-        <br style="clear: left;">
     </div>
 </div>
 
-<div style="margin-top: 40px;">
+<div style="">
     <h4>Sync Frequency</h4>
-    <p class="small">By default, the application will synchronize automatically</p>
-
-    <div class="form-group" style="text-align: center;">
-        <div style="width:27%;display:inline-block; text-align:center;">
-            <input type="radio" name="freq" checked="true" value="auto"><br>
-            <label>Automatically</label>
+    <div class="well">
+        <p class="small">By default, the application will synchronize automatically</p>
+        <div style="text-align: center;">
+            <div class="advanced_radio_box">
+                <input type="radio" name="freq" checked="true" value="auto"><br>
+                <label>Automatically</label>
+            </div>
+            <div  class="advanced_radio_box">
+                <input type="radio" name="freq" ng-model="job.frequency" value="manual"><br>
+                <label>Manually</label>
+            </div>
+            <div  class="advanced_radio_box">
+                <input type="radio" name="freq" ng-model="job.frequency" value="frequency"><br>
+                <label>Given Time</label>
+            </div>
         </div>
-        <div style="width:27%;display:inline-block; text-align:center;">
-            <input type="radio" name="freq" ng-model="job.frequency" value="manual"><br>
-            <label>Manually</label>
-        </div>
-        <div style="width:27%;display:inline-block; text-align:center;">
-            <input type="radio" name="freq" ng-model="job.frequency" value="frequency"><br>
-            <label>Given Time</label>
-        </div>
-        <br style="clear: left;">
-    </div>
 
 
-    <div ng-show="job.frequency=='frequency'" class="form-group center-block">
-        Run the sync every day at <input type="number" style="width:45px" value="4:00" ng-disabled="!monitoring"><br>
+        <div ng-show="job.frequency=='frequency'" class="form-group center-block">
+            Run the sync every day at <input type="number" style="width:45px" value="4:00" ng-disabled="!monitoring"><br>
+        </div>
     </div>
 </div>
 
 
-<div style="margin-top: 40px; clear: left;">
+<div style="clear: left;">
     <h4>Versionning</h4>
-    <p class="small">The synchronization is stopped until you manually decide which version to keep when you have some conflicts between files.</p>
-    <div class="form-group" style="text-align: center;">
-        <div style="width:27%;display:inline-block; text-align:center;">
-            <input type="radio" name="conflict" checked="true" value="manual"><br>
-            <label>Stop sync and solve conflicts manually</label>
+    <div class="well">
+        <p class="small">When files were modified on both the server and your computer at the same time, synchronization is stopped.</p>
+        <div style="text-align: center;">
+            <div class="advanced_radio_box">
+                <input type="radio" name="conflict" checked="true" value="manual"><br>
+                <label>Solve conflicts manually</label>
+            </div>
+            <div class="advanced_radio_box">
+                <input type="radio" name="conflict" ng-model="job.conflict_resolution" value="local"><br>
+                <label>Always prefer local version</label>
+            </div>
+            <div class="advanced_radio_box">
+                <input type="radio" name="conflict" ng-model="job.conflict_resolution" value="remote"><br>
+                <label>Always prefer remote version</label>
+            </div>
         </div>
-        <div style="width:27%;display:inline-block; text-align:center;">
-            <input type="radio" name="conflict" ng-model="job.conflict_resolution" value="remote"><br>
-            <label>Solve by keeping remote version</label>
-        </div>
-        <div style="width:27%;display:inline-block; text-align:center;">
-            <input type="radio" name="conflict" ng-model="job.conflict_resolution" value="local"><br>
-            <label>Solve by keeping local version</label>
-        </div>
-        <br style="clear: left;">
     </div>
 </div>

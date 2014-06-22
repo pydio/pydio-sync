@@ -119,6 +119,10 @@ angular.module('project', ['ngRoute', 'ngResource'])
                 controller:'EditCtrl',
                 templateUrl:'04-Launcher.html'
             })
+            .when('/change/:jobId', {
+                controller:'EditCtrl',
+                templateUrl:'edit_job.html'
+            })
             .when('/new', {
                 controller:'CreateCtrl',
                 templateUrl:'01-Connection.html'

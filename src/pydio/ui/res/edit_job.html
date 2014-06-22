@@ -1,0 +1,86 @@
+<h3>Sync parameters</h3>
+<div class="small pull-left" style="text-align: center; width: 40%; overflow: visible;">
+    <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
+    {{job.workspace}}: {{job.remote_folder?job.remote_folder:'Full workspace'}}<br>
+</div>
+
+<span style="display: block; float:left; width: 20%;margin: 50px auto; border-top: 1px dashed #000000;"></span>
+
+<div class="small pull-right" style="text-align: center; width: 40%; overflow: visible; word-break: break-all;">
+    <img src="images/desktop.png" style="width: 100px;"><br>
+    {{job.directory_label?job.directory_label:job.directory}}<br>
+</div>
+<br style="clear: both;">
+
+<div>
+
+    <h4>Server Connexion</h4>
+    <div class="well">
+        <div class="input-group">
+            <span class="input-group-addon">Login</span>
+            <input type="text" name="user" ng-model="job.user" class="form-control" placeholder="Login" required>
+            <span class="input-group-addon">Password</span>
+            <input type="password" name="pwd" ng-model="job.password" class="form-control" placeholder="Password" required>
+        </div>
+    </div>
+
+    <h4>Local Folder</h4>
+    <div class="well">
+        <div class="input-group">
+            <input type="text" ng-model="job.directory" readonly class="form-control">
+            <span class="input-group-btn">
+                <button class="btn btn-default" ng-click="openDirChooser()" type="button">Choose</button>
+            </span>
+        </div>
+    </div>
+
+
+    <h4>Remote workspace</h4>
+    <div ng-if="!repositories && job.workspace" class="well">
+        <div class="input-group">
+            <label class="input-group-addon">Workspace</label>
+            <input type="text" readonly class="form-control" ng-model="job.workspace"/>
+            <label class="input-group-addon">Folder</label>
+            <input type="text"readonly class="form-control" ng-model="job.remote_folder"/>
+            <span class="input-group-btn">
+                <button class="btn btn-default" type="button" ng-click="loadWorkspaces()">Change</button>
+            </span>
+        </div>
+    </div>
+
+    <div ng-if="repositories">
+        <select autofocus="true" ng-change="loadFolders()" ng-model="job.repoObject" ng-options="repo as repo.label for repo in repositories | filter:{'@meta_syncable_REPO_SYNCABLE':'true'}" class="form-control">
+            <option value="">-- Select a workspace --</option>
+        </select>
+        <div class="input-group" ng-show="folders && folders.length" style="padding: 7px;">
+            <input type="checkbox" ng-model="showFoldersBox" id="show_folders" ng-click="job.remote_folder = ''" >&nbsp;<label for="show_folders">Synchronise only a subfolder of this workspace</label>
+        </div>
+        <div ng-show="folders && folders.length && showFoldersBox" class="well" style="background-color: white; padding: 10px; margin-top: 7px;">
+            <div ng-click="job.remote_folder = ''" ng-class="{'list-group-item-success':!job.remote_folder}" style="cursor: pointer;padding: 5px;border-radius: 3px; display: none;">
+                <span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;Whole workspace<span ng-if="folders_loading"> [loading...]</span> <span>{{folders_loading_error}}</span>
+            </div>
+            <!-- Want to loose the div in the repeat as well -->
+            <div>
+                <ng-include
+                        ng-repeat="child in folders"
+                        src="'tree_node.html'"
+                        onload="data = child;job = job"/>
+            </div>
+        </div>
+    </div>
+
+    <h3>Advanced parameters</h3>
+    <ng-include src="'advanced.html'" onload="job = job"></ng-include>
+
+    <div>
+        <br style="clear: both">
+    </div>
+
+</div>
+
+<div  class="navbar-inverse navbar-fixed-bottom" style="padding: 6px; text-align: center">
+    <button type="button" ng-click="save('full')" class="btn btn-info" style="width: 32%">Save Changes</button>
+    <button type="button"  ng-if="job.active" ng-click="toggleJobActive()" class="btn btn-info" style="width: 32%;" href>Disable Task</button>
+    <button type="button"  ng-if="!job.active" ng-click="toggleJobActive()" class="btn btn-info" style="width: 32%;" href>Start Task</button>
+    <button type="button"  class="btn btn-danger" ng-click="deleteJob()" style="width: 32%;" href>Delete Task</button>
+</div>

@@ -1,60 +1,14 @@
-<div ng-show="job.id!='new'">
-    <h3>{{job.label?job.label:job.id}}</h3>
-    <div class="well">
-        <p class="lead">Linking the following remote workspace to your local folder</p>
-
-        <div class="small pull-left" style="text-align: center; width: 30%; overflow: visible;">
-            <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
-            {{job.workspace}}: {{job.remote_folder?job.remote_folder:'Full workspace'}}<br>
-        </div>
-
-        <span style="display: block; float:left; width: 40%;margin: 50px auto; border-top: 1px dashed #000000;"></span>
-
-        <div class="small pull-right" style="text-align: center; width: 30%; overflow: visible; word-break: break-all;">
-            <img src="images/desktop.png" style="width: 100px;"><br>
-            {{job.directory_label?job.directory_label:job.directory}}<br>
-        </div>
-        <br style="clear: both;">
-    </div>
-    <h3>Change parameters</h3>
-</div>
-
-<div ng-show="job.id=='new'">
-    <h3>1/2 Select a workspace</h3>
-    <p class="lead">
-        <img src="images/earth.png" style="float: left;width: 100px;margin-top: -20px;">
-        Welcome!<br>
-        You are connecting to {{job.server}} [<a href="#/new">change</a>]
-        <br style="clear: left;">
-    </p>
-</div>
+<h3>1/3 Select a workspace</h3>
+<p class="lead">
+    <img src="images/earth.png" style="float: left;width: 100px;margin-top: -20px;">
+    Welcome!<br>
+    You are connecting to {{job.server}} [<a href="#/new">change</a>]
+    <br style="clear: left;">
+</p>
 
 <div class="well">
 
-    <form ng-show="job.id!='new'" class="">
-
-        <h4>Server Connexion</h4>
-        <div class="form-group">
-            <label>Server Address</label>
-            <input style="width:300px;" type="url" name="site" ng-model="job.server" class="form-control" placeholder="http:// .... " required>
-            <span ng-show="myForm.site.$error.required && !myForm.site.$pristine" class="help-inline">Required</span>
-            <span ng-show="myForm.site.$error.url" class="help-inline">Not a URL</span>
-        </div>
-        <div class="form-group">
-            <label>Login</label>
-            <input style="width:150px;" type="text" name="user" ng-model="job.user" class="form-control" placeholder="Login" required>
-            <span ng-show="myForm.user.$error.required && !myForm.user.$pristine" class="help-inline">Required</span>
-        </div>
-        <div class="form-group">
-            <label>Password</label>
-            <input style="width:150px;" type="password" name="pwd" ng-model="job.password" class="form-control" placeholder="Password" required>
-            <span ng-show="myForm.pwd.$error.required && !myForm.pwd.$pristine" class="help-inline">Required</span>
-        </div>
-    </form>
-
-    <h4>Remote workspace
-        <a ng-if="!repositories && job.workspace" class="btn" ng-click="loadWorkspaces()">Change workspace / folder</a>
-    </h4>
+    <h4>Remote workspace</h4>
     <div ng-if="repositories">
         <select autofocus="true" ng-change="loadFolders()" ng-model="job.repoObject" ng-options="repo as repo.label for repo in repositories | filter:{'@meta_syncable_REPO_SYNCABLE':'true'}" class="form-control">
             <option value="">-- Select a workspace --</option>
@@ -75,50 +29,19 @@
             </div>
         </div>
     </div>
-    <div ng-if="!repositories && job.workspace">
-        <div class="form-group">
-            <label>Workspace</label>
-            <input type="text" readonly class="form-control" ng-model="job.workspace">
+    <div ng-if="!repositories && job.workspace" class="well-sm">
+        <div class="input-group">
+            <label class="input-group-addon">Workspace</label>
+            <input type="text" readonly class="form-control" ng-model="job.workspace"/>
+            <label class="input-group-addon">Folder</label>
+            <input type="text"readonly class="form-control" ng-model="job.remote_folder"/>
+            <span class="input-group-btn">
+                <button class="btn btn-default" type="button" ng-click="loadWorkspaces()">Change</button>
+            </span>
         </div>
-        <div class="form-group">
-            <label>Folder</label>
-            <input type="text"readonly class="form-control" ng-model="job.remote_folder">
-        </div>
-    </div>
-
-    <div ng-show="job.id!='new'">
-        <h4>Local Folder</h4>
-        <p>The path to the local folder on your computer.</p>
-        <div class="form-group">
-            <div class="input-group">
-                <input type="text" ng-model="job.directory" readonly class="form-control">
-                <span class="input-group-addon"><span ng-click="openDirChooser()" style="cursor: pointer;" class="glyphicon glyphicon-list-alt"></span></span>
-            </div>
-        </div>
-    </div>
-
-    <p ng-show="job.id!='new'"  style="margin-top: 21px;">
-        <a ng-click="showAdvanced=!showAdvanced;" style="cursor: pointer;"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': !showAdvanced, 'glyphicon-chevron-down': showAdvanced}"></span> Advanced Parameters</a>
-    </p>
-
-    <div ng-show="showAdvanced" style="margin-top: 20px;">
-        <ng-include src="'advanced.html'" onload="job = job"/>
-    </div>
-
-    <div ng-if="job.id != 'new'">
-        <a ng-click="save('full')" class="btn btn-info pull-right">Save</a>
-        <br style="clear: both">
     </div>
 
 </div>
-<div ng-if="job.id=='new'" class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
-    <a href="#" class="btn" ng-show="job.id!='new'">Cancel</a>
+<div class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
     <a ng-click="save('step2')" class="btn btn-info pull-right" ng-disabled="!(job.workspace || job.repoObject)">Next</a>
-</div>
-<div ng-if="job.id!='new'">
-    <br/>
-    <a ng-if="job.active" ng-click="toggleJobActive()" class="btn btn-info" style="width: 49%;" href>Stop Task</a>
-    <a ng-if="!job.active" ng-click="toggleJobActive()" class="btn btn-info" style="width: 49%;" href>Start Task</a>
-    <a class="btn btn-danger" ng-click="deleteJob()" style="width: 49%; float: right;" href>Delete Task</a>
-    <br style="clear: both;">
 </div>
