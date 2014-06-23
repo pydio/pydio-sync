@@ -96,30 +96,47 @@ class LocalWatcher(threading.Thread):
         threading.Thread.__init__(self)
         self.basepath = unicode(local_path)
         self.observer = None
-
+        self.job_data_path = data_path
+        self.interrupt = False
         self.event_handler = event_handler
 
+    def check_from_snapshot(self):
         logging.info('Scanning for changes since last application launch')
         if os.path.exists(self.basepath):
-            previous_snapshot = SqlSnapshot(self.basepath, data_path)
+            previous_snapshot = SqlSnapshot(self.basepath, self.job_data_path)
             snapshot = DirectorySnapshot(self.basepath, recursive=True)
             diff = SnapshotDiffStart(previous_snapshot, snapshot)
             for path in diff.dirs_created:
+                if self.interrupt:
+                    return
                 self.event_handler.on_created(DirCreatedEvent(path))
             for path in diff.files_created:
+                if self.interrupt:
+                    return
                 self.event_handler.on_created(FileCreatedEvent(path))
             for path in diff.dirs_moved:
+                if self.interrupt:
+                    return
                 self.event_handler.on_moved(DirMovedEvent(path[0], path[1]))
             for path in diff.files_moved:
+                if self.interrupt:
+                    return
                 self.event_handler.on_moved(FileMovedEvent(path[0], path[1]))
             for path in diff.files_modified:
+                if self.interrupt:
+                    return
                 self.event_handler.on_modified(FileModifiedEvent(path))
             for path in diff.files_deleted:
+                if self.interrupt:
+                    return
                 self.event_handler.on_deleted(FileDeletedEvent(path))
             for path in diff.dirs_deleted:
+                if self.interrupt:
+                    return
                 self.event_handler.on_deleted(DirDeletedEvent(path))
 
     def stop(self):
+        self.interrupt = True
         if self.observer:
             logging.debug("Stopping: %s" % self.observer)
             try:
@@ -132,6 +149,7 @@ class LocalWatcher(threading.Thread):
         if not os.path.exists(self.basepath):
             logging.error('Cannot start monitor on non-existing path ' + self.basepath)
             return
+
         logging.info('Starting permanent monitor')
         self.observer = Observer()
         self.observer.schedule(self.event_handler, self.basepath, recursive=True)

@@ -160,7 +160,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
                     return;
                 }
                 $scope.jobs = all;
-                //t2 = $timeout(tickJobs, 2000);
+                t2 = $timeout(tickJobs, 2000);
             }, function(response){
                 if(!response.status){
                     $scope.error = 'Ooops, cannot contact agent! Make sure it\'s running correctly, we\'ll try to reconnect in 20s';
@@ -424,6 +424,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
         $scope.toggleJobActive = function(){
             $scope.job.active = !$scope.job.active;
             Commands.query({cmd:($scope.job.active?'enable':'disable'), job_id:$scope.job.id}, function(){
+
                 $location.path('/')
             });
         };

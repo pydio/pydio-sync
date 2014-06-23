@@ -25,7 +25,7 @@
         <p class="small">By default, the application will synchronize automatically</p>
         <div style="text-align: center;">
             <div class="advanced_radio_box">
-                <input type="radio" name="freq" checked="true" value="auto"><br>
+                <input type="radio" name="freq" ng-model="job.frequency" checked="true" value="auto"><br>
                 <label>Automatically</label>
             </div>
             <div  class="advanced_radio_box">
@@ -33,14 +33,14 @@
                 <label>Manually</label>
             </div>
             <div  class="advanced_radio_box">
-                <input type="radio" name="freq" ng-model="job.frequency" value="frequency"><br>
+                <input type="radio" name="freq" ng-model="job.frequency" value="time"><br>
                 <label>Given Time</label>
             </div>
         </div>
 
 
-        <div ng-show="job.frequency=='frequency'" class="form-group center-block">
-            Run the sync every day at <input type="number" style="width:45px" value="4:00" ng-disabled="!monitoring"><br>
+        <div ng-show="job.frequency=='time'" class="form-group center-block">
+            Run the sync every day at <input type="number" style="width:40px" ng-model="job.start_time.h">:<input type="number" style="width:40px" value="00" ng-model="job.start_time.m"><br>
         </div>
     </div>
 </div>
@@ -52,15 +52,15 @@
         <p class="small">When files were modified on both the server and your computer at the same time, synchronization is stopped.</p>
         <div style="text-align: center;">
             <div class="advanced_radio_box">
-                <input type="radio" name="conflict" checked="true" value="manual"><br>
+                <input type="radio" name="solve" ng-model="job.solve" value="manual"><br>
                 <label>Solve conflicts manually</label>
             </div>
             <div class="advanced_radio_box">
-                <input type="radio" name="conflict" ng-model="job.conflict_resolution" value="local"><br>
+                <input type="radio" name="solve" ng-model="job.solve" value="local"><br>
                 <label>Always prefer local version</label>
             </div>
             <div class="advanced_radio_box">
-                <input type="radio" name="conflict" ng-model="job.conflict_resolution" value="remote"><br>
+                <input type="radio" name="solve" ng-model="job.solve" value="remote"><br>
                 <label>Always prefer remote version</label>
             </div>
         </div>

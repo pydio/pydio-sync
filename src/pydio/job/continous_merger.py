@@ -19,6 +19,7 @@
 #
 
 import time
+import datetime
 import os
 import threading
 import pickle
@@ -51,6 +52,7 @@ class ContinuousDiffMerger(threading.Thread):
         :return:
         """
         threading.Thread.__init__(self)
+        self.last_run = 0
         self.data_base = job_data_path
         self.job_config = job_config
         self.init_global_progress()
@@ -82,6 +84,9 @@ class ContinuousDiffMerger(threading.Thread):
         self.event_logger = EventLogger(self.data_base)
         self.processing_signals = {}
         self.current_tasks = []
+        self.event_handler = None
+        self.watcher = None
+        self.watcher_first_run = True
         dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel='status', message='START')
         if job_config.direction != 'down':
             self.event_handler = SqlEventHandler(includes=job_config.filters['includes'],
@@ -108,6 +113,10 @@ class ContinuousDiffMerger(threading.Thread):
 
         dispatcher.connect( self.handle_transfer_rate_event, signal=TRANSFER_RATE_SIGNAL, sender=dispatcher.Any )
         dispatcher.connect( self.handle_transfer_callback_event, signal=TRANSFER_CALLBACK_SIGNAL, sender=dispatcher.Any )
+
+        if self.job_config.frequency == 'manual':
+            self.job_status_running = False
+
 
     def handle_transfer_callback_event(self, sender, change):
         self.processing_signals[change['target']] = change
@@ -267,11 +276,14 @@ class ContinuousDiffMerger(threading.Thread):
         """
         Start the thread
         """
-        if hasattr(self, 'watcher'):
-            self.watcher.start()
-
-        self.last_run = 0
         logger = EventLogger(self.data_base)
+
+        if self.watcher:
+            if self.watcher_first_run:
+                logger.log_state('Checking changes since last launch...', "sync")
+                self.watcher.check_from_snapshot()
+                self.watcher_first_run = False
+            self.watcher.start()
 
         while not self.interrupt:
 
@@ -286,13 +298,25 @@ class ContinuousDiffMerger(threading.Thread):
 
                 if not self.job_status_running:
                     logging.debug("self.online_timer: %s" % self.online_timer)
+                    logger.log_state('Status: Paused', "sync")
                     self.sleep_offline()
                     continue
+
+                if self.job_config.frequency == 'time':
+                    start_time = datetime.time(int(self.job_config.start_time['h']), int(self.job_config.start_time['m']))
+                    end_time = datetime.time(int(self.job_config.start_time['h']), int(self.job_config.start_time['m']), 59)
+                    now = datetime.datetime.now().time()
+                    if not start_time < now < end_time:
+                        logger.log_state('Status: scheduled for %s' % str(start_time), "sync")
+                        self.sleep_offline()
+                        continue
+                    else:
+                        logging.info("Now triggering synchro as expected at time " + start_time)
 
                 if not self.system.check_basepath():
                     log = 'Cannot find local folder! Did you disconnect a volume? Waiting %s seconds before retry' % self.offline_timer
                     logging.error(log)
-                    logger.log_state('Cannot find local folder! Did you disconnect a volume?', "error")
+                    logger.log_state('Cannot find local folder, did you disconnect a volume?', "error")
                     self.sleep_offline()
                     continue
 
@@ -304,7 +328,8 @@ class ContinuousDiffMerger(threading.Thread):
                     if self.job_config.direction != 'up':
                         logging.info('Loading remote changes with sequence ' + str(self.remote_seq))
                         if self.remote_seq == 0:
-                            logger.log_state('Computing data that will be loaded from workspace, this can take a while for the first time', 'sync')
+                            logger.log_state('Computing data that will be loaded from workspace, this can take a '
+                                             'while for the first time', 'sync')
                         self.remote_target_seq = self.load_remote_changes_in_store(self.remote_seq, self.current_store)
                         self.current_store.sync()
                     else:
@@ -405,7 +430,11 @@ class ContinuousDiffMerger(threading.Thread):
             logging.info('Finished this cycle, waiting for %i seconds' % self.online_timer)
             self.current_store.close()
             self.init_global_progress()
-            self.sleep_online()
+            if self.job_config.frequency == 'manual':
+                self.job_status_running = False
+                self.sleep_offline()
+            else:
+                self.sleep_online()
 
     def update_min_seqs_from_store(self, success=False):
         self.local_seq = self.current_store.get_min_seq('local', success=success)

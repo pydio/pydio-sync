@@ -6,9 +6,9 @@ angular.module('ui.bootstrap.progresscircle', [])
     .constant('progressConfig', {
         elementWidth: 80,
         elementHeight: 80,
-        outerCircleWidth: 15,
+        outerCircleWidth: 12,
         innerCircleWidth: 0,
-        outerCircleRadius: 26,
+        outerCircleRadius: 28,
         innerCircleRadius: 0,
         labelFont: '11px Open Sans',
         outerCircleBackgroundColor: '#e7e7e7',
