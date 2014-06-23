@@ -424,6 +424,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
         $scope.toggleJobActive = function(){
             $scope.job.active = !$scope.job.active;
             Commands.query({cmd:($scope.job.active?'enable':'disable'), job_id:$scope.job.id}, function(){
+
                 $location.path('/')
             });
         };

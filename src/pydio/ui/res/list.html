@@ -13,8 +13,8 @@
                         Status: Synchronizing
                     </div>
                     <div class="" ng-if="(!job.state.tasks || !job.state.tasks.total) && job.last_event">
-                        <span ng-if="job.last_event[6] != 'error'">Last sync. on {{job.last_event[7] | last_sync_time }}<br></span>
-                        <span ng-if="job.last_event[6] == 'error'">ERROR: </span>{{job.last_event[2]}}
+                        <span ng-if="job.last_event.type != 'error'">Last sync. on {{job.last_event.date | last_sync_time }}<br></span>
+                        <span ng-if="job.last_event.type == 'error'">ERROR: </span>{{job.last_event.message}}
                         <br>Status: Idle
                     </div>
                 </td>
@@ -22,10 +22,10 @@
                     <div style="position: relative;" ng-if="job.active">
                         <progress-circle progress-circle-model="job.state.global"
                                          element-width=80 element-height=80></progress-circle>
-                        <a style="font-size: 2em; position: absolute; left: 27px;top: 20px;" href ng-if="job.active" ng-click="job.last_event[6]=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
-                        <span class="glyphicon" ng-if="job.last_event[6] != 'error'" ng-class="{'glyphicon-pause':job.running,'glyphicon-play':!job.running, 'display_on_hover':job.state.tasks && job.state.tasks.total}"
+                        <a style="font-size: 2em; position: absolute; left: 27px;top: 20px;" href ng-if="job.active" ng-click="job.last_event.type=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
+                        <span class="glyphicon" ng-if="job.last_event.type != 'error'" ng-class="{'glyphicon-pause':job.running,'glyphicon-play':!job.running, 'display_on_hover':job.state.tasks && job.state.tasks.total}"
                               style="display: inline-block; padding:5px; border-radius: 200px;"></span>
-                        <span ng-if="job.last_event[6] == 'error'" style="display: inline-block; padding: 0 15px;
+                        <span ng-if="job.last_event.type == 'error'" style="display: inline-block; padding: 0 15px;
                                 border-radius: 200px;">!</span>
                         </a>
                     </div>
@@ -50,10 +50,10 @@
         </div>
         <h4 ng-if="logs.length">Last files synced</h4>
         <table style="width: 100%;">
-            <tr ng-repeat="log in logs | limitTo:4" ng-if="log[1]!='sync'">
+            <tr ng-repeat="log in logs | filter: ({type:'remote'}||{type:'local'})  | limitTo:4"">
                 <td style="padding:2px 0; width: 12px;" class="glyphicon glyphicon-file"></td>
-                <td style="padding:2px 0;width: 80%;">{{log[4] && log[4]!=NULL ? log[4]:log[3] | basename}}</td>
-                <td style="text-align: right;padding:2px 0;"><a style="text-decoration: none;" class="small" href="file://{{log[4] && log[4]!=NULL ? log[4]:log[3]}}">Open File</a></td>
+                <td style="padding:2px 0;width: 80%;">{{log.source && log.source!='NULL' ? log.source:log.target | basename}}</td>
+                <td style="text-align: right;padding:2px 0;"><a style="text-decoration: none;" class="small" href="file://{{log.source && log.source!='NULL' ? log.source:log.target}}">Open File</a></td>
             </tr>
         </table>
 

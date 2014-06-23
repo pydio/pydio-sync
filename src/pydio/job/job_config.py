@@ -114,6 +114,9 @@ class JobConfig:
         self.server_configs = None
         self.active = True
         self.direction = 'bi'
+        self.frequency = 'auto'
+        self.start_time = {'h': 0, 'm': 0}
+        self.solve = 'manual'
         self.monitor = True
         self.filters = dict(
             includes=['*'],
@@ -141,6 +144,9 @@ class JobConfig:
                     "remote_folder": obj.remote_folder,
                     "user": obj.user_id,
                     "direction": obj.direction,
+                    "frequency": obj.frequency,
+                    "solve": obj.solve,
+                    "start_time": obj.start_time,
                     "active": obj.active}
         raise TypeError(repr(JobConfig) + " can't be encoded")
 
@@ -188,11 +194,23 @@ class JobConfig:
                 job_config.direction = obj['direction']
             if 'monitor' in obj and obj['monitor'] in [True, False]:
                 job_config.monitor = obj['monitor']
+            if 'frequency' in obj and obj['frequency'] in ['auto', 'manual', 'time']:
+                job_config.frequency = obj['frequency']
+                if job_config.frequency == 'time' and 'start_time' in obj:
+                    job_config.start_time = obj['start_time']
+            if 'solve' in obj and obj['solve'] in ['manual', 'remote', 'local', 'both']:
+                job_config.solve = obj['solve']
             if 'active' in obj and obj['active'] in [True, False]:
                 job_config.active = obj['active']
             if 'id' not in obj:
                 job_config.make_id()
             else:
                 job_config.id = obj['id']
+
+            if job_config.frequency == 'auto' or job_config.frequency == 'time':
+                job_config.monitor = True
+            else:
+                job_config.monitor = False
+
             return job_config
         return obj
