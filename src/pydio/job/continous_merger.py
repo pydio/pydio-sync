@@ -82,6 +82,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.event_logger = EventLogger(self.data_base)
         self.processing_signals = {}
         self.current_tasks = []
+        self.event_handler = None
         dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel='status', message='START')
         if job_config.direction != 'down':
             self.event_handler = SqlEventHandler(includes=job_config.filters['includes'],

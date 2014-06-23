@@ -19,17 +19,17 @@
                     </div>
                 </td>
                 <td style="width:100px; text-align: right;padding-right: 15px;">
-                    <div style="position: relative;">
+                    <div style="position: relative;" ng-if="job.active">
                         <progress-circle progress-circle-model="job.state.global"
                                          element-width=80 element-height=80></progress-circle>
-                        <a style="font-size: 2em; position: absolute; left: 26px;top: 20px;" href ng-if="job.active" ng-click="job.last_event[6]=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
+                        <a style="font-size: 2em; position: absolute; left: 27px;top: 20px;" href ng-if="job.active" ng-click="job.last_event[6]=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
                         <span class="glyphicon" ng-if="job.last_event[6] != 'error'" ng-class="{'glyphicon-pause':job.running,'glyphicon-play':!job.running, 'display_on_hover':job.state.tasks && job.state.tasks.total}"
                               style="display: inline-block; padding:5px; border-radius: 200px;"></span>
                         <span ng-if="job.last_event[6] == 'error'" style="display: inline-block; padding: 0 15px;
                                 border-radius: 200px;">!</span>
                         </a>
-                        <span ng-if="!job.active">[DISABLED]</span>
                     </div>
+                    <span ng-if="!job.active">[DISABLED]</span>
                 </td>
             </tr>
         </table>
@@ -58,8 +58,8 @@
         </table>
 
 
-        <h4 ng-if="running.tasks.current.length"  >Files in process <span class="small">({{running.tasks.total}})</span></h4>
-        <div ng-repeat="task in running.tasks.current | limitTo: 3" style="padding:2px 0;">
+        <h4 ng-if="running.tasks.total && running.tasks.current.length"  >Files in process <span class="small">({{running.tasks.total}})</span></h4>
+        <div ng-if="running.tasks.total && running.tasks.current.length" ng-repeat="task in running.tasks.current | limitTo: 3" style="padding:2px 0;">
             <span ng-if="task.progress"><span class="small">{{task.progress | number:0}}%</span></span>
             <span ng-if="task.location == 'local'" class="glyphicon glyphicon-cloud-upload"></span>
             <span ng-if="task.location == 'remote'" class="glyphicon glyphicon-cloud-download"></span>
