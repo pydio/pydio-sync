@@ -48,7 +48,7 @@
                 </tr>
             </table>
         </div>
-        <h4 ng-if="logs.length">Last files synced</h4>
+        <h4 ng-if="(logs | filter: ({type:'remote'}||{type:'local'}) ).length">Last files synced</h4>
         <table style="width: 100%;">
             <tr ng-repeat="log in logs | filter: ({type:'remote'}||{type:'local'})  | limitTo:4"">
                 <td style="padding:2px 0; width: 12px;" class="glyphicon glyphicon-file"></td>
