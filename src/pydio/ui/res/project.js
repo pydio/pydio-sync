@@ -160,7 +160,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
                     return;
                 }
                 $scope.jobs = all;
-                //t2 = $timeout(tickJobs, 2000);
+                t2 = $timeout(tickJobs, 2000);
             }, function(response){
                 if(!response.status){
                     $scope.error = 'Ooops, cannot contact agent! Make sure it\'s running correctly, we\'ll try to reconnect in 20s';

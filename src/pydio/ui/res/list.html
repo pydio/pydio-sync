@@ -18,16 +18,18 @@
                         <br>Status: Idle
                     </div>
                 </td>
-                <td style="width:100px; text-align: right;padding-right: 15px; position: relative;">
-                    <progress-circle progress-circle-model="job.state.global"
-                                     element-width=80 element-height=80></progress-circle>
-                    <a style="font-size: 2em; position: absolute; left: 26px;top: 20px;" href ng-if="job.active" ng-click="job.last_event[6]=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
+                <td style="width:100px; text-align: right;padding-right: 15px;">
+                    <div style="position: relative;">
+                        <progress-circle progress-circle-model="job.state.global"
+                                         element-width=80 element-height=80></progress-circle>
+                        <a style="font-size: 2em; position: absolute; left: 26px;top: 20px;" href ng-if="job.active" ng-click="job.last_event[6]=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
                         <span class="glyphicon" ng-if="job.last_event[6] != 'error'" ng-class="{'glyphicon-pause':job.running,'glyphicon-play':!job.running, 'display_on_hover':job.state.tasks && job.state.tasks.total}"
                               style="display: inline-block; padding:5px; border-radius: 200px;"></span>
                         <span ng-if="job.last_event[6] == 'error'" style="display: inline-block; padding: 0 15px;
                                 border-radius: 200px;">!</span>
-                    </a>
-                    <span ng-if="!job.active">[DISABLED]</span>
+                        </a>
+                        <span ng-if="!job.active">[DISABLED]</span>
+                    </div>
                 </td>
             </tr>
         </table>
