@@ -301,6 +301,7 @@ class LocalDbHandler():
             c = conn.cursor()
             info = dict()
             info['max_seq'] = seq_id
+
             for line in c.execute("SELECT seq , ajxp_changes.node_id ,  type ,  "
                                  "source , target, ajxp_index.bytesize, ajxp_index.md5, ajxp_index.mtime, "
                                  "ajxp_index.node_path, ajxp_index.stat_result FROM ajxp_changes LEFT JOIN ajxp_index "
@@ -308,7 +309,13 @@ class LocalDbHandler():
                                  "WHERE seq > ? ORDER BY ajxp_changes.node_id, seq ASC", (seq_id,)):
                 row = dict(line)
                 flatten_and_store_callback('local', row, info)
+                if info:
+                    self.event_handler.last_seq_id = info['max_seq']
+
             flatten_and_store_callback('local', None, info)
+            if info:
+                self.event_handler.last_seq_id = info['max_seq']
+
             if self.event_handler:
                 self.event_handler.reading = False
             return info['max_seq']
@@ -411,9 +418,9 @@ class LocalDbHandler():
 
 class SqlEventHandler(FileSystemEventHandler):
 
-    reading = False
+    """reading = False
     last_write_time = 0
-    db_wait_duration = 1
+    db_wait_duration = 1"""
 
     def __init__(self, basepath, includes, excludes, job_data_path):
         super(SqlEventHandler, self).__init__()
@@ -422,7 +429,11 @@ class SqlEventHandler(FileSystemEventHandler):
         self.excludes = excludes
         db_handler = LocalDbHandler(job_data_path, basepath)
         self.db = db_handler.db
+        self.reading = False
+        self.last_write_time = 0
+        self.db_wait_duration = 1
         self.last_seq_id = 0
+
 
     def get_unicode_path(self, src):
         if isinstance(src, str):
@@ -660,7 +671,6 @@ class SqlEventHandler(FileSystemEventHandler):
         for row in res:
             if row['type'] != 'delete':
                 return None
-
             if (md5 and row['deleted_md5'] == md5) or (node_id and row['node_id'] == node_id):
                 return {'source':row['source'], 'node_id':row['node_id']}
         return None
