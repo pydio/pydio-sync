@@ -14,3 +14,25 @@
     text-align:center;
     vertical-align: top;
 }
+
+.display_on_hover{
+    opacity: 0;
+}
+.display_on_hover:hover{
+    opacity: 1.0;
+}
+
+.openDrawer{
+    text-align: center;
+    background-color: #fafafa;
+    width: 21px;
+    border-radius: 200px;
+    padding: 5px;
+    height: 21px;
+    font-size: 0.7em;
+    margin: 0 auto;
+    margin-top: -32px;
+    margin-bottom: 11px;
+    border-bottom: 1px solid #ddd;
+    color: #555;
+}

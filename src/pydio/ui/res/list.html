@@ -4,27 +4,28 @@
         <table style="width: 100%;margin-bottom: 10px;">
             <tr>
                 <td style="width:100px; padding-left: 10px;">
-                    <img src="images/rocket.png" width="80"/>
+                    <img src="images/rocket.png" width="80" style="margin-top: -5px;"/>
                 </td>
-                <td style="vertical-align: middle;padding-top: 10px;">
+                <td style="vertical-align: top;padding-top: 10px;">
                     <div class="" ng-if="job.state.tasks && job.state.tasks.total">
                         Size : {{job.state.global['queue_bytesize'] | bytes:1}} -
                         Estimated time : {{job.state.global['eta'] | seconds}}s<br>
-                        <div class="progress progress-striped active">
-                            <div class="progress-bar" role="progressbar" aria-valuenow="{{100*job.state.global.queue_done/job.state.global.queue_length}}" aria-valuemin="0" aria-valuemax="100" style="width: {{100*job.state.global.queue_done/job.state.global.queue_length}}%;"></div>
-                        </div>
+                        Status: Synchronizing
                     </div>
                     <div class="" ng-if="(!job.state.tasks || !job.state.tasks.total) && job.last_event">
-                        <span ng-if="job.last_event[6] != 'error'">Last synchronization <br>{{job.last_event[7] | last_sync_time }}<br></span>
+                        <span ng-if="job.last_event[6] != 'error'">Last sync. on {{job.last_event[7] | last_sync_time }}<br></span>
                         <span ng-if="job.last_event[6] == 'error'">ERROR: </span>{{job.last_event[2]}}
+                        <br>Status: Idle
                     </div>
                 </td>
-                <td style="width:100px; text-align: right;padding-right: 15px;">
-                    <a style="font-size: 2em;" href ng-if="job.active" ng-click="job.last_event[6]=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
-                        <span class="glyphicon" ng-if="job.last_event[6] != 'error'" ng-class="{'glyphicon-pause':job.running,'glyphicon-play':!job.running}"
-                              style="color: white; display: inline-block; padding:5px; border-radius: 200px; background-color: #0079a1"></span>
-                        <span ng-if="job.last_event[6] == 'error'" style="color: white; display: inline-block; padding: 0 15px;
-                                border-radius: 200px; background-color: #0079a1">!</span>
+                <td style="width:100px; text-align: right;padding-right: 15px; position: relative;">
+                    <progress-circle progress-circle-model="job.state.global"
+                                     element-width=80 element-height=80></progress-circle>
+                    <a style="font-size: 2em; position: absolute; left: 26px;top: 20px;" href ng-if="job.active" ng-click="job.last_event[6]=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
+                        <span class="glyphicon" ng-if="job.last_event[6] != 'error'" ng-class="{'glyphicon-pause':job.running,'glyphicon-play':!job.running, 'display_on_hover':job.state.tasks && job.state.tasks.total}"
+                              style="display: inline-block; padding:5px; border-radius: 200px;"></span>
+                        <span ng-if="job.last_event[6] == 'error'" style="display: inline-block; padding: 0 15px;
+                                border-radius: 200px;">!</span>
                     </a>
                     <span ng-if="!job.active">[DISABLED]</span>
                 </td>
@@ -63,18 +64,7 @@
             <span>{{task.target && task.target != 'NULL'?task.target:task.source | basename}}</span>
         </div>
     </div>
-    <div style="text-align: center;
-                background-color: #fafafa;
-                width: 21px;
-                border-radius: 200px;
-                padding: 5px;
-                height: 21px;
-                font-size: 0.7em;
-                margin: 0 auto;
-                margin-top: -32px;
-                margin-bottom: 11px;
-                border-bottom: 1px solid #ddd;
-                color: #555;">
+    <div class="openDrawer">
         <a href title="See logs" ng-click="opened_logs_panel != job.id ? openLogsForJob(job.id) : closeLogs()"><span class="glyphicon" ng-class="{'glyphicon-chevron-down':opened_logs_panel != job.id,'glyphicon-chevron-up':opened_logs_panel == job.id}"></span></a>
     </div>
 </script>

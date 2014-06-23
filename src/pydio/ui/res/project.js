@@ -1,4 +1,4 @@
-angular.module('project', ['ngRoute', 'ngResource'])
+angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle'])
 
 
     .factory('Jobs', ['$resource',
@@ -147,6 +147,9 @@ angular.module('project', ['ngRoute', 'ngResource'])
     .controller('ListCtrl', function($scope, $location, $timeout, Jobs, Logs, Conflicts, currentJob, Commands) {
 
         $scope.conflict_solver = {current:false};
+        $scope.progressCircleData = {
+            value: 0
+        };
 
         var t2;
         (function tickJobs() {
@@ -157,7 +160,7 @@ angular.module('project', ['ngRoute', 'ngResource'])
                     return;
                 }
                 $scope.jobs = all;
-                t2 = $timeout(tickJobs, 2000);
+                //t2 = $timeout(tickJobs, 2000);
             }, function(response){
                 if(!response.status){
                     $scope.error = 'Ooops, cannot contact agent! Make sure it\'s running correctly, we\'ll try to reconnect in 20s';
