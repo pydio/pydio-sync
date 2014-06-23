@@ -225,7 +225,7 @@ class PydioSdk():
         :return:list a list of changes
         """
         if last_seq == 0:
-            perform_flattening = "true"
+            perform_flattening = "false"
         else:
             perform_flattening = "false"
         url = self.url + '/changes/' + str(last_seq) + '/?stream=true'
