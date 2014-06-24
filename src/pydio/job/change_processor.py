@@ -19,7 +19,7 @@
 #
 import os
 import logging
-
+import shutil
 
 class ChangeProcessor:
     def __init__(self, change, change_store, job_config, local_sdk, remote_sdk, status_handler, event_logs_handler):
@@ -163,7 +163,7 @@ class ChangeProcessor:
         if os.path.exists(self.job_config.directory + source):
             if not os.path.exists(self.job_config.directory + os.path.dirname(target)):
                 os.makedirs(self.job_config.directory + os.path.dirname(target))
-            os.rename(self.job_config.directory + source, self.job_config.directory + target)
+            shutil.move(self.job_config.directory + source, self.job_config.directory + target)
             message = source + ' to ' + target + ' <============ MOVE'
             self.log(type='local', action='move', status='success', target=target,
                      source=source, console_message=message, message=('Moved %s to %s' % (source, target)))
