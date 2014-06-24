@@ -135,6 +135,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
                 controller:'CreateCtrl',
                 templateUrl:'01-Connection.html'
             })
+            .when('/welcome', {
+                controller:'CreateCtrl',
+                templateUrl:'welcome.html'
+            })
             .when('/logs/:jobId',{
                 controller:'ListLogsCtrl',
                 templateUrl:'logs.html'
@@ -156,7 +160,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
             var all = Jobs.query(function(){
                 $scope.error = null;
                 if(!all.length){
-                    $location.path('/new');
+                    $location.path('/welcome');
                     return;
                 }
                 $scope.jobs = all;

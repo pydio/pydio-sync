@@ -26,6 +26,9 @@ import os
 from watchdog.events import DirCreatedEvent, DirDeletedEvent, DirMovedEvent, \
     FileCreatedEvent, FileDeletedEvent, FileMovedEvent, FileModifiedEvent
 from watchdog.observers import Observer
+from watchdog.utils import platform
+if platform.is_linux():
+    from watchdog.observers.polling import PollingObserver as Observer
 from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
 
 from pydio.job.localdb import SqlEventHandler, SqlSnapshot
