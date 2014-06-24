@@ -93,13 +93,13 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-v', '--verbose', action='count', default=1)
     args, _ = parser.parse_known_args(argv)
 
-    setup_logging(args.verbose)
-
     jobs_root_path = Path(__file__).parent / 'data'
     if not jobs_root_path.exists():
         jobs_root_path = Path(DEFAULT_DATA_PATH)
         if not jobs_root_path.exists():
             jobs_root_path.mkdir()
+
+    setup_logging(args.verbose, jobs_root_path)
 
     if args.auto_start:
         import pydio.autostart
@@ -165,13 +165,15 @@ def main(argv=sys.argv[1:]):
         sys.exit()
 
 
-def setup_logging(verbosity=None):
-    import appdirs
+def setup_logging(verbosity=None, application_path=None):
 
-    location = Path(str(appdirs.user_log_dir("pydio", "pydio")))
-    if not location.exists():
-        location.mkdir(parents=True)
-    log_file = str(location / "pydio.log")
+    if not application_path:
+        import appdirs
+        application_path = Path(str(appdirs.user_log_dir("pydio", "pydio")))
+        if not application_path.exists():
+            application_path.mkdir(parents=True)
+
+    log_file = str(application_path / "pydio.log")
 
     levels = {
         0: logging.WARNING,
@@ -196,10 +198,10 @@ def setup_logging(verbosity=None):
         },
         'handlers': {
             'file': {
-                'level': 'DEBUG',
+                'level': 'INFO',
                 'class': 'logging.handlers.RotatingFileHandler',
                 'formatter': 'verbose',
-                'backupCount': 3,
+                'backupCount': 8,
                 'maxBytes': 4194304,  # 4MB
                 'filename': log_file
             },
