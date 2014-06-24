@@ -84,8 +84,18 @@ class ChangeProcessor:
             self.change_store.buffer_real_operation(location, 'delete', item['source'], 'NULL')
 
         elif item['type'] == 'bulk_mkdirs':
-            self.process_remote_bulk_mkdir(item['pathes'])
+            try:
+                self.process_remote_bulk_mkdir(item['pathes'])
+                bulk_location = item['location']
+                bulk = list()
+                for path in item['pathes']:
+                    #self.change_store.buffer_real_operation(bulk_location, 'create', 'NULL', path)
+                    bulk.append({'type':'create', 'location':bulk_location, 'source':'NULL', 'target':path})
 
+                if bulk:
+                    self.change_store.bulk_buffer_real_operation(bulk)
+            except Exception as e :
+                pass
         else:
             logging.debug('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
             if location == 'remote':
