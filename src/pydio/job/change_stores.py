@@ -358,6 +358,12 @@ class SqliteChangeStore():
                           (type, location, source.replace("\\", "/"), target.replace("\\", "/")))
         self.conn.commit()
 
+    def bulk_buffer_real_operation(self, bulk):
+        if bulk :
+            for operation in bulk:
+                self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (operation['type'], operation['location'], operation['source'].replace("\\", "/"), operation['target'].replace("\\", "/")))
+            self.conn.commit()
+
 
     def clear_operations_buffer(self):
         self.conn.execute("DELETE FROM ajxp_last_buffer")
@@ -459,6 +465,9 @@ class SqliteChangeStore():
         self.conn.commit()
 
     def echo_match(self, location, change):
+        if location == 'remote':
+            pass
+
         source = change['source'].replace("\\", "/")
         target = change['target'].replace("\\", "/")
         action = change['type']
@@ -481,10 +490,9 @@ class SqliteChangeStore():
         else:
             seq = row.pop('seq')
             max_seq = seq if seq > max_seq else max_seq
+            last_info['max_seq'] = max_seq
 
-            if self.echo_match(location, row):
-                last_info['max_seq'] = max_seq
-            else:
+            if not self.echo_match(location, row):
                 logging.debug("processing " + row['source'] +  " -> " + row['target'])
                 source = row.pop('source')
                 target = row.pop('target')
