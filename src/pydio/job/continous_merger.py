@@ -361,6 +361,8 @@ class ContinuousDiffMerger(threading.Thread):
 
                 logging.info('Reducing changes')
 
+                self.current_store.delete_copies()
+                self.update_min_seqs_from_store()
                 self.current_store.dedup_changes()
                 self.update_min_seqs_from_store()
                 self.current_store.detect_unnecessary_changes(local_sdk=self.system, remote_sdk=self.sdk)

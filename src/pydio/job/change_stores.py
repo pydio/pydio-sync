@@ -77,7 +77,8 @@ class SqliteChangeStore():
     def process_changes_with_callback(self, callback):
         c = self.conn.cursor()
 
-        res = c.execute('SELECT * FROM ajxp_changes WHERE md5="directory" AND location="local" ORDER BY source,target')
+        res = c.execute('SELECT * FROM ajxp_changes WHERE md5="directory" AND location="local" '
+                        'AND type="create" ORDER BY source,target')
         mkdirs = []
         ids = []
         for row in res:
@@ -199,6 +200,16 @@ class SqliteChangeStore():
         res = cursor.execute(sql)
         self.conn.commit()
         logging.debug('[change store] Echo : pruned %i rows', res.rowcount)
+
+    def delete_copies(self):
+        try:
+            sql = 'DELETE from ajxp_changes WHERE row_id NOT IN (SELECT max(row_id) from ajxp_changes GROUP BY location, type, source, target, content, md5, bytesize having COUNT(*) > 0 ORDER BY row_id)'
+            cursor = self.conn.cursor()
+            res = cursor.execute(sql)
+            self.conn.commit()
+            logging.debug('[change store] Echo : pruned %i rows', res.rowcount)
+        except Exception as e:
+            logging.error(e)
 
 
     def detect_unnecessary_changes(self, local_sdk, remote_sdk):

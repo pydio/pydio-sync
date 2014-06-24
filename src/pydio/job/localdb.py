@@ -593,6 +593,7 @@ class SqlEventHandler(FileSystemEventHandler):
             logging.debug("Real insert %s" % search_key)
             c = conn.cursor()
             del_element = None
+            existing_id = None
             if hash_key == 'directory':
                 existing_id = self.find_windows_folder_id(src_path)
                 if existing_id:
@@ -601,7 +602,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 del_element = self.find_deleted_element(c, self.last_seq_id, os.path.basename(src_path), md5=hash_key)
 
             if del_element:
-                logging.info("THIS IS A MOVE!")
+                logging.info("THIS IS A MOVE " + src_path)
                 t = (
                     del_element['node_id'],
                     del_element['source'],
@@ -614,6 +615,8 @@ class SqlEventHandler(FileSystemEventHandler):
                           "VALUES (?,?,?,?,?,?)", t)
                 c.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", (search_key, del_element['source']))
             else:
+                if hash_key == 'directory' and existing_id:
+                    self.clear_windows_folder_id(src_path)
                 c.execute("INSERT INTO ajxp_index (node_path,bytesize,md5,mtime,stat_result) VALUES (?,?,?,?,?)", t)
                 if hash_key == 'directory':
                     self.set_windows_folder_id(c.lastrowid, src_path)
@@ -663,14 +666,17 @@ class SqlEventHandler(FileSystemEventHandler):
                 return node_id
         return None
 
+    def clear_windows_folder_id(self, path):
+        if os.name in("nt", "ce") and os.path.exists(path + "\\.pydio_id"):
+            os.unlink(path + "\\.pydio_id")
+
     def find_deleted_element(self, cursor, start_seq, basename, md5=None, node_id=None):
-        res = cursor.execute('SELECT * FROM ajxp_changes WHERE source LIKE ? '
-                           'AND seq >= ? ORDER BY seq DESC LIMIT 0,1', ("%\\"+basename, start_seq))
+        res = cursor.execute('SELECT * FROM ajxp_changes WHERE source LIKE ? AND type="delete" '
+                             'AND node_id NOT IN (SELECT node_id FROM ajxp_index) '
+                             'AND seq >= ? ORDER BY seq DESC', ("%\\"+basename, start_seq))
         if not res:
             return None
         for row in res:
-            if row['type'] != 'delete':
-                return None
             if (md5 and row['deleted_md5'] == md5) or (node_id and row['node_id'] == node_id):
                 return {'source':row['source'], 'node_id':row['node_id']}
         return None
