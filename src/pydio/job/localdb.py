@@ -288,11 +288,13 @@ class LocalDbHandler():
 
     def get_local_changes_as_stream(self, seq_id, flatten_and_store_callback):
         if self.event_handler:
+            i = 1
             cannot_read = (int(round(time.time() * 1000)) - self.event_handler.last_write_time) < (self.event_handler.db_wait_duration*1000)
             while cannot_read:
                 logging.info('waiting db writing to end before retrieving local changes...')
                 cannot_read = (int(round(time.time() * 1000)) - self.event_handler.last_write_time) < (self.event_handler.db_wait_duration*1000)
-                time.sleep(self.event_handler.db_wait_duration)
+                time.sleep(i*self.event_handler.db_wait_duration)
+                i += 1
             self.event_handler.reading = True
         try:
             logging.debug("Local sequence " + str(seq_id))
