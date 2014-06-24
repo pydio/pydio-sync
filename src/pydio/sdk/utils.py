@@ -22,7 +22,7 @@ import logging
 import requests
 import time
 import os
-import stat
+import sys
 import math
 
 from io import BytesIO, FileIO
@@ -105,7 +105,12 @@ class BytesIOWithFile(BytesIO):
 
         self.cursor += int(len(chunk))
 
-        transfer_rate = self.cursor//(time.clock() - self.start)
+        time_delta = (time.clock() - self.start)
+        if time_delta > 0:
+            transfer_rate = self.cursor//time_delta
+        else:
+            transfer_rate = sys.maxint
+
         if self.callback:
             try:
                 self.callback(self.full_length, self.cursor * (self.file_part+1), len(chunk), transfer_rate)

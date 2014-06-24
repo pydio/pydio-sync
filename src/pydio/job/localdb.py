@@ -322,7 +322,7 @@ class LocalDbHandler():
                 self.event_handler.reading = False
             return info['max_seq']
         except Exception as ex:
-            logging.error(ex)
+            logging.exception(ex)
             if self.event_handler:
                 self.event_handler.reading = False
             return info['seq_id']
@@ -500,7 +500,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 conn.commit()
                 conn.close()
         except Exception as ex:
-            logging.error(ex)
+            logging.exception(ex)
 
         self.last_write_time = int(round(time.time() * 1000))
 
@@ -517,7 +517,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 return
             self.updateOrInsert(src_path, is_directory=event.is_directory, skip_nomodif=False)
         except Exception as ex:
-            logging.error(ex)
+            logging.exception(ex)
         self.last_write_time = int(round(time.time() * 1000))
 
     def on_deleted(self, event):
@@ -534,7 +534,7 @@ class SqlEventHandler(FileSystemEventHandler):
             conn.close()
 
         except Exception as ex:
-            logging.error(ex)
+            logging.exception(ex)
         self.unlock_db()
 
     def on_modified(self, event):
@@ -563,7 +563,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 logging.debug("Event: modified file : %s" % self.remove_prefix(modified_filename))
                 self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
         except Exception as ex:
-            logging.error(ex)
+            logging.exception(ex)
         self.unlock_db()
 
     def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert = False):

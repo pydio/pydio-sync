@@ -410,8 +410,8 @@ class ContinuousDiffMerger(threading.Thread):
                             return False
                         except InterruptException as i:
                             raise i
-                        except Exception as e:
-                            logging.error(e.message)
+                        except Exception as ex:
+                            logging.exception(ex.message)
                             return False
                         return True
 
@@ -424,7 +424,7 @@ class ContinuousDiffMerger(threading.Thread):
                     logging.info('No changes detected')
 
             except Exception as e:
-                logging.error('Unexpected Error: %s' % e.message)
+                logging.exception('Unexpected Error: %s' % e.message)
                 logger.log_state('Unexpected Error: %s' % e.message, 'error')
 
             logging.info('Finished this cycle, waiting for %i seconds' % self.online_timer)

@@ -157,7 +157,7 @@ def main(argv=sys.argv[1:]):
         try:
             thread.start_new_thread(server.start_server, ())
         except Exception as e:
-            logging.error(e)
+            logging.exception(e.message)
 
         scheduler.start_all()
 
