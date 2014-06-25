@@ -2,7 +2,9 @@
 
 <div class="small pull-left" style="text-align: center; width: 40%; overflow: visible;">
     <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
-    {{job.workspace}}: {{job.remote_folder?job.remote_folder:'Full workspace'}}<br>
+    Server: {{job.server}}<br>
+    Workspace: {{job.workspace}}<br>
+    <span ng-if="job.remote_folder">Folder: {{job.remote_folder}}</span>
 </div>
 
 <span style="display: block; float:left; width: 20%;margin: 50px auto; border-top: 1px dashed #000000;"></span>

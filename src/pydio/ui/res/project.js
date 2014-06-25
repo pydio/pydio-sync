@@ -315,7 +315,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
         };
 
         var job;
-        if(currentJob.getJob() == null){
+        if(currentJob.getJob() == null && $location.path() == '/new'){
             job = new Jobs();
             $scope.inline_protocol='https://';
             $scope.inline_host='';

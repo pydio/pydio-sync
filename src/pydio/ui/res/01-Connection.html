@@ -1,7 +1,15 @@
 <div class="well" ng-show="panel_tips" style="position: absolute;top: 60px;right: 20px;left: 20px;bottom: 50px;z-index: 100;box-shadow: 2px 2px 15px rgba(0,0,0,0.25);" >
-    <button type="button" class="close" data-dismiss="alert" aria-hidden="true" ng-click="panel_tips=false">&times;</button>
-    How can I find my server URL ?
-    Explaining image here
+    <button type="button" class="close" style="color:black;" data-dismiss="alert" aria-hidden="true" ng-click="panel_tips=false">&times;</button>
+    <h4>How can I find my server URL ?</h4>
+    The server URL is the adress that you can see in your browser when accessing Pydio via the web. It starts with <em>http</em>
+    or <em>https</em> depending on your server configuration.<br>
+    If you are logged in Pydio and you see the last part of the URL starting with "ws-", remove this part and only keep the beginning (see image below).<br><br>
+    <p style="text-align: center;">
+        <img class="img-thumbnail" src="images/ServerURL.png" style="max-width: 100%; max-height: 400px;"><br>
+        <br>
+        <button type="button" class="btn btn-default" ng-click="panel_tips=false">Got it!</button>
+    </p>
+
 </div>
 <div ng-show="loading" style="position: absolute;top: 0;right: 0;left: 0;bottom: 0;z-index: 1300; background-color: #ededed; padding: 45% 0; text-align: center;" >
     <img src="images/pydio.png">
