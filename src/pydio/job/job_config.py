@@ -177,6 +177,8 @@ class JobConfig:
             job_config = JobConfig()
             job_config.server = obj['server']
             job_config.directory = obj['directory'].rstrip('/').rstrip('\\')
+            if os.name in ["nt", "ce"]:
+                job_config.directory = job_config.directory.replace('/', '\\')
             job_config.workspace = obj['workspace']
             if 'remote_folder' in obj:
                 job_config.remote_folder = obj['remote_folder'].rstrip('/').rstrip('\\')
