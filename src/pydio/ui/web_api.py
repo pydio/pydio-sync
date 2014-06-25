@@ -22,6 +22,7 @@ class PydioApi(Api):
 
     def __init__(self, server_port):
         self.port = server_port
+        self.running = False
         if getattr(sys, 'frozen', False):
             static_folder = str( (Path(sys._MEIPASS)) / 'ui' / 'res' )
         else:
@@ -38,7 +39,13 @@ class PydioApi(Api):
         self.add_resource(CmdManager, '/cmd/<string:cmd>/<string:job_id>', '/cmd/<string:cmd>')
 
     def start_server(self):
-        self.app.run(port=self.port)
+        try:
+            self.running = True
+            self.app.run(port=self.port)
+        except Exception:
+            self.running = False
+            logging.exception("Error while starting web server")
+
 
 class WorkspacesManager(Resource):
 

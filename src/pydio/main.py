@@ -37,6 +37,7 @@ logging.debug("PYTHONPATH: %s", "\n\t".join(os.environ.get('PYTHONPATH', "").spl
 import argparse
 import json
 import thread
+import time
 import pydio.monkeypatch
 from pathlib import Path
 
@@ -154,11 +155,11 @@ def main(argv=sys.argv[1:]):
 
     try:
 
-        try:
-            thread.start_new_thread(server.start_server, ())
-        except Exception as e:
-            logging.exception(e.message)
-
+        thread.start_new_thread(server.start_server, ())
+        time.sleep(0.3)
+        if not server.running:
+            logging.error('Cannot start web server, exiting application')
+            sys.exit(1)
         scheduler.start_all()
 
     except (KeyboardInterrupt, SystemExit):
