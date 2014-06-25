@@ -70,6 +70,8 @@ class JobsLoader():
 
     def update_job(self, job):
         self.jobs[job.id] = job
+        if not os.path.exists(job.directory):
+            os.makedirs(job.directory)
         self.save_jobs()
 
     def delete_job(self, job_id):

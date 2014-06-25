@@ -194,6 +194,11 @@ class ContinuousDiffMerger(threading.Thread):
                     change[key] = progress[key]
 
     def get_current_tasks(self):
+        for change in self.current_tasks:
+            if change['target'] in self.processing_signals:
+                progress = self.processing_signals[change['target']]
+                for key in progress.keys():
+                    change[key] = progress[key]
         return {
             'total': self.global_progress['queue_length'],
             'current': self.current_tasks
