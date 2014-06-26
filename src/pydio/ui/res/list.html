@@ -58,7 +58,7 @@
 
 
         <h4 ng-if="running.tasks.total && running.tasks.current.length"  >Transfers in progress <span class="small">({{running.tasks.total}})</span></h4>
-        <div ng-if="running.tasks.total && running.tasks.current.length" ng-repeat="task in running.tasks.current | limitTo: 3" style="padding:2px 0;">
+        <div ng-if="running.tasks.total && running.tasks.current.length" ng-repeat="task in running.tasks.current" style="padding:2px 0;">
             <span ng-if="task.total_bytes_sent"><span class="badge">{{100 * task.total_bytes_sent / task.bytesize | number: 1}}%</span></span>
             <span ng-if="!task.total_bytes_sent && task.location == 'local'" class="glyphicon glyphicon-cloud-upload"></span>
             <span ng-if="!task.total_bytes_sent && task.location == 'remote'" class="glyphicon glyphicon-cloud-download"></span>

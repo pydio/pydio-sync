@@ -282,10 +282,12 @@ class ContinuousDiffMerger(threading.Thread):
         Start the thread
         """
         logger = EventLogger(self.data_base)
+        very_first = False
 
         if self.watcher:
             if self.watcher_first_run:
                 logger.log_state('Checking changes since last launch...', "sync")
+                very_first = True
                 self.watcher.check_from_snapshot()
                 self.watcher_first_run = False
             self.watcher.start()
@@ -333,8 +335,8 @@ class ContinuousDiffMerger(threading.Thread):
                     if self.job_config.direction != 'up':
                         logging.info('Loading remote changes with sequence ' + str(self.remote_seq))
                         if self.remote_seq == 0:
-                            logger.log_state('Computing data that will be loaded from workspace, this can take a '
-                                             'while for the first time', 'sync')
+                            logger.log_state('Gathering data from remote workspace, this can take a while...', 'sync')
+                            very_first = True
                         self.remote_target_seq = self.load_remote_changes_in_store(self.remote_seq, self.current_store)
                         self.current_store.sync()
                     else:
@@ -427,6 +429,8 @@ class ContinuousDiffMerger(threading.Thread):
                     logger.log_state('%i files modified' % self.global_progress['queue_done'], "success")
                 else:
                     logging.info('No changes detected')
+                    if very_first:
+                        logger.log_state('Remote and local are synchronized', 'success')
 
             except Exception as e:
                 logging.exception('Unexpected Error: %s' % e.message)

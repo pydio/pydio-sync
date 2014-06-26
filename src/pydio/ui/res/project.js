@@ -328,7 +328,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
             job.__type__ = 'JobConfig'
             $scope.job = job;
             currentJob.setJob($scope.job);
-        }else{
+        }else if ($scope.job && $scope.job.server){
             job = $scope.job = currentJob.getJob();
             $scope.inline_host = $scope.job.server;
             $scope.parseURL();
@@ -506,6 +506,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
                     (function tickJob() {
                         var j = Jobs.get({job_id:job_id}, function(){
                             $scope.job = j;
+                            if($scope.job.last_event && $scope.job.last_event.type == 'sync' && $scope.job.last_event.status == 'success'){
+                                $location.path('/');
+                                return;
+                            }
                             if($scope.job.state){
                                 if($scope.job.state.global.queue_length > 0 && $scope.job.state.global.queue_done >= (90 / 100 * $scope.job.state.global.queue_length)){
                                     $location.path('/');
@@ -513,8 +517,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
                                 }
                                 $scope.job = j;
                                 $scope.job.state.progress = 100 * parseFloat($scope.job.state.global.queue_done) / parseFloat($scope.job.state.global.queue_length)
-                            }else if($scope.job.last_event && $scope.job.last_event.type == 'sync' && $scope.job.last_event.status == 'success'){
-                                $location.path('/');
                             }
                             t2 = $timeout(tickJob, 1000);
                         });
