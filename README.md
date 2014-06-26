@@ -1,7 +1,7 @@
 pydio-sync
 ==========
 
-New Python version of the Pydio synchronization client [work in progress]
+New Python version of the Pydio synchronization client [pre-alpha]
 
 This is a python rewrite of the current java-based synchro client. The work is still in progress and requires a couple of stuff to be deployed on the server-side to work. 
 
