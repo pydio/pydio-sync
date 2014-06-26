@@ -1,24 +1,29 @@
-<h2>Edit SYNC {{job.label?job.label:job.id}} <small><a href="#/">[back]</a></small> </h2>
+<h2 class="editHeader">SYNC {{job.label?job.label:job.id}} parameters
+    <div class="pull-right">
+        <div class="btn-group">
+            <button type="button" ng-click="toggleJobActive()" class="btn" ng-class="{'btn-success':job.active,'btn-default':!job.active}">On</button>
+            <button type="button" ng-click="toggleJobActive()" class="btn" ng-class="{'btn-danger':!job.active,'btn-default':job.active}">Off</button>
+        </div>
+    </div>
+</h2>
+<div style="margin-top: 90px;">
+    <div class="small pull-left" style="text-align: center; width: 40%; overflow: visible;">
+        <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
+        Server: {{job.server}}<br>
+        Workspace: {{job.workspace}}<br>
+        <span ng-if="job.remote_folder">Folder: {{job.remote_folder}}</span>
+    </div>
 
-<div class="small pull-left" style="text-align: center; width: 40%; overflow: visible;">
-    <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
-    Server: {{job.server}}<br>
-    Workspace: {{job.workspace}}<br>
-    <span ng-if="job.remote_folder">Folder: {{job.remote_folder}}</span>
-</div>
+    <span style="display: block; float:left; width: 20%;margin: 50px auto; border-top: 1px dashed #000000;"></span>
 
-<span style="display: block; float:left; width: 20%;margin: 50px auto; border-top: 1px dashed #000000;"></span>
+    <div class="small pull-right" style="text-align: center; width: 40%; overflow: visible; word-break: break-all;">
+        <img src="images/desktop.png" style="width: 100px;"><br>
+        {{job.directory_label?job.directory_label:job.directory}}<br>
+    </div>
+    <br style="clear: both;">
 
-<div class="small pull-right" style="text-align: center; width: 40%; overflow: visible; word-break: break-all;">
-    <img src="images/desktop.png" style="width: 100px;"><br>
-    {{job.directory_label?job.directory_label:job.directory}}<br>
-</div>
-<br style="clear: both;">
-
-<div>
-
-    <h4>Server Connexion</h4>
-    <div class="well">
+    <h3 style="margin-top: 30px;">Server Connexion</h3>
+    <div>
         <div class="input-group">
             <span class="input-group-addon">Login</span>
             <input type="text" name="user" ng-model="job.user" class="form-control" placeholder="Login" required>
@@ -27,8 +32,8 @@
         </div>
     </div>
 
-    <h4>Local Folder</h4>
-    <div class="well">
+    <h3 style="margin-top: 30px;">Local Folder</h3>
+    <div class="">
         <div class="input-group">
             <input type="text" ng-model="job.directory" readonly class="form-control">
             <span class="input-group-btn">
@@ -38,8 +43,8 @@
     </div>
 
 
-    <h4>Remote workspace</h4>
-    <div ng-if="!repositories && job.workspace" class="well">
+    <h3 style="margin-top: 30px;">Remote workspace</h3>
+    <div ng-if="!repositories && job.workspace" class="">
         <div class="input-group">
             <label class="input-group-addon">Workspace</label>
             <input type="text" readonly class="form-control" ng-model="job.workspace"/>
@@ -72,18 +77,19 @@
         </div>
     </div>
 
-    <h3>Advanced parameters</h3>
+    <h3 style="margin-top: 50px;">Advanced parameters</h3>
     <ng-include src="'advanced.html'" onload="job = job"></ng-include>
 
     <div>
         <br style="clear: both">
     </div>
 
+    <div style="text-align: center; padding-bottom: 40px;">
+        <button type="button" ng-click="save('full')" class="btn btn-info" style="width: 49%">Save Parameters</button>
+    </div>
+
 </div>
 
-<div  class="navbar-inverse navbar-fixed-bottom" style="padding: 6px; text-align: center">
-    <button type="button" ng-click="save('full')" class="btn btn-info" style="width: 32%">Save Changes</button>
-    <button type="button"  ng-if="job.active" ng-click="toggleJobActive()" class="btn btn-info" style="width: 32%;" href>Disable Task</button>
-    <button type="button"  ng-if="!job.active" ng-click="toggleJobActive()" class="btn btn-info" style="width: 32%;" href>Start Task</button>
-    <button type="button"  class="btn btn-danger" ng-click="deleteJob()" style="width: 32%;" href>Delete Task</button>
+<div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: center; background-color: #77b8e2;">
+    <button type="button"  class="btn btn-danger" ng-click="deleteJob()" style="width: 49%;" href>Delete Sync</button>
 </div>

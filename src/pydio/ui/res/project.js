@@ -513,6 +513,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
                                 }
                                 $scope.job = j;
                                 $scope.job.state.progress = 100 * parseFloat($scope.job.state.global.queue_done) / parseFloat($scope.job.state.global.queue_length)
+                            }else if($scope.job.last_event && $scope.job.last_event.type == 'sync' && $scope.job.last_event.status == 'success'){
+                                $location.path('/');
                             }
                             t2 = $timeout(tickJob, 1000);
                         });

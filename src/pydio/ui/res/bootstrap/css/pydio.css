@@ -50,3 +50,15 @@
     text-align: center;
     padding-top: 200px;
 }
+
+.editHeader{
+    position: fixed;
+    background-color: #77b8e2;
+    color: white;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    top: 34px;
+    z-index: 1000;
+    font-size: 28px;
+}
