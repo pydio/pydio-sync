@@ -58,16 +58,20 @@ class WorkspacesManager(Resource):
 
             url = job.server + '/api/pydio/state/user/repositories?format=json'
             auth = (job.user_id, keyring.get_password(job.server, job.user_id))
+            verify = not job.trust_ssl
         else:
             args = request.args
             base = args['url'].rstrip('/')
+            verify = False if args['trust_ssl'] == 'true' else True
             url = base + '/api/pydio/state/user/repositories?format=json'
             if 'password' in args:
                 auth = (args['user'], args['password'])
             else:
                 auth = (args['user'], keyring.get_password(base, args['user']))
 
-        resp = requests.get(url,stream = True,auth=auth)
+        if verify and "REQUESTS_CA_BUNDLE" in os.environ:
+            verify = os.environ["REQUESTS_CA_BUNDLE"]
+        resp = requests.get(url,stream=True,auth=auth,verify=verify)
         data = json.loads(resp.content)
         if 'repositories' in data and 'repo' in data['repositories'] and isinstance(data['repositories']['repo'], types.DictType):
             data['repositories']['repo'] = [data['repositories']['repo']]
@@ -85,16 +89,20 @@ class FoldersManager(Resource):
             job = jobs[job_id]
             url = job.server + '/api/'+job.workspace+'/ls/?options=d&recursive=true'
             auth = (job.user_id, keyring.get_password(job.server, job.user_id))
+            verify = not job.trust_ssl
         else:
             args = request.args
             base = args['url'].rstrip('/')
+            verify = False if args['trust_ssl'] == 'true' else True
             url = base + '/api/'+args['ws']+'/ls/?options=d&recursive=true&max_depth=2'
             if 'password' in args:
                 auth = (args['user'], args['password'])
             else:
                 auth = (args['user'], keyring.get_password(base, args['user']))
 
-        resp = requests.get( url, stream = True, auth=auth )
+        if verify and "REQUESTS_CA_BUNDLE" in os.environ:
+            verify = os.environ["REQUESTS_CA_BUNDLE"]
+        resp = requests.get( url, stream = True, auth=auth, verify=verify)
         o = xmltodict.parse(resp.content)
         if not 'tree' in o or 'message' in o['tree']:
             return [{'error':'Cannot load workspace'}]
@@ -125,7 +133,8 @@ class JobManager(Resource):
             from pydio.sdk.remote import PydioSdk
             sdk = PydioSdk(json_req['server'], json_req['workspace'], json_req['remote_folder'], '',
                            auth=(json_req['user'], json_req['password']),
-                           device_id=ConfigManager.Instance().get_device_id())
+                           device_id=ConfigManager.Instance().get_device_id(),
+                           skip_ssl_verify=json_req['trust_ssl'])
             up = [0.0]
             def callback(location, seq_id, change):
                 if "node" in change and change["node"]["md5"] != "directory" and change["node"]["bytesize"]:

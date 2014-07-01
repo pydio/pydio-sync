@@ -17,9 +17,11 @@
 </div>
 <h3>Configure Connection</h3>
 <div class="alert alert-danger" ng-show="error">
-    Error while trying to connect to {{job.server}}: <br>
-    Error was : {{error}}<br>
-    Are you sure you entered the correct URL and login / password?
+    Error while trying to connect to {{job.server}} ({{error}}): <br>
+    <ul style="padding-left:17px;">
+        <li>Did you enter the correct login/password?</li>
+        <li>If you are using https, is your certificate self-signed? If yes, check "Trust SSL certificate"</li>
+    </ul>
 </div>
 <div class="well">
     <div class="small" style="margin-bottom: 1.5em;">Connect to the server with the same URL as the one you would use to access through a web browser, e.g. http://mydomain.com/pydio</div>
@@ -51,4 +53,5 @@
 
     <div style="text-align: center; margin-top: 40px;">
         <a href="" ng-click="next()" class="btn btn-primary" tabindex="0" ng-disabled="myForm.$invalid">Connect</a>
+         <span ng-show="error && inline_protocol == 'https://'">&nbsp;&nbsp;&nbsp;<input type="checkbox" ng-model="job.trust_ssl" id="trust"> <label for="trust">Trust SSL certificate</label></span>
     </div>

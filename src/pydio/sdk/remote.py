@@ -45,9 +45,14 @@ PYDIO_SDK_MAX_UPLOAD_PIECES = 40 * 1024 * 1024
 
 class PydioSdk():
 
-    def __init__(self, url='', ws_id='', remote_folder='', user_id='', auth=(), device_id='python_client'):
+    def __init__(self, url='', ws_id='', remote_folder='', user_id='',
+                 auth=(), device_id='python_client', skip_ssl_verify=False):
         self.ws_id = ws_id
         self.device_id = device_id
+        self.verify_ssl = not skip_ssl_verify
+        if self.verify_ssl and "REQUESTS_CA_BUNDLE" in os.environ:
+            self.verify_ssl = os.environ["REQUESTS_CA_BUNDLE"]
+
         self.base_url = url.rstrip('/') + '/api/'
         self.url = url.rstrip('/') + '/api/' + ws_id
         self.remote_folder = remote_folder
@@ -109,7 +114,7 @@ class PydioSdk():
         :return:dict()
         """
         url = self.base_url + 'pydio/keystore_generate_auth_token/' + self.device_id
-        resp = requests.get(url=url, auth=self.auth)
+        resp = requests.get(url=url, auth=self.auth, verify=self.verify_ssl)
         if resp.status_code == 401:
             raise PydioSdkBasicAuthException('Authentication Error')
         try:
@@ -148,7 +153,7 @@ class PydioSdk():
                 url += '&' + auth_string
             else:
                 url += '?' + auth_string
-            resp = requests.get(url=url, stream=stream, timeout=20)
+            resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl)
         elif type == 'post':
             if not data:
                 data = {}
@@ -158,7 +163,7 @@ class PydioSdk():
                 resp = upload_file_with_progress(url, dict(**data), files, stream, with_progress,
                                                  max_size=self.upload_max_size)
             else:
-                resp = requests.post(url=url, data=data, stream=stream, timeout=20)
+                resp = requests.post(url=url, data=data, stream=stream, timeout=20, verify=self.verify_ssl)
         else:
             raise PydioSdkTokenAuthException("Unsupported HTTP method")
 

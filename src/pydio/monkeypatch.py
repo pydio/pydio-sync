@@ -19,6 +19,10 @@
 # coding=utf-8
 import sys
 from watchdog.utils import platform
+import requests.certs
+from pathlib import *
+import os
+import logging
 
 def _load_backends():
     from keyring.backend import _load_backend
@@ -28,6 +32,13 @@ def _load_backends():
 
 import keyring.backend
 keyring.backend._load_backends = _load_backends
+
+if getattr(sys, 'frozen', False):
+    def _certs_where():
+        return str((Path(sys._MEIPASS)) / 'res' / 'cacert.pem')
+    requests.certs.where = _certs_where
+    os.environ['REQUESTS_CA_BUNDLE'] = requests.certs.where()
+    logging.info("Setting certificate path to " + requests.certs.where())
 
 fs_encoding = sys.getfilesystemencoding()
 

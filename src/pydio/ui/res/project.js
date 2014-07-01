@@ -347,7 +347,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
                 job_id:'request',
                 url:$scope.job.server,
                 user:$scope.job.user,
-                password:$scope.job.password
+                password:$scope.job.password,
+                trust_ssl:$scope.job.trust_ssl?'true':'false'
             }, function(response){
                 job.repositories = response.repositories.repo;
                 $scope.loading = false;
@@ -377,6 +378,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
                 url:$scope.job.server,
                 user:$scope.job.user,
                 password:$scope.job.password,
+                trust_ssl:$scope.job.trust_ssl?'true':'false',
                 ws:$scope.job.workspace
             }, function(resp){
                 if(resp[0] && resp[0].error){
@@ -394,7 +396,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
                 job_id:'request',
                 url:$scope.job.server,
                 user:$scope.job.user,
-                password:$scope.job.password
+                password:$scope.job.password,
+                trust_ssl:$scope.job.trust_ssl?'true':'false'
             }, function(response){
                 $scope.repositories = response.repositories.repo;
                 angular.forEach($scope.repositories, function(r){
