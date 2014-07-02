@@ -33,7 +33,7 @@ def _load_backends():
 import keyring.backend
 keyring.backend._load_backends = _load_backends
 
-if getattr(sys, 'frozen', False):
+if getattr(sys, 'frozen', False) and not os.name in ["nt", "ce"]:
     def _certs_where():
         return str((Path(sys._MEIPASS)) / 'res' / 'cacert.pem')
     requests.certs.where = _certs_where
