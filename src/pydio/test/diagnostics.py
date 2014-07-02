@@ -51,7 +51,8 @@ class PydioDiagnostics():
             return
 
         import os
-        import requests.certs
-        logging.info("Certificate path is " + os.environ['REQUESTS_CA_BUNDLE'])
-        data = requests.get('https://google.com', verify=os.environ['REQUESTS_CA_BUNDLE'])
-        logging.info(data)
+        import requests
+        if 'REQUESTS_CA_BUNDLE' in os.environ:
+            logging.info("Certificate path is " + os.environ['REQUESTS_CA_BUNDLE'])
+            data = requests.get('https://google.com', verify=os.environ['REQUESTS_CA_BUNDLE'])
+            logging.info(data)
