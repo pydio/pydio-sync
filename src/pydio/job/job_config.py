@@ -120,6 +120,7 @@ class JobConfig:
         self.start_time = {'h': 0, 'm': 0}
         self.solve = 'manual'
         self.monitor = True
+        self.trust_ssl = False
         self.filters = dict(
             includes=['*'],
             excludes=['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store', '.~lock.*']
@@ -149,6 +150,7 @@ class JobConfig:
                     "frequency": obj.frequency,
                     "solve": obj.solve,
                     "start_time": obj.start_time,
+                    "trust_ssl":obj.trust_ssl,
                     "active": obj.active}
         raise TypeError(repr(JobConfig) + " can't be encoded")
 
@@ -196,6 +198,8 @@ class JobConfig:
                 job_config.filters = obj['filters']
             if 'direction' in obj and obj['direction'] in ['up', 'down', 'bi']:
                 job_config.direction = obj['direction']
+            if 'trust_ssl' in obj and obj['trust_ssl'] in [True, False]:
+                job_config.trust_ssl = obj['trust_ssl']
             if 'monitor' in obj and obj['monitor'] in [True, False]:
                 job_config.monitor = obj['monitor']
             if 'frequency' in obj and obj['frequency'] in ['auto', 'manual', 'time']:

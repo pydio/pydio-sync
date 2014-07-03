@@ -64,7 +64,8 @@ class ContinuousDiffMerger(threading.Thread):
             ws_id=self.ws_id,
             remote_folder=job_config.remote_folder,
             user_id=job_config.user_id,
-            device_id=ConfigManager.Instance().get_device_id()
+            device_id=ConfigManager.Instance().get_device_id(),
+            skip_ssl_verify=job_config.trust_ssl
         )
         self.system = SystemSdk(job_config.directory)
         self.remote_seq = 0

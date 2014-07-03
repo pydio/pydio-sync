@@ -50,3 +50,9 @@ class PydioDiagnostics():
             self.status_message = "Server ping test: failure"
             return
 
+        import os
+        import requests
+        if 'REQUESTS_CA_BUNDLE' in os.environ and not os in ["ce", "nt"]:
+            logging.info("Certificate path is " + os.environ['REQUESTS_CA_BUNDLE'])
+            data = requests.get('https://google.com', verify=os.environ['REQUESTS_CA_BUNDLE'])
+            logging.info(data)
