@@ -247,7 +247,7 @@ class LogManager(Resource):
 
 class CmdManager(Resource):
 
-    def get(self, cmd, job_id):
+    def get(self, cmd, job_id=None):
         if job_id:
             if cmd == 'enable' or cmd == 'disable':
                 job_config = JobsLoader.Instance().get_job(job_id)
@@ -256,5 +256,6 @@ class CmdManager(Resource):
                 PydioScheduler.Instance().reload_configs()
             PydioScheduler.Instance().handle_job_signal(self, cmd, job_id)
         else:
-            PydioScheduler.Instance().handle_generic_signal(self, cmd)
+            logging.info("GENERIC CMD")
+            return PydioScheduler.Instance().handle_generic_signal(self, cmd)
         return ('success',)

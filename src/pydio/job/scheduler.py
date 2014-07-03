@@ -43,8 +43,9 @@ class PydioScheduler():
 
     def pause_all(self):
         for job_id in self.control_threads:
-            merger = self.control_threads[job_id]
-            merger.stop()
+            #merger = self.control_threads[job_id]
+            #merger.stop()
+            self.pause_job(job_id)
 
     def start_job(self, job_id):
         config = self.get_config(job_id)
@@ -87,6 +88,7 @@ class PydioScheduler():
         thread = self.get_thread(job_id)
         if not thread:
             return
+        logging.info("should pause job : ", job_id)
         thread.pause()
 
     def enable_job(self, job_id):
@@ -117,9 +119,15 @@ class PydioScheduler():
         if command == 'reload-configs':
             self.reload_configs()
         elif command == 'pause-all':
+            self.pause_all()
             self.reload_configs()
         elif command == 'start-all':
             self.start_all()
+        elif command == 'exit':
+            logging.info("SHOULD EXIT")
+        else:
+            return "This command doesn't exist", 404
+        return "success"
 
     def get_config(self, job_id):
         if job_id in self.job_configs:
