@@ -17,6 +17,7 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
+
 import logging
 import urllib
 import json
@@ -34,6 +35,7 @@ import requests
 import keyring
 from keyring.errors import PasswordSetError
 from pydispatch import dispatcher
+import xml.etree.ElementTree as ET
 
 from exceptions import PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException
 from .utils import upload_file_with_progress
@@ -121,7 +123,6 @@ class PydioSdk():
         except PasswordSetError:
             logging.error("Cannot store tokens in keychain, basic auth will be performed each time!")
         return tokens
-
 
     def perform_with_tokens(self, token, private, url, type='get', data=None, files=None, stream=False,
                             with_progress=False):
@@ -225,7 +226,7 @@ class PydioSdk():
         :return:list a list of changes
         """
         if last_seq == 0:
-            perform_flattening = "false"
+            perform_flattening = "true"
         else:
             perform_flattening = "false"
         url = self.url + '/changes/' + str(last_seq) + '/?stream=true'
@@ -445,7 +446,6 @@ class PydioSdk():
             pass
         return server_data
 
-
     def upload(self, local, local_stat, path, callback_dict=None, max_upload_size=-1):
         """
         Upload a file to the server.
@@ -540,3 +540,84 @@ class PydioSdk():
             if os.path.exists(local_tmp):
                 os.unlink(local_tmp)
             raise PydioSdkException('download', path, 'Error while downloading file: %s' % e.message)
+
+    def list(self, dir=None, nodes=list(), options='al', recursive=False, max_depth=1, remote_order='', order_column='', order_direction='', max_nodes=0, call_back=None):
+        url = self.url + '/ls' + self.urlencode_normalized(self.remote_folder)
+        data = dict()
+        if dir:
+            data['dir'] = dir
+        if nodes:
+            data['nodes'] = nodes
+        data['options'] = options
+        if recursive:
+            data['recursive'] = 'true'
+        if max_depth > 1:
+            data['max_depth'] = max_depth
+        if max_nodes:
+            data['max_nodes'] = max_nodes
+        if remote_order:
+            data['remote_order'] = remote_order
+        if order_column:
+            data['order_column'] = order_column
+        if order_direction:
+            data['order_direction'] = order_direction
+
+        resp = self.perform_request(url=url, type='post', data=data)
+        queue = [ET.ElementTree(ET.fromstring(resp.content))._root]
+
+        snapshot = dict()
+
+        while len(queue):
+            tree = queue.pop(0)
+            if (tree.get('ajxp_mime') == 'ajxp_folder'):
+                for subtree in tree.findall('tree'):
+                    queue.append(subtree)
+            path = tree.get('filename')
+            bytesize = tree.get('bytesize')
+
+            dict_tree = dict(tree.items())
+            if path:
+                if call_back:
+                    call_back(dict_tree)
+                else:
+                    snapshot[path] = bytesize
+        return snapshot if not call_back else None
+
+    def snapshot_from_changes(self, call_back=None):
+        url = self.url + '/changes/0/?stream=true&flatten=true'
+        if self.remote_folder:
+            url += '&filter=' + self.remote_folder
+        resp = self.perform_request(url=url, stream=True)
+        files = dict()
+
+        for line in resp.iter_lines(chunk_size=512):
+            if not str(line).startswith('LAST_SEQ'):
+                element = json.loads(line)
+                if call_back:
+                    call_back(element)
+                else:
+                    path = element.pop('target')
+                    bytesize = element['node']['bytesize']
+                    if path != 'NULL':
+                        files[path] = bytesize
+                #compare here with the snapshotdir result
+        return files if not call_back else None
+
+"""
+    def directorySnapshot(self):
+        queue = [ET.ElementTree(ET.fromstring(self.list(recursive=True)))._root]
+        snapshot = dict()
+        while len(queue):
+            tree = queue.pop(0)
+            if (tree.get('ajxp_mime') == 'ajxp_folder'):
+                for subtree in tree.findall('tree'):
+                    queue.append(subtree)
+            path = tree.get('filename')
+            bytesize = tree.get('bytesize')
+            if path:
+                snapshot[path] = bytesize
+
+        return snapshot
+
+"""
+
