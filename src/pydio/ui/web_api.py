@@ -256,6 +256,5 @@ class CmdManager(Resource):
                 PydioScheduler.Instance().reload_configs()
             PydioScheduler.Instance().handle_job_signal(self, cmd, job_id)
         else:
-            logging.info("GENERIC CMD")
             return PydioScheduler.Instance().handle_generic_signal(self, cmd)
         return ('success',)
