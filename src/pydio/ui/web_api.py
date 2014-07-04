@@ -46,6 +46,12 @@ class PydioApi(Api):
             self.running = False
             logging.exception("Error while starting web server")
 
+    def shutdown_server(self):
+        func = request.environ.get('werkzeug.server.shutdown')
+        if func is None:
+            raise RuntimeError('Not running with the Werkzeug Server')
+        func()
+
 
 class WorkspacesManager(Resource):
 

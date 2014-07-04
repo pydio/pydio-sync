@@ -163,6 +163,7 @@ def main(argv=sys.argv[1:]):
         scheduler.start_all()
 
     except (KeyboardInterrupt, SystemExit):
+        server.shutdown_server()
         sys.exit()
 
 
