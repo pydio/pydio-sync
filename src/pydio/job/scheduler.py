@@ -88,7 +88,7 @@ class PydioScheduler():
         thread = self.get_thread(job_id)
         if not thread:
             return
-        logging.info("should pause job : ", job_id)
+        logging.info("should pause job : %s" %job_id)
         thread.pause()
 
     def enable_job(self, job_id):
