@@ -33,6 +33,11 @@ logging.debug("sys.getdefaultencoding(): %s" % sys.getdefaultencoding())
 logging.debug("sys.getfilesystemencoding(): %s" % sys.getfilesystemencoding())
 logging.debug("os.environ: \n\t%s" % "\n\t".join(sorted([k + ": " + v for k, v in os.environ.items()])))
 
+import locale
+logging.debug("locale.getdefaultlocale(): %s" % locale.getdefaultlocale())
+if sys.platform != "win32":
+    logging.debug("locale.nl_langinfo(locale.CODESET): %s" % locale.nl_langinfo(locale.CODESET))
+
 # this is an test import to see if encodings are bundled in the packaged pydio version
 import encodings
 
