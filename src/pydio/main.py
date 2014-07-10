@@ -41,6 +41,51 @@ import time
 import pydio.monkeypatch
 from pathlib import Path
 
+
+
+print "DEFAULT ENCODING is: %s"%(sys.getdefaultencoding())
+print "FILE SYSTEM ENCODING is: %s"%(sys.getfilesystemencoding())
+
+import os
+items = os.listdir(u"/home/js/Pydio/Synced/Janusz")
+print items
+# print items[0]
+# print type(items[0])
+#
+# print "nl_langinfo", nl_langinfo(CODESET)
+#
+# import locale
+# locale.setlocale(LC_CTYPE, '')
+#
+# print "nl_langinfo", nl_langinfo(CODESET)
+#
+# enc = locale.getdefaultlocale()[1]
+# print "enc", enc
+# if not enc:
+#     enc = locale.nl_langinfo(locale.CODESET)
+# print "enc", enc
+# enc = codecs.lookup(enc if enc else 'UTF-8').name
+# print "enc", enc
+#
+# # os.environ['PYTHONIOENCODING'] = locale.nl_langinfo(locale.CODESET)
+# # os.environ["LC_CTYPE"] = "UTF-8"
+#
+# locale.setlocale(LC_CTYPE, '')
+
+#
+print "DEFAULT ENCODING is: %s"%(sys.getdefaultencoding())
+print "FILE SYSTEM ENCODING is: %s"%(sys.getfilesystemencoding())
+
+
+import pprint, os
+pprint.pprint(dict(os.environ))
+
+for item in os.walk(u"/home/js/Pydio/Synced"):
+    print item
+
+
+# sys.exit()
+
 if __name__ == "__main__":
     # You can run this module in to ways
     # 1. Directly:
