@@ -29,6 +29,17 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 
 logging.debug("sys.path: %s", "\n\t".join(sys.path))
 logging.debug("PYTHONPATH: %s", "\n\t".join(os.environ.get('PYTHONPATH', "").split(';')))
+logging.debug("sys.getdefaultencoding(): %s" % sys.getdefaultencoding())
+logging.debug("sys.getfilesystemencoding(): %s" % sys.getfilesystemencoding())
+logging.debug("os.environ: \n\t%s" % "\n\t".join(sorted([k + ": " + v for k, v in os.environ.items()])))
+
+import locale
+logging.debug("locale.getdefaultlocale(): %s" % str(locale.getdefaultlocale()))
+if sys.platform != "win32":
+    logging.debug("locale.nl_langinfo(locale.CODESET): %s" % locale.nl_langinfo(locale.CODESET))
+
+# this is an test import to see if encodings are bundled in the packaged pydio version
+import encodings
 
 # Most imports are placed after we have logged import path
 # so we can easily debug import problems
