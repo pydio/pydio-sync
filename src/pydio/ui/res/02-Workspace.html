@@ -10,7 +10,7 @@
 
     <h4>Remote workspace</h4>
     <div ng-if="repositories">
-        <select autofocus="true" ng-change="loadFolders()" ng-model="job.repoObject" ng-options="repo as repo.label for repo in repositories | filter:{'@meta_syncable_REPO_SYNCABLE':'true'}" class="form-control">
+        <select autofocus="false" ng-change="loadFolders()" ng-model="job.repoObject" ng-options="repo as repo.label for repo in repositories | filter:{'@meta_syncable_REPO_SYNCABLE':'true'}" class="form-control">
             <option value="">-- Select a workspace --</option>
         </select>
         <div class="input-group" ng-show="folders && folders.length" style="padding: 7px;">
