@@ -8,6 +8,30 @@
     margin-top: 3px;
 }
 
+.repos{
+    font-size: 17px;
+    padding-left: 7px;
+}
+
+.repos:hover{
+    background-color: #77b8e2;
+    color: white;
+}
+
+.repos:hover > .repo-desc{
+    color: #F2F9FF;
+}
+
+.repo-desc{
+    color: gray;
+    font-style:italic;
+    font-size: 14px;
+}
+
+.customButton{
+    width: 100%;
+}
+
 .advanced_radio_box{
     width:27%;
     display:inline-block;

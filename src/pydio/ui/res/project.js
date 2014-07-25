@@ -1,4 +1,4 @@
-angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle'])
+angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstrap.progresscircle'])
 
 
     .factory('Jobs', ['$resource',
@@ -388,6 +388,16 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
             });
         };
 
+        $scope.selectedWorkspace = "Select a workspace";
+
+        $scope.OnWorkspaceClick = function(workspace) {
+            if(workspace.label != $scope.selectedWorkspace){
+                $scope.selectedWorkspace = workspace.label;
+                $scope.job.repoObject = workspace;
+                $scope.loadFolders();
+            }
+        };
+
         $scope.loadWorkspaces = function(){
             if($scope.job.id == 'new' && !$scope.job.password) {
                 return;
@@ -443,7 +453,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap.progresscircle
                 });
             }
         };
-
 
         $scope.pathes = {};
         $scope.jobs = Jobs.query();
