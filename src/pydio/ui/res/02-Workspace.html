@@ -10,9 +10,16 @@
 
     <h4>Remote workspace</h4>
     <div ng-if="repositories">
-        <select autofocus="true" ng-change="loadFolders()" ng-model="job.repoObject" ng-options="repo as repo.label for repo in repositories | filter:{'@meta_syncable_REPO_SYNCABLE':'true'}" class="form-control">
-            <option value="">-- Select a workspace --</option>
-        </select>
+        <div class="btn-group" dropdown is-open="status.isopen">
+            <button type="button" class="btn customButton btn-default dropdown-toggle">
+            {{selectedWorkspace}}  <span class="caret pull-right"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                <li class="repos" ng-click="OnWorkspaceClick(repo)" ng-repeat="repo in repositories | filter:{'@meta_syncable_REPO_SYNCABLE':'true'}">{{repo.label}}
+                <div class="repo-desc">{{repo.description}}</div></li>
+            </ul>
+        </div>
+
         <div class="input-group" ng-show="folders && folders.length" style="padding: 7px;">
             <input type="checkbox" ng-model="showFoldersBox" id="show_folders" ng-click="job.remote_folder = ''" >&nbsp;<label for="show_folders">Synchronise only a subfolder of this workspace</label>
         </div>
