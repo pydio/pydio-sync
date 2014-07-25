@@ -30,7 +30,7 @@ from collections import deque
 from pydio.job.change_processor import ChangeProcessor
 from pydio.job.localdb import LocalDbHandler, SqlEventHandler
 from pydio.job.local_watcher import LocalWatcher
-from pydio.sdk.exceptions import ProcessException, InterruptException
+from pydio.sdk.exceptions import ProcessException, InterruptException, PydioSdkDefaultException
 from pydio.sdk.remote import PydioSdk
 from pydio.sdk.local import SystemSdk
 from pydio.job.EventLogger import EventLogger
@@ -413,11 +413,14 @@ class ContinuousDiffMerger(threading.Thread):
                             time.sleep(0.1)
                             if self.interrupt or not self.job_status_running:
                                 raise InterruptException()
+
                         except ProcessException as pe:
                             logging.error(pe.message)
                             return False
                         except InterruptException as i:
                             raise i
+                        except PydioSdkDefaultException as p:
+                            raise p
                         except Exception as ex:
                             logging.exception(ex.message)
                             return False
@@ -433,9 +436,14 @@ class ContinuousDiffMerger(threading.Thread):
                     if very_first:
                         logger.log_state('Remote and local are synchronized', 'success')
 
+            except PydioSdkDefaultException as re:
+                logging.warning(re.message)
+                logger.log_state(re.message, 'error')
             except Exception as e:
-                logging.exception('Unexpected Error: %s' % e.message)
-                logger.log_state('Unexpected Error: %s' % e.message, 'error')
+                if not (e.message.lower().count('[quota limit reached]') or e.message.lower().count('[file permissions]')):
+                    logging.exception('Unexpected Error: %s' % e.message)
+                    logger.log_state('Unexpected Error: %s' % e.message, 'error')
+
 
             logging.info('Finished this cycle, waiting for %i seconds' % self.online_timer)
             self.current_store.close()
