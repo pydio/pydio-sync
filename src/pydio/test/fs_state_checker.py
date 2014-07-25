@@ -13,47 +13,19 @@ class Fs_state_checker(object):
         self.sdk = sdk
         self.synced_path = path
         self.db_path = data_path
-        self.remote_excluded_files = ['recycle_bin']
+        self.remote_excluded_files = ['/recycle_bin']
         self.remote_sql_snap = dict()
         self.remote_dir_snap = dict()
 
     def remote_sql_snapshot(self):
-        """
-        self.remote_dir_snap = dict()
-        self.sdk.change_stream(recursive='true', call_back=self.remote_dir_snapshot_callback)
-        """
-        url = self.sdk.url + '/changes/0/?stream=true&flatten=true'
-        if self.sdk.remote_folder:
-            url += '&filter=' + self.remote_folder
-        resp = self.sdk.perform_request(url=url, stream=True)
-        snapshot = dict()
-        for line in resp.iter_lines(chunk_size=512):
-            if not str(line).startswith('LAST_SEQ'):
-                element = json.loads(line)
-                path = element.pop('target')
-                bytesize = element['node']['bytesize']
-                if path != 'NULL':
-                    snapshot[path] = bytesize
-                #compare here with the snapshotdir result
-        return snapshot
+        self.remote_sql_snap = dict()
+        self.sdk.changes_stream(0, self.remote_sql_snapshot_callback)
+
 
     def remote_directory_snapshot(self):
-        self.remote_sql_snap=dict()
+        self.remote_dir_snap=dict()
         self.sdk.list(recursive='true', call_back=self.remote_dir_snapshot_callback)
-        """
-        queue = [ET.ElementTree(ET.fromstring(self.list(recursive=True)))._root]
-        snapshot = dict()
-        while len(queue):
-            tree = queue.pop(0)
-            if (tree.get('ajxp_mime') == 'ajxp_folder'):
-                for subtree in tree.findall('tree'):
-                    queue.append(subtree)
-            path = tree.get('filename')
-            bytesize = tree.get('bytesize')
-            if path and self.remote_excluded_files.count(os.path.basename(path)) != 0:
-                snapshot[path] = bytesize
-        return snapshot
-        """
+
 
     def local_sql_snapshot(self):
         return SqlSnapshot(self.synced_path, self.db_path)
@@ -62,8 +34,15 @@ class Fs_state_checker(object):
         return DirectorySnapshot(self.synced_path, recursive=True)
 
     def check_remote(self):
-        dir_snapshot = self.remote_directory_snapshot()
-        sql_snapshot = self.remote_sql_snapshot()
+        self.remote_sql_snapshot()
+        self.remote_directory_snapshot()
+
+        dir_snapshot = self.remote_dir_snap
+        sql_snapshot = self.remote_sql_snap
+
+        for excluded in self.remote_excluded_files:
+            if dir_snapshot.has_key(excluded):
+                dir_snapshot.pop(excluded)
 
         if len(sql_snapshot) != len(dir_snapshot):
             return False, None
@@ -71,18 +50,40 @@ class Fs_state_checker(object):
         if not sql_snapshot:
             return True, None
 
-        for path, bytesize in sql_snapshot:
-            if not dir_snapshot.has_key(path) or bytesize != dir_snapshot[path]:
+        for path, bytesize in sql_snapshot.iteritems():
+            if not dir_snapshot.has_key(path) and bytesize != dir_snapshot[path] and bytesize !=0 and dir_snapshot[path]!=0 and bytesize !=4096 and dir_snapshot[path]!=4096:
                 return False, None
         return True, dir_snapshot
 
     def check_local(self):
-        snapshot = self.local_directory_snapshot()
-        diff = SnapshotDiffStart(self.local_sql_snapshot(), snapshot)
-        if not diff._dirs_created and not diff._dirs_deleted and not diff._dirs_modified and not diff._dirs_moved and \
-           not diff._files_created and not diff._files_deleted and not diff._files_modified and not diff.files_moved:
-            return True, snapshot
-        return False, None
+        dir_snap = self.local_directory_snapshot()._stat_snapshot
+        sql_snap = self.local_sql_snapshot()._stat_snapshot
+
+        l = [self.synced_path]
+        """, '.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store', '.~lock.*'"""
+        for path, _ in dir_snap.iteritems():
+            path = str(path)
+            if path.endswith('\\.pydio_id') or path.startswith('.') or os.path.basename(path).startswith('.') or path.find('\\.') != -1 or path.endswith('.pydio_dl') or path.endswith('.DS_Store'):
+                l.append(path)
+        for path in l:
+            if dir_snap.has_key(path):
+                dir_snap.pop(path)
+
+        #comp = set(dir_snapshot._stat_snapshot.items()) & set(sql_snapshot._stat_snapshot.items())
+        if len(dir_snap) != len(sql_snap):
+            return False, None
+
+        if not len(dir_snap):
+            return True, None
+
+        for path, stat in dir_snap.iteritems():
+            size1 = sql_snap[path].st_size
+            size2 = stat.st_size
+            if not sql_snap.has_key(path) and size1 != size2 and size1!=0 and size2!=0 and size1 !=4096 and size2!=4096:
+                return False, None
+
+        return True, dir_snap
+
 
     def check_global(self):
         ok, remote_snapshot = self.check_remote()
@@ -94,16 +95,16 @@ class Fs_state_checker(object):
 
         #exclude .pydio files
         excluded_files_count = 0
-        for path, _ in local_snapshot._stat_snapshot.iteritems():
+        for path, _ in local_snapshot.iteritems():
             if path.find('.pydio') != -1:
                 excluded_files_count += 1
 
-        if (len(remote_snapshot)+excluded_files_count) != len(local_snapshot._stat_snapshot):
+        if (len(remote_snapshot)+excluded_files_count) != len(local_snapshot):
             return False
         if not len(remote_snapshot):
             return True
 
-        for path, stat in local_snapshot._stat_snapshot.iteritems():
+        for path, stat in local_snapshot.iteritems():
             if path.find('.pydio_id') != -1:
                 continue
             path = (self.sdk.remote_folder + self.remove_prefix('local', path)).replace('\\', '/')
@@ -126,6 +127,6 @@ class Fs_state_checker(object):
         if element:
             self.remote_dir_snap[element['filename']] = element['bytesize']
 
-    def remote_sql_snapshot_callback(self, element):
+    def remote_sql_snapshot_callback(self, location, element, info=None):
         if element:
-            self.remote_sql_snap[element['target']] = element['node']['bytesize']
+            self.remote_sql_snap[element['target']] = element['bytesize']
