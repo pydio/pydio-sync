@@ -30,6 +30,8 @@ from pydispatch import dispatcher
 from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
 from six import b
 # -*- coding: utf-8 -*-
+from pydio.sdk.exceptions import PydioSdkDefaultException
+
 
 class BytesIOWithFile(BytesIO):
 
@@ -87,7 +89,7 @@ class BytesIOWithFile(BytesIO):
         :param n:int
         :return:data
         """
-
+        #before = time.time()
         if self.cursor >= self.length:
             # EOF
             return
@@ -113,11 +115,13 @@ class BytesIOWithFile(BytesIO):
 
         if self.callback:
             try:
-                self.callback(self.full_length, self.cursor * (self.file_part+1), len(chunk), transfer_rate)
+                self.callback(self.full_length, self.cursor + (self.file_part)*self.chunk_size, len(chunk), transfer_rate)
             except Exception as e:
                 logging.warning('Buffered reader callback error')
         dispatcher.send(signal=TRANSFER_RATE_SIGNAL, transfer_rate=transfer_rate)
-
+        #duration = time.time() - before
+        #if duration > 0 :
+            #logging.info('Read 8kb of data in %'+str(duration))
         return chunk
 
 
@@ -165,7 +169,6 @@ def upload_file_with_progress(url, fields, files, stream, with_progress, max_siz
             with_progress['total_size'] = size
             with_progress['bytes_sent'] = delta
             with_progress['total_bytes_sent'] = progress
-            with_progress['transfer_rate'] = rate
             dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, change=with_progress)
     else:
         def cb(size=0, progress=0, delta=0, rate=0):
@@ -186,6 +189,12 @@ def upload_file_with_progress(url, fields, files, stream, with_progress, max_siz
         timeout=20
     )
 
+    if str(resp.text).lower().count("507"):
+        raise PydioSdkDefaultException('507')
+
+    if str(resp.text).lower().count("412"):
+        raise PydioSdkDefaultException('412')
+
     if resp.status_code == 401:
         return resp
 
@@ -194,6 +203,7 @@ def upload_file_with_progress(url, fields, files, stream, with_progress, max_siz
         del fields['urlencoded_filename']
         (header_body, close_body, content_type) = encode_multiparts(fields)
         for i in range(1, int(math.ceil(filesize / max_size)) + 1):
+            before = time.time()
             body = BytesIOWithFile(header_body, close_body, files['userfile_0'], callback=cb, chunk_size=max_size, file_part=i)
             resp = requests.post(
                 url,
@@ -201,5 +211,9 @@ def upload_file_with_progress(url, fields, files, stream, with_progress, max_siz
                 headers={'Content-Type':content_type},
                 stream=True
             )
+            if str(resp.text).lower().count("507"):
+                raise PydioSdkDefaultException('507')
 
+            duration = time.time() - before
+            logging.info('Uploaded '+str(max_size)+' bytes of data in about %'+str(duration)+' s')
     return resp
