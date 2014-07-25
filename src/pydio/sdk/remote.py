@@ -37,7 +37,8 @@ from keyring.errors import PasswordSetError
 from pydispatch import dispatcher
 import xml.etree.ElementTree as ET
 
-from exceptions import PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException
+from exceptions import PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException, PydioSdkQuotaException, \
+    PydioSdkDefaultException, PydioSdkPermissionException
 from .utils import upload_file_with_progress
 from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
 # -*- coding: utf-8 -*-
@@ -47,13 +48,13 @@ PYDIO_SDK_MAX_UPLOAD_PIECES = 40 * 1024 * 1024
 
 class PydioSdk():
 
-    def __init__(self, url='', ws_id='', remote_folder='', user_id='',
-                 auth=(), device_id='python_client', skip_ssl_verify=False):
+    def __init__(self, url='', ws_id='', remote_folder='', user_id='', auth=(), device_id='python_client', skip_ssl_verify=False):
         self.ws_id = ws_id
         self.device_id = device_id
         self.verify_ssl = not skip_ssl_verify
         if self.verify_ssl and "REQUESTS_CA_BUNDLE" in os.environ:
             self.verify_ssl = os.environ["REQUESTS_CA_BUNDLE"]
+
 
         self.base_url = url.rstrip('/') + '/api/'
         self.url = url.rstrip('/') + '/api/' + ws_id
@@ -73,6 +74,7 @@ class PydioSdk():
         """
         if 'UPLOAD_MAX_SIZE' in configs and configs['UPLOAD_MAX_SIZE']:
             self.upload_max_size = min(int(configs['UPLOAD_MAX_SIZE']), PYDIO_SDK_MAX_UPLOAD_PIECES)
+        #self.upload_max_size = 8*1024*1024;
 
     def urlencode_normalized(self, unicode_path):
         """
@@ -129,8 +131,7 @@ class PydioSdk():
             logging.error("Cannot store tokens in keychain, basic auth will be performed each time!")
         return tokens
 
-    def perform_with_tokens(self, token, private, url, type='get', data=None, files=None, stream=False,
-                            with_progress=False):
+    def perform_with_tokens(self, token, private, url, type='get', data=None, files=None, stream=False, with_progress=False):
         """
         :param token: str the token.
         :param private: str private key associated to token
@@ -221,7 +222,7 @@ class PydioSdk():
         except ValueError as v:
             raise Exception("Invalid JSON value received while getting remote changes")
 
-    def changes_stream(self, last_seq, flatten_and_store_callback):
+    def changes_stream(self, last_seq, callback):
 
         """
         Get the list of changes detected on server since a given sequence number
@@ -246,14 +247,14 @@ class PydioSdk():
             if line:
                 if str(line).startswith('LAST_SEQ'):
                     #call the merge function with NULL row
-                    flatten_and_store_callback('remote', None, info)
+                    callback('remote', None, info)
                     return int(line.split(':')[1])
                 else:
                     try:
                         one_change = json.loads(line)
                         node = one_change.pop('node')
                         one_change = dict(node.items() + one_change.items())
-                        flatten_and_store_callback('remote', one_change, info)
+                        callback('remote', one_change, info)
 
                     except ValueError as v:
                         raise Exception("Invalid JSON value received while getting remote changes")
@@ -371,6 +372,7 @@ class PydioSdk():
         """
         url = self.url + '/mkdir' + self.urlencode_normalized((self.remote_folder + path))
         resp = self.perform_request(url=url)
+        self.is_pydio_error_response(resp)
         return resp.content
 
     def bulk_mkdir(self, pathes):
@@ -379,6 +381,7 @@ class PydioSdk():
         data['nodes[]'] = map(lambda t: self.normalize(self.remote_folder + t), filter(lambda x: x != '', pathes))
         url = self.url + '/mkdir' + self.urlencode_normalized(self.remote_folder + pathes[0])
         resp = self.perform_request(url=url,type='post', data=data)
+        self.is_pydio_error_response(resp)
         return resp.content
 
     def mkfile(self, path):
@@ -389,6 +392,7 @@ class PydioSdk():
         """
         url = self.url + '/mkfile' + self.urlencode_normalized((self.remote_folder + path))
         resp = self.perform_request(url=url)
+        self.is_pydio_error_response(resp)
         return resp.content
 
     def rename(self, source, target):
@@ -408,6 +412,7 @@ class PydioSdk():
                 file=(self.normalize(self.remote_folder + source)).encode('utf-8'),
                 dest=os.path.dirname((self.normalize(self.remote_folder + target).encode('utf-8'))))
         resp = self.perform_request(url=url, type='post', data=data)
+        self.is_pydio_error_response(resp)
         return resp.content
 
     def delete(self, path):
@@ -418,6 +423,7 @@ class PydioSdk():
         """
         url = self.url + '/delete' + self.urlencode_normalized((self.remote_folder + path))
         resp = self.perform_request(url=url)
+        self.is_pydio_error_response(resp)
         return resp.content
 
     def load_server_configs(self):
@@ -470,6 +476,10 @@ class PydioSdk():
             if not new or not (new['size'] == local_stat['size']):
                 raise PydioSdkException('upload', path, 'File not correct after upload (expected size was 0 bytes)')
             return True
+
+        if self.upload_max_size < local_stat['size']:
+            self.has_disk_space_for_upload(path, local_stat['size'])
+
         dirpath = os.path.dirname(path)
         if dirpath and dirpath != '/':
             folder = self.stat(dirpath)
@@ -481,10 +491,20 @@ class PydioSdk():
             'force_post': 'true',
             'urlencoded_filename': self.urlencode_normalized(os.path.basename(path))
         }
-        self.perform_request(url=url, type='post', data=data, files=files, with_progress=callback_dict)
+        try:
+            self.perform_request(url=url, type='post', data=data, files=files, with_progress=callback_dict)
+        except PydioSdkDefaultException as e:
+            if e.message == '507':
+                usage, total = self.quota_usage()
+                raise PydioSdkQuotaException(path, local_stat['size'], usage, total)
+            if e.message == '412':
+                raise PydioSdkPermissionException('Cannot upload '+os.path.basename(path)+' in directory '+os.path.dirname(path))
+            else:
+                raise e
+
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
-            raise PydioSdkException('upload', path, 'File incorrect after upload. Max chunk size was ' + str(self.upload_max_size))
+            raise PydioSdkException('upload', path, 'File incorrect after upload')
         return True
 
     def download(self, path, local, callback_dict=None):
@@ -537,7 +557,8 @@ class PydioSdk():
                     os.unlink(local_tmp)
                     raise PydioSdkException('download', path, 'File not correct after download')
                 else:
-                    if platform.system().startswith('win') and os.path.exists(local):
+                    is_system_windows = platform.system().lower().startswith('win')
+                    if is_system_windows and os.path.exists(local):
                         os.unlink(local)
                     os.rename(local_tmp, local)
             return True
@@ -568,10 +589,9 @@ class PydioSdk():
             data['order_direction'] = order_direction
 
         resp = self.perform_request(url=url, type='post', data=data)
+        self.is_pydio_error_response(resp)
         queue = [ET.ElementTree(ET.fromstring(resp.content))._root]
-
         snapshot = dict()
-
         while len(queue):
             tree = queue.pop(0)
             if (tree.get('ajxp_mime') == 'ajxp_folder'):
@@ -579,7 +599,6 @@ class PydioSdk():
                     queue.append(subtree)
             path = tree.get('filename')
             bytesize = tree.get('bytesize')
-
             dict_tree = dict(tree.items())
             if path:
                 if call_back:
@@ -594,7 +613,6 @@ class PydioSdk():
             url += '&filter=' + self.remote_folder
         resp = self.perform_request(url=url, stream=True)
         files = dict()
-
         for line in resp.iter_lines(chunk_size=512):
             if not str(line).startswith('LAST_SEQ'):
                 element = json.loads(line)
@@ -605,24 +623,28 @@ class PydioSdk():
                     bytesize = element['node']['bytesize']
                     if path != 'NULL':
                         files[path] = bytesize
-                #compare here with the snapshotdir result
         return files if not call_back else None
 
-"""
-    def directorySnapshot(self):
-        queue = [ET.ElementTree(ET.fromstring(self.list(recursive=True)))._root]
-        snapshot = dict()
-        while len(queue):
-            tree = queue.pop(0)
-            if (tree.get('ajxp_mime') == 'ajxp_folder'):
-                for subtree in tree.findall('tree'):
-                    queue.append(subtree)
-            path = tree.get('filename')
-            bytesize = tree.get('bytesize')
-            if path:
-                snapshot[path] = bytesize
+    def apply_check_hook(self, hook_name='', hook_arg='', file='/'):
+        url = self.url + '/apply_check_hook/'+hook_name+'/'+str(hook_arg)+'/'
+        resp = self.perform_request(url=url, type='post', data={'file':file})
+        return resp
 
-        return snapshot
+    def quota_usage(self):
+        url = self.url + '/monitor_quota/'
+        resp = self.perform_request(url=url, type='post')
+        quota = json.loads(resp.text)
+        return quota['USAGE'], quota['TOTAL']
 
-"""
+    def has_disk_space_for_upload(self, path, file_size):
+        resp = self.apply_check_hook(hook_name='before_create', hook_arg=file_size, file=path)
+        if str(resp.text).count("type=\"ERROR\""):
+            usage, total = self.quota_usage()
+            raise PydioSdkQuotaException(path, file_size, usage, total)
 
+    def is_pydio_error_response(self, resp):
+        element = ET.ElementTree(ET.fromstring(resp.content))._root
+        success = str(element.get('type')).lower() == 'success'
+        message = element[0].text
+        if not success:
+            raise PydioSdkDefaultException(message)
