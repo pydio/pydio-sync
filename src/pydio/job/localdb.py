@@ -675,12 +675,13 @@ class SqlEventHandler(FileSystemEventHandler):
     def find_deleted_element(self, cursor, start_seq, basename, md5=None, node_id=None):
         res = cursor.execute('SELECT * FROM ajxp_changes WHERE source LIKE ? AND type="delete" '
                              'AND node_id NOT IN (SELECT node_id FROM ajxp_index) '
-                             'AND seq >= ? ORDER BY seq DESC', ("%\\"+basename, start_seq))
+                             'AND seq > ? ORDER BY seq DESC', ("%\\"+basename, start_seq))
         if not res:
             return None
         for row in res:
             if (md5 and row['deleted_md5'] == md5) or (node_id and row['node_id'] == node_id):
                 return {'source':row['source'], 'node_id':row['node_id']}
+
         return None
 
     def lock_db(self):
