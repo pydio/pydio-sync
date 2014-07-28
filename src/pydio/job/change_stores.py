@@ -109,9 +109,10 @@ class SqliteChangeStore():
                 output = callback(self.sqlite_row_to_dict(row, load_node=True))
                 if output:
                     self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (row['row_id'],))
+                    self.conn.commit()
             except InterruptException as e:
                 break
-        self.conn.commit()
+
 
     def list_changes(self, cursor=0, limit=5, where=''):
         c = self.conn.cursor()
@@ -479,11 +480,12 @@ class SqliteChangeStore():
 
         if not row:
             if last_info and last_info.has_key('change') and change:
+                seq = change['seq']
                 first, second = self.reformat(change)
                 if first:
-                    self.store(location, max_seq, first)
+                    self.store(location, seq, first)
                 if second:
-                    self.store(location, max_seq, second)
+                    self.store(location, seq, second)
         else:
             seq = row.pop('seq')
             max_seq = seq if seq > max_seq else max_seq
@@ -503,9 +505,9 @@ class SqliteChangeStore():
                     if previous_id != -1:
                         first, second = self.reformat(change)
                         if first:
-                            self.store(location, max_seq, first)
+                            self.store(location, seq, first)
                         if second:
-                            self.store(location, max_seq, second)
+                            self.store(location, seq, second)
                     last_info['change'] = None
                     last_info['node_id'] = row['node_id']
                     change = dict()
