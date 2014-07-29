@@ -643,8 +643,11 @@ class PydioSdk():
             raise PydioSdkQuotaException(path, file_size, usage, total)
 
     def is_pydio_error_response(self, resp):
-        element = ET.ElementTree(ET.fromstring(resp.content))._root
-        success = str(element.get('type')).lower() == 'success'
-        message = element[0].text
-        if not success:
-            raise PydioSdkDefaultException(message)
+        success = True
+        try:
+            element = ET.ElementTree(ET.fromstring(resp.content))._root
+            success = str(element.get('type')).lower() == 'success'
+            message = element[0].text
+        except Exception as e:
+            if not success:
+                raise PydioSdkDefaultException(message)
