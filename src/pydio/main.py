@@ -163,6 +163,8 @@ def main(argv=sys.argv[1:]):
 
     scheduler = PydioScheduler.Instance(jobs_root_path=jobs_root_path, jobs_loader=jobs_loader)
     server = PydioApi(ports_detector.get_open_port('flask_api'))
+    from pydio.job import manager
+    manager.api_server = server
 
     try:
 
@@ -237,8 +239,16 @@ def setup_logging(verbosity=None, application_path=None):
     logging.debug("verbosity: %s" % verbosity)
 
 
+def stop_pydio():
+    from pydispatch import dispatcher
+    time.sleep(15)
+    logging.debug("Trying to close pydio")
+    from pydio.job.scheduler import COMMAND_SIGNAL
+    dispatcher.send(signal=COMMAND_SIGNAL, command="exit")
+
+thread.start_new_thread(stop_pydio, ())
+
 if __name__ == "__main__":
     main()
     from pydio.job import manager
-
     manager.wait()
