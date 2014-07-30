@@ -24,6 +24,7 @@ from pydispatch import dispatcher
 from pydio.job.continous_merger import ContinuousDiffMerger
 from pydio import COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
 from pydio.utils.functions import Singleton
+from pydio.job import manager
 
 
 @Singleton
@@ -125,6 +126,7 @@ class PydioScheduler():
             self.start_all()
         elif command == 'exit':
             logging.info("SHOULD EXIT")
+            manager.stop_all()
         else:
             return "This command doesn't exist", 404
         return "success"
