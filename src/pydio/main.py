@@ -239,15 +239,6 @@ def setup_logging(verbosity=None, application_path=None):
     logging.debug("verbosity: %s" % verbosity)
 
 
-def stop_pydio():
-    from pydispatch import dispatcher
-    time.sleep(15)
-    logging.debug("Trying to close pydio")
-    from pydio.job.scheduler import COMMAND_SIGNAL
-    dispatcher.send(signal=COMMAND_SIGNAL, command="exit")
-
-thread.start_new_thread(stop_pydio, ())
-
 if __name__ == "__main__":
     main()
     from pydio.job import manager
