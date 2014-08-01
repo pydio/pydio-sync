@@ -26,6 +26,7 @@ import time
 class ThreadManager(object):
     def __init__(self):
         self.continue_run = True
+        self.api_server = None
 
     def manage(self, thread):
         logging.debug("Storing reference to thread: %s" % thread)
@@ -39,6 +40,10 @@ class ThreadManager(object):
                 continue
             logging.debug("Stopping thread: %s" % thread)
             thread.stop()
+
+        # this needs troubleshooting, if a cleaner exit is needed for flask server
+        # logging.debug("self.api_server: %s" % self.api_server)
+        # self.api_server.shutdown_server()
 
     def managed_threads(self):
         for thread in threading.enumerate():
@@ -63,8 +68,9 @@ class ThreadManager(object):
                 logging.debug("No threads to wait for")
                 return
             logging.debug("Waiting for exit")
-            while True:
-                time.sleep(111600)
+            while self.continue_run:
+                time.sleep(5)
+            logging.debug("ThreadManager is no longer waiting")
         except KeyboardInterrupt, ex:
             logging.debug("KeyboardInterrupt, shutting down.")
             manager.stop_all()
