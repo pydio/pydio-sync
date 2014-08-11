@@ -109,9 +109,9 @@ class SqliteChangeStore():
                 output = callback(self.sqlite_row_to_dict(row, load_node=True))
                 if output:
                     self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (row['row_id'],))
-                    self.conn.commit()
             except InterruptException as e:
                 break
+        self.conn.commit()
 
 
     def list_changes(self, cursor=0, limit=5, where=''):
@@ -516,13 +516,13 @@ class SqliteChangeStore():
                     change['source'] = source
                     change['dp'] = PathOperation.path_sub(target, source)
                     change['dc'] = (content == 'content')
-                    change['seq'] = max_seq
+                    change['seq'] = seq
                     change['node'] = row
                 else:
                     dp = PathOperation.path_sub(target, source)
                     change['dp'] = PathOperation.path_add(change['dp'], dp)
                     change['dc'] = ((content == 'content') or change['dc'])
-                    change['seq'] = max_seq
+                    change['seq'] = seq
 
                 last_info['change'] = change
                 last_info['max_seq'] = max_seq
