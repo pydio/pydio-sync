@@ -17,6 +17,7 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
+import subprocess
 import os
 import hashlib
 import stat
@@ -26,14 +27,18 @@ import shutil
 
 class SystemSdk(object):
 
-    def __init__(self, basepath):
+    def __init__(self, basepath, rdiff_path ='rdiff.exe'):
         """
         Encapsulate some filesystem functions. We should try to make SystemSdk and PydioSdk converge
         with a same interface, wich would allow syncing any "nodes", not necessarily one remote and one local.
         :param basepath: root folder path
         :return:
         """
+        self.signature_extension = '.sync_signature'
+        self.delta_extension = '.sync_delta'
+        self.path_extension = '.sync_patched'
         self.basepath = basepath
+        self.rdiff_path = rdiff_path
 
     def check_basepath(self):
         """
@@ -94,3 +99,14 @@ class SystemSdk(object):
             #os.rmdir(self.basepath + path)
         except OSError as e:
             raise SystemSdkException('delete', path, 'cannot remove folder')
+
+    def rsync_signature(self, file_path, signature_path):
+        subprocess.check_call([self.rdiff_path, 'signature', os.path.join(self.basepath, file_path.strip("\\")), os.path.join(self.basepath, signature_path.strip("\\"))])
+
+    def rsync_delta(self, file_path, signature_path, delta_path):
+        subprocess.check_call([self.rdiff_path, 'delta', signature_path, file_path, delta_path])
+
+    def rsync_patch(self, file_path, delta_path, output_path=''):
+        if not output_path:
+            output_path = file_path
+        subprocess.check_call([self.rdiff_path, 'patch', file_path, delta_path, output_path])
