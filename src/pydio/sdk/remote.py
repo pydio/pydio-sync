@@ -19,6 +19,7 @@
 #
 
 import logging
+import subprocess
 import urllib
 import json
 import os
@@ -30,6 +31,7 @@ import platform
 from hashlib import sha256
 from hashlib import sha1
 from urlparse import urlparse
+from pywin.mfc.object import Object
 
 import requests
 import keyring
@@ -66,7 +68,7 @@ class PydioSdk():
             self.auth = (user_id, keyring.get_password(url, user_id))
         else:
             self.auth = auth
-
+        self.rsync_supported = False
     def set_server_configs(self, configs):
         """
         Server specific capacities and limitations, provided by the server itself
@@ -78,6 +80,9 @@ class PydioSdk():
         if 'RSYNC_SUPPORTED' in configs and configs['RSYNC_SUPPORTED'] == "true":
             self.rsync_server_support = True
         #self.upload_max_size = 8*1024*1024;
+        if 'RSYNC_SUPPORTED' in configs:
+            self.rsync_supported = configs['RSYNC_SUPPORTED'] == 'true'
+        pass
 
     def urlencode_normalized(self, unicode_path):
         """
@@ -226,7 +231,6 @@ class PydioSdk():
             raise Exception("Invalid JSON value received while getting remote changes")
 
     def changes_stream(self, last_seq, callback):
-
         """
         Get the list of changes detected on server since a given sequence number
 
@@ -654,3 +658,27 @@ class PydioSdk():
         except Exception as e:
             if not success:
                 raise PydioSdkDefaultException(message)
+
+    def rsync_delta(self, path, signature, delta_path):
+        url = (self.url + '/filehasher_delta' + self.remote_folder + path.replace("\\", "/")).replace("//", "/")
+        resp = self.perform_request(url=url, type='post', with_progress=False, files={'userfile_0':signature}, stream=True)
+        fd = open(delta_path, 'wb')
+        for chunk in resp.iter_content(8192):
+            fd.write(chunk)
+        fd.close()
+
+    def rsync_signature(self, path, signature):
+        url = (self.url + '/filehasher_signature'+self.remote_folder + path.replace("\\", "/")).replace("//", "/")
+        resp = self.perform_request(url=url, type='post', with_progress=False, stream=True)
+        fd = open(signature, 'wb')
+        for chunk in resp.iter_content(8192):
+            fd.write(chunk)
+        fd.close()
+
+    def rsync_patch(self, path, delta_path):
+        url = (self.url + '/filehasher_patch'+ self.remote_folder + path.replace("\\", "/")).replace("//", "/")
+        resp = self.perform_request(url=url, type='post', with_progress=False, files={'userfile_0' : delta_path})
+        self.is_pydio_error_response(resp)
+
+    def is_rsync_supported(self):
+        return self.rsync_supported
