@@ -172,7 +172,7 @@ def upload_file_with_progress(url, fields, files, stream, with_progress, max_siz
             dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, change=with_progress)
     else:
         def cb(size=0, progress=0, delta=0, rate=0):
-            logging.debug('Current transfer rate ' + rate)
+            logging.debug('Current transfer rate ' + str(rate))
 
     filesize = os.stat(files['userfile_0']).st_size
     if max_size:
