@@ -61,6 +61,7 @@ class PydioSdk():
         self.remote_folder = remote_folder
         self.user_id = user_id
         self.upload_max_size = PYDIO_SDK_MAX_UPLOAD_PIECES
+        self.rsync_server_support = False
         if user_id:
             self.auth = (user_id, keyring.get_password(url, user_id))
         else:
@@ -74,6 +75,8 @@ class PydioSdk():
         """
         if 'UPLOAD_MAX_SIZE' in configs and configs['UPLOAD_MAX_SIZE']:
             self.upload_max_size = min(int(configs['UPLOAD_MAX_SIZE']), PYDIO_SDK_MAX_UPLOAD_PIECES)
+        if 'RSYNC_SUPPORTED' in configs and configs['RSYNC_SUPPORTED'] == "true":
+            self.rsync_server_support = True
         #self.upload_max_size = 8*1024*1024;
 
     def urlencode_normalized(self, unicode_path):

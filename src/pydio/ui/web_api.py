@@ -47,10 +47,13 @@ class PydioApi(Api):
             logging.exception("Error while starting web server")
 
     def shutdown_server(self):
-        func = request.environ.get('werkzeug.server.shutdown')
-        if func is None:
-            raise RuntimeError('Not running with the Werkzeug Server')
-        func()
+        logging.debug("Shutdown api server: %s" % self.app)
+        with self.app.test_request_context():
+            logging.debug("request.environ: \n\t%s" % "\n\t".join(sorted([k + ": " + v for k, v in request.environ.items()])))
+            func = request.environ.get('werkzeug.server.shutdown')
+            if func is None:
+                raise RuntimeError('Not running with the Werkzeug Server')
+            func()
 
 
 class WorkspacesManager(Resource):
@@ -79,8 +82,10 @@ class WorkspacesManager(Resource):
             verify = os.environ["REQUESTS_CA_BUNDLE"]
         resp = requests.get(url,stream=True,auth=auth,verify=verify)
         data = json.loads(resp.content)
-        if 'repositories' in data and 'repo' in data['repositories'] and isinstance(data['repositories']['repo'], types.DictType):
-            data['repositories']['repo'] = [data['repositories']['repo']]
+        if 'repositories' in data and 'repo' in data['repositories']:
+            if isinstance(data['repositories']['repo'], types.DictType):
+                data['repositories']['repo'] = [data['repositories']['repo']]
+            data['repositories']['repo'] = filter(lambda x: not x['@access_type'].startswith('ajxp_'), data['repositories']['repo'])
 
         return data
 
@@ -137,10 +142,13 @@ class JobManager(Resource):
             up_rate = 0.1 * 1024 * 1024
             # COMPUTE REMOTE SIZE
             from pydio.sdk.remote import PydioSdk
+            trust_ssl = False
+            if 'trust_ssl' in json_req:
+                trust_ssl = json_req['trust_ssl']
             sdk = PydioSdk(json_req['server'], json_req['workspace'], json_req['remote_folder'], '',
                            auth=(json_req['user'], json_req['password']),
                            device_id=ConfigManager.Instance().get_device_id(),
-                           skip_ssl_verify=json_req['trust_ssl'])
+                           skip_ssl_verify=trust_ssl)
             up = [0.0]
             def callback(location, seq_id, change):
                 if "node" in change and change["node"]["md5"] != "directory" and change["node"]["bytesize"]:
