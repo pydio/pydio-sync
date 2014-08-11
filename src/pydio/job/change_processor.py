@@ -178,7 +178,23 @@ class ChangeProcessor:
 
     def process_download(self, path, callback_dict=None):
         self.update_node_status(path, 'DOWN')
-        self.remote_sdk.download(path, self.job_config.directory + path, callback_dict)
+        full_path = self.job_config.directory + path.replace("/", "\\")
+        if self.remote_sdk.is_rsync_supported():
+            sig_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".signature")
+            delta_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".delta")
+            try:
+                self.local_sdk.rsync_signature(full_path, sig_path)
+                self.remote_sdk.rsync_delta(path, sig_path, delta_path)
+                self.local_sdk.rsync_patch(full_path, delta_path)
+            except Exception as e:
+                self.remote_sdk.download(path, self.job_config.directory + path, callback_dict)
+            if os.path.exists(sig_path):
+                os.remove(sig_path)
+            if os.path.exists(delta_path):
+                os.remove(delta_path)
+        else:
+            self.remote_sdk.download(path, self.job_config.directory + path, callback_dict)
+
         self.update_node_status(path, 'IDLE')
         message = path + ' <=============== ' + path
         self.log(type='local', action='download', status='success',
@@ -189,7 +205,24 @@ class ChangeProcessor:
         max_upload_size = -1
         if self.job_config.server_configs and 'UPLOAD_MAX_SIZE' in self.job_config.server_configs:
             max_upload_size = int(self.job_config.server_configs['UPLOAD_MAX_SIZE'])
-        self.remote_sdk.upload(self.job_config.directory + path, self.local_sdk.stat(path), path, callback_dict,
+
+        full_path = self.job_config.directory + path
+        if self.remote_sdk.is_rsync_supported():
+            sig_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".signature")
+            delta_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".delta")
+            try:
+                self.remote_sdk.rsync_signature(path, sig_path)
+                self.local_sdk.rsync_delta(full_path, sig_path, delta_path)
+                self.remote_sdk.rsync_patch(path, delta_path)
+            except Exception as e:
+                self.remote_sdk.upload(full_path, self.local_sdk.stat(path), path, callback_dict,
+                               max_upload_size=max_upload_size)
+            if os.path.exists(sig_path):
+                os.remove(sig_path)
+            if os.path.exists(delta_path):
+                os.remove(delta_path)
+        else:
+            self.remote_sdk.upload(full_path, self.local_sdk.stat(path), path, callback_dict,
                                max_upload_size=max_upload_size)
         self.update_node_status(path, 'IDLE')
         message = path + ' ===============> ' + path
