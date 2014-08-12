@@ -295,6 +295,9 @@ class LocalDbHandler():
                 cannot_read = (int(round(time.time() * 1000)) - self.event_handler.last_write_time) < (self.event_handler.db_wait_duration*1000)
                 time.sleep(i*self.event_handler.db_wait_duration)
                 i += 1
+                if i > self.event_handler.db_max_wait_time:
+                    i = 1
+
             self.event_handler.reading = True
         try:
             logging.debug("Local sequence " + str(seq_id))
@@ -434,6 +437,7 @@ class SqlEventHandler(FileSystemEventHandler):
         self.reading = False
         self.last_write_time = 0
         self.db_wait_duration = 1
+        self.db_max_wait_time = 5
         self.last_seq_id = 0
 
 
