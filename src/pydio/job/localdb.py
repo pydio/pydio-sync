@@ -568,10 +568,11 @@ class SqlEventHandler(FileSystemEventHandler):
 
     def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert = False):
         search_key = self.remove_prefix(src_path)
-        if is_directory:
-            hash_key = 'directory'
-        else:
-            hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
+        hash_key = 'directory'
+        if not is_directory:
+            if os.path.exists(src_path):
+                hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
+
 
         node_id = False
         conn = sqlite3.connect(self.db)
@@ -679,8 +680,11 @@ class SqlEventHandler(FileSystemEventHandler):
         if not res:
             return None
         for row in res:
-            if (md5 and row['deleted_md5'] == md5) or (node_id and row['node_id'] == node_id):
-                return {'source':row['source'], 'node_id':row['node_id']}
+            try:
+                if (md5 and row['deleted_md5'] == md5) or (node_id and row['node_id'] == node_id):
+                    return {'source':row['source'], 'node_id':row['node_id']}
+            except Exception as e:
+                pass
 
         return None
 
