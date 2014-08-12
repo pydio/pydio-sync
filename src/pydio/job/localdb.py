@@ -293,10 +293,8 @@ class LocalDbHandler():
             while cannot_read:
                 logging.info('waiting db writing to end before retrieving local changes...')
                 cannot_read = (int(round(time.time() * 1000)) - self.event_handler.last_write_time) < (self.event_handler.db_wait_duration*1000)
-                time.sleep(i*self.event_handler.db_wait_duration)
+                time.sleep((i%self.event_handler.db_max_wait_time)*self.event_handler.db_wait_duration)
                 i += 1
-                if i > self.event_handler.db_max_wait_time:
-                    i = 1
 
             self.event_handler.reading = True
         try:
