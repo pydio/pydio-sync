@@ -102,11 +102,14 @@ class SystemSdk(object):
 
     def rsync_signature(self, file_path, signature_path):
         subprocess.check_call([self.rdiff_path, 'signature', os.path.join(self.basepath, file_path.strip("\\")), os.path.join(self.basepath, signature_path.strip("\\"))])
+        self.wait()
 
     def rsync_delta(self, file_path, signature_path, delta_path):
         subprocess.check_call([self.rdiff_path, 'delta', signature_path, file_path, delta_path])
+        self.wait()
 
     def rsync_patch(self, file_path, delta_path, output_path=''):
         if not output_path:
             output_path = file_path
         subprocess.check_call([self.rdiff_path, 'patch', file_path, delta_path, output_path])
+        self.wait()
