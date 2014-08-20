@@ -660,7 +660,7 @@ class PydioSdk():
                 raise PydioSdkDefaultException(message)
 
     def rsync_delta(self, path, signature, delta_path):
-        url = (self.url + '/filehasher_delta' + self.remote_folder + path.replace("\\", "/")).replace("//", "/")
+        url = self.url + ('/filehasher_delta' + self.remote_folder + path.replace("\\", "/"))
         resp = self.perform_request(url=url, type='post', with_progress=False, files={'userfile_0':signature}, stream=True)
         fd = open(delta_path, 'wb')
         for chunk in resp.iter_content(8192):
@@ -668,7 +668,7 @@ class PydioSdk():
         fd.close()
 
     def rsync_signature(self, path, signature):
-        url = (self.url + '/filehasher_signature'+self.remote_folder + path.replace("\\", "/")).replace("//", "/")
+        url = self.url + ('/filehasher_signature'+self.remote_folder + path.replace("\\", "/"))
         resp = self.perform_request(url=url, type='post', with_progress=False, stream=True)
         fd = open(signature, 'wb')
         for chunk in resp.iter_content(8192):
@@ -676,7 +676,7 @@ class PydioSdk():
         fd.close()
 
     def rsync_patch(self, path, delta_path):
-        url = (self.url + '/filehasher_patch'+ self.remote_folder + path.replace("\\", "/")).replace("//", "/")
+        url = self.url + ('/filehasher_patch'+ self.remote_folder + path.replace("\\", "/"))
         resp = self.perform_request(url=url, type='post', with_progress=False, files={'userfile_0' : delta_path})
         self.is_pydio_error_response(resp)
 
