@@ -293,9 +293,8 @@ class LocalDbHandler():
             while cannot_read:
                 logging.info('waiting db writing to end before retrieving local changes...')
                 cannot_read = (int(round(time.time() * 1000)) - self.event_handler.last_write_time) < (self.event_handler.db_wait_duration*1000)
-                time.sleep((i%self.event_handler.db_max_wait_time)*self.event_handler.db_wait_duration)
+                time.sleep(i*self.event_handler.db_wait_duration)
                 i += 1
-
             self.event_handler.reading = True
         try:
             logging.debug("Local sequence " + str(seq_id))
@@ -435,7 +434,6 @@ class SqlEventHandler(FileSystemEventHandler):
         self.reading = False
         self.last_write_time = 0
         self.db_wait_duration = 1
-        self.db_max_wait_time = 5
         self.last_seq_id = 0
 
 
@@ -571,7 +569,10 @@ class SqlEventHandler(FileSystemEventHandler):
     def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert = False):
         search_key = self.remove_prefix(src_path)
         hash_key = 'directory'
-        if not is_directory:
+
+        if is_directory:
+            hash_key = 'directory'
+        else:
             if os.path.exists(src_path):
                 hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
 
