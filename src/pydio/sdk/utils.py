@@ -195,6 +195,9 @@ def upload_file_with_progress(url, fields, files, stream, with_progress, max_siz
     if str(resp.text).lower().count("412"):
         raise PydioSdkDefaultException('412')
 
+    if str(resp.text).lower().count("410") or str(resp.text).lower().count("411"):
+        raise PydioSdkDefaultException(str(resp.text))
+
     if resp.status_code == 401:
         return resp
 
