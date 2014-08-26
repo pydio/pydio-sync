@@ -19,7 +19,6 @@
 #
 
 import logging
-import subprocess
 import urllib
 import json
 import os
@@ -31,7 +30,7 @@ import platform
 from hashlib import sha256
 from hashlib import sha1
 from urlparse import urlparse
-from pywin.mfc.object import Object
+
 
 import requests
 import keyring
