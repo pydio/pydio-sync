@@ -75,7 +75,7 @@ class PydioSdk():
         :return:
         """
         if 'UPLOAD_MAX_SIZE' in configs and configs['UPLOAD_MAX_SIZE']:
-            self.upload_max_size = min(int(configs['UPLOAD_MAX_SIZE']), PYDIO_SDK_MAX_UPLOAD_PIECES)
+            self.upload_max_size = min(int(float(configs['UPLOAD_MAX_SIZE'])), PYDIO_SDK_MAX_UPLOAD_PIECES)
         if 'RSYNC_SUPPORTED' in configs and configs['RSYNC_SUPPORTED'] == "true":
             self.rsync_server_support = True
         #self.upload_max_size = 8*1024*1024;
