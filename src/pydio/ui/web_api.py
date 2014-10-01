@@ -28,7 +28,7 @@ class PydioApi(Api):
         else:
             static_folder = 'res'
         logging.debug('Starting Flask server with following static folder : '+ static_folder)
-        self.app = Flask(__name__, static_folder = static_folder, static_url_path='/res')
+        self.app = Flask(__name__, static_folder=static_folder, static_url_path='/res')
         self.app.logger.setLevel(logging.ERROR)
         l = logging.getLogger("werkzeug")
         if l:

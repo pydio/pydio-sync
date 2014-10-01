@@ -17,6 +17,8 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
+from pydio.utils import i18n
+_ = i18n.language.ugettext
 
 class ProcessException(Exception):
     def __init__(self, src, operation, path, detail):
@@ -36,11 +38,11 @@ class SystemSdkException(ProcessException):
 
 class PydioSdkBasicAuthException(Exception):
     def __init__(self, type):
-        super(PydioSdkBasicAuthException, self).__init__('Http-Basic authentication failed, wrong credentials?')
+        super(PydioSdkBasicAuthException, self).__init__(_('Http-Basic authentication failed, wrong credentials?'))
 
 class PydioSdkTokenAuthException(Exception):
     def __init__(self, type):
-        super(PydioSdkTokenAuthException, self).__init__('Token-based authentication failed, reload credentials?')
+        super(PydioSdkTokenAuthException, self).__init__(_('Token-based authentication failed, reload credentials?'))
 
 class PydioSdkDefaultException(Exception):
     def __init__(self, message):
@@ -48,14 +50,17 @@ class PydioSdkDefaultException(Exception):
 
 class PydioSdkQuotaException(PydioSdkDefaultException):
     def __init__(self, file_name, file_size, usage, total):
-        super(PydioSdkQuotaException, self).__init__('[Quota limit reached] - You are using'+' {0:.2f}'.format(float(usage)/(1024*1024))+' of'+' {0:.2f}'.format(float(total)/(1024*1024))+' Mo, '
-                                                    'cannot upload '+file_name+'('+"{0:.2f}".format(float(file_size)/(1024*1024))+' Mo)')
+        def to_mo(value):
+            return format(float(value)/(1024*1024))
+        super(PydioSdkQuotaException, self).__init__(
+            _('[Quota limit reached] - You are using %(usage)iMB of %(total)iMB, you cannot upload %(filename)s (%(filesize)iMB)')
+            % {'usage':to_mo(usage), 'total':to_mo(total), 'filename':file_name, 'filesize':to_mo(file_size)})
         self.code = 507
 class PydioSdkPermissionException(PydioSdkDefaultException):
     def __init__(self, message):
-        super(PydioSdkDefaultException, self).__init__('[File permission] - '+message)
+        super(PydioSdkDefaultException, self).__init__(_('[File permission] %s') % message)
         self.code = 412
 
 class InterruptException(Exception):
     def __init__(self):
-        super(InterruptException, self).__init__('Stop tasks')
+        super(InterruptException, self).__init__(_('Stopping tasks'))

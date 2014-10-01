@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-01 21:30+0200\n"
+"POT-Creation-Date: 2014-10-01 22:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -37,11 +37,7 @@ msgstr ""
 msgid "Folder %s deleted"
 msgstr ""
 
-#: job/change_processor.py:175
-msgid "Moved %(source)s to %(target)s"
-msgstr ""
-
-#: job/change_processor.py:183
+#: job/change_processor.py:175 job/change_processor.py:183
 #, python-format
 msgid "Moved %(source)s to %(target)s"
 msgstr ""
@@ -313,7 +309,7 @@ msgid "Are you ready to launch the synchronization?"
 msgstr ""
 
 #: res/i18n/html_strings.py:56
-msgid "You"
+msgid "Your data will be in orbit in no time!"
 msgstr ""
 
 #: res/i18n/html_strings.py:57

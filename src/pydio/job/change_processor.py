@@ -21,6 +21,9 @@ import os
 import logging
 import shutil
 from pydio.utils.global_config import ConfigManager
+from pydio.utils import i18n
+_ = i18n.language.ugettext
+
 
 class ChangeProcessor:
     def __init__(self, change, change_store, job_config, local_sdk, remote_sdk, status_handler, event_logs_handler):
@@ -34,6 +37,7 @@ class ChangeProcessor:
 
     def log(self, type, action, status, message, console_message, source='', target=''):
         logging.info(console_message)
+        logging.info(message)
         self.log_handler.log(type=type, action=action, status=status, source=source, target=target, message=message)
 
     def update_node_status(self, path, status):
@@ -127,20 +131,20 @@ class ChangeProcessor:
         if not os.path.exists(self.job_config.directory + path):
             os.makedirs(self.job_config.directory + path)
         self.log(type='local', action='mkdir', status='success',
-                 target=path, console_message=message, message=('New folder created at %s' % path))
+                 target=path, console_message=message, message=(_('New folder created at %s') % path))
 
     def process_remote_mkdir(self, path):
         message = 'MKDIR ============> ' + path
         self.remote_sdk.mkdir(path)
         self.log(type='remote', action='mkdir', status='success', target=path,
-                 console_message=message, message=('Folder created at %s' % path))
+                 console_message=message, message=(_('Folder created at %s') % path))
 
     def process_remote_bulk_mkdir(self, pathes):
         self.remote_sdk.bulk_mkdir(pathes)
         for path in pathes:
             message = 'MKDIR ============> ' + path
             self.log(type='remote', action='mkdir', status='success', target=path,
-                     console_message=message, message=('Folder created at %s' % path))
+                     console_message=message, message=(_('Folder created at %s') % path))
 
     def process_local_delete(self, path):
         if os.path.isdir(self.job_config.directory + path):
@@ -152,13 +156,13 @@ class ChangeProcessor:
             os.unlink(self.job_config.directory + path)
             message = path + ' <============ DELETE'
             self.log(type='local', action='delete_file', status='success',
-                     target=path, console_message=message, message='Deleted file ' + path)
+                     target=path, console_message=message, message=(_('Deleted file %s') % path))
 
     def process_remote_delete(self, path):
         self.remote_sdk.delete(path)
         message = 'DELETE ============> ' + path
         self.log(type='remote', action='delete', status='success',
-                 target=path, console_message=message, message=('Folder %s deleted' % path))
+                 target=path, console_message=message, message=(_('Folder %s deleted') % path))
 
     def process_local_move(self, source, target):
         if os.path.exists(self.job_config.directory + source):
@@ -167,14 +171,16 @@ class ChangeProcessor:
             shutil.move(self.job_config.directory + source, self.job_config.directory + target)
             message = source + ' to ' + target + ' <============ MOVE'
             self.log(type='local', action='move', status='success', target=target,
-                     source=source, console_message=message, message=('Moved %s to %s' % (source, target)))
+                     source=source, console_message=message,
+                     message=(_('Moved %(source)s to %(target)s') % ({'source': source, 'target': target})))
             return True
         return False
 
     def process_remote_move(self, source, target):
         message = 'MOVE ============> ' + source + ' to ' + target
         self.log(type='remote', action='move', status='success', target=target,
-                 source=source, console_message=message, message=('Moved %s to %s' % (source, target)))
+                 source=source, console_message=message,
+                 message=(_('Moved %(source)s to %(target)s') % ({'source': source, 'target': target})))
         self.remote_sdk.rename(source, target)
 
     def process_download(self, path, callback_dict=None):
@@ -199,7 +205,7 @@ class ChangeProcessor:
         self.update_node_status(path, 'IDLE')
         message = path + ' <=============== ' + path
         self.log(type='local', action='download', status='success',
-                 target=path, console_message=message, message=('File %s downloaded from server' % path))
+                 target=path, console_message=message, message=(_('File %s downloaded from server') % path))
 
     def process_upload(self, path, callback_dict=None):
         self.update_node_status(path, 'UP')
@@ -228,4 +234,4 @@ class ChangeProcessor:
         self.update_node_status(path, 'IDLE')
         message = path + ' ===============> ' + path
         self.log(type='remote', action='upload', status='success', target=path,
-                 console_message=message, message=('File %s uploaded to server' % path))
+                 console_message=message, message=(_('File %s uploaded to server') % path))

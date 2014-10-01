@@ -25,6 +25,8 @@ from exceptions import SystemSdkException
 from pydio.utils.functions import hashfile
 from pydio.utils.global_config import ConfigManager
 import shutil
+from pydio.utils import i18n
+_ = i18n.language.ugettext
 
 class SystemSdk(object):
 
@@ -99,7 +101,7 @@ class SystemSdk(object):
             shutil.rmtree(self.basepath + path)
             #os.rmdir(self.basepath + path)
         except OSError as e:
-            raise SystemSdkException('delete', path, 'cannot remove folder')
+            raise SystemSdkException('delete', path, _('Cannot remove local folder'))
 
     def rsync_signature(self, file_path, signature_path):
         if not self.rdiff_path:

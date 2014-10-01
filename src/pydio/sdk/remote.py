@@ -42,6 +42,9 @@ from exceptions import PydioSdkException, PydioSdkBasicAuthException, PydioSdkTo
     PydioSdkDefaultException, PydioSdkPermissionException
 from .utils import upload_file_with_progress
 from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
+from pydio.utils import i18n
+_ = i18n.language.ugettext
+
 # -*- coding: utf-8 -*-
 
 PYDIO_SDK_MAX_UPLOAD_PIECES = 40 * 1024 * 1024
@@ -127,7 +130,7 @@ class PydioSdk():
         url = self.base_url + 'pydio/keystore_generate_auth_token/' + self.device_id
         resp = requests.get(url=url, auth=self.auth, verify=self.verify_ssl)
         if resp.status_code == 401:
-            raise PydioSdkBasicAuthException('Authentication Error')
+            raise PydioSdkBasicAuthException(_('Authentication Error'))
         try:
             tokens = json.loads(resp.content)
         except ValueError as v:
@@ -135,7 +138,7 @@ class PydioSdk():
         try:
             keyring.set_password(self.url, self.user_id + '-token', tokens['t'] + ':' + tokens['p'])
         except PasswordSetError:
-            logging.error("Cannot store tokens in keychain, basic auth will be performed each time!")
+            logging.error(_("Cannot store tokens in keychain, basic auth will be performed each time!"))
         return tokens
 
     def perform_with_tokens(self, token, private, url, type='get', data=None, files=None, stream=False, with_progress=False):
@@ -174,10 +177,10 @@ class PydioSdk():
             else:
                 resp = requests.post(url=url, data=data, stream=stream, timeout=20, verify=self.verify_ssl)
         else:
-            raise PydioSdkTokenAuthException("Unsupported HTTP method")
+            raise PydioSdkTokenAuthException(_("Unsupported HTTP method"))
 
         if resp.status_code == 401:
-            raise PydioSdkTokenAuthException("Authentication Exception")
+            raise PydioSdkTokenAuthException(_("Authentication Exception"))
         return resp
 
     def perform_request(self, url, type='get', data=None, files=None, stream=False, with_progress=False):
@@ -227,7 +230,7 @@ class PydioSdk():
         try:
             return json.loads(resp.content)
         except ValueError as v:
-            raise Exception("Invalid JSON value received while getting remote changes")
+            raise Exception(_("Invalid JSON value received while getting remote changes. Is the server correctly configured?"))
 
     def changes_stream(self, last_seq, callback):
         """
@@ -263,7 +266,7 @@ class PydioSdk():
                         callback('remote', one_change, info)
 
                     except ValueError as v:
-                        raise Exception("Invalid JSON value received while getting remote changes")
+                        raise Exception(_("Invalid JSON value received while getting remote changes."))
                     except Exception as e:
                         raise e
 
@@ -475,12 +478,12 @@ class PydioSdk():
         :return: Server response
         """
         if not local_stat:
-            raise PydioSdkException('upload', path, 'local file to upload not found!')
+            raise PydioSdkException('upload', path, _('Local file to upload not found!'))
         if local_stat['size'] == 0:
             self.mkfile(path)
             new = self.stat(path)
             if not new or not (new['size'] == local_stat['size']):
-                raise PydioSdkException('upload', path, 'File not correct after upload (expected size was 0 bytes)')
+                raise PydioSdkException('upload', path, _('File not correct after upload (expected size was 0 bytes)'))
             return True
 
         if self.upload_max_size < local_stat['size']:
@@ -510,7 +513,7 @@ class PydioSdk():
 
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
-            raise PydioSdkException('upload', path, 'File incorrect after upload')
+            raise PydioSdkException('upload', path, _('File is incorrect after upload'))
         return True
 
     def download(self, path, local, callback_dict=None):
@@ -523,7 +526,7 @@ class PydioSdk():
         """
         orig = self.stat(path)
         if not orig:
-            raise PydioSdkException('download', path, 'Original not found on server')
+            raise PydioSdkException('download', path, _('Original file was not found on server'))
 
         url = self.url + '/download' + self.urlencode_normalized((self.remote_folder + path))
         local_tmp = local + '.pydio_dl'
@@ -556,12 +559,12 @@ class PydioSdk():
 
                         previous_done = done
             if not os.path.exists(local_tmp):
-                raise PydioSdkException('download', local, 'File not found after download')
+                raise PydioSdkException('download', local, _('File not found after download'))
             else:
                 stat_result = os.stat(local_tmp)
                 if not orig['size'] == stat_result.st_size:
                     os.unlink(local_tmp)
-                    raise PydioSdkException('download', path, 'File not correct after download')
+                    raise PydioSdkException('download', path, _('File is not correct after download'))
                 else:
                     is_system_windows = platform.system().lower().startswith('win')
                     if is_system_windows and os.path.exists(local):
@@ -571,7 +574,7 @@ class PydioSdk():
         except Exception as e:
             if os.path.exists(local_tmp):
                 os.unlink(local_tmp)
-            raise PydioSdkException('download', path, 'Error while downloading file: %s' % e.message)
+            raise PydioSdkException('download', path, _('Error while downloading file: %s') % e.message)
 
     def list(self, dir=None, nodes=list(), options='al', recursive=False, max_depth=1, remote_order='', order_column='', order_direction='', max_nodes=0, call_back=None):
         url = self.url + '/ls' + self.urlencode_normalized(self.remote_folder)
@@ -656,7 +659,7 @@ class PydioSdk():
             message = element[0].text
         except Exception as e:
             if not success:
-                raise PydioSdkDefaultException(message)
+                raise PydioSdkDefaultException(e.message)
 
     def rsync_delta(self, path, signature, delta_path):
         url = self.url + ('/filehasher_delta' + self.remote_folder + path.replace("\\", "/"))

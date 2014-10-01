@@ -1,30 +1,30 @@
 <div class="well" ng-show="panel_tips" style="position: absolute;top: 60px;right: 20px;left: 20px;bottom: 50px;z-index: 100;box-shadow: 2px 2px 15px rgba(0,0,0,0.25);" >
     <button type="button" class="close" style="color:black;" data-dismiss="alert" aria-hidden="true" ng-click="panel_tips=false">&times;</button>
-    <h4>How can I find my server URL ?</h4>
-    The server URL is the adress that you can see in your browser when accessing Pydio via the web. It starts with <em>http</em>
-    or <em>https</em> depending on your server configuration.<br>
-    If you are logged in Pydio and you see the last part of the URL starting with "ws-", remove this part and only keep the beginning (see image below).<br><br>
+    <h4>{{_('How can I find my server URL?')}}</h4>
+    {{_('The server URL is the adress that you can see in your browser when accessing Pydio via the web.')}}
+    {{_('It starts with http or https depending on your server configuration.')}}<br>
+    {{_('If you are logged in Pydio and you see the last part of the URL starting with "ws-", remove this part and only keep the beginning (see image below).')}}<br><br>
     <p style="text-align: center;">
         <img class="img-thumbnail" src="images/ServerURL.png" style="max-width: 100%; max-height: 400px;"><br>
         <br>
-        <button type="button" class="btn btn-default" ng-click="panel_tips=false">Got it!</button>
+        <button type="button" class="btn btn-default" ng-click="panel_tips=false">{{_('Got it!')}}</button>
     </p>
 
 </div>
 <div ng-show="loading" style="position: absolute;top: 0;right: 0;left: 0;bottom: 0;z-index: 1300; background-color: #ededed; padding: 45% 0; text-align: center;" >
     <img src="images/pydio.png">
-    <br>Connecting ...
+    <br>{{_('Connecting ...')}}
 </div>
-<h3>Configure Connection</h3>
+<h3>{{_('Configure Connection')}}</h3>
 <div class="alert alert-danger" ng-show="error">
-    Error while trying to connect to {{job.server}} ({{error}}): <br>
+    {{_('Error while trying to connect to %1 (%2):', job.server, error)}}<br>
     <ul style="padding-left:17px;">
-        <li>Did you enter the correct login/password?</li>
-        <li>If you are using https, is your certificate self-signed? If yes, check "Trust SSL certificate"</li>
+        <li>{{_('Did you enter the correct login/password?')}}</li>
+        <li>{{_('If you are using https, is your certificate self-signed? If yes, check "Trust SSL certificate"')}}</li>
     </ul>
 </div>
 <div class="well">
-    <div class="small" style="margin-bottom: 1.5em;">Connect to the server with the same URL as the one you would use to access through a web browser, e.g. http://mydomain.com/pydio</div>
+    <div class="small" style="margin-bottom: 1.5em;">{{_('Connect to the server with the same URL as the one you would use to access through a web browser, e.g. http://mydomain.com/pydio')}}</div>
     <form name="myForm" class="form-inline">
         <div class="form-group">
             <input ng-change="job.server = inline_protocol + inline_host" type="radio" value="http://" ng-model="inline_protocol" name="protocol" id="protocol_http"> <label for="protocol_http">http://</label>
@@ -35,23 +35,23 @@
                 <span class="input-group-addon" style="min-width: 70px;">{{inline_protocol}}</span>
                 <input autofocus="true" ng-change="parseURL(); error=false;" type="text" name="site" ng-model="inline_host" class="form-control" placeholder="Server URL" required>
             </div>
-            <span ng-show="myForm.site.$error.required && !myForm.site.$pristine" class="help-inline">Required</span>
+            <span ng-show="myForm.site.$error.required && !myForm.site.$pristine" class="help-inline">{{_('Required')}}</span>
         </div>
         <div class="form-group">
             <input type="text" name="user" ng-model="job.user" class="form-control" placeholder="Login" required>
-            <span ng-show="myForm.user.$error.required && !myForm.user.$pristine" class="help-inline">Required</span>
+            <span ng-show="myForm.user.$error.required && !myForm.user.$pristine" class="help-inline">{{_('Required')}}</span>
         </div>
         <div class="form-group">
             <input type="password" name="pwd" ng-model="job.password" class="form-control" placeholder="Password" required>
-            <span ng-show="myForm.pwd.$error.required && !myForm.pwd.$pristine" class="help-inline">Required</span>
+            <span ng-show="myForm.pwd.$error.required && !myForm.pwd.$pristine" class="help-inline">{{_('Required')}}</span>
         </div>
     </form>
 </div>
     <div>
-        Tips: <a href="" ng-click="panel_tips=true" tabindex="8">where can I find the server URL ?</a>
+        {{_('Tips')}}: <a href="" ng-click="panel_tips=true" tabindex="8">{{_('where can I find the server URL?')}}</a>
     </div>
 
     <div style="text-align: center; margin-top: 40px;">
-        <a href="" ng-click="next()" class="btn btn-primary" tabindex="0" ng-disabled="myForm.$invalid">Connect</a>
-         <span ng-show="error && inline_protocol == 'https://'">&nbsp;&nbsp;&nbsp;<input type="checkbox" ng-model="job.trust_ssl" id="trust"> <label for="trust">Trust SSL certificate</label></span>
+        <a href="" ng-click="next()" class="btn btn-primary" tabindex="0" ng-disabled="myForm.$invalid">{{_('Connect')}}</a>
+         <span ng-show="error && inline_protocol == 'https://'">&nbsp;&nbsp;&nbsp;<input type="checkbox" ng-model="job.trust_ssl" id="trust"> <label for="trust">{{_('Trust SSL certificate')}}</label></span>
     </div>

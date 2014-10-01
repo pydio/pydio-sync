@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-01 21:30+0200\n"
+"POT-Creation-Date: 2014-10-01 22:06+0200\n"
 "PO-Revision-Date: 2014-10-01 16:43+0200\n"
 "Last-Translator: Charles du Jeu <charles@pydio.com>\n"
 "Language-Team: French\n"
@@ -38,12 +38,7 @@ msgstr "Le fichier %s a été supprimé"
 msgid "Folder %s deleted"
 msgstr "Le répertoire %s a été supprimé"
 
-#: job/change_processor.py:175
-#, fuzzy
-msgid "Moved %(source)s to %(target)s"
-msgstr "Déplacement %(source) vers %(target)"
-
-#: job/change_processor.py:183
+#: job/change_processor.py:175 job/change_processor.py:183
 #, fuzzy, python-format
 msgid "Moved %(source)s to %(target)s"
 msgstr "Déplacement %(source)s vers %(target)s"
@@ -145,7 +140,9 @@ msgstr "Comment trouver l'URL de mon serveur?"
 msgid ""
 "The server URL is the adress that you can see in your browser when accessing "
 "Pydio via the web."
-msgstr "L'URL est l'adresse que vous voyez dans le navigateur lorsque vous accédez à Pydio via le web."
+msgstr ""
+"L'URL est l'adresse que vous voyez dans le navigateur lorsque vous accédez à "
+"Pydio via le web."
 
 #: res/i18n/html_strings.py:4
 msgid "It starts with http or https depending on your server configuration."
@@ -155,7 +152,10 @@ msgstr "Elle commence par http ou https, en fonction de votre configuration."
 msgid ""
 "If you are logged in Pydio and you see the last part of the URL starting "
 "with \"ws-\", remove this part and only keep the beginning (see image below)."
-msgstr "Si vous êtes loggé sur Pydio, et que vous voyez la dernière partie de l'adresse commencer avec \"ws-\", enlevez cette dernière partie et ne gardez que le début (voir l'image)."
+msgstr ""
+"Si vous êtes loggé sur Pydio, et que vous voyez la dernière partie de "
+"l'adresse commencer avec \"ws-\", enlevez cette dernière partie et ne gardez "
+"que le début (voir l'image)."
 
 #: res/i18n/html_strings.py:6
 msgid "Got it!"
@@ -182,13 +182,18 @@ msgstr "Avez-vous entré vos login/mot de passe correctement?"
 msgid ""
 "If you are using https, is your certificate self-signed? If yes, check "
 "\"Trust SSL certificate\""
-msgstr "Si vous utilisez https, votre certificat est-il autosigné? Si oui, choisissez \"Faire confiance au certificat\""
+msgstr ""
+"Si vous utilisez https, votre certificat est-il autosigné? Si oui, "
+"choisissez \"Faire confiance au certificat\""
 
 #: res/i18n/html_strings.py:12
 msgid ""
 "Connect to the server with the same URL as the one you would use to access "
 "through a web browser, e.g. http://mydomain.com/pydio"
-msgstr "Connectez vous au serveur avec la même URL que celle que vous utilisez pour accéder à Pydio via un navigateur web, par exemple http://mondomaine.com/pydio"
+msgstr ""
+"Connectez vous au serveur avec la même URL que celle que vous utilisez pour "
+"accéder à Pydio via un navigateur web, par exemple http://mondomaine.com/"
+"pydio"
 
 #: res/i18n/html_strings.py:13 res/i18n/html_strings.py:14
 #: res/i18n/html_strings.py:15
@@ -324,8 +329,8 @@ msgid "Are you ready to launch the synchronization?"
 msgstr "Etes-vous prêt à lancer la synchro?"
 
 #: res/i18n/html_strings.py:56
-msgid "You"
-msgstr "Vous"
+msgid "Your data will be in orbit in no time!"
+msgstr "Orbite stationnaire prévue dans quelques instants"
 
 #: res/i18n/html_strings.py:57
 msgid "FIRE THE ROCKET!"
@@ -355,7 +360,9 @@ msgstr "Direction de la synchro"
 msgid ""
 "By default, modifications from both sides (local/remote) are automatically "
 "reflected on the other side."
-msgstr "Par défaut les modifications des deux côtés (local/distant) sont automatiquement réfléchies sur le côté opposé."
+msgstr ""
+"Par défaut les modifications des deux côtés (local/distant) sont "
+"automatiquement réfléchies sur le côté opposé."
 
 #: res/i18n/html_strings.py:64
 msgid "Bi-directional"
@@ -409,8 +416,9 @@ msgstr "Versions et conflits"
 msgid ""
 "When files were modified on both the server and your computer at the same "
 "time, synchronization is stopped."
-msgstr "Quand les fichiers sont modifiés en même temps sur le serveur et sur votre ordinateur, la synchronisation s'arrête."
-""
+msgstr ""
+"Quand les fichiers sont modifiés en même temps sur le serveur et sur votre "
+"ordinateur, la synchronisation s'arrête."
 
 #: res/i18n/html_strings.py:77
 #, fuzzy
@@ -469,7 +477,9 @@ msgstr "Supprimer la synchro"
 msgid ""
 "Ooops, cannot contact agent! Make sure it is running correctly, process will "
 "try to reconnect in 20s"
-msgstr "Oooups, impossible de contacter l'agent! Veuillez vous assurer qu'il est correctement démarrer, le process se reconnectera dans 20s."
+msgstr ""
+"Oooups, impossible de contacter l'agent! Veuillez vous assurer qu'il est "
+"correctement démarrer, le process se reconnectera dans 20s."
 
 #: res/i18n/html_strings.py:100
 msgid "Select a workspace"
@@ -478,12 +488,13 @@ msgstr "Sélectionner un workspace"
 #: res/i18n/html_strings.py:101
 #, fuzzy
 msgid "Full path to the local folder"
-msgstr ""
-"Chemin complet vers le répertoire local"
+msgstr "Chemin complet vers le répertoire local"
 
 #: res/i18n/html_strings.py:102
 msgid "Are you sure you want to delete this synchro? No data will be deleted"
-msgstr "Etes-vous sûr que vous voulez supprimer cette synchro? Aucune données ne seront effacées."
+msgstr ""
+"Etes-vous sûr que vous voulez supprimer cette synchro? Aucune données ne "
+"seront effacées."
 
 #: res/i18n/html_strings.py:103
 msgid "computing..."
@@ -591,9 +602,8 @@ msgid "The easiest way to keep your data in control"
 msgstr "La manière la plus simple de garder le contrôle de vos données"
 
 #: res/i18n/html_strings.py:133
-#, fuzzy
 msgid "Get Started"
-msgstr "Tache démarrée"
+msgstr "Démarrer"
 
 #: sdk/exceptions.py:41
 msgid "Http-Basic authentication failed, wrong credentials?"
@@ -684,3 +694,6 @@ msgstr "Le fichier est incorrect après son téléchargement."
 #, python-format
 msgid "Error while downloading file: %s"
 msgstr "Erreur lors du téléchargement du fichier: %s"
+
+#~ msgid "You"
+#~ msgstr "Vous"

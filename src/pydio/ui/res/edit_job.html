@@ -1,4 +1,4 @@
-<h2 class="editHeader">SYNC {{job.label?job.label:job.id}} parameters
+<h2 class="editHeader">{{_('SYNC %1 parameters', job.label?job.label:job.id)}}
     <div class="pull-right">
         <div class="btn-group">
             <button type="button" ng-click="toggleJobActive()" class="btn" ng-class="{'btn-success':job.active,'btn-default':!job.active}">On</button>
@@ -9,9 +9,9 @@
 <div style="margin-top: 90px;">
     <div class="small pull-left" style="text-align: center; width: 40%; overflow: visible;">
         <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
-        Server: {{job.server}}<br>
-        Workspace: {{job.workspace}}<br>
-        <span ng-if="job.remote_folder">Folder: {{job.remote_folder}}</span>
+        {{_('Server')}}: {{job.server}}<br>
+        {{_('Workspace')}}: {{job.workspace}}<br>
+        <span ng-if="job.remote_folder">{{_('Folder')}}: {{job.remote_folder}}</span>
     </div>
 
     <span style="display: block; float:left; width: 20%;margin: 50px auto; border-top: 1px dashed #000000;"></span>
@@ -22,36 +22,36 @@
     </div>
     <br style="clear: both;">
 
-    <h3 style="margin-top: 30px;">Server Connexion</h3>
+    <h3 style="margin-top: 30px;">{{_('Server Connexion')}}</h3>
     <div>
         <div class="input-group">
-            <span class="input-group-addon">Login</span>
+            <span class="input-group-addon">{{_('Login')}}</span>
             <input type="text" name="user" ng-model="job.user" class="form-control" placeholder="Login" required>
-            <span class="input-group-addon">Password</span>
+            <span class="input-group-addon">{{_('Password')}}</span>
             <input type="password" name="pwd" ng-model="job.password" class="form-control" placeholder="Password" required>
         </div>
     </div>
 
-    <h3 style="margin-top: 30px;">Local Folder</h3>
+    <h3 style="margin-top: 30px;">{{_('Local Folder')}}</h3>
     <div class="">
         <div class="input-group">
             <input type="text" ng-model="job.directory" readonly class="form-control">
             <span class="input-group-btn">
-                <button class="btn btn-default" ng-click="openDirChooser()" type="button">Choose</button>
+                <button class="btn btn-default" ng-click="openDirChooser()" type="button">{{_('Choose')}}</button>
             </span>
         </div>
     </div>
 
 
-    <h3 style="margin-top: 30px;">Remote workspace</h3>
+    <h3 style="margin-top: 30px;">{{_('Remote workspace')}}</h3>
     <div ng-if="!repositories && job.workspace" class="">
         <div class="input-group">
-            <label class="input-group-addon">Workspace</label>
+            <label class="input-group-addon">{{_('Workspace')}}</label>
             <input type="text" readonly class="form-control" ng-model="job.workspace"/>
-            <label class="input-group-addon">Folder</label>
+            <label class="input-group-addon">{{_('Folder')}}</label>
             <input type="text"readonly class="form-control" ng-model="job.remote_folder"/>
             <span class="input-group-btn">
-                <button class="btn btn-default" type="button" ng-click="loadWorkspaces()">Change</button>
+                <button class="btn btn-default" type="button" ng-click="loadWorkspaces()">{{_('Change')}}</button>
             </span>
         </div>
     </div>
@@ -69,11 +69,11 @@
         </div>
 
         <div class="input-group" ng-show="folders && folders.length" style="padding: 7px;">
-            <input type="checkbox" ng-model="showFoldersBox" id="show_folders" ng-click="job.remote_folder = ''" >&nbsp;<label for="show_folders">Synchronise only a subfolder of this workspace</label>
+            <input type="checkbox" ng-model="showFoldersBox" id="show_folders" ng-click="job.remote_folder = ''" >&nbsp;<label for="show_folders">{{_('Synchronise only a subfolder of this workspace')}}</label>
         </div>
         <div ng-show="folders && folders.length && showFoldersBox" class="well" style="background-color: white; padding: 10px; margin-top: 7px;">
             <div ng-click="job.remote_folder = ''" ng-class="{'list-group-item-success':!job.remote_folder}" style="cursor: pointer;padding: 5px;border-radius: 3px; display: none;">
-                <span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;Whole workspace<span ng-if="folders_loading"> [loading...]</span> <span>{{folders_loading_error}}</span>
+                <span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;{{_('Whole workspace')}}<span ng-if="folders_loading"> {{_('[loading...]')}}</span> <span>{{folders_loading_error}}</span>
             </div>
             <!-- Want to loose the div in the repeat as well -->
             <div>
@@ -85,7 +85,7 @@
         </div>
     </div>
 
-    <h3 style="margin-top: 50px;">Advanced parameters</h3>
+    <h3 style="margin-top: 50px;">{{_('Advanced parameters')}}</h3>
     <ng-include src="'advanced.html'" onload="job = job"></ng-include>
 
     <div>
@@ -93,11 +93,11 @@
     </div>
 
     <div style="text-align: center; padding-bottom: 40px;">
-        <button type="button" ng-click="save('full')" class="btn btn-info" style="width: 49%">Save Parameters</button>
+        <button type="button" ng-click="save('full')" class="btn btn-info" style="width: 49%">{{_('Save Parameters')}}</button>
     </div>
 
 </div>
 
 <div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: center; background-color: #77b8e2;">
-    <button type="button"  class="btn btn-danger" ng-click="deleteJob()" style="width: 49%;" href>Delete Sync</button>
+    <button type="button"  class="btn btn-danger" ng-click="deleteJob()" style="width: 49%;" href>{{_('Delete Sync')}}</button>
 </div>

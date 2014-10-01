@@ -26,7 +26,6 @@ import pickle
 import logging
 
 from requests.exceptions import ConnectionError
-from collections import deque
 from pydio.job.change_processor import ChangeProcessor
 from pydio.job.localdb import LocalDbHandler, SqlEventHandler
 from pydio.job.local_watcher import LocalWatcher
@@ -39,6 +38,9 @@ from pydispatch import dispatcher
 from pydio import PUBLISH_SIGNAL, TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
 # -*- coding: utf-8 -*-
 from pydio.utils.global_config import ConfigManager
+
+from pydio.utils import i18n
+_ = i18n.language.ugettext
 
 
 class ContinuousDiffMerger(threading.Thread):
@@ -241,7 +243,7 @@ class ContinuousDiffMerger(threading.Thread):
         :return:None
         """
         self.job_status_running = False
-        self.info('Job Paused', toUser='PAUSE', channel='status')
+        self.info(_('Job Paused'), toUser='PAUSE', channel='status')
 
     def resume(self):
         """
@@ -249,7 +251,7 @@ class ContinuousDiffMerger(threading.Thread):
         :return:
         """
         self.job_status_running = True
-        self.info('Job Started', toUser='START', channel='status')
+        self.info(_('Job Started'), toUser='START', channel='status')
 
     def stop(self):
         """
@@ -259,7 +261,7 @@ class ContinuousDiffMerger(threading.Thread):
         if hasattr(self, 'watcher'):
             logging.debug("Stopping watcher: %s" % self.watcher)
             self.watcher.stop()
-        self.info('Job stopping', toUser='PAUSE', channel='status')
+        self.info(_('Job stopping'), toUser='PAUSE', channel='status')
         self.interrupt = True
 
     def sleep_offline(self):
@@ -289,7 +291,7 @@ class ContinuousDiffMerger(threading.Thread):
 
         if self.watcher:
             if self.watcher_first_run:
-                logger.log_state('Checking changes since last launch...', "sync")
+                logger.log_state(_('Checking changes since last launch...'), "sync")
                 very_first = True
                 self.watcher.check_from_snapshot()
                 self.watcher_first_run = False
@@ -308,7 +310,7 @@ class ContinuousDiffMerger(threading.Thread):
 
                 if not self.job_status_running:
                     logging.debug("self.online_timer: %s" % self.online_timer)
-                    logger.log_state('Status: Paused', "sync")
+                    logger.log_state(_('Status: Paused'), "sync")
                     self.sleep_offline()
                     continue
 
@@ -317,16 +319,16 @@ class ContinuousDiffMerger(threading.Thread):
                     end_time = datetime.time(int(self.job_config.start_time['h']), int(self.job_config.start_time['m']), 59)
                     now = datetime.datetime.now().time()
                     if not start_time < now < end_time:
-                        logger.log_state('Status: scheduled for %s' % str(start_time), "sync")
+                        logger.log_state(_('Status: scheduled for %s') % str(start_time), "sync")
                         self.sleep_offline()
                         continue
                     else:
                         logging.info("Now triggering synchro as expected at time " + start_time)
 
                 if not self.system.check_basepath():
-                    log = 'Cannot find local folder! Did you disconnect a volume? Waiting %s seconds before retry' % self.offline_timer
+                    log = _('Cannot find local folder! Did you disconnect a volume? Waiting %s seconds before retry') % self.offline_timer
                     logging.error(log)
-                    logger.log_state('Cannot find local folder, did you disconnect a volume?', "error")
+                    logger.log_state(_('Cannot find local folder, did you disconnect a volume?'), "error")
                     self.sleep_offline()
                     continue
 
@@ -336,9 +338,9 @@ class ContinuousDiffMerger(threading.Thread):
                 self.current_store.open()
                 try:
                     if self.job_config.direction != 'up':
-                        logging.info('Loading remote changes with sequence ' + str(self.remote_seq))
+                        logging.info('Loading remote changes with sequence %s' % str(self.remote_seq))
                         if self.remote_seq == 0:
-                            logger.log_state('Gathering data from remote workspace, this can take a while...', 'sync')
+                            logger.log_state(_('Gathering data from remote workspace, this can take a while...'), 'sync')
                             very_first = True
                         self.remote_target_seq = self.load_remote_changes_in_store(self.remote_seq, self.current_store)
                         self.current_store.sync()
@@ -346,7 +348,7 @@ class ContinuousDiffMerger(threading.Thread):
                         self.remote_target_seq = 1
                         self.ping_remote()
                 except ConnectionError as ce:
-                    error = 'No connection detected, waiting %s seconds to retry' % self.offline_timer
+                    error = _('No connection detected, waiting %s seconds to retry') % self.offline_timer
                     logging.error(error)
                     logger.log_state(error, "wait")
                     self.sleep_offline()
@@ -354,7 +356,7 @@ class ContinuousDiffMerger(threading.Thread):
                 except Exception as e:
                     error = 'Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer)
                     logging.error(error)
-                    logger.log_state('Error while connecting to remote server (%s)' % e.message, "error")
+                    logger.log_state(_('Error while connecting to remote server (%s)') % e.message, "error")
                     self.sleep_offline()
                     continue
                 self.online_status = True
@@ -386,7 +388,7 @@ class ContinuousDiffMerger(threading.Thread):
                 store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
                 if store_conflicts:
                     logging.info('Conflicts detected, cannot continue!')
-                    logger.log_state('Conflicts detected, cannot continue!', 'error')
+                    logger.log_state(_('Conflicts detected, cannot continue!'), 'error')
                     self.current_store.close()
                     self.sleep_offline()
                     continue
@@ -396,7 +398,7 @@ class ContinuousDiffMerger(threading.Thread):
                     import change_processor
                     self.global_progress['queue_length'] = changes_length
                     logging.info('Processing %i changes' % changes_length)
-                    logger.log_state('Processing %i changes' % changes_length, "start")
+                    logger.log_state(_('Processing %i changes') % changes_length, "start")
                     counter = [1]
                     def processor_callback(change):
                         try:
@@ -432,11 +434,11 @@ class ContinuousDiffMerger(threading.Thread):
                         self.current_store.process_changes_with_callback(processor_callback)
                     except InterruptException as iexc:
                         pass
-                    logger.log_state('%i files modified' % self.global_progress['queue_done'], "success")
+                    logger.log_state(_('%i files modified') % self.global_progress['queue_done'], "success")
                 else:
                     logging.info('No changes detected')
                     if very_first:
-                        logger.log_state('Remote and local are synchronized', 'success')
+                        logger.log_state(_('Synchronized'), 'success')
 
             except PydioSdkDefaultException as re:
                 logging.warning(re.message)
@@ -444,10 +446,10 @@ class ContinuousDiffMerger(threading.Thread):
             except Exception as e:
                 if not (e.message.lower().count('[quota limit reached]') or e.message.lower().count('[file permissions]')):
                     logging.exception('Unexpected Error: %s' % e.message)
-                    logger.log_state('Unexpected Error: %s' % e.message, 'error')
+                    logger.log_state(_('Unexpected Error: %s') % e.message, 'error')
 
 
-            logging.info('Finished this cycle, waiting for %i seconds' % self.online_timer)
+            logging.debug('Finished this cycle, waiting for %i seconds' % self.online_timer)
             self.current_store.close()
             self.init_global_progress()
             if self.job_config.frequency == 'manual':

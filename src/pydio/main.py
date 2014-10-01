@@ -101,6 +101,8 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('--diag-http', help='Check server connection', action='store_true', default=False)
     parser.add_argument('--diag-imports', help='Check imports and exit', action='store_true', default=False)
     parser.add_argument('--save-cfg', action='store_true', default=True)
+    parser.add_argument('--extract_html', help='Utils for extracting HTML strings and compiling po files to json',
+                        type=unicode, default=False)
     parser.add_argument('--auto-start', action='store_true')
     parser.add_argument('--auto_detect_port', type=bool, help='Auto detect available ports', default=False)
     parser.add_argument('-v', '--verbose', action='count', default=1)
@@ -141,9 +143,21 @@ def main(argv=sys.argv[1:]):
 
     logging.debug("data: %s" % json.dumps(data, default=JobConfig.encoder, indent=2))
 
-
     if args.diag_imports:
         # nothing more to do
+        return sys.exit(0)
+
+    if args.extract_html:
+        from pydio.utils.i18n import PoProcessor
+        proc = PoProcessor()
+        if args.extract_html == 'extract':
+            root = Path(__file__).parent
+            count = proc.extract_all_html_strings(str(root / 'ui' / 'res' ), str(root / 'res' / 'i18n' / 'html_strings.py' ))
+            logging.info('Wrote %i strings to html_strings.py - Now update PO files using standard tools' % count)
+            # nothing more to do
+        elif args.extract_html == 'compile':
+            root = Path(__file__).parent
+            proc.po_to_json(str(root / 'res' / 'i18n' / '*.po'), str(root / 'ui' / 'res' / 'i18n.js'))
         return sys.exit(0)
 
     if args.diag_http:

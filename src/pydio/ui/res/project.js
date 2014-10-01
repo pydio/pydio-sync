@@ -1,3 +1,16 @@
+window.translate = function(string){
+    lang = navigator.browserLanguage?navigator.browserLanguage:navigator.language;
+    if(lang && window.PydioLangs && window.PydioLangs[lang] && window.PydioLangs[lang][string]){
+        string = window.PydioLangs[lang][string];
+    }
+    var i = 1;
+    while(string.indexOf('%'+i) > -1 && arguments.length > i){
+        string = string.replace('%'+i, arguments[i]);
+        i++;
+    }
+    return string;
+}
+
 angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstrap.progresscircle'])
 
 
@@ -58,7 +71,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
     .filter('moment', function(){
 
         return function(time_string){
-            //moment.locale('fr');
+            moment.locale('fr');
             return moment(time_string).fromNow();
         }
 
@@ -156,6 +169,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
     .controller('ListCtrl', function($scope, $location, $timeout, Jobs, Logs, Conflicts, currentJob, Commands) {
 
         $scope.conflict_solver = {current:false};
+        $scope._ = window.translate;
         $scope.progressCircleData = {
             value: 0
         };
@@ -173,7 +187,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 t2 = $timeout(tickJobs, 2000);
             }, function(response){
                 if(!response.status){
-                    $scope.error = 'Ooops, cannot contact agent! Make sure it\'s running correctly, we\'ll try to reconnect in 20s';
+                    $scope.error = window.translate('Ooops, cannot contact agent! Make sure it is running correctly, process will try to reconnect in 20s');
                     t2 = $timeout(tickJobs, 20000);
                 }
             });
@@ -224,7 +238,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 }, function(response){
                     if(!response.status){
                         if($scope.opened_logs_panel != jobId) return;
-                        $scope.error = 'Ooops, cannot contact agent! Make sure it\'s running correctly, we\'ll try to reconnect in 20s';
+                        $scope.error = window.translate('Ooops, cannot contact agent! Make sure it is running correctly, process will try to reconnect in 20s');
                         t0 = $timeout(tickLog, 20000);
                     }
                 });
@@ -267,6 +281,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
     })
 
     .controller('ListLogsCtrl', function($scope, $routeParams, $timeout, Jobs, Logs, Conflicts){
+        $scope._ = window.translate;
         var tO;
         var t1;
         (function tickLog() {
@@ -277,7 +292,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 tO = $timeout(tickLog, 2000);
             }, function(response){
                 if(!response.status){
-                    $scope.error = 'Ooops, cannot contact agent! Make sure it\'s running correctly, we\'ll try to reconnect in 20s';
+                    $scope.error = window.translate('Ooops, cannot contact agent! Make sure it is running correctly, process will try to reconnect in 20s');
                     tO = $timeout(tickLog, 20000);
                 }
             });
@@ -306,6 +321,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
     })
 
     .controller('CreateCtrl', function($scope, $location, $timeout, Jobs, Ws, currentJob) {
+        $scope._ = window.translate;
 
         $scope.parseURL = function(){
             if(!$scope.inline_host) return;
@@ -372,6 +388,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
     })
 
     .controller('EditCtrl', function($scope, $location, $routeParams, $window, $timeout, Jobs, currentJob, Ws, Folders, Commands) {
+        $scope._ = window.translate;
 
         $scope.loadFolders = function(){
             if($scope.job.repoObject && $scope.job.repoObject['@repositorySlug'] != $scope.job.workspace){
@@ -394,7 +411,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             });
         };
 
-        $scope.selectedWorkspace = "Select a workspace";
+        $scope.selectedWorkspace = window.translate('Select a workspace');
 
         $scope.OnWorkspaceClick = function(workspace) {
             if(workspace.label != $scope.selectedWorkspace){
@@ -434,7 +451,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
             var res;
             if(!window.PydioQtFileDialog) {
-                res = window.prompt('Full path to the local folder');
+                res = window.prompt(window.translate('Full path to the local folder'));
             }else{
                 res = window.PydioQtFileDialog.getPath();
             }
@@ -453,7 +470,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         };
 
         $scope.deleteJob = function(){
-            if($window.confirm('Are you sure you want to delete this synchro? No data will be deleted')){
+            if($window.confirm(window.translate('Are you sure you want to delete this synchro? No data will be deleted'))){
                 Jobs.delete({job_id:$scope.job.id},function(){
                     $location.path('/')
                 });
@@ -507,8 +524,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 $scope.job.compute_sizes = true;
                 $scope.job.$save();
 
-                $scope.job.byte_size = 'computing...'
-                $scope.job.eta = 'computing...'
+                $scope.job.byte_size = window.translate('computing...')
+                $scope.job.eta = window.translate('computing...')
                 $location.path('/edit/new/step4');
 
             }else if(stepName == 'step4'){

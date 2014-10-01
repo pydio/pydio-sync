@@ -1,21 +1,24 @@
 <script type="text/ng-template" id="task_detail.html">
-    <p>SYNC NAME</p>
+    <p>{{_('SYNC NAME')}}</p>
     <p class="small">{{job.label}}</p>
 
-    <p>DATA SIZE</p>
+    <p>{{_('DATA SIZE')}}</p>
     <p class="small" ng-if="job.state">{{job.state.global.queue_bytesize | bytes}}</p>
     <p class="small" ng-if="!job.state">{{job.byte_size | bytes}}</p>
 
-    <p>ESTIMATED TIME</p>
+    <p>{{_('ESTIMATED TIME')}}</p>
     <p class="small" ng-if="job.state">{{job.state.global.eta | seconds}}</p>
     <p class="small" ng-if="!job.state">{{job.eta | seconds}}</p>
 </script>
 
         <div ng-show="!job.state">
-            <h3>Ready for ignition!</h3>
+            <h3>{{_('Ready for ignition!')}}</h3>
             <div style="text-align: center" class="well">
 
-                Are you ready to launch the synchronization?<br>You're data will be in orbit in no time!<br>
+                {{_('Are you ready to launch the synchronization?')}}
+                <br>
+                {{_('Your data will be in orbit in no time!')}}
+                <br>
 
                 <img src="images/rocket.png"/>
 
@@ -23,16 +26,16 @@
                             onload="job=job"
                         ></ng-include>
 
-                <a class="btn btn-primary" ng-click="save('step4')">FIRE THE ROCKET!</a>
+                <a class="btn btn-primary" ng-click="save('step4')">{{_('FIRE THE ROCKET!')}}</a>
                 <br>
                 <br>
-                [<a href="#/edit/new/step3">change parameters</a>]
+                [<a href="#/edit/new/step3">{{_('change parameters')}}</a>]
 
             </div>
         </div>
 
         <div ng-show="job.state">
-            <h3>Synchronization running...</h3>
+            <h3>{{_('Synchronization running...')}}</h3>
             <div style="text-align: center" class="well">
 
                 <img src="images/rocket.png">
@@ -51,8 +54,8 @@
 
             <!-- NAV BAR -->
             <div class="navbar navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
-                <a class="btn btn-info pull-left" href="#/new">CREATE NEW SYNCHRO</a>
-                <a class="btn btn-info pull-right" href="#">DONE</a>
+                <a class="btn btn-info pull-left" href="#/new">{{_('CREATE NEW SYNCHRO')}}</a>
+                <a class="btn btn-info pull-right" href="#">{{_('DONE')}}</a>
             </div>
 
         </div>
