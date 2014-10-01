@@ -9,11 +9,11 @@
                 <td style="vertical-align: top;padding-top: 10px;">
                     <div class="" ng-if="job.state.tasks && job.state.tasks.total">
                         Size : {{job.state.global['queue_bytesize'] | bytes:1}} -
-                        Estimated time : {{job.state.global['eta'] | seconds}}s<br>
+                        Estimated time : {{job.state.global['eta'] | seconds}}<br>
                         Status: Synchronizing
                     </div>
                     <div class="" ng-if="(!job.state.tasks || !job.state.tasks.total) && job.last_event">
-                        <span ng-if="job.last_event.type != 'error'">Last sync. on {{job.last_event.date | last_sync_time }}<br></span>
+                        <span ng-if="job.last_event.type != 'error'">Last sync. {{job.last_event.date | moment }}<br></span>
                         <span ng-if="job.last_event.type == 'error'">ERROR: </span>{{job.last_event.message}}
                         <br>Status: Idle
                     </div>
@@ -59,7 +59,7 @@
 
         <h4 ng-if="running.tasks.total && running.tasks.current.length"  >Transfers in progress <span class="small">({{running.tasks.total}})</span></h4>
         <div ng-if="running.tasks.total && running.tasks.current.length" ng-repeat="task in running.tasks.current" style="padding:2px 0;">
-            <span ng-if="task.total_bytes_sent"><span class="badge">{{100 * task.total_bytes_sent / task.bytesize | number: 1}}%</span></span>
+            <span ng-if="task.total_bytes_sent"><span class="badge">{{ Math.min(100, 100 * task.total_bytes_sent / task.bytesize) | number: 0}}%</span></span>
             <span ng-if="!task.total_bytes_sent && task.location == 'local'" class="glyphicon glyphicon-cloud-upload"></span>
             <span ng-if="!task.total_bytes_sent && task.location == 'remote'" class="glyphicon glyphicon-cloud-download"></span>
             <span>{{task.target && task.target != 'NULL'?task.target:task.source | basename}}</span>

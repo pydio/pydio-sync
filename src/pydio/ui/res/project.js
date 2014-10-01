@@ -43,18 +43,23 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
     .filter('seconds', function(){
 
         return function(sec){
+            if (sec == -1) return 'N/A';
             if (isNaN(parseFloat(sec)) || !isFinite(sec)) return sec;
-            var d=new Date(0,0,0);
-            d.setSeconds(+sec);
-            return (d.getHours() ? d.getHours()+'h ' : '')+d.getMinutes()+'mn '+d.getSeconds();
+            var d=new Date(0,0,0, 0, 0, Math.round(sec));
+            if(d.getHours() || d.getMinutes()){
+                return (d.getHours() ? d.getHours()+'h ' : '')+ (d.getMinutes() ? d.getMinutes()+'mn ':'');
+            }else{
+                return d.getSeconds() + 's';
+            }
         }
 
     })
 
-    .filter('last_sync_time', function(){
+    .filter('moment', function(){
 
         return function(time_string){
-            return time_string.substring(0, time_string.lastIndexOf(':'));
+            //moment.locale('fr');
+            return moment(time_string).fromNow();
         }
 
     })
@@ -154,6 +159,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         $scope.progressCircleData = {
             value: 0
         };
+        $scope.Math = window.Math;
 
         var t2;
         (function tickJobs() {

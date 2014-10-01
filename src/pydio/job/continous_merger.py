@@ -157,13 +157,14 @@ class ContinuousDiffMerger(threading.Thread):
             'total_time'        :0
         }
 
-    def update_global_progress(self):
+    def update_global_progress(self, compute_queue_size=True):
         """
         Compute a dict representation with many indications about the current state of the queue
         :return: dict
         """
         self.global_progress['total_time'] = time.clock() - self.global_progress['queue_start_time']
-        self.global_progress["queue_bytesize"] = self.compute_queue_bytesize()
+        if compute_queue_size:
+            self.global_progress["queue_bytesize"] = self.compute_queue_bytesize()
         # compute an eta
         eta = -1
         if self.global_progress['last_transfer_rate'] > -1 and self.global_progress['queue_bytesize'] > 0 :
@@ -178,6 +179,7 @@ class ContinuousDiffMerger(threading.Thread):
         return self.global_progress
 
     def get_global_progress(self):
+        self.update_global_progress(compute_queue_size=False)
         return self.global_progress
 
     def update_current_tasks(self, cursor=0, limit=5):
