@@ -29,9 +29,9 @@ class PydioApi(Api):
             static_folder = 'res'
         logging.debug('Starting Flask server with following static folder : '+ static_folder)
         self.app = Flask(__name__, static_folder = static_folder, static_url_path='/res')
-        self.app.logger.setLevel(logging.INFO)
+        self.app.logger.setLevel(logging.ERROR)
         super(PydioApi, self).__init__(self.app)
-        self.add_resource(JobManager, '/','/jobs', '/jobs/<string:job_id>')
+        self.add_resource(JobManager, '/', '/jobs', '/jobs/<string:job_id>')
         self.add_resource(WorkspacesManager, '/ws/<string:job_id>')
         self.add_resource(FoldersManager, '/folders/<string:job_id>')
         self.add_resource(LogManager, '/jobs/<string:job_id>/logs')

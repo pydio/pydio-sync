@@ -96,6 +96,7 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
     parser.add_argument('-z', '--zmq_port', type=int,
                         help='Available port for zmq, both this port and this port +1 will be used', default=5556)
+    parser.add_argument('-i', '--rdiff', type=unicode, help='Path to rdiff executable', default=None)
     parser.add_argument('--diag', help='Run self diagnostic', action='store_true', default=False)
     parser.add_argument('--diag-http', help='Check server connection', action='store_true', default=False)
     parser.add_argument('--diag-imports', help='Check imports and exit', action='store_true', default=False)
@@ -120,24 +121,26 @@ def main(argv=sys.argv[1:]):
         return 0
 
     jobs_loader = JobsLoader.Instance(data_path=str(jobs_root_path))
-    ConfigManager.Instance(data_path=str(jobs_root_path))
+    config_manager = ConfigManager.Instance(data_path=str(jobs_root_path))
+    config_manager.set_rdiff_path(args.rdiff)
 
-    if args.file or not argv:
-        fp = args.file
-        if fp and fp != '.':
-            logging.info("Loading config from %s", fp)
-            jobs_loader.config_file = fp
-            jobs_loader.load_config()
-        data = jobs_loader.get_jobs()
-    else:
+    if args.server and args.directory and args.workspace:
         job_config = JobConfig()
         job_config.load_from_cliargs(args)
         data = {job_config.id: job_config}
         if args.save_cfg:
             logging.info("Storing config in %s", str(jobs_root_path / 'configs.json'))
             jobs_loader.save_jobs(data)
+    else:
+        fp = args.file
+        if fp and fp != '.':
+            logging.info("Loading config from %s", fp)
+            jobs_loader.config_file = fp
+            jobs_loader.load_config()
+        data = jobs_loader.get_jobs()
 
     logging.debug("data: %s" % json.dumps(data, default=JobConfig.encoder, indent=2))
+
 
     if args.diag_imports:
         # nothing more to do

@@ -27,12 +27,22 @@ class ConfigManager:
 
     device_id = ''
     data_path = ''
+    rdiff_path = ''
 
     def __init__(self, data_path):
         self.data_path = data_path
 
     def get_data_path(self):
         return self.data_path
+
+    def set_rdiff_path(self, rdiff_path):
+        if rdiff_path is None:
+            self.rdiff_path = False
+        else:
+            self.rdiff_path = rdiff_path
+
+    def get_rdiff_path(self):
+        return self.rdiff_path
 
     def get_device_id(self):
         if self.device_id:

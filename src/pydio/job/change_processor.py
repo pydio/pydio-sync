@@ -20,6 +20,7 @@
 import os
 import logging
 import shutil
+from pydio.utils.global_config import ConfigManager
 
 class ChangeProcessor:
     def __init__(self, change, change_store, job_config, local_sdk, remote_sdk, status_handler, event_logs_handler):
@@ -179,7 +180,7 @@ class ChangeProcessor:
     def process_download(self, path, callback_dict=None):
         self.update_node_status(path, 'DOWN')
         full_path = self.job_config.directory + path.replace("/", "\\")
-        if self.remote_sdk.is_rsync_supported():
+        if self.remote_sdk.is_rsync_supported() and ConfigManager.Instance().get_rdiff_path():
             sig_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".signature")
             delta_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".delta")
             try:
@@ -207,7 +208,7 @@ class ChangeProcessor:
             max_upload_size = int(self.job_config.server_configs['UPLOAD_MAX_SIZE'])
 
         full_path = self.job_config.directory + path
-        if self.remote_sdk.is_rsync_supported():
+        if self.remote_sdk.is_rsync_supported() and ConfigManager.Instance().get_rdiff_path():
             sig_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".signature")
             delta_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".delta")
             try:
