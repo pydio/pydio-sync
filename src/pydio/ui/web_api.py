@@ -49,7 +49,6 @@ class PydioApi(Api):
     def shutdown_server(self):
         logging.debug("Shutdown api server: %s" % self.app)
         with self.app.test_request_context():
-            logging.debug("request.environ: \n\t%s" % "\n\t".join(sorted([k + ": " + v for k, v in request.environ.items()])))
             func = request.environ.get('werkzeug.server.shutdown')
             if func is None:
                 raise RuntimeError('Not running with the Werkzeug Server')
