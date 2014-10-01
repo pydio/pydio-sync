@@ -189,13 +189,13 @@ def upload_file_with_progress(url, fields, files, stream, with_progress, max_siz
         timeout=20
     )
 
-    if str(resp.text).lower().count("507"):
+    if str(resp.text).lower().count("(507)"):
         raise PydioSdkDefaultException('507')
 
-    if str(resp.text).lower().count("412"):
+    if str(resp.text).lower().count("(412)"):
         raise PydioSdkDefaultException('412')
 
-    if str(resp.text).lower().count("410") or str(resp.text).lower().count("411"):
+    if str(resp.text).lower().count("(410)") or str(resp.text).lower().count("(411)"):
         raise PydioSdkDefaultException(str(resp.text))
 
     if resp.status_code == 401:
