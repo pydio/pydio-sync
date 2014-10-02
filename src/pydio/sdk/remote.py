@@ -323,6 +323,9 @@ class PydioSdk():
         :param with_hash: bool whether to ask for files hash or not (md5)
         :return:
         """
+        # NORMALIZE PATHES FROM START
+        pathes = map(lambda p: self.normalize(p), pathes)
+
         action = '/stat_hash' if with_hash else '/stat'
         data = dict()
         maxlen = min(len(pathes), 200)
@@ -367,8 +370,10 @@ class PydioSdk():
                 replaced[p4] = stat
                 pathes.remove(p4)
             else:
+                #pass
+                logging.info('Fatal charset error, cannot find files (%s, %s, %s, %s) in %s' % (repr(p1), repr(p2), repr(p3), repr(p4), repr(pathes),))
                 raise PydioSdkException('bulk_stat', p1, "Encoding problem, failed emptying bulk_stat, "
-                                                         "exiting instead of infinite loop")
+                                                         "exiting to avoid infinite loop")
         if len(pathes):
             self.bulk_stat(pathes, result=replaced, with_hash=with_hash)
         return replaced
@@ -498,6 +503,7 @@ class PydioSdk():
         files = {'userfile_0': local}
         data = {
             'force_post': 'true',
+            'xhr_uploader': 'true',
             'urlencoded_filename': self.urlencode_normalized(os.path.basename(path))
         }
         try:
