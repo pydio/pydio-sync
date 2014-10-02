@@ -123,6 +123,9 @@ class LocalDbHandler():
         if not os.path.exists(self.db):
             self.init_db()
 
+    def normpath(self, path):
+        return os.path.normpath(path)
+
     def check_lock_on_event_handler(self, event_handler):
         """
         :param event_handler:SqlEventHandler
@@ -144,6 +147,7 @@ class LocalDbHandler():
         conn.close()
 
     def find_node_by_id(self, node_path, with_status=False):
+        node_path = self.normpath(node_path)
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
@@ -158,6 +162,7 @@ class LocalDbHandler():
         return id
 
     def get_node_md5(self, node_path):
+        node_path = self.normpath(node_path)
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
@@ -169,6 +174,7 @@ class LocalDbHandler():
         return hashfile(self.base + node_path, hashlib.md5())
 
     def get_node_status(self, node_path):
+        node_path = self.normpath(node_path)
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
@@ -222,6 +228,7 @@ class LocalDbHandler():
 
 
     def update_node_status(self, node_path, status='IDLE', detail=''):
+        node_path = self.normpath(node_path)
         if detail:
             detail = pickle.dumps(detail)
         node_id = self.find_node_by_id(node_path, with_status=True)
@@ -608,7 +615,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 del_element = self.find_deleted_element(c, self.last_seq_id, os.path.basename(src_path), md5=hash_key)
 
             if del_element:
-                logging.info("THIS IS A MOVE " + src_path)
+                logging.info("THIS IS CAN BE A MOVE OR WINDOWS UPDATE " + src_path)
                 t = (
                     del_element['node_id'],
                     del_element['source'],

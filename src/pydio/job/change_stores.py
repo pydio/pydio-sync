@@ -104,11 +104,16 @@ class SqliteChangeStore():
 
         #now go to the rest
         res = c.execute('SELECT * FROM ajxp_changes ORDER BY seq_id ASC')
+        rows_to_process = []
         for row in res:
+            rows_to_process.append(self.sqlite_row_to_dict(row, load_node=True))
+
+        for r in rows_to_process:
             try:
-                output = callback(self.sqlite_row_to_dict(row, load_node=True))
+                logging.debug('PROCESSING CHANGE WITH ROW ID %i' % r['row_id'])
+                output = callback(r)
                 if output:
-                    self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (row['row_id'],))
+                    self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (r['row_id'],))
             except InterruptException as e:
                 break
         self.conn.commit()
@@ -255,11 +260,11 @@ class SqliteChangeStore():
             if node['status'] == 'SOLVED:KEEPREMOTE':
                 # remove local operation
                 self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
-                                  ('local', node['node_path']))
+                                  ('local', node['node_path'].replace('\\', '/')))
             elif node['status'] == 'SOLVED:KEEPLOCAL':
                 # remove remote operation
                 self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
-                                  ('remote', node['node_path']))
+                                  ('remote', node['node_path'].replace('\\', '/')))
 
         status_handler.list_solved_nodes_w_callback(handle_solved)
         self.conn.commit()
@@ -359,7 +364,9 @@ class SqliteChangeStore():
     def bulk_buffer_real_operation(self, bulk):
         if bulk :
             for operation in bulk:
-                self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (operation['type'], operation['location'], operation['source'].replace("\\", "/"), operation['target'].replace("\\", "/")))
+                location = operation['location']
+                location = 'remote' if location == 'local' else 'local'
+                self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (operation['type'], location, operation['source'].replace("\\", "/"), operation['target'].replace("\\", "/")))
             self.conn.commit()
 
 
@@ -463,13 +470,14 @@ class SqliteChangeStore():
         self.conn.commit()
 
     def echo_match(self, location, change):
-        if location == 'remote':
-            pass
+        #if location == 'remote':
+        #    pass
 
         source = change['source'].replace("\\", "/")
         target = change['target'].replace("\\", "/")
         action = change['type']
         for _ in self.conn.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (action, location, source, target)):
+            logging.debug('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
             return True
         return False
 

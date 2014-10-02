@@ -77,7 +77,7 @@ class ChangeProcessor:
                                                                     item['node']['node_path'])
                     else:
                         self.process_upload(item['node']['node_path'], is_mod=(item['content'] == 1), callback_dict=item)
-                        self.change_store.buffer_real_operation(location, item['type'], 'NULL',
+                        self.change_store.buffer_real_operation(location, item['type'], ('NULL' if item['type'] =='create' else item['node']['node_path']),
                                                                 item['node']['node_path'])
 
         elif item['type'] == 'delete':
