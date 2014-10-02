@@ -189,27 +189,28 @@ def upload_file_with_progress(url, fields, files, stream, with_progress, max_siz
         timeout=20
     )
 
-    if str(resp.text).count('message type="ERROR"'):
+    if resp.headers.get('content-type') != 'application/octet-stream':
+        if unicode(resp.text).count('message type="ERROR"'):
 
-        if str(resp.text).lower().count("(507)"):
+            if unicode(resp.text).lower().count("(507)"):
+                raise PydioSdkDefaultException('507')
+
+            if unicode(resp.text).lower().count("(412)"):
+                raise PydioSdkDefaultException('412')
+
+            import re
+            # Remove XML tags
+            text = re.sub('<[^<]+>', '', unicode(resp.text))
+            raise PydioSdkDefaultException(text)
+
+        if unicode(resp.text).lower().count("(507)"):
             raise PydioSdkDefaultException('507')
 
-        if str(resp.text).lower().count("(412)"):
+        if unicode(resp.text).lower().count("(412)"):
             raise PydioSdkDefaultException('412')
 
-        import re
-        # Remove XML tags
-        text = re.sub('<[^<]+>', '', str(resp.text))
-        raise PydioSdkDefaultException(text)
-
-    if str(resp.text).lower().count("(507)"):
-        raise PydioSdkDefaultException('507')
-
-    if str(resp.text).lower().count("(412)"):
-        raise PydioSdkDefaultException('412')
-
-    if str(resp.text).lower().count("(410)") or str(resp.text).lower().count("(411)"):
-        raise PydioSdkDefaultException(str(resp.text))
+        if unicode(resp.text).lower().count("(410)") or unicode(resp.text).lower().count("(411)"):
+            raise PydioSdkDefaultException(unicode(resp.text))
 
     if resp.status_code == 401:
         return resp

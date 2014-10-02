@@ -68,7 +68,7 @@ class ChangeProcessor:
             else:
                 if item['node']['node_path']:
                     if location == 'remote':
-                        self.process_download(item['node']['node_path'], callback_dict=item)
+                        self.process_download(item['node']['node_path'], is_mod=(item['content'] == 1), callback_dict=item)
                         if item['type'] == 'create':
                             self.change_store.buffer_real_operation(location, item['type'], 'NULL',
                                                                     item['node']['node_path'])
@@ -76,7 +76,7 @@ class ChangeProcessor:
                             self.change_store.buffer_real_operation(location, item['type'], item['node']['node_path'],
                                                                     item['node']['node_path'])
                     else:
-                        self.process_upload(item['node']['node_path'], item)
+                        self.process_upload(item['node']['node_path'], is_mod=(item['content'] == 1), callback_dict=item)
                         self.change_store.buffer_real_operation(location, item['type'], 'NULL',
                                                                 item['node']['node_path'])
 
@@ -114,7 +114,7 @@ class ChangeProcessor:
                         self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
                     else:
                         logging.debug('Cannot find source, switching to DOWNLOAD')
-                        self.process_download(item['target'], callback_dict=item)
+                        self.process_download(item['target'], is_mod=False, callback_dict=item)
                     self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
             else:
                 if self.remote_sdk.stat(item['source']):
@@ -122,7 +122,7 @@ class ChangeProcessor:
                     self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'])
                 elif item['node']['md5'] != 'directory':
                     logging.debug('Cannot find source, switching to UPLOAD')
-                    self.process_upload(item['target'], item)
+                    self.process_upload(item['target'], callback_dict=item, is_mod=False)
                     self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
 
 
@@ -183,16 +183,18 @@ class ChangeProcessor:
                  message=(_('Moved %(source)s to %(target)s') % ({'source': source, 'target': target})))
         self.remote_sdk.rename(source, target)
 
-    def process_download(self, path, callback_dict=None):
+    def process_download(self, path, is_mod=False, callback_dict=None):
         self.update_node_status(path, 'DOWN')
-        full_path = self.job_config.directory + path.replace("/", "\\")
-        if self.remote_sdk.is_rsync_supported() and ConfigManager.Instance().get_rdiff_path():
+        full_path = self.job_config.directory + path
+        message = path + ' <====DOWNLOAD==== ' + path
+        if is_mod and self.remote_sdk.is_rsync_supported() and ConfigManager.Instance().get_rdiff_path():
             sig_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".signature")
             delta_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".delta")
             try:
                 self.local_sdk.rsync_signature(full_path, sig_path)
                 self.remote_sdk.rsync_delta(path, sig_path, delta_path)
                 self.local_sdk.rsync_patch(full_path, delta_path)
+                message = path + ' <====PATCH====== ' + path
             except Exception as e:
                 self.remote_sdk.download(path, self.job_config.directory + path, callback_dict)
             if os.path.exists(sig_path):
@@ -203,35 +205,37 @@ class ChangeProcessor:
             self.remote_sdk.download(path, self.job_config.directory + path, callback_dict)
 
         self.update_node_status(path, 'IDLE')
-        message = path + ' <=============== ' + path
         self.log(type='local', action='download', status='success',
                  target=path, console_message=message, message=(_('File %s downloaded from server') % path))
 
-    def process_upload(self, path, callback_dict=None):
+    def process_upload(self, path, is_mod=False, callback_dict=None):
         self.update_node_status(path, 'UP')
         max_upload_size = -1
         if self.job_config.server_configs and 'UPLOAD_MAX_SIZE' in self.job_config.server_configs:
             max_upload_size = int(self.job_config.server_configs['UPLOAD_MAX_SIZE'])
 
         full_path = self.job_config.directory + path
-        if self.remote_sdk.is_rsync_supported() and ConfigManager.Instance().get_rdiff_path():
+        message = path + ' =====UPLOAD====> ' + path
+        if is_mod and self.remote_sdk.is_rsync_supported() and ConfigManager.Instance().get_rdiff_path():
             sig_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".signature")
             delta_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".delta")
             try:
                 self.remote_sdk.rsync_signature(path, sig_path)
                 self.local_sdk.rsync_delta(full_path, sig_path, delta_path)
                 self.remote_sdk.rsync_patch(path, delta_path)
+                message = path + ' =====PATCH=====> ' + path
             except Exception as e:
                 self.remote_sdk.upload(full_path, self.local_sdk.stat(path), path, callback_dict,
                                max_upload_size=max_upload_size)
-            if os.path.exists(sig_path):
-                os.remove(sig_path)
-            if os.path.exists(delta_path):
-                os.remove(delta_path)
+            finally:
+                if os.path.exists(sig_path):
+                    os.remove(sig_path)
+                if os.path.exists(delta_path):
+                    os.remove(delta_path)
         else:
             self.remote_sdk.upload(full_path, self.local_sdk.stat(path), path, callback_dict,
                                max_upload_size=max_upload_size)
+
         self.update_node_status(path, 'IDLE')
-        message = path + ' ===============> ' + path
         self.log(type='remote', action='upload', status='success', target=path,
                  console_message=message, message=(_('File %s uploaded to server') % path))

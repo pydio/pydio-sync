@@ -117,5 +117,8 @@ class SystemSdk(object):
         if not self.rdiff_path:
             return
         if not output_path:
-            output_path = file_path
+            output_path = file_path + ".patched"
         subprocess.check_call([self.rdiff_path, 'patch', file_path, delta_path, output_path])
+        if os.path.exists(output_path) and os.path.getsize(output_path):
+            os.unlink(file_path)
+            os.rename(output_path, file_path)
