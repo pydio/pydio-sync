@@ -22,29 +22,27 @@ else:
 #
 #  In maemo it is in the LANG environment variable
 #  (on desktop is usually LANGUAGES)
-DEFAULT_LANGUAGES = os.environ.get('LANG', '').split(':')
-DEFAULT_LANGUAGES += ['en_US']
+def get_languages():
+    DEFAULT_LANGUAGES = os.environ.get('LANG', '').split(':')
+    DEFAULT_LANGUAGES += ['en_US']
 
-languages = []
-lc, encoding = locale.getdefaultlocale()
-if lc:
-    languages = [lc]
+    languages = []
+    lc, encoding = locale.getdefaultlocale()
+    if lc:
+        languages = [lc]
 
-# Concat all languages (env + default locale),
-#  and here we have the languages and location of the translations
-languages += DEFAULT_LANGUAGES
+    # Concat all languages (env + default locale),
+    #  and here we have the languages and location of the translations
+    languages += DEFAULT_LANGUAGES
+    return languages
+
+
+languages = get_languages()
 mo_location = LOCALE_DIR
-
-# Lets tell those details to gettext
-#  (nothing to change here for you)
 gettext.install(True, localedir=None, unicode=1)
-
 gettext.find(APP_NAME, mo_location)
-
 gettext.textdomain (APP_NAME)
-
 gettext.bind_textdomain_codeset(APP_NAME, "UTF-8")
-
 language = gettext.translation(APP_NAME, mo_location, languages=languages, fallback=True)
 
 """

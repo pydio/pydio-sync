@@ -1,7 +1,16 @@
 window.translate = function(string){
-    lang = navigator.browserLanguage?navigator.browserLanguage:navigator.language;
-    if(lang && window.PydioLangs && window.PydioLangs[lang] && window.PydioLangs[lang][string]){
-        string = window.PydioLangs[lang][string];
+    var lang;
+    if(window.PydioLangs){
+        if(window.PydioEnvLanguages && window.PydioEnvLanguages.length && window.PydioLangs[window.PydioEnvLanguages[0]]){
+            lang = window.PydioEnvLanguages[0];
+        }else{
+            var test = navigator.browserLanguage?navigator.browserLanguage:navigator.language;
+            if(test && window.PydioLangs[test]) lang = test;
+        }
+        if(lang && window.PydioLangs[lang][string]){
+            string = window.PydioLangs[lang][string];
+        }
+
     }
     var i = 1;
     while(string.indexOf('%'+i) > -1 && arguments.length > i){
@@ -71,7 +80,11 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
     .filter('moment', function(){
 
         return function(time_string){
-            moment.locale('fr');
+            if(window.PydioEnvLanguages && window.PydioEnvLanguages.length){
+                moment.locale(window.PydioEnvLanguages[0]);
+            }else if(navigator.browserLanguage || navigator.language){
+                moment.locale(navigator.browserLanguage?navigator.browserLanguage:navigator.language);
+            }
             return moment(time_string).fromNow();
         }
 

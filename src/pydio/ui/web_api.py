@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_restful import Api
 
-from flask import request, redirect
+from flask import request, redirect, Response
 from flask.ext.restful import Resource
 from pydio.job.job_config import JobConfig, JobsLoader
 from pydio.job.EventLogger import EventLogger
@@ -40,6 +40,32 @@ class PydioApi(Api):
         self.add_resource(LogManager, '/jobs/<string:job_id>/logs')
         self.add_resource(ConflictsManager, '/jobs/<string:job_id>/conflicts', '/jobs/conflicts')
         self.add_resource(CmdManager, '/cmd/<string:cmd>/<string:job_id>', '/cmd/<string:cmd>')
+        self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
+
+    def serve_i18n_file(self):
+        s = ''
+        from pydio.utils.i18n import get_languages
+        import json
+        languages = get_languages()
+        short_lang = []
+        for l in languages:
+            short_lang.append(l.split('_')[0])
+
+        if getattr(sys, 'frozen', False):
+            static_folder = (Path(sys._MEIPASS)) / 'ui' / 'res'
+        else:
+            static_folder = Path(__file__).parent / 'res'
+
+        with open(str(static_folder / 'i18n.js')) as js:
+            for line in js:
+                s += line
+
+        s += '\n'
+        s += 'window.PydioEnvLanguages = ' + json.dumps(short_lang) + ';'
+        resp = Response(response=s,
+                        status=200,
+                        mimetype="text/javascript")
+        return resp
 
     def start_server(self):
         try:
