@@ -36,12 +36,13 @@ from pydio.utils.functions import hashfile, set_file_hidden
 
 class SqlSnapshot(object):
 
-    def __init__(self, basepath, job_data_path):
+    def __init__(self, basepath, job_data_path, sub_folder=None):
         self.db = job_data_path + '/pydio.sqlite'
         self.basepath = basepath
         self._stat_snapshot = {}
         self._inode_to_path = {}
         self.is_recursive = True
+        self.sub_folder = sub_folder
         self.load_from_db()
 
     def load_from_db(self):
@@ -49,7 +50,13 @@ class SqlSnapshot(object):
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        for row in c.execute("SELECT node_path,stat_result FROM ajxp_index WHERE stat_result NOT NULL"):
+        if self.sub_folder:
+            res = c.execute("SELECT node_path,stat_result FROM ajxp_index WHERE stat_result NOT NULL "
+                            "AND (node_path=? OR node_path LIKE ?)",
+                            (os.path.normpath(self.sub_folder), os.path.normpath(self.sub_folder+'/%'),))
+        else:
+            res = c.execute("SELECT node_path,stat_result FROM ajxp_index WHERE stat_result NOT NULL")
+        for row in res:
             stat = pickle.loads(str(row['stat_result']))
             path = self.basepath + row['node_path']
             self._stat_snapshot[path] = stat
@@ -437,6 +444,7 @@ class SqlEventHandler(FileSystemEventHandler):
         self.includes = includes
         self.excludes = excludes
         db_handler = LocalDbHandler(job_data_path, basepath)
+        self.unique_id = hashlib.md5(job_data_path).hexdigest()
         self.db = db_handler.db
         self.reading = False
         self.last_write_time = 0
@@ -497,7 +505,7 @@ class SqlEventHandler(FileSystemEventHandler):
             for row2 in c.execute("SELECT node_id FROM ajxp_index WHERE node_path=?", (target_key,)):
                 target_id = row2['node_id']
                 break
-            #c.close()
+            c.close()
             if not node_id:
                 if target_id:
                     # fake update = content
@@ -518,6 +526,7 @@ class SqlEventHandler(FileSystemEventHandler):
     def on_created(self, event):
 
         if not self.included(event):
+            logging.debug('ignoring create event %s ' % event.src_path)
             return
         self.lock_db()
         logging.debug("Event: creation noticed: " + event.event_type +
@@ -669,19 +678,27 @@ class SqlEventHandler(FileSystemEventHandler):
         if os.name in ("nt", "ce"):
             logging.debug("Created folder %s with node id %i" % (path, node_id))
             try:
+                self.clear_windows_folder_id(path)
                 with open(path + "\\.pydio_id", "w") as hidden:
-                    hidden.write("%i" % (node_id,))
+                    hidden.write("%s:%i" % (self.unique_id, node_id,))
                     hidden.close()
                     set_file_hidden(path + "\\.pydio_id")
             except Exception as e:
-                logging.error("Error while trying to save hidden file .pydio_id")
+                logging.error("Error while trying to save hidden file .pydio_id : %s" % e.message)
 
     def find_windows_folder_id(self, path):
         if os.name in("nt", "ce") and os.path.exists(path + "\\.pydio_id"):
             with open(path + "\\.pydio_id") as hidden_file:
-                node_id = int(hidden_file.readline())
+                data = hidden_file.readline().split(':')
+                if len(data) < 1 or (len(data) == 2 and data[0] != self.unique_id):
+                    #wrong format or wrong unique_id!
+                    hidden_file.close()
+                    self.clear_windows_folder_id(path)
+                    return None
+                elif len(data) == 2:
+                    hidden_file.close()
+                    return int(data[1])
                 hidden_file.close()
-                return node_id
         return None
 
     def clear_windows_folder_id(self, path):

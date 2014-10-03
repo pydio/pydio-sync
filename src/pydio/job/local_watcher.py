@@ -50,7 +50,7 @@ class SnapshotDiffStart(DirectorySnapshotDiff):
         self._dirs_created = list()
 
         # Detect all the modifications.
-        for path, stat_info in dirsnap.stat_snapshot.items():
+        for path, stat_info in dirsnap._stat_info.items():
             if path in ref_dirsnap.stat_snapshot:
                 ref_stat_info = ref_dirsnap.stat_info(path)
                 if stat_info.st_mtime != ref_stat_info.st_mtime:
@@ -103,11 +103,15 @@ class LocalWatcher(threading.Thread):
         self.interrupt = False
         self.event_handler = event_handler
 
-    def check_from_snapshot(self):
+    def check_from_snapshot(self, sub_folder=None):
         logging.info('Scanning for changes since last application launch')
-        if os.path.exists(self.basepath):
-            previous_snapshot = SqlSnapshot(self.basepath, self.job_data_path)
-            snapshot = DirectorySnapshot(self.basepath, recursive=True)
+        if (not sub_folder and os.path.exists(self.basepath)) or (sub_folder and os.path.exists(self.basepath + sub_folder)):
+            previous_snapshot = SqlSnapshot(self.basepath, self.job_data_path, sub_folder)
+            if sub_folder:
+                local_path = self.basepath + os.path.normpath(sub_folder)
+            else:
+                local_path = self.basepath
+            snapshot = DirectorySnapshot(local_path, recursive=True)
             diff = SnapshotDiffStart(previous_snapshot, snapshot)
             for path in diff.dirs_created:
                 if self.interrupt:

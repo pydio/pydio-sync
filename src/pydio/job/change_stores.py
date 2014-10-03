@@ -142,6 +142,31 @@ class SqliteChangeStore():
                 total = float(row['total'])
         return total
 
+    def commonprefix(self, path_list):
+        return os.path.commonprefix(path_list).rpartition('/')[0]
+
+    def find_modified_parents(self):
+        sql = 'SELECT * FROM ajxp_changes t1 ' \
+              '     WHERE type="create" ORDER BY target ASC'
+        c = self.conn.cursor()
+        res = c.execute(sql)
+        parents = []
+        common_parents = []
+        for row in res:
+            r = self.sqlite_row_to_dict(row)
+            dir_path = os.path.dirname(row['target'])
+            parent_found = False
+            for stored in parents:
+                if dir_path.startswith(stored):
+                    parent_found = True
+                    break
+            if not parent_found:
+                parents.append(dir_path)
+
+        #common_parents.append(self.commonprefix(parents))
+        self.conn.commit()
+        return parents
+
 
     def prune_folders_moves(self):
         sql = 'SELECT * FROM ajxp_changes t1 ' \

@@ -21,6 +21,7 @@
 import time
 import datetime
 import os
+import sys
 import threading
 import pickle
 import logging
@@ -90,6 +91,10 @@ class ContinuousDiffMerger(threading.Thread):
         self.event_handler = None
         self.watcher = None
         self.watcher_first_run = True
+
+        self.mark_for_snapshot = False
+        self.marked_for_snapshot_pathes = []
+
         dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel='status', message='START')
         if job_config.direction != 'down':
             self.event_handler = SqlEventHandler(includes=job_config.filters['includes'],
@@ -332,6 +337,11 @@ class ContinuousDiffMerger(threading.Thread):
                     self.sleep_offline()
                     continue
 
+                if self.mark_for_snapshot:
+                    for snap_path in self.marked_for_snapshot_pathes:
+                        logging.info('LOCAL SNAPSHOT : loading snapshot for directory %s' % snap_path)
+                        self.watcher.check_from_snapshot(snap_path)
+
                 # Load local and/or remote changes, depending on the direction
                 from pydio.job.change_stores import SqliteChangeStore
                 self.current_store = SqliteChangeStore(self.data_base + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'])
@@ -394,6 +404,7 @@ class ContinuousDiffMerger(threading.Thread):
                     continue
 
                 changes_length = len(self.current_store)
+                self.mark_for_snapshot = False
                 if changes_length:
                     import change_processor
                     self.global_progress['queue_length'] = changes_length
@@ -431,6 +442,11 @@ class ContinuousDiffMerger(threading.Thread):
                         return True
 
                     try:
+                        if sys.platform.startswith('win'):
+                            parents = self.current_store.find_modified_parents()
+                            if len(parents):
+                                self.marked_for_snapshot_pathes = parents
+                                self.mark_for_snapshot = True
                         self.current_store.process_changes_with_callback(processor_callback)
                     except InterruptException as iexc:
                         pass
