@@ -489,23 +489,27 @@ class SqlEventHandler(FileSystemEventHandler):
             conn = sqlite3.connect(self.db)
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
+            target_id = None
             node_id = None
             for row in c.execute("SELECT node_id FROM ajxp_index WHERE node_path=?", (source_key,)):
                 node_id = row['node_id']
                 break
-            c.close()
+            for row2 in c.execute("SELECT node_id FROM ajxp_index WHERE node_path=?", (target_key,)):
+                target_id = row2['node_id']
+                break
+            #c.close()
             if not node_id:
-                # detected a move but node not found: create it
-                self.updateOrInsert(self.get_unicode_path(event.dest_path), event.is_directory, True, force_insert=True)
+                if target_id:
+                    # fake update = content
+                    conn.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", (target_key, target_key, ))
+                else:
+                     # detected a move but node not found: create it
+                    self.updateOrInsert(self.get_unicode_path(event.dest_path), event.is_directory, True, force_insert=True)
             else:
-                conn = sqlite3.connect(self.db)
-                t = (
-                    self.remove_prefix(self.get_unicode_path(event.dest_path)),
-                    self.remove_prefix(self.get_unicode_path(event.src_path)),
-                )
+                t = (target_key,source_key,)
                 conn.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", t)
-                conn.commit()
-                conn.close()
+            conn.commit()
+            conn.close()
         except Exception as ex:
             logging.exception(ex)
 
@@ -627,6 +631,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 c.execute("INSERT INTO ajxp_index (node_id,node_path,bytesize,md5,mtime,stat_result) "
                           "VALUES (?,?,?,?,?,?)", t)
                 c.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", (search_key, del_element['source']))
+                conn.commit()
             else:
                 if hash_key == 'directory' and existing_id:
                     self.clear_windows_folder_id(src_path)
