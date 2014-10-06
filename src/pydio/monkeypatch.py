@@ -18,7 +18,6 @@
 #  The latest code can be found at <http://pyd.io/>.
 # coding=utf-8
 import sys
-from watchdog.utils import platform
 import requests.certs
 from pathlib import *
 import os
@@ -42,7 +41,7 @@ if getattr(sys, 'frozen', False):
 
 fs_encoding = sys.getfilesystemencoding()
 
-if not fs_encoding and platform.is_linux():
+if not fs_encoding and sys.platform.startswith('linux'):
     def _watchdog_encode(path):
         if isinstance(path, unicode):
             path = path.encode('utf-8', 'strict')
