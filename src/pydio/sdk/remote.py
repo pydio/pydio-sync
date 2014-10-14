@@ -390,6 +390,11 @@ class PydioSdk():
         return resp.content
 
     def bulk_mkdir(self, pathes):
+        """
+        Create many directories at once
+        :param pathes: a set of directories to create
+        :return: content of the response
+        """
         data = dict()
         data['ignore_exists'] = 'true'
         data['nodes[]'] = map(lambda t: self.normalize(self.remote_folder + t), filter(lambda x: x != '', pathes))
@@ -418,8 +423,8 @@ class PydioSdk():
         """
         if os.path.dirname(source) == os.path.dirname(target):
             url = self.url + '/rename'
-            data = dict(file=(self.remote_folder + source).encode('utf-8'),
-                        dest=(self.remote_folder + target).encode('utf-8'))
+            data = dict(file=self.normalize(self.remote_folder + source).encode('utf-8'),
+                        dest=self.normalize(self.remote_folder + target).encode('utf-8'))
         else:
             url = self.url + '/move'
             data = dict(
@@ -605,11 +610,11 @@ class PydioSdk():
 
         resp = self.perform_request(url=url, type='post', data=data)
         self.is_pydio_error_response(resp)
-        queue = [ET.ElementTree(ET.fromstring(resp.content))._root]
+        queue = [ET.ElementTree(ET.fromstring(resp.content)).getroot()]
         snapshot = dict()
         while len(queue):
             tree = queue.pop(0)
-            if (tree.get('ajxp_mime') == 'ajxp_folder'):
+            if tree.get('ajxp_mime') == 'ajxp_folder':
                 for subtree in tree.findall('tree'):
                     queue.append(subtree)
             path = tree.get('filename')
@@ -625,7 +630,7 @@ class PydioSdk():
     def snapshot_from_changes(self, call_back=None):
         url = self.url + '/changes/0/?stream=true&flatten=true'
         if self.remote_folder:
-            url += '&filter=' + self.remote_folder
+            url += '&filter=' + self.urlencode_normalized(self.remote_folder)
         resp = self.perform_request(url=url, stream=True)
         files = dict()
         for line in resp.iter_lines(chunk_size=512):
@@ -642,7 +647,7 @@ class PydioSdk():
 
     def apply_check_hook(self, hook_name='', hook_arg='', file='/'):
         url = self.url + '/apply_check_hook/'+hook_name+'/'+str(hook_arg)+'/'
-        resp = self.perform_request(url=url, type='post', data={'file':file})
+        resp = self.perform_request(url=url, type='post', data={'file': self.normalize(file)})
         return resp
 
     def quota_usage(self):
@@ -658,25 +663,27 @@ class PydioSdk():
             raise PydioSdkQuotaException(path, file_size, usage, total)
 
     def is_pydio_error_response(self, resp):
-        success = True
+        error = False
+        message = 'Unknown error'
         try:
-            element = ET.ElementTree(ET.fromstring(resp.content))._root
-            success = str(element.get('type')).lower() == 'success'
+            element = ET.ElementTree(ET.fromstring(resp.content)).getroot()
+            error = str(element.get('type')).lower() == 'error'
             message = element[0].text
         except Exception as e:
-            if not success:
-                raise PydioSdkDefaultException(e.message)
+            pass
+        if error:
+            raise PydioSdkDefaultException(message)
 
     def rsync_delta(self, path, signature, delta_path):
-        url = self.url + ('/filehasher_delta' + self.remote_folder + path.replace("\\", "/"))
-        resp = self.perform_request(url=url, type='post', with_progress=False, files={'userfile_0':signature}, stream=True)
+        url = self.url + ('/filehasher_delta' + self.urlencode_normalized(self.remote_folder + path.replace("\\", "/")))
+        resp = self.perform_request(url=url, type='post', with_progress=False, files={'userfile_0': signature}, stream=True)
         fd = open(delta_path, 'wb')
         for chunk in resp.iter_content(8192):
             fd.write(chunk)
         fd.close()
 
     def rsync_signature(self, path, signature):
-        url = self.url + ('/filehasher_signature'+self.remote_folder + path.replace("\\", "/"))
+        url = self.url + ('/filehasher_signature'+ self.urlencode_normalized(self.remote_folder + path.replace("\\", "/")))
         resp = self.perform_request(url=url, type='post', with_progress=False, stream=True)
         fd = open(signature, 'wb')
         for chunk in resp.iter_content(8192):
@@ -684,7 +691,7 @@ class PydioSdk():
         fd.close()
 
     def rsync_patch(self, path, delta_path):
-        url = self.url + ('/filehasher_patch'+ self.remote_folder + path.replace("\\", "/"))
+        url = self.url + ('/filehasher_patch'+ self.urlencode_normalized(self.remote_folder + path.replace("\\", "/")))
         resp = self.perform_request(url=url, type='post', with_progress=False, files={'userfile_0' : delta_path})
         self.is_pydio_error_response(resp)
 
