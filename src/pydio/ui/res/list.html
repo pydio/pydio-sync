@@ -51,7 +51,7 @@
             <tr ng-repeat="log in logs | filter: ({type:'remote'}||{type:'local'})  | limitTo:4">
                 <td style="padding:2px 0; width: 12px;" class="glyphicon glyphicon-file"></td>
                 <td style="padding:2px 0;width: 80%;">{{log.source && log.source!='NULL' ? log.source:log.target | basename}}</td>
-                <td style="text-align: right;padding:2px 0;"><a style="text-decoration: none;" class="small" href="file://{{log.source && log.source!='NULL' ? log.source:log.target}}">{{_('Open File')}}</a></td>
+                <td style="text-align: right;padding:2px 0;"><a style="text-decoration: none;" class="small" href="file://{{job.directory}}{{log.source && log.source!='NULL' ? log.source:log.target}}">{{_('Open File')}}</a></td>
             </tr>
         </table>
 
