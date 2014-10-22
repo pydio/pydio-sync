@@ -18,12 +18,9 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 
-import logging
 import urllib
 import json
-import os
 import hmac
-import time
 import random
 import unicodedata
 import platform
@@ -40,7 +37,7 @@ import xml.etree.ElementTree as ET
 
 from exceptions import PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException, PydioSdkQuotaException, \
     PydioSdkDefaultException, PydioSdkPermissionException
-from .utils import upload_file_with_progress
+from .utils import *
 from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
 from pydio.utils import i18n
 _ = i18n.language.ugettext
@@ -64,6 +61,7 @@ class PydioSdk():
         self.url = url.rstrip('/') + '/api/' + ws_id
         self.remote_folder = remote_folder
         self.user_id = user_id
+        self.interrupt_tasks = False
         self.upload_max_size = PYDIO_SDK_MAX_UPLOAD_PIECES
         self.rsync_server_support = False
         if user_id:
@@ -85,6 +83,12 @@ class PydioSdk():
         if 'RSYNC_SUPPORTED' in configs:
             self.rsync_supported = configs['RSYNC_SUPPORTED'] == 'true'
         pass
+
+    def set_interrupt(self):
+        self.interrupt_tasks = True
+
+    def remove_interrupt(self):
+        self.interrupt_tasks = False
 
     def urlencode_normalized(self, unicode_path):
         """
@@ -172,7 +176,7 @@ class PydioSdk():
             data['auth_token'] = token
             data['auth_hash'] = auth_hash
             if files:
-                resp = upload_file_with_progress(url, dict(**data), files, stream, with_progress,
+                resp = self.upload_file_with_progress(url, dict(**data), files, stream, with_progress,
                                                  max_size=self.upload_max_size)
             else:
                 resp = requests.post(url=url, data=data, stream=stream, timeout=20, verify=self.verify_ssl)
@@ -292,7 +296,7 @@ class PydioSdk():
             blocks: 0
         }
         """
-        path = self.remote_folder + path;
+        path = self.remote_folder + path
         action = '/stat_hash' if with_hash else '/stat'
         try:
             url = self.url + action + self.urlencode_normalized(path)
@@ -496,8 +500,10 @@ class PydioSdk():
                 raise PydioSdkException('upload', path, _('File not correct after upload (expected size was 0 bytes)'))
             return True
 
-        if self.upload_max_size < local_stat['size']:
+        existing_part = False
+        if (self.upload_max_size - 4096) < local_stat['size']:
             self.has_disk_space_for_upload(path, local_stat['size'])
+            existing_part = self.stat(path+'.dlpart', True)
 
         dirpath = os.path.dirname(path)
         if dirpath and dirpath != '/':
@@ -505,7 +511,11 @@ class PydioSdk():
             if not folder:
                 self.mkdir(os.path.dirname(path))
         url = self.url + '/upload/put' + self.urlencode_normalized((self.remote_folder + os.path.dirname(path)))
-        files = {'userfile_0': local}
+        files = {
+            'userfile_0': local
+        }
+        if existing_part:
+            files['existing_dlpart'] = existing_part
         data = {
             'force_post': 'true',
             'xhr_uploader': 'true',
@@ -697,3 +707,115 @@ class PydioSdk():
 
     def is_rsync_supported(self):
         return self.rsync_supported
+
+
+    def upload_file_with_progress(self, url, fields, files, stream, with_progress, max_size=0):
+        """
+        Upload a file with progress, file chunking if necessary, and stream content directly from file.
+        :param url: url to post
+        :param fields: dict() query parameters
+        :param files: dict() {'fieldname' : '/path/to/file'}
+        :param stream: whether to get response as stream or not
+        :param with_progress: dict() updatable dict with progress data
+        :param max_size: upload max size
+        :return: response of the last requests if there were many of them
+        """
+        if with_progress:
+            def cb(size=0, progress=0, delta=0, rate=0):
+                with_progress['total_size'] = size
+                with_progress['bytes_sent'] = delta
+                with_progress['total_bytes_sent'] = progress
+                dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, change=with_progress)
+        else:
+            def cb(size=0, progress=0, delta=0, rate=0):
+                logging.debug('Current transfer rate ' + str(rate))
+
+        def parse_upload_rep(http_response):
+            if http_response.headers.get('content-type') != 'application/octet-stream':
+                if unicode(http_response.text).count('message type="ERROR"'):
+
+                    if unicode(http_response.text).lower().count("(507)"):
+                        raise PydioSdkDefaultException('507')
+
+                    if unicode(http_response.text).lower().count("(412)"):
+                        raise PydioSdkDefaultException('412')
+
+                    import re
+                    # Remove XML tags
+                    text = re.sub('<[^<]+>', '', unicode(http_response.text))
+                    raise PydioSdkDefaultException(text)
+
+                if unicode(http_response.text).lower().count("(507)"):
+                    raise PydioSdkDefaultException('507')
+
+                if unicode(http_response.text).lower().count("(412)"):
+                    raise PydioSdkDefaultException('412')
+
+                if unicode(http_response.text).lower().count("(410)") or unicode(http_response.text).lower().count("(411)"):
+                    raise PydioSdkDefaultException(unicode(http_response.text))
+
+
+
+        filesize = os.stat(files['userfile_0']).st_size
+        if max_size:
+            # Reduce max size to leave some room for data header
+            max_size -= 4096
+
+        existing_pieces_number = 0
+
+        if max_size and filesize > max_size:
+            fields['partial_upload'] = 'true'
+            fields['partial_target_bytesize'] = filesize
+            # Check if there is already a .dlpart on the server.
+            # If it's the case, maybe it's already the beginning of this?
+            if 'existing_dlpart' in files:
+                existing_dlpart = files['existing_dlpart']
+                existing_dlpart_size = existing_dlpart['size']
+                if filesize > existing_dlpart_size and \
+                        file_start_hash_match(files['userfile_0'], existing_dlpart_size, existing_dlpart['hash']):
+                    logging.info('Found the beggining of this file on the other file, skipping the first pieces')
+                    existing_pieces_number = existing_dlpart_size / max_size
+                    cb(filesize, existing_dlpart_size, existing_dlpart_size, 0)
+
+        if not existing_pieces_number:
+            (header_body, close_body, content_type) = encode_multiparts(fields)
+            body = BytesIOWithFile(header_body, close_body, files['userfile_0'], callback=cb, chunk_size=max_size, file_part=0)
+            resp = requests.post(
+                url,
+                data=body,
+                headers={'Content-Type': content_type},
+                stream=True,
+                timeout=20
+            )
+
+            existing_pieces_number = 1
+            parse_upload_rep(resp)
+            if resp.status_code == 401:
+                return resp
+
+        if max_size and filesize > max_size:
+            fields['appendto_urlencoded_part'] = fields['urlencoded_filename']
+            del fields['urlencoded_filename']
+            (header_body, close_body, content_type) = encode_multiparts(fields)
+            for i in range(existing_pieces_number, int(math.ceil(filesize / max_size)) + 1):
+
+                if self.interrupt_tasks:
+                    raise PydioSdkException("upload", path=os.path.basename(files['userfile_0']), detail=_('Task interrupted by user'))
+
+                before = time.time()
+                body = BytesIOWithFile(header_body, close_body, files['userfile_0'],
+                                       callback=cb, chunk_size=max_size, file_part=i)
+                resp = requests.post(
+                    url,
+                    data=body,
+                    headers={'Content-Type': content_type},
+                    stream=True
+                )
+                parse_upload_rep(resp)
+                if resp.status_code == 401:
+                    return resp
+
+                duration = time.time() - before
+                logging.info('Uploaded '+str(max_size)+' bytes of data in about %'+str(duration)+' s')
+
+        return resp

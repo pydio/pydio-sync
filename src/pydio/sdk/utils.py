@@ -24,6 +24,7 @@ import time
 import os
 import sys
 import math
+import hashlib
 
 from io import BytesIO, FileIO
 from pydispatch import dispatcher
@@ -153,84 +154,16 @@ def encode_multiparts(fields):
     return (header_body.getvalue(), closing_boundary, content_type)
 
 
-def upload_file_with_progress(url, fields, files, stream, with_progress, max_size=0):
-    """
-    Upload a file with progress, file chunking if necessary, and stream content directly from file.
-    :param url: url to post
-    :param fields: dict() query parameters
-    :param files: dict() {'fieldname' : '/path/to/file'}
-    :param stream: whether to get response as stream or not
-    :param with_progress: dict() updatable dict with progress data
-    :param max_size: upload max size
-    :return: response of the last requests if there were many of them
-    """
-    if with_progress:
-        def cb(size=0, progress=0, delta=0, rate=0):
-            with_progress['total_size'] = size
-            with_progress['bytes_sent'] = delta
-            with_progress['total_bytes_sent'] = progress
-            dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, change=with_progress)
-    else:
-        def cb(size=0, progress=0, delta=0, rate=0):
-            logging.debug('Current transfer rate ' + str(rate))
+def file_start_hash_match(local_file, size, remote_hash):
+    md5 = hashlib.md5()
+    block_size = 8192
+    cursor = 0
+    with open(local_file,'rb') as f:
+        while cursor < size:
+            data = f.read(min(block_size, size-cursor))
+            if not data:
+                break
+            cursor += len(data)
+            md5.update(data)
+    return remote_hash == md5.hexdigest()
 
-    filesize = os.stat(files['userfile_0']).st_size
-    if max_size:
-        # Reduce max size to leave some room for data header
-        max_size -= 4096
-
-    (header_body, close_body, content_type) = encode_multiparts(fields)
-    body = BytesIOWithFile(header_body, close_body, files['userfile_0'], callback=cb, chunk_size=max_size, file_part=0)
-    resp = requests.post(
-        url,
-        data=body,
-        headers={'Content-Type':content_type},
-        stream=True,
-        timeout=20
-    )
-
-    if resp.headers.get('content-type') != 'application/octet-stream':
-        if unicode(resp.text).count('message type="ERROR"'):
-
-            if unicode(resp.text).lower().count("(507)"):
-                raise PydioSdkDefaultException('507')
-
-            if unicode(resp.text).lower().count("(412)"):
-                raise PydioSdkDefaultException('412')
-
-            import re
-            # Remove XML tags
-            text = re.sub('<[^<]+>', '', unicode(resp.text))
-            raise PydioSdkDefaultException(text)
-
-        if unicode(resp.text).lower().count("(507)"):
-            raise PydioSdkDefaultException('507')
-
-        if unicode(resp.text).lower().count("(412)"):
-            raise PydioSdkDefaultException('412')
-
-        if unicode(resp.text).lower().count("(410)") or unicode(resp.text).lower().count("(411)"):
-            raise PydioSdkDefaultException(unicode(resp.text))
-
-    if resp.status_code == 401:
-        return resp
-
-    if max_size and filesize > max_size:
-        fields['appendto_urlencoded_part'] = fields['urlencoded_filename']
-        del fields['urlencoded_filename']
-        (header_body, close_body, content_type) = encode_multiparts(fields)
-        for i in range(1, int(math.ceil(filesize / max_size)) + 1):
-            before = time.time()
-            body = BytesIOWithFile(header_body, close_body, files['userfile_0'], callback=cb, chunk_size=max_size, file_part=i)
-            resp = requests.post(
-                url,
-                data=body,
-                headers={'Content-Type':content_type},
-                stream=True
-            )
-            if str(resp.text).lower().count("507"):
-                raise PydioSdkDefaultException('507')
-
-            duration = time.time() - before
-            logging.info('Uploaded '+str(max_size)+' bytes of data in about %'+str(duration)+' s')
-    return resp

@@ -240,6 +240,7 @@ class ContinuousDiffMerger(threading.Thread):
         :return:
         """
         self.last_run = 0
+        self.sdk.remove_interrupt()
         self.resume()
 
     def pause(self):
@@ -248,6 +249,7 @@ class ContinuousDiffMerger(threading.Thread):
         :return:None
         """
         self.job_status_running = False
+        self.sdk.set_interrupt()
         self.info(_('Job Paused'), toUser='PAUSE', channel='status')
 
     def resume(self):
@@ -256,6 +258,7 @@ class ContinuousDiffMerger(threading.Thread):
         :return:
         """
         self.job_status_running = True
+        self.sdk.remove_interrupt()
         self.info(_('Job Started'), toUser='START', channel='status')
 
     def stop(self):
@@ -267,6 +270,7 @@ class ContinuousDiffMerger(threading.Thread):
             logging.debug("Stopping watcher: %s" % self.watcher)
             self.watcher.stop()
         self.info(_('Job stopping'), toUser='PAUSE', channel='status')
+        self.sdk.set_interrupt()
         self.interrupt = True
 
     def sleep_offline(self):
