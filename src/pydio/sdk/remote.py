@@ -24,6 +24,7 @@ import hmac
 import random
 import unicodedata
 import platform
+from pydio.utils.functions import hashfile
 from hashlib import sha256
 from hashlib import sha1
 from urlparse import urlparse
@@ -145,12 +146,15 @@ class PydioSdk():
             logging.error(_("Cannot store tokens in keychain, basic auth will be performed each time!"))
         return tokens
 
-    def perform_with_tokens(self, token, private, url, type='get', data=None, files=None, stream=False, with_progress=False):
+    def perform_with_tokens(self, token, private, url, request_type='get', data=None, files=None, headers=None, stream=False,
+                            with_progress=False):
         """
+
+        :param headers:
         :param token: str the token.
         :param private: str private key associated to token
         :param url: str url to query
-        :param type: str http method, default is "get"
+        :param request_type: str http method, default is "get"
         :param data: dict query parameters
         :param files: dict files, described as {'fieldname':'path/to/file'}
         :param stream: bool get response as a stream
@@ -163,14 +167,14 @@ class PydioSdk():
         the_hash = hmac.new(str(token), str(msg), sha256);
         auth_hash = nonce + ':' + the_hash.hexdigest()
 
-        if type == 'get':
+        if request_type == 'get':
             auth_string = 'auth_token=' + token + '&auth_hash=' + auth_hash
             if '?' in url:
                 url += '&' + auth_string
             else:
                 url += '?' + auth_string
-            resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl)
-        elif type == 'post':
+            resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl, headers=headers)
+        elif request_type == 'post':
             if not data:
                 data = {}
             data['auth_token'] = token
@@ -179,7 +183,7 @@ class PydioSdk():
                 resp = self.upload_file_with_progress(url, dict(**data), files, stream, with_progress,
                                                  max_size=self.upload_max_size)
             else:
-                resp = requests.post(url=url, data=data, stream=stream, timeout=20, verify=self.verify_ssl)
+                resp = requests.post(url=url, data=data, stream=stream, timeout=20, verify=self.verify_ssl, headers=headers)
         else:
             raise PydioSdkTokenAuthException(_("Unsupported HTTP method"))
 
@@ -187,13 +191,14 @@ class PydioSdk():
             raise PydioSdkTokenAuthException(_("Authentication Exception"))
         return resp
 
-    def perform_request(self, url, type='get', data=None, files=None, stream=False, with_progress=False):
+    def perform_request(self, url, type='get', data=None, files=None, headers=None, stream=False, with_progress=False):
         """
         Perform an http request.
         There's a one-time loop, as it first tries to use the auth tokens. If the the token auth fails, it may just
         mean that the token key/pair is expired. So we try once to get fresh new tokens with basic_http auth and
         re-run query with new tokens.
 
+        :param headers:
         :param url: str url to query
         :param type: str http method, default is "get"
         :param data: dict query parameters
@@ -205,17 +210,20 @@ class PydioSdk():
         tokens = keyring.get_password(self.url, self.user_id + '-token')
         if not tokens:
             tokens = self.basic_authenticate()
-            return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files, stream)
+            return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files,
+                                            headers=headers, stream=stream)
         else:
             tokens = tokens.split(':')
             try:
-                resp = self.perform_with_tokens(tokens[0], tokens[1], url, type, data, files, stream, with_progress)
+                resp = self.perform_with_tokens(tokens[0], tokens[1], url, type, data, files, headers=headers,
+                                                stream=stream, with_progress=with_progress)
                 return resp
             except PydioSdkTokenAuthException as pTok:
                 # Tokens may be revoked? Retry
                 tokens = self.basic_authenticate()
                 try:
-                    return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files, stream, with_progress)
+                    return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files,
+                                                    headers=headers, stream=stream, with_progress=with_progress)
                 except PydioSdkTokenAuthException as secTok:
                     logging.error('Second Auth Error, what is wrong?')
                     raise secTok
@@ -274,7 +282,7 @@ class PydioSdk():
                     except Exception as e:
                         raise e
 
-    def stat(self, path, with_hash=False):
+    def stat(self, path, with_hash=False, partial_hash=None):
         """
         Equivalent of the local fstat() on the remote server.
         :param path: path of node from the workspace root
@@ -300,7 +308,12 @@ class PydioSdk():
         action = '/stat_hash' if with_hash else '/stat'
         try:
             url = self.url + action + self.urlencode_normalized(path)
-            resp = self.perform_request(url)
+            if partial_hash:
+                h = {'range': 'bytes=%i-%i' % (partial_hash[0], partial_hash[1])}
+                resp = self.perform_request(url, headers=h)
+            else:
+                resp = self.perform_request(url)
+
             try:
                 data = json.loads(resp.content)
             except ValueError as ve:
@@ -403,7 +416,7 @@ class PydioSdk():
         data['ignore_exists'] = 'true'
         data['nodes[]'] = map(lambda t: self.normalize(self.remote_folder + t), filter(lambda x: x != '', pathes))
         url = self.url + '/mkdir' + self.urlencode_normalized(self.remote_folder + pathes[0])
-        resp = self.perform_request(url=url,type='post', data=data)
+        resp = self.perform_request(url=url, type='post', data=data)
         self.is_pydio_error_response(resp)
         return resp.content
 
@@ -551,19 +564,43 @@ class PydioSdk():
 
         url = self.url + '/download' + self.urlencode_normalized((self.remote_folder + path))
         local_tmp = local + '.pydio_dl'
+        headers = None
+        write_mode = 'wb'
+        dl = 0
         if not os.path.exists(os.path.dirname(local)):
             os.makedirs(os.path.dirname(local))
+        elif os.path.exists(local_tmp):
+            # A .pydio_dl already exists, maybe it's a chunk of the original?
+            # Try to get an md5 of the corresponding chunk
+            current_size = os.path.getsize(local_tmp)
+            chunk_local_hash = hashfile(open(local_tmp, 'rb'), hashlib.md5())
+            chunk_remote_stat = self.stat(path, True, partial_hash=[0, current_size])
+            if chunk_local_hash == chunk_remote_stat['hash']:
+                headers = {'range':'bytes=%i-%i' % (current_size, chunk_remote_stat['size'])}
+                write_mode = 'a+'
+                dl = current_size
+                if callback_dict:
+                    callback_dict['bytes_sent'] = float(current_size)
+                    callback_dict['total_bytes_sent'] = float(current_size)
+                    callback_dict['total_size'] = float(chunk_remote_stat['size'])
+                    callback_dict['transfer_rate'] = 0
+                    dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, send=self, change=callback_dict)
+
+            else:
+                os.unlink(local_tmp)
+
         try:
-            with open(local_tmp, 'wb') as fd:
+            with open(local_tmp, write_mode) as fd:
                 start = time.clock()
-                r = self.perform_request(url=url, stream=True)
+                r = self.perform_request(url=url, stream=True, headers=headers)
                 total_length = r.headers.get('content-length')
-                dl = 0
                 if total_length is None: # no content length header
                     fd.write(r.content)
                 else:
                     previous_done = 0
                     for chunk in r.iter_content(1024 * 8):
+                        if self.interrupt_tasks:
+                            raise PydioSdkException("interrupt", path=path, detail=_('Task interrupted by user'))
                         dl += len(chunk)
                         fd.write(chunk)
                         done = int(50 * dl / int(total_length))
@@ -592,6 +629,15 @@ class PydioSdk():
                         os.unlink(local)
                     os.rename(local_tmp, local)
             return True
+
+        except PydioSdkException as pe:
+            if pe.operation == 'interrupt':
+                raise pe
+            else:
+                if os.path.exists(local_tmp):
+                    os.unlink(local_tmp)
+                raise pe
+
         except Exception as e:
             if os.path.exists(local_tmp):
                 os.unlink(local_tmp)
@@ -686,7 +732,8 @@ class PydioSdk():
 
     def rsync_delta(self, path, signature, delta_path):
         url = self.url + ('/filehasher_delta' + self.urlencode_normalized(self.remote_folder + path.replace("\\", "/")))
-        resp = self.perform_request(url=url, type='post', with_progress=False, files={'userfile_0': signature}, stream=True)
+        resp = self.perform_request(url=url, type='post', files={'userfile_0': signature}, stream=True,
+                                    with_progress=False)
         fd = open(delta_path, 'wb')
         for chunk in resp.iter_content(8192):
             fd.write(chunk)
@@ -694,7 +741,7 @@ class PydioSdk():
 
     def rsync_signature(self, path, signature):
         url = self.url + ('/filehasher_signature'+ self.urlencode_normalized(self.remote_folder + path.replace("\\", "/")))
-        resp = self.perform_request(url=url, type='post', with_progress=False, stream=True)
+        resp = self.perform_request(url=url, type='post', stream=True, with_progress=False)
         fd = open(signature, 'wb')
         for chunk in resp.iter_content(8192):
             fd.write(chunk)
@@ -702,7 +749,7 @@ class PydioSdk():
 
     def rsync_patch(self, path, delta_path):
         url = self.url + ('/filehasher_patch'+ self.urlencode_normalized(self.remote_folder + path.replace("\\", "/")))
-        resp = self.perform_request(url=url, type='post', with_progress=False, files={'userfile_0' : delta_path})
+        resp = self.perform_request(url=url, type='post', files={'userfile_0': delta_path}, with_progress=False)
         self.is_pydio_error_response(resp)
 
     def is_rsync_supported(self):
