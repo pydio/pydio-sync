@@ -812,7 +812,7 @@ class PydioSdk():
 
         if max_size and filesize > max_size:
             fields['partial_upload'] = 'true'
-            fields['partial_target_bytesize'] = filesize
+            fields['partial_target_bytesize'] = str(filesize)
             # Check if there is already a .dlpart on the server.
             # If it's the case, maybe it's already the beginning of this?
             if 'existing_dlpart' in files:
