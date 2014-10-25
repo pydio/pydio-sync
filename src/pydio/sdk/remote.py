@@ -183,7 +183,13 @@ class PydioSdk():
                 resp = self.upload_file_with_progress(url, dict(**data), files, stream, with_progress,
                                                  max_size=self.upload_max_size)
             else:
-                resp = requests.post(url=url, data=data, stream=stream, timeout=20, verify=self.verify_ssl, headers=headers)
+                resp = requests.post(
+                    url=url,
+                    data=data,
+                    stream=stream,
+                    timeout=20,
+                    verify=self.verify_ssl,
+                    headers=headers)
         else:
             raise PydioSdkTokenAuthException(_("Unsupported HTTP method"))
 
@@ -832,7 +838,8 @@ class PydioSdk():
                 data=body,
                 headers={'Content-Type': content_type},
                 stream=True,
-                timeout=20
+                timeout=20,
+                verify=self.verify_ssl
             )
 
             existing_pieces_number = 1
@@ -856,7 +863,8 @@ class PydioSdk():
                     url,
                     data=body,
                     headers={'Content-Type': content_type},
-                    stream=True
+                    stream=True,
+                    verify=self.verify_ssl
                 )
                 parse_upload_rep(resp)
                 if resp.status_code == 401:
