@@ -121,9 +121,9 @@ class SqliteChangeStore():
 
     def list_changes(self, cursor=0, limit=5, where=''):
         c = self.conn.cursor()
-        sql = 'SELECT * FROM ajxp_changes ORDER BY source,target LIMIT ?,?'
+        sql = 'SELECT * FROM ajxp_changes ORDER BY seq_id LIMIT ?,?'
         if where:
-            sql = 'SELECT * FROM ajxp_changes WHERE ' + where + ' ORDER BY source,target LIMIT ?,?'
+            sql = 'SELECT * FROM ajxp_changes WHERE ' + where + ' ORDER BY seq_id LIMIT ?,?'
         res = c.execute(sql, (cursor, limit))
         changes = []
         for row in res:
@@ -132,9 +132,9 @@ class SqliteChangeStore():
 
     def sum_sizes(self, where=''):
         c = self.conn.cursor()
-        sql = 'SELECT SUM(bytesize) as total FROM ajxp_changes ORDER BY source,target'
+        sql = 'SELECT SUM(bytesize) as total FROM ajxp_changes'
         if where:
-            sql = 'SELECT SUM(bytesize) as total FROM ajxp_changes WHERE ' + where + ' ORDER BY source,target'
+            sql = 'SELECT SUM(bytesize) as total FROM ajxp_changes WHERE ' + where
         res = c.execute(sql)
         total = 0.0
         for row in res:

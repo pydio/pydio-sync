@@ -164,7 +164,7 @@ class PydioSdk():
         nonce = sha1(str(random.random())).hexdigest()
         uri = urlparse(url).path.rstrip('/')
         msg = uri + ':' + nonce + ':' + private
-        the_hash = hmac.new(str(token), str(msg), sha256);
+        the_hash = hmac.new(str(token), str(msg), sha256)
         auth_hash = nonce + ':' + the_hash.hexdigest()
 
         if request_type == 'get':
@@ -432,7 +432,7 @@ class PydioSdk():
         :param path: node path
         :return: result of the server query
         """
-        url = self.url + '/mkfile' + self.urlencode_normalized((self.remote_folder + path))
+        url = self.url + '/mkfile' + self.urlencode_normalized((self.remote_folder + path)) + '?force=true'
         resp = self.perform_request(url=url)
         self.is_pydio_error_response(resp)
         return resp.content
