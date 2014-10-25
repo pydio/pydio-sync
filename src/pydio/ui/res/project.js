@@ -181,7 +181,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
     .controller('ListCtrl', function($scope, $location, $timeout, Jobs, Logs, Conflicts, currentJob, Commands) {
 
-        $scope.conflict_solver = {current:false};
+        $scope.conflict_solver = {current:false,applyToAll:false};
         $scope._ = window.translate;
         $scope.progressCircleData = {
             value: 0
@@ -281,7 +281,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
         $scope.solveConflict = function(nodeId, status){
             $scope.conflict_solver.current = null;
-            var appToAll = $scope.applySolveConflictsToAll;
+            var appToAll = $scope.conflict_solver.applyToAll;
             angular.forEach($scope.conflicts, function(conflict){
                 if(!appToAll && conflict.node_id != nodeId) return;
                 if(appToAll && conflict.status.indexOf('SOLVED:') === 0) return;

@@ -455,6 +455,7 @@ class ContinuousDiffMerger(threading.Thread):
                     logger.log_state(_('%i files modified') % self.global_progress['queue_done'], "success")
                 else:
                     logging.info('No changes detected')
+                    self.marked_for_snapshot_pathes = []
                     if very_first:
                         logger.log_state(_('Synchronized'), 'success')
 

@@ -38,13 +38,18 @@
             <h3>{{_('Synchronization running...')}}</h3>
             <div style="text-align: center" class="well">
 
-                <img src="images/rocket.png">
+                <img src="images/rocket.png" class="pulse">
 
-                <div class="progress progress-striped active" style="width: 70%;margin: 20px auto;">
+
+                <div ng-if="job.state.progress" class="progress progress-striped active" style="width: 70%;margin: 20px auto;">
                     <div class="progress-bar" role="progressbar" aria-valuenow="{{job.state.progress | number:0}}" aria-valuemin="0" aria-valuemax="100" style="width: {{job.state.progress | number:0}}%;"></div>
                 </div>
 
-                <div ng-if="!job.state.progress">{{job.last_event[2]}}</div>
+                <div ng-if="!job.state.progress" style="width: 70%;margin: 20px auto;">
+                    <p class="small" ng-if="job.last_event">{{job.last_event.message}}</p>
+                    <p class="small" ng-if="!job.last_event">{{_('Liftoff! First sync can take some time...')}}</p>
+                </div>
+
                 <h1 ng-if="job.state.progress" style="text-align: center;">{{job.state.progress | number:0}}%</h1>
 
                 <ng-include src="'task_detail.html'"
