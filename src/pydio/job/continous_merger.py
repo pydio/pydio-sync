@@ -92,7 +92,6 @@ class ContinuousDiffMerger(threading.Thread):
         self.watcher = None
         self.watcher_first_run = True
 
-        self.mark_for_snapshot = False
         self.marked_for_snapshot_pathes = []
 
         dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel='status', message='START')
@@ -341,10 +340,11 @@ class ContinuousDiffMerger(threading.Thread):
                     self.sleep_offline()
                     continue
 
-                if self.mark_for_snapshot:
-                    for snap_path in self.marked_for_snapshot_pathes:
-                        logging.info('LOCAL SNAPSHOT : loading snapshot for directory %s' % snap_path)
-                        self.watcher.check_from_snapshot(snap_path)
+                for snap_path in self.marked_for_snapshot_pathes:
+                    logging.info('LOCAL SNAPSHOT : loading snapshot for directory %s' % snap_path)
+                    if self.interrupt or not self.job_status_running:
+                                                    raise InterruptException()
+                    self.watcher.check_from_snapshot(snap_path)
 
                 # Load local and/or remote changes, depending on the direction
                 from pydio.job.change_stores import SqliteChangeStore
@@ -363,6 +363,7 @@ class ContinuousDiffMerger(threading.Thread):
                         self.ping_remote()
                 except ConnectionError as ce:
                     error = _('No connection detected, waiting %s seconds to retry') % self.offline_timer
+                    self.marked_for_snapshot_pathes = []
                     logging.error(error)
                     logger.log_state(error, "wait")
                     self.sleep_offline()
@@ -371,6 +372,7 @@ class ContinuousDiffMerger(threading.Thread):
                     error = 'Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer)
                     logging.error(error)
                     logger.log_state(_('Error while connecting to remote server (%s)') % e.message, "error")
+                    self.marked_for_snapshot_pathes = []
                     self.sleep_offline()
                     continue
                 self.online_status = True
@@ -408,7 +410,6 @@ class ContinuousDiffMerger(threading.Thread):
                     continue
 
                 changes_length = len(self.current_store)
-                self.mark_for_snapshot = False
                 if changes_length:
                     import change_processor
                     self.global_progress['queue_length'] = changes_length
@@ -447,10 +448,7 @@ class ContinuousDiffMerger(threading.Thread):
 
                     try:
                         if sys.platform.startswith('win'):
-                            parents = self.current_store.find_modified_parents()
-                            if len(parents):
-                                self.marked_for_snapshot_pathes = parents
-                                self.mark_for_snapshot = True
+                            self.marked_for_snapshot_pathes = list(set(self.current_store.find_modified_parents()) - set(self.marked_for_snapshot_pathes))
                         self.current_store.process_changes_with_callback(processor_callback)
                     except InterruptException as iexc:
                         pass
@@ -467,7 +465,6 @@ class ContinuousDiffMerger(threading.Thread):
                 if not (e.message.lower().count('[quota limit reached]') or e.message.lower().count('[file permissions]')):
                     logging.exception('Unexpected Error: %s' % e.message)
                     logger.log_state(_('Unexpected Error: %s') % e.message, 'error')
-
 
             logging.debug('Finished this cycle, waiting for %i seconds' % self.online_timer)
             self.current_store.close()

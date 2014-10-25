@@ -157,7 +157,10 @@ class SqliteChangeStore():
             dir_path = os.path.dirname(row['target'])
             parent_found = False
             for stored in parents:
-                if dir_path.startswith(stored):
+                common_pref = self.commonprefix([stored + '/', dir_path + '/'])
+                if common_pref != '/':
+                    parents.remove(stored)
+                    parents.append(common_pref)
                     parent_found = True
                     break
             if not parent_found:
