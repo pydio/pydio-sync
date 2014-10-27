@@ -85,7 +85,7 @@ class SqliteChangeStore():
             r = self.sqlite_row_to_dict(row, load_node=False)
             ids.append(str(r['row_id']))
             mkdirs.append(r['target'])
-        splitsize = 100
+        splitsize = 10
         for i in range(0, int(math.ceil(float(len(mkdirs)) / float(splitsize)))):
             callback({'type':'bulk_mkdirs', 'location':'local', 'pathes':mkdirs[i*splitsize:(i+1)*splitsize]})
             ids_list = str(','.join(ids[i*splitsize:(i+1)*splitsize]))

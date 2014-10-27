@@ -68,7 +68,7 @@ class ChangeProcessor:
             else:
                 if item['node']['node_path']:
                     if location == 'remote':
-                        self.process_download(item['node']['node_path'], is_mod=(item['content'] == 1), callback_dict=item)
+                        self.process_download(item['node']['node_path'], is_mod=(item['type'] != 'create'), callback_dict=item)
                         if item['type'] == 'create':
                             self.change_store.buffer_real_operation(location, item['type'], 'NULL',
                                                                     item['node']['node_path'])
@@ -76,7 +76,7 @@ class ChangeProcessor:
                             self.change_store.buffer_real_operation(location, item['type'], item['node']['node_path'],
                                                                     item['node']['node_path'])
                     else:
-                        self.process_upload(item['node']['node_path'], is_mod=(item['content'] == 1), callback_dict=item)
+                        self.process_upload(item['node']['node_path'], is_mod=(item['type'] != 'create'), callback_dict=item)
                         self.change_store.buffer_real_operation(location, item['type'], ('NULL' if item['type'] =='create' else item['node']['node_path']),
                                                                 item['node']['node_path'])
 
