@@ -179,7 +179,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             });
     })
 
-    .controller('ListCtrl', function($scope, $location, $timeout, Jobs, Logs, Conflicts, currentJob, Commands) {
+    .controller('ListCtrl', function($scope, $window, $location, $timeout, Jobs, Logs, Conflicts, currentJob, Commands) {
 
         $scope.conflict_solver = {current:false,applyToAll:false};
         $scope._ = window.translate;
@@ -187,6 +187,14 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             value: 0
         };
         $scope.Math = window.Math;
+        $scope.QtObject = window.PydioQtFileDialog;
+
+        $scope.openFile = function(source){
+          var url = source.split('/');
+          url = source.split('/', url.length - 1);
+          url = url.join('/');
+          $scope.QtObject.openUrl(url);
+        };
 
         var t2;
         (function tickJobs() {
