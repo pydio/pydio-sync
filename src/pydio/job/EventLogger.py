@@ -18,7 +18,7 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 import sqlite3
-import sqlite3.OperationalError as OperationalError
+from sqlite3 import OperationalError
 import os
 import datetime
 import logging
