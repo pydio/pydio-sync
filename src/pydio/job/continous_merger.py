@@ -331,7 +331,7 @@ class ContinuousDiffMerger(threading.Thread):
                         self.sleep_offline()
                         continue
                     else:
-                        logging.info("Now triggering synchro as expected at time " + start_time)
+                        logging.info("Now triggering synchro as expected at time " + str(start_time))
 
                 if not self.system.check_basepath():
                     log = _('Cannot find local folder! Did you disconnect a volume? Waiting %s seconds before retry') % self.offline_timer
