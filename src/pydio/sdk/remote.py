@@ -491,7 +491,7 @@ class PydioSdk():
                 if p['@id'] == 'meta.filehasher':
                     if 'plugin_configs' in p and 'property' in p['plugin_configs']:
                         properties = p['plugin_configs']['property']
-                        if '@name' in prop:
+                        if '@name' in properties:
                             server_data[properties['@name']] = properties['$']
                         else:
                             for prop in properties:
