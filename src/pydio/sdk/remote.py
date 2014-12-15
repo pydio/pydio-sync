@@ -164,7 +164,7 @@ class PydioSdk():
         nonce = sha1(str(random.random())).hexdigest()
         uri = urlparse(url).path.rstrip('/')
         msg = uri + ':' + nonce + ':' + private
-        the_hash = hmac.new(str(token), str(msg), sha256);
+        the_hash = hmac.new(str(token), str(msg), sha256)
         auth_hash = nonce + ':' + the_hash.hexdigest()
 
         if request_type == 'get':
@@ -183,7 +183,13 @@ class PydioSdk():
                 resp = self.upload_file_with_progress(url, dict(**data), files, stream, with_progress,
                                                  max_size=self.upload_max_size)
             else:
-                resp = requests.post(url=url, data=data, stream=stream, timeout=20, verify=self.verify_ssl, headers=headers)
+                resp = requests.post(
+                    url=url,
+                    data=data,
+                    stream=stream,
+                    timeout=20,
+                    verify=self.verify_ssl,
+                    headers=headers)
         else:
             raise PydioSdkTokenAuthException(_("Unsupported HTTP method"))
 
@@ -426,7 +432,7 @@ class PydioSdk():
         :param path: node path
         :return: result of the server query
         """
-        url = self.url + '/mkfile' + self.urlencode_normalized((self.remote_folder + path))
+        url = self.url + '/mkfile' + self.urlencode_normalized((self.remote_folder + path)) + '?force=true'
         resp = self.perform_request(url=url)
         self.is_pydio_error_response(resp)
         return resp.content
@@ -813,7 +819,7 @@ class PydioSdk():
 
         if max_size and filesize > max_size:
             fields['partial_upload'] = 'true'
-            fields['partial_target_bytesize'] = filesize
+            fields['partial_target_bytesize'] = str(filesize)
             # Check if there is already a .dlpart on the server.
             # If it's the case, maybe it's already the beginning of this?
             if 'existing_dlpart' in files:
@@ -833,7 +839,8 @@ class PydioSdk():
                 data=body,
                 headers={'Content-Type': content_type},
                 stream=True,
-                timeout=20
+                timeout=20,
+                verify=self.verify_ssl
             )
 
             existing_pieces_number = 1
@@ -857,7 +864,8 @@ class PydioSdk():
                     url,
                     data=body,
                     headers={'Content-Type': content_type},
-                    stream=True
+                    stream=True,
+                    verify=self.verify_ssl
                 )
                 parse_upload_rep(resp)
                 if resp.status_code == 401:

@@ -86,3 +86,39 @@
     z-index: 1000;
     font-size: 28px;
 }
+
+.pulse {
+    -webkit-animation-name: pulse;
+    animation-name: pulse;
+    -webkit-animation-duration: 2s;
+    animation-duration: 2s;
+    -webkit-animation-timing-function: ease;
+    animation-timing-function: ease;
+    -webkit-animation-iteration-count: infinite;
+    animation-iteration-count: infinite;
+}
+
+/* Pulse */
+@-webkit-keyframes pulse {
+  25% {
+    -webkit-transform: scale(1.04);
+    transform: scale(1.04);
+  }
+
+  75% {
+    -webkit-transform: scale(0.96);
+    transform: scale(0.96);
+  }
+}
+
+@keyframes pulse {
+  25% {
+    -webkit-transform: scale(1.04);
+    transform: scale(1.04);
+  }
+
+  75% {
+    -webkit-transform: scale(0.96);
+    transform: scale(0.96);
+  }
+}

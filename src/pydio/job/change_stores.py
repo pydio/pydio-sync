@@ -85,7 +85,7 @@ class SqliteChangeStore():
             r = self.sqlite_row_to_dict(row, load_node=False)
             ids.append(str(r['row_id']))
             mkdirs.append(r['target'])
-        splitsize = 100
+        splitsize = 10
         for i in range(0, int(math.ceil(float(len(mkdirs)) / float(splitsize)))):
             callback({'type':'bulk_mkdirs', 'location':'local', 'pathes':mkdirs[i*splitsize:(i+1)*splitsize]})
             ids_list = str(','.join(ids[i*splitsize:(i+1)*splitsize]))
@@ -121,9 +121,9 @@ class SqliteChangeStore():
 
     def list_changes(self, cursor=0, limit=5, where=''):
         c = self.conn.cursor()
-        sql = 'SELECT * FROM ajxp_changes ORDER BY source,target LIMIT ?,?'
+        sql = 'SELECT * FROM ajxp_changes ORDER BY seq_id LIMIT ?,?'
         if where:
-            sql = 'SELECT * FROM ajxp_changes WHERE ' + where + ' ORDER BY source,target LIMIT ?,?'
+            sql = 'SELECT * FROM ajxp_changes WHERE ' + where + ' ORDER BY seq_id LIMIT ?,?'
         res = c.execute(sql, (cursor, limit))
         changes = []
         for row in res:
@@ -132,9 +132,9 @@ class SqliteChangeStore():
 
     def sum_sizes(self, where=''):
         c = self.conn.cursor()
-        sql = 'SELECT SUM(bytesize) as total FROM ajxp_changes ORDER BY source,target'
+        sql = 'SELECT SUM(bytesize) as total FROM ajxp_changes'
         if where:
-            sql = 'SELECT SUM(bytesize) as total FROM ajxp_changes WHERE ' + where + ' ORDER BY source,target'
+            sql = 'SELECT SUM(bytesize) as total FROM ajxp_changes WHERE ' + where
         res = c.execute(sql)
         total = 0.0
         for row in res:
@@ -157,7 +157,10 @@ class SqliteChangeStore():
             dir_path = os.path.dirname(row['target'])
             parent_found = False
             for stored in parents:
-                if dir_path.startswith(stored):
+                common_pref = self.commonprefix([stored + '/', dir_path + '/'])
+                if common_pref != '/':
+                    parents.remove(stored)
+                    parents.append(common_pref)
                     parent_found = True
                     break
             if not parent_found:

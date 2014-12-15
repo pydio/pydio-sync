@@ -53,7 +53,7 @@ class SnapshotDiffStart(DirectorySnapshotDiff):
         for path, stat_info in dirsnap._stat_info.items():
             if path in ref_dirsnap.stat_snapshot:
                 ref_stat_info = ref_dirsnap.stat_info(path)
-                if stat_info.st_mtime != ref_stat_info.st_mtime:
+                if long(stat_info.st_mtime) != long(ref_stat_info.st_mtime):
                     if stat.S_ISDIR(stat_info.st_mode):
                         self._dirs_modified.append(path)
                     else:
