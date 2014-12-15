@@ -464,7 +464,8 @@ class PydioSdk():
         :return: response of the server
         """
         url = self.url + '/delete' + self.urlencode_normalized((self.remote_folder + path))
-        resp = self.perform_request(url=url)
+        data = dict(file=self.normalize(self.remote_folder + path).encode('utf-8'))
+        resp = self.perform_request(url=url, type='post', data=data)
         self.is_pydio_error_response(resp)
         return resp.content
 

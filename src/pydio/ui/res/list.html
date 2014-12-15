@@ -51,7 +51,7 @@
             <tr ng-repeat="log in logs | filter: ({type:'remote'}||{type:'local'})  | limitTo:4">
                 <td style="padding:2px 0; width: 12px;" class="glyphicon glyphicon-file"></td>
                 <td style="padding:2px 0;width: 80%;">{{log.source && log.source!='NULL' ? log.source:log.target | basename}}</td>
-                <td style="text-align: right;padding:2px 0;"><a style="text-decoration: none;" class="small" href="file://{{job.directory}}{{log.source && log.source!='NULL' ? log.source:log.target}}">{{_('Open File')}}</a></td>
+                <td ng-show="QtObject" ng-click="openFile(job.directory + (log.source && log.source!='NULL' ? log.source:log.target))" style="text-align: right;padding:2px 0;"><a style="text-decoration: none;" class="small" href="">{{_('Open File')}}</a></td>
             </tr>
         </table>
 
@@ -99,4 +99,3 @@
 <div  class="navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
     <a href="#/new" class="btn btn-default btn-lg btn-block"><span class="glyphicon glyphicon-plus-sign"></span> {{_('Create a new synchronization')}}</a>
 </div>
-
