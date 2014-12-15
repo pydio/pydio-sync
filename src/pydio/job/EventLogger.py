@@ -18,6 +18,7 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 import sqlite3
+from sqlite3 import OperationalError
 import os
 import datetime
 import logging
@@ -66,27 +67,31 @@ class EventLogger():
 
     def get_all(self, limit=10, offset=0, filter_type=None, filter_action=None):
         conn = sqlite3.connect(self.db)
-        c = conn.cursor()
-        c.row_factory = sqlite3.Row
-        if filter_type:
-            res = c.execute("SELECT * FROM events WHERE type=? ORDER BY date DESC LIMIT ?,?", (filter_type, offset, limit))
-        elif filter_action:
-            res = c.execute("SELECT * FROM events WHERE action=? ORDER BY date DESC LIMIT ?,?", (filter_action, offset, limit))
-        else:
-            res = c.execute("SELECT * FROM events ORDER BY date DESC LIMIT ?,?", (offset, limit))
         events = []
-        for event in res:
-            events.append({
-                'id': event['id'],
-                'type': event['type'],
-                'message': event['message'],
-                'source': event['source'],
-                'action': event['action'],
-                'target': event['target'],
-                'status': event['status'],
-                'date': event['date']
-            })
-        c.close()
+        try:
+            c = conn.cursor()
+            c.row_factory = sqlite3.Row
+            if filter_type:
+                res = c.execute("SELECT * FROM events WHERE type=? ORDER BY date DESC LIMIT ?,?", (filter_type, offset, limit))
+            elif filter_action:
+                res = c.execute("SELECT * FROM events WHERE action=? ORDER BY date DESC LIMIT ?,?", (filter_action, offset, limit))
+            else:
+                res = c.execute("SELECT * FROM events ORDER BY date DESC LIMIT ?,?", (offset, limit))
+            
+            for event in res:
+                events.append({
+                    'id': event['id'],
+                    'type': event['type'],
+                    'message': event['message'],
+                    'source': event['source'],
+                    'action': event['action'],
+                    'target': event['target'],
+                    'status': event['status'],
+                    'date': event['date']
+                })
+            c.close()
+        except OperationalError as e:
+            pass
         return events
 
     def filter(self, filter, filter_parameter):

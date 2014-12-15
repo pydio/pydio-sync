@@ -27,6 +27,7 @@ import pickle
 import logging
 
 from requests.exceptions import ConnectionError
+from requests.exceptions import RequestException
 from pydio.job.change_processor import ChangeProcessor
 from pydio.job.localdb import LocalDbHandler, SqlEventHandler
 from pydio.job.local_watcher import LocalWatcher
@@ -462,6 +463,9 @@ class ContinuousDiffMerger(threading.Thread):
             except PydioSdkDefaultException as re:
                 logging.warning(re.message)
                 logger.log_state(re.message, 'error')
+            except RequestException as ree:
+                logging.warning(ree.message)
+                logger.log_state(ree.message, 'request error')
             except Exception as e:
                 if not (e.message.lower().count('[quota limit reached]') or e.message.lower().count('[file permissions]')):
                     logging.exception('Unexpected Error: %s' % e.message)
