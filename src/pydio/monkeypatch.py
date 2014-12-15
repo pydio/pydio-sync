@@ -55,3 +55,57 @@ if not fs_encoding and sys.platform.startswith('linux'):
     import watchdog.utils.unicode_paths
     watchdog.utils.unicode_paths.encode = _watchdog_encode
     watchdog.utils.unicode_paths.decode = _watchdog_decode
+
+import mimetypes
+try:
+    import _winreg
+except ImportError:
+    _winreg = None
+
+if _winreg:
+    def _read_windows_registry(self, strict=True):
+        """
+        Load the MIME types database from Windows registry.
+
+        If strict is true, information will be added to
+        list of standard types, else to the list of non-standard
+        types.
+        """
+
+        # Windows only
+        if not _winreg:
+            return
+
+
+        from itertools import count
+
+        def enum_types(mimedb):
+            for i in count():
+                try:
+                    yield _winreg.EnumKey(mimedb, i)
+                except EnvironmentError:
+                    break
+
+        default_encoding = sys.getdefaultencoding()
+        with _winreg.OpenKey(_winreg.HKEY_CLASSES_ROOT, '') as hkcr:
+            for subkeyname in enum_types(hkcr):
+                try:
+                    with _winreg.OpenKey(hkcr, subkeyname) as subkey:
+                        # Only check file extensions
+                        if not subkeyname.startswith("."):
+                            continue
+                        # raises EnvironmentError if no 'Content Type' value
+                        mimetype, datatype = _winreg.QueryValueEx(
+                            subkey, 'Content Type')
+                        if datatype != _winreg.REG_SZ:
+                            continue
+                        try:
+                            mimetype = mimetype.encode(default_encoding)
+                            subkeyname = subkeyname.encode(default_encoding)
+                        except UnicodeEncodeError:
+                            continue
+                        self.add_type(mimetype, subkeyname, strict)
+                except EnvironmentError:
+                    continue
+
+    mimetypes.MimeTypes.read_windows_registry = _read_windows_registry
