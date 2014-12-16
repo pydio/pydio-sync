@@ -60,9 +60,12 @@ import mimetypes
 try:
     import _winreg
 except ImportError:
+    logging.info("Cannot monkeypatch read_windows_registry method, no _winreg found")
     _winreg = None
 
 if _winreg:
+    logging.info("Should monkeypatch read_windows_registry method")
+
     def _read_windows_registry(self, strict=True):
         """
         Load the MIME types database from Windows registry.
@@ -76,6 +79,7 @@ if _winreg:
         if not _winreg:
             return
 
+        logging.info("Going through patched read_windows_registry method")
 
         from itertools import count
 
