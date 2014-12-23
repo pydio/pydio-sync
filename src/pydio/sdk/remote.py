@@ -173,7 +173,11 @@ class PydioSdk():
                 url += '&' + auth_string
             else:
                 url += '?' + auth_string
-            resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl, headers=headers)
+            try:
+                resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl, headers=headers)
+            except requests.exceptions.ConnectionError as e:
+                raise
+
         elif request_type == 'post':
             if not data:
                 data = {}
@@ -224,6 +228,8 @@ class PydioSdk():
                 resp = self.perform_with_tokens(tokens[0], tokens[1], url, type, data, files, headers=headers,
                                                 stream=stream, with_progress=with_progress)
                 return resp
+            except requests.exceptions.ConnectionError:
+                raise
             except PydioSdkTokenAuthException as pTok:
                 # Tokens may be revoked? Retry
                 tokens = self.basic_authenticate()
@@ -244,7 +250,10 @@ class PydioSdk():
         url = self.url + '/changes/' + str(last_seq)
         if self.remote_folder:
             url += '?filter=' + self.remote_folder
-        resp = self.perform_request(url=url)
+        try:
+            resp = self.perform_request(url=url)
+        except requests.exceptions.ConnectionError:
+            raise
         try:
             return json.loads(resp.content)
         except ValueError as v:
@@ -331,6 +340,8 @@ class PydioSdk():
                 return data
             else:
                 return False
+        except requests.exceptions.ConnectionError:
+            raise
         except Exception, ex:
             logging.warning("Stat failed", exc_info=ex)
             return False

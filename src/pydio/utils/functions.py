@@ -18,6 +18,7 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 import os
+import urllib
 
 def hashfile(afile, hasher, blocksize=65536):
     buf = afile.read(blocksize)
@@ -30,6 +31,15 @@ def set_file_hidden(path):
     if os.name in ("nt", "ce"):
         import ctypes
         ctypes.windll.kernel32.SetFileAttributesW(path, 2)
+
+def is_connected_to_internet():
+    try:
+        resp = urllib.urlopen('http://74.125.228.100', timeout=1)
+        return True
+    except Exception:
+        pass
+    return False
+
 
 class Singleton:
 

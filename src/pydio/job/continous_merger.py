@@ -36,6 +36,8 @@ from pydio.sdk.remote import PydioSdk
 from pydio.sdk.local import SystemSdk
 from pydio.job.EventLogger import EventLogger
 
+from pydio.utils.functions import is_connected_to_internet
+
 from pydispatch import dispatcher
 from pydio import PUBLISH_SIGNAL, TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
 # -*- coding: utf-8 -*-
@@ -363,7 +365,10 @@ class ContinuousDiffMerger(threading.Thread):
                         self.remote_target_seq = 1
                         self.ping_remote()
                 except ConnectionError as ce:
-                    error = _('No connection detected, waiting %s seconds to retry') % self.offline_timer
+                    if not is_connected_to_internet():
+                        error = _('No Internet connection detected ! Waiting %s seconds to retry') % self.offline_timer
+                    else:
+                        error = _('Connection to server failed, server is probably down. Waiting %s seconds to retry') % self.offline_timer
                     self.marked_for_snapshot_pathes = []
                     logging.error(error)
                     logger.log_state(error, "wait")
