@@ -397,10 +397,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 $scope.loading = false;
                 $location.path('/edit/new/step2');
             }, function(resp){
-                if(resp.data && resp.data.message){
-                    $scope.error = resp.data.message;
-                } else if(resp.statusText){
-                    $scope.error = resp.status;
+                if(resp.data && resp.data.error){
+                    $scope.error = resp.data.error;
                 }
                 $scope.loading = false;
             });

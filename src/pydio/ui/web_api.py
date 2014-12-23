@@ -103,7 +103,6 @@ class PydioApi(Api):
                 raise RuntimeError('Not running with the Werkzeug Server')
             func()
 
-
 class WorkspacesManager(Resource):
 
     def get(self, job_id):
@@ -128,14 +127,32 @@ class WorkspacesManager(Resource):
 
         if verify and "REQUESTS_CA_BUNDLE" in os.environ:
             verify = os.environ["REQUESTS_CA_BUNDLE"]
-        resp = requests.get(url,stream=True,auth=auth,verify=verify)
-        data = json.loads(resp.content)
-        if 'repositories' in data and 'repo' in data['repositories']:
-            if isinstance(data['repositories']['repo'], types.DictType):
-                data['repositories']['repo'] = [data['repositories']['repo']]
-            data['repositories']['repo'] = filter(lambda x: not x['@access_type'].startswith('ajxp_'), data['repositories']['repo'])
+        try:
+            resp = requests.get(url,stream=True,auth=auth,verify=verify)
+            resp.raise_for_status()
+            data = json.loads(resp.content)
+            if 'repositories' in data and 'repo' in data['repositories']:
+                if isinstance(data['repositories']['repo'], types.DictType):
+                    data['repositories']['repo'] = [data['repositories']['repo']]
+                data['repositories']['repo'] = filter(lambda x: not x['@access_type'].startswith('ajxp_'), data['repositories']['repo'])
+            return data
+        except requests.HTTPError:
+            r = resp.status_code
+            message = "Couldn't load your workspaces, check your server !"
+            if r == 404:
+                message = "Server not found, is it up and has Pydio installed ?"
+            elif r == 401:
+                message = "Check your login and password"
+            elif r == 403:
+                message = "Access to the server is forbidden"
+            elif r == 500 or r == 408:
+                message = "Server seems to be down..."
+            logging.debug("Error while loading workspaces : " + message)
+            return {'error': message}, resp.status_code
+        except requests.exceptions.RequestException as e:
+            logging.debug("Error while loading workspaces : certificate problem")
+            return {'error': "Server URL is not valid or if you are using https, is your certificate self-signed? If yes, check 'Trust SSL certificate'"}, 400
 
-        return data
 
 
 class FoldersManager(Resource):

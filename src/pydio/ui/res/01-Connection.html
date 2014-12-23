@@ -17,10 +17,9 @@
 </div>
 <h3>{{_('Configure Connection')}}</h3>
 <div class="alert alert-danger" ng-show="error">
-    {{_('Error while trying to connect to %1 (%2):', job.server, error)}}<br>
+    {{_('Error while trying to connect to %1 :', job.server)}}<br>
     <ul style="padding-left:17px;">
-        <li>{{_('Did you enter the correct login/password?')}}</li>
-        <li>{{_('If you are using https, is your certificate self-signed? If yes, check "Trust SSL certificate"')}}</li>
+        <li>{{_('%1', error)}}</li>
     </ul>
 </div>
 <div class="well">
