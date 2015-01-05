@@ -519,16 +519,16 @@ class SqliteChangeStore():
                 seq = change['seq']
                 first, second = self.reformat(change)
                 if first:
-                    self.store(location, seq, first)
+                    self.store(location, first['seq'], first)
                 if second:
-                    self.store(location, seq, second)
+                    self.store(location, second['seq'], second)
         else:
             seq = row.pop('seq')
             max_seq = seq if seq > max_seq else max_seq
             last_info['max_seq'] = max_seq
 
             if not self.echo_match(location, row):
-                logging.debug("processing " + row['source'] +  " -> " + row['target'])
+                logging.debug("processing " + row['source'] + " -> " + row['target'])
                 source = row.pop('source')
                 target = row.pop('target')
                 if source == 'NULL':
@@ -541,9 +541,9 @@ class SqliteChangeStore():
                     if previous_id != -1:
                         first, second = self.reformat(change)
                         if first:
-                            self.store(location, seq, first)
+                            self.store(location, first['seq'], first)
                         if second:
-                            self.store(location, seq, second)
+                            self.store(location, second['seq'], second)
                     last_info['change'] = None
                     last_info['node_id'] = row['node_id']
                     change = dict()

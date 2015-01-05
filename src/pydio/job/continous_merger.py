@@ -176,7 +176,7 @@ class ContinuousDiffMerger(threading.Thread):
             self.global_progress["queue_bytesize"] = self.compute_queue_bytesize()
         # compute an eta
         eta = -1
-        if self.global_progress['last_transfer_rate'] > -1 and self.global_progress['queue_bytesize'] > 0 :
+        if self.global_progress['last_transfer_rate'] > -1 and self.global_progress['queue_bytesize'] > 0:
             eta = self.global_progress['queue_bytesize'] / self.global_progress['last_transfer_rate']
         elif self.global_progress['queue_done']:
             remaining_operations = self.global_progress['queue_length'] - self.global_progress['queue_done']
@@ -395,18 +395,23 @@ class ContinuousDiffMerger(threading.Thread):
 
                 logging.info('Reducing changes')
 
+                logging.debug('Delete Copies')
                 self.current_store.delete_copies()
                 self.update_min_seqs_from_store()
+                logging.debug('Dedup changes')
                 self.current_store.dedup_changes()
                 self.update_min_seqs_from_store()
+                logging.debug('Detect unnecessary changes')
                 self.current_store.detect_unnecessary_changes(local_sdk=self.system, remote_sdk=self.sdk)
                 self.update_min_seqs_from_store()
                 #self.current_store.filter_out_echoes_events()
                 #self.update_min_seqs_from_store()
+                logging.debug('Clear op and prune folders moves')
                 self.current_store.clear_operations_buffer()
                 self.current_store.prune_folders_moves()
                 self.update_min_seqs_from_store()
 
+                logging.debug('Store conflicts')
                 store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
                 if store_conflicts:
                     logging.info('Conflicts detected, cannot continue!')
