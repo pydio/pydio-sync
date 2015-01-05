@@ -21,7 +21,7 @@
 # install current version of distribute setuptools
 # http://pythonhosted.org/distribute/setuptools.html#using-setuptools-without-bundling-it
 
-import os, platform
+import os, platform, uuid
 from setuptools import setup, find_packages
 
 if platform.platform().startswith('Linux'):
@@ -29,7 +29,8 @@ if platform.platform().startswith('Linux'):
     install_reqs = list(filter(None, req_lines))
 else:
     from pip.req import parse_requirements
-    install_requires = parse_requirements(os.path.join(os.path.dirname(__file__), "requirements.txt"))
+    install_requires = parse_requirements(os.path.join(os.path.dirname(__file__), "requirements.txt"), None, None,
+                                          None, uuid.uuid1())
     install_reqs = [str(r.req) for r in install_requires]
 
 setup_kwargs = {
