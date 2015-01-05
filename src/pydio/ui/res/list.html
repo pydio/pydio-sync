@@ -46,12 +46,16 @@
                 </tr>
             </table>
         </div>
-        <h4 ng-if="(logs | filter: ({type:'remote'}||{type:'local'}) ).length">{{_('Last files synced')}}</h4>
+        <h4 ng-if="(logs | filter: {action:'!loop'} ).length">{{_('Last files synced')}}</h4>
         <table style="width: 100%;">
-            <tr ng-repeat="log in logs | filter: ({type:'remote'}||{type:'local'})  | limitTo:4">
-                <td style="padding:2px 0; width: 12px;" class="glyphicon glyphicon-file"></td>
-                <td style="padding:2px 0;width: 80%;">{{log.source && log.source!='NULL' ? log.source:log.target | basename}}</td>
-                <td ng-show="QtObject" ng-click="openFile(job.directory + (log.source && log.source!='NULL' ? log.source:log.target))" style="text-align: right;padding:2px 0;"><a style="text-decoration: none;" class="small" href="">{{_('Open File')}}</a></td>
+            <tr ng-repeat="log in logs | filter: {action:'!loop'} | orderBy:'id':true  | limitTo: 4">
+                <td style="padding: 2px 0; width: 20px;">
+                    <span ng-if="log.action=='delete'" class="glyphicon glyphicon-trash"></span>
+                    <span ng-if="log.action!=='delete' && log.type=='remote'" class="glyphicon glyphicon-cloud-upload"></span>
+                    <span ng-if="log.action!=='delete' && log.type=='local'" class="glyphicon glyphicon-cloud-download"></span>
+                </td>
+                <td style="padding:2px 0;">{{log.source && log.source!='NULL' ? log.source:log.target | basename}}</td>
+                <td ng-show="QtObject && log.action!='delete'" ng-click="openFile(job.directory + (log.source && log.source!='NULL' ? log.source:log.target))" style="text-align: right;padding:2px 0; width: 15%;"><a style="text-decoration: none;" class="small" href="">{{_('Open File')}}</a></td>
             </tr>
         </table>
 
