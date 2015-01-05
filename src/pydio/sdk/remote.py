@@ -30,14 +30,13 @@ from hashlib import sha1
 from urlparse import urlparse
 
 
-import requests
+from requests.exceptions import ConnectionError
 import keyring
 from keyring.errors import PasswordSetError
-from pydispatch import dispatcher
 import xml.etree.ElementTree as ET
 
 from exceptions import PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException, PydioSdkQuotaException, \
-    PydioSdkDefaultException, PydioSdkPermissionException
+    PydioSdkPermissionException
 from .utils import *
 from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
 from pydio.utils import i18n
@@ -65,6 +64,7 @@ class PydioSdk():
         self.interrupt_tasks = False
         self.upload_max_size = PYDIO_SDK_MAX_UPLOAD_PIECES
         self.rsync_server_support = False
+        self.stat_slice_number = 200
         if user_id:
             self.auth = (user_id, keyring.get_password(url, user_id))
         else:
@@ -175,7 +175,7 @@ class PydioSdk():
                 url += '?' + auth_string
             try:
                 resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl, headers=headers)
-            except requests.exceptions.ConnectionError as e:
+            except ConnectionError as e:
                 raise
 
         elif request_type == 'post':
@@ -357,17 +357,26 @@ class PydioSdk():
         :param with_hash: bool whether to ask for files hash or not (md5)
         :return:
         """
+        from requests.exceptions import Timeout
         # NORMALIZE PATHES FROM START
         pathes = map(lambda p: self.normalize(p), pathes)
 
         action = '/stat_hash' if with_hash else '/stat'
         data = dict()
-        maxlen = min(len(pathes), 200)
+        maxlen = min(len(pathes), self.stat_slice_number)
         clean_pathes = map(lambda t: self.remote_folder + t.replace('\\', '/'),
                            filter(lambda x: x != '', pathes[:maxlen]))
         data['nodes[]'] = map(lambda p: self.normalize(p), clean_pathes)
         url = self.url + action + self.urlencode_normalized(clean_pathes[0])
-        resp = self.perform_request(url, type='post', data=data)
+        try:
+            resp = self.perform_request(url, type='post', data=data)
+        except Timeout:
+            if self.stat_slice_number < 20:
+                raise
+            self.stat_slice_number = int(math.floor(self.stat_slice_number / 2))
+            logging.info('Reduce bulk stat slice number to %d', self.stat_slice_number)
+            return self.bulk_stat(pathes, result=result, with_hash=with_hash)
+
         try:
             data = json.loads(resp.content)
         except ValueError:

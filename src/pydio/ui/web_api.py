@@ -23,6 +23,8 @@ from flask_restful import Api
 
 from flask import request, redirect, Response
 from flask.ext.restful import Resource
+from requests.exceptions import SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, \
+    InvalidSchema, InvalidURL, Timeout, RequestException
 from pydio.job.job_config import JobConfig, JobsLoader
 from pydio.job.EventLogger import EventLogger
 from pydio.job.localdb import LocalDbHandler
@@ -37,6 +39,8 @@ import sys
 import os
 from pathlib import *
 from pydio.utils.global_config import ConfigManager
+from pydio.utils import i18n
+_ = i18n.language.ugettext
 
 class PydioApi(Api):
 
@@ -109,7 +113,7 @@ class WorkspacesManager(Resource):
         if job_id != 'request':
             jobs = JobsLoader.Instance().get_jobs()
             if not job_id in jobs:
-                return {"error":"Cannot find job"}
+                return {"error": "Cannot find job"}
             job = jobs[job_id]
 
             url = job.server + '/api/pydio/state/user/repositories?format=json'
@@ -149,10 +153,33 @@ class WorkspacesManager(Resource):
                 message = "Server seems to be down..."
             logging.debug("Error while loading workspaces : " + message)
             return {'error': message}, resp.status_code
-        except requests.exceptions.RequestException as e:
-            logging.debug("Error while loading workspaces : certificate problem")
-            return {'error': "Server URL is not valid or if you are using https, is your certificate self-signed? If yes, check 'Trust SSL certificate'"}, 400
-
+        except SSLError as rt:
+            logging.error(rt.message)
+            return {'error': _("An SSL error happened! Is your server using a self-signed certificate? In that case please check 'Trust SSL certificate'")}, 400
+        except ProxyError as rt:
+            logging.error(rt.message)
+            return {'error': _('A proxy error happened, please check the logs')}, 400
+        except TooManyRedirects as rt:
+            logging.error(rt.message)
+            return {'error': _('Connection error: too many redirects')}, 400
+        except ChunkedEncodingError as rt:
+            logging.error(rt.message)
+            return {'error': _('Chunked encoding error, please check the logs')}, 400
+        except ContentDecodingError as rt:
+            logging.error(rt.message)
+            return {'error': _('Content Decoding error, please check the logs')}, 400
+        except InvalidSchema as rt:
+            logging.error(rt.message)
+            return {'error': _('Http connection error: invalid schema.')}, 400
+        except InvalidURL as rt:
+            logging.error(rt.message)
+            return {'error': _('Http connection error: invalid URL.')}, 400
+        except Timeout as to:
+            logging.error(to)
+            return {'error': _('Connection timeout!')}, 400
+        except RequestException as ree:
+            logging.error(ree.message)
+            return {'error': _('Cannot resolve domain!')}, 400
 
 
 class FoldersManager(Resource):

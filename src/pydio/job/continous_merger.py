@@ -26,8 +26,7 @@ import threading
 import pickle
 import logging
 
-from requests.exceptions import ConnectionError
-from requests.exceptions import RequestException
+from requests.exceptions import ConnectionError, RequestException, Timeout, SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, InvalidSchema, InvalidURL
 from pydio.job.change_processor import ChangeProcessor
 from pydio.job.localdb import LocalDbHandler, SqlEventHandler
 from pydio.job.local_watcher import LocalWatcher
@@ -471,11 +470,35 @@ class ContinuousDiffMerger(threading.Thread):
                         logger.log_state(_('Synchronized'), 'success')
 
             except PydioSdkDefaultException as re:
-                logging.warning(re.message)
+                logging.error(re.message)
                 logger.log_state(re.message, 'error')
+            except SSLError as rt:
+                logging.error(rt.message)
+                logger.log_state(_('An SSL error happened, please check the logs'), 'error')
+            except ProxyError as rt:
+                logging.error(rt.message)
+                logger.log_state(_('A proxy error happened, please check the logs'), 'error')
+            except TooManyRedirects as rt:
+                logging.error(rt.message)
+                logger.log_state(_('Connection error: too many redirects'), 'error')
+            except ChunkedEncodingError as rt:
+                logging.error(rt.message)
+                logger.log_state(_('Chunked encoding error, please check the logs'), 'error')
+            except ContentDecodingError as rt:
+                logging.error(rt.message)
+                logger.log_state(_('Content Decoding error, please check the logs'), 'error')
+            except InvalidSchema as rt:
+                logging.error(rt.message)
+                logger.log_state(_('Http connection error: invalid schema.'), 'error')
+            except InvalidURL as rt:
+                logging.error(rt.message)
+                logger.log_state(_('Http connection error: invalid URL.'), 'error')
+            except Timeout as to:
+                logging.error(to)
+                logger.log_state(_('Connection timeout, will retry later.'), 'error')
             except RequestException as ree:
-                logging.warning(ree.message)
-                logger.log_state(ree.message, 'request error')
+                logging.error(ree.message)
+                logger.log_state(_('Cannot resolve domain!'), 'error')
             except Exception as e:
                 if not (e.message.lower().count('[quota limit reached]') or e.message.lower().count('[file permissions]')):
                     logging.exception('Unexpected Error: %s' % e.message)
