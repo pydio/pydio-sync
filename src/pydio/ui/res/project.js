@@ -430,6 +430,16 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             });
         };
 
+        $scope.QtObject = window.PydioQtFileDialog;
+
+        $scope.openFile = function(source){
+          var url = source.split('/');
+          url = source.split('/', url.length - 1);
+          url = url.join('/');
+          $scope.QtObject.openUrl(url);
+        };
+
+
         $scope.selectedWorkspace = window.translate('Select a workspace');
 
         $scope.OnWorkspaceClick = function(workspace) {

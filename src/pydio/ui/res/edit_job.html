@@ -6,7 +6,7 @@
         </div>
     </div>
 </h2>
-<div style="margin-top: 90px;">
+<div style="margin-top: 120px;">
     <div class="small pull-left" style="text-align: center; width: 40%; overflow: visible;">
         <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
         {{_('Server')}}: {{job.server}}<br>
@@ -18,7 +18,7 @@
 
     <div class="small pull-right" style="text-align: center; width: 40%; overflow: visible; word-break: break-all;">
         <img src="images/desktop.png" style="width: 100px;"><br>
-        {{job.directory_label?job.directory_label:job.directory}}<br>
+        {{job.directory_label?job.directory_label:job.directory}} <a ng-show="QtObject" ng-click="openFile(job.directory+'/')"><span class="glyphicon glyphicon-new-window"></span></a><br>
     </div>
     <br style="clear: both;">
 
@@ -92,12 +92,10 @@
         <br style="clear: both">
     </div>
 
-    <div style="text-align: center; padding-bottom: 40px;">
-        <button type="button" ng-click="save('full')" class="btn btn-info" style="width: 49%">{{_('Save Parameters')}}</button>
-    </div>
-
 </div>
 
-<div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: center; background-color: #77b8e2;">
-    <button type="button"  class="btn btn-danger" ng-click="deleteJob()" style="width: 49%;" href>{{_('Delete Sync')}}</button>
+<div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: right; background-color: #77b8e2;">
+    <a href="#" title="Cancel"><span class="glyphicon glyphicon-arrow-left" style="color: white;font-size: 27px;position: absolute;left: 10px;top: 13px;"></span></a>
+    <button type="button"  class="btn btn-danger" ng-click="deleteJob()" style="width: 40%;margin:0 1%;" href>{{_('Delete Sync')}}</button>
+    <button type="button" ng-click="save('full')" class="btn btn-info" style="width: 40%;margin:0 1%;">{{_('Save Parameters')}}</button>
 </div>
