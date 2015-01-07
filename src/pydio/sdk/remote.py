@@ -602,7 +602,7 @@ class PydioSdk():
             current_size = os.path.getsize(local_tmp)
             chunk_local_hash = hashfile(open(local_tmp, 'rb'), hashlib.md5())
             chunk_remote_stat = self.stat(path, True, partial_hash=[0, current_size])
-            if chunk_local_hash == chunk_remote_stat['hash']:
+            if chunk_remote_stat and chunk_local_hash == chunk_remote_stat['hash']:
                 headers = {'range':'bytes=%i-%i' % (current_size, chunk_remote_stat['size'])}
                 write_mode = 'a+'
                 dl = current_size

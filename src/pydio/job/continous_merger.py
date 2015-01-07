@@ -267,7 +267,7 @@ class ContinuousDiffMerger(threading.Thread):
         Set the thread in "interrupt" mode : will try to stop cleanly, and then the thread will stop.
         :return:
         """
-        if hasattr(self, 'watcher'):
+        if self.watcher:
             logging.debug("Stopping watcher: %s" % self.watcher)
             self.watcher.stop()
         self.info(_('Job stopping'), toUser='PAUSE', channel='status')
