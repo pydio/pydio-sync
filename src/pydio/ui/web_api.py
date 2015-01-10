@@ -39,6 +39,7 @@ import sys
 import os
 from pathlib import *
 from pydio.utils.global_config import ConfigManager
+from pydio.utils.functions import connection_helper
 from pydio.utils import i18n
 _ = i18n.language.ugettext
 
@@ -280,9 +281,11 @@ class JobManager(Resource):
                 data = JobConfig.encoder(jobs[k])
                 self.enrich_job(data, k)
                 std_obj.append(data)
+                std_obj.append({'is_connected_to_internet': connection_helper.internet_ok})
             return std_obj
         data = JobConfig.encoder(jobs[job_id])
         self.enrich_job(data, job_id)
+        data.append({'is_connected_to_internet': connection_helper.internet_ok})
         return data
 
     def enrich_job(self, job_data, job_id):
