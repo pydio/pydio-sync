@@ -59,7 +59,7 @@ class PydioApi(Api):
         if l:
             l.setLevel(logging.ERROR)
         super(PydioApi, self).__init__(self.app)
-        self.add_resource(JobManager, '/', '/jobs', '/jobs/<string:job_id>')
+        self.add_resource(JobManager, '/', '/jobs', '/jobs/<string:job_id>', '/jobs-status')
         self.add_resource(WorkspacesManager, '/ws/<string:job_id>')
         self.add_resource(FoldersManager, '/folders/<string:job_id>')
         self.add_resource(LogManager, '/jobs/<string:job_id>/logs')
@@ -276,16 +276,17 @@ class JobManager(Resource):
             return redirect("/res/index.html", code=302)
         jobs = JobsLoader.Instance().get_jobs()
         if not job_id:
-            std_obj = []
+            json_jobs = []
             for k in jobs:
                 data = JobConfig.encoder(jobs[k])
                 self.enrich_job(data, k)
-                std_obj.append(data)
-                std_obj.append({'is_connected_to_internet': connection_helper.internet_ok})
-            return std_obj
+                json_jobs.append(data)
+            if request.path == '/jobs-status':
+                response = {'is_connected_to_internet': connection_helper.internet_ok, 'jobs': json_jobs}
+                return response
+            return json_jobs
         data = JobConfig.encoder(jobs[job_id])
         self.enrich_job(data, job_id)
-        data.append({'is_connected_to_internet': connection_helper.internet_ok})
         return data
 
     def enrich_job(self, job_data, job_id):
