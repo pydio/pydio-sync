@@ -94,8 +94,6 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-p', '--password', help='Password', type=unicode, default=None)
     parser.add_argument('-dir', '--direction', help='Synchro Direction', type=str, default='bi')
     parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
-    parser.add_argument('-z', '--zmq_port', type=int,
-                        help='Available port for zmq, both this port and this port +1 will be used', default=5556)
     parser.add_argument('-i', '--rdiff', type=unicode, help='Path to rdiff executable', default=None)
     parser.add_argument('--diag', help='Run self diagnostic', action='store_true', default=False)
     parser.add_argument('--diag-http', help='Check server connection', action='store_true', default=False)
@@ -104,7 +102,6 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('--extract_html', help='Utils for extracting HTML strings and compiling po files to json',
                         type=unicode, default=False)
     parser.add_argument('--auto-start', action='store_true')
-    parser.add_argument('--auto_detect_port', type=bool, help='Auto detect available ports', default=False)
     parser.add_argument('-v', '--verbose', action='count', default=1)
     args, _ = parser.parse_known_args(argv)
 
@@ -174,12 +171,11 @@ def main(argv=sys.argv[1:]):
             logging.error("Diagnostics failed: %s %s" % (str(rc), smoke_tests.status_message))
         return sys.exit(rc)
 
-    ports_detector = PortsDetector(args.zmq_port, args.auto_detect_port,
-                                   store_file=str(jobs_root_path / 'ports_config'))
+    ports_detector = PortsDetector(store_file=str(jobs_root_path / 'ports_config'))
     ports_detector.create_config_file()
 
     scheduler = PydioScheduler.Instance(jobs_root_path=jobs_root_path, jobs_loader=jobs_loader)
-    server = PydioApi(ports_detector.get_open_port('flask_api'))
+    server = PydioApi(ports_detector.get_port())
     from pydio.job import manager
     manager.api_server = server
 

@@ -22,24 +22,35 @@
 
 class PortsDetector():
 
-
-    def __init__(self, zmq_port, auto_detect, store_file):
-        self.zmq_port = zmq_port - 1
-        self.auto_detect = auto_detect
+    def __init__(self, store_file):
         self.store = store_file
+        self.default_port = 5556
 
-    def get_open_port(self, socket_name):
-        if self.auto_detect:
-            import socket
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind(("",0))
-            s.listen(1)
-            port = s.getsockname()[1]
-            s.close()
+    def get_port(self):
+        if self.default_port_ok():
+            self.save_config(self.default_port)
+            return self.default_port
         else:
-            self.zmq_port += 1
-            port = self.zmq_port
-        self.save_config(socket_name, port)
+            port = self.get_open_port()
+            self.save_config(port)
+            return port
+
+    def default_port_ok(self):
+        import socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(0.1)
+        result = sock.connect_ex(('127.0.0.1', self.default_port))
+        if result == 0:
+            return False
+        return True
+
+    def get_open_port(self):
+        import socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(("",0))
+        s.listen(1)
+        port = s.getsockname()[1]
+        s.close()
         return port
 
     def create_config_file(self):
@@ -47,6 +58,6 @@ class PortsDetector():
             config_file.write("Pydio port config file \n")
 
 
-    def save_config(self, socket_name, port_to_save):
+    def save_config(self, port_to_save):
         with open(self.store, 'a') as config_file:
-            config_file.write(socket_name + ':' + str(port_to_save) + "\n")
+            config_file.write("pydio" + ':' + str(port_to_save) + "\n")
