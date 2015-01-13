@@ -343,6 +343,12 @@ class SqliteChangeStore():
         opposite = 'local' if item['location'] == 'remote' else 'remote'
         res = False
         if item['type'] == 'create' or item['type'] == 'content':
+
+            # If it does not exist on the original side, there might be an indexing problem,
+            # Do we ignore it?
+            #if my_stat and not item['target'] in my_stat:
+            #    return True
+
             # If it does not exist on remote side, skip
             test_stat = self.stat_path(item['target'], location=opposite, stats=other_stats, with_hash=True)
             if not test_stat:
