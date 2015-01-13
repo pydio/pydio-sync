@@ -363,9 +363,9 @@ class ContinuousDiffMerger(threading.Thread):
                     else:
                         self.remote_target_seq = 1
                         self.ping_remote()
-                except ConnectionError as ce:
+                except RequestException as ce:
                     if not connection_helper.is_connected_to_internet():
-                        error = _('No Internet connection detected ! Waiting %s seconds to retry') % self.offline_timer
+                        error = _('No Internet connection detected! Waiting for %s seconds to retry') % self.offline_timer
                     else:
                         error = _('Connection to server failed, server is probably down. Waiting %s seconds to retry') % self.offline_timer
                     self.marked_for_snapshot_pathes = []
