@@ -138,6 +138,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 controller:'ListCtrl',
                 templateUrl:'list.html'
             })
+            .when('/about', {
+                controller:'ListCtrl',
+                templateUrl:'about.html'
+            })
             .when('/edit/:jobId/full', {
                 controller:'EditCtrl',
                 templateUrl:'02-Workspace.html'
