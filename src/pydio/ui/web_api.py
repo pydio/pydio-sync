@@ -243,9 +243,9 @@ class JobManager(Resource):
                            device_id=ConfigManager.Instance().get_device_id(),
                            skip_ssl_verify=trust_ssl)
             up = [0.0]
-            def callback(location, seq_id, change):
-                if "node" in change and change["node"]["md5"] != "directory" and change["node"]["bytesize"]:
-                    up[0] += float(change["node"]["bytesize"])
+            def callback(location, change, info):
+                if change and "bytesize" in change and change["md5"] != "directory":
+                    up[0] += float(change["bytesize"])
             sdk.changes_stream(0, callback)
             # COMPUTE LOCAL SIZE
             down = 0.0
@@ -259,7 +259,7 @@ class JobManager(Resource):
                             pass
 
             json_req['byte_size'] = up[0] + down
-            json_req['eta'] = up[0] * 8 / up_rate + down * 8 / dl_rate
+            json_req['eta'] = up[0] * 8 / dl_rate + down * 8 / up_rate
             return json_req
 
         JobsLoader.Instance().update_job(new_job)

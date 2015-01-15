@@ -365,15 +365,17 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         if(currentJob.getJob() == null && $location.path() == '/new'){
             job = new Jobs();
             $scope.inline_protocol='https://';
-            $scope.inline_host='';
-            job.id = 'new';
-            job.remote_folder = '';
-            job.directory = '';
-            job.workspace = '';
-            job.direction = 'bi';
-            job.label = 'New Job';
-            job.__type__ = 'JobConfig'
-            $scope.job = job;
+            $scope.inline_host  ='';
+            job.id              = 'new';
+            job.remote_folder   = '';
+            job.directory       = '';
+            job.workspace       = '';
+            job.direction       = 'bi';
+            job.frequency       = 'auto';
+            job.solve           = 'manual';
+            job.label           = 'New Job';
+            job.__type__        = 'JobConfig'
+            $scope.job          = job;
             currentJob.setJob($scope.job);
         }else if ($scope.job && $scope.job.server){
             job = $scope.job = currentJob.getJob();
@@ -431,6 +433,9 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     $scope.folders_loading_error = resp[0].error;
                 }
                 $scope.folders_loading = false;
+            }, function(resp){
+                $scope.folders_loading = false;
+                $scope.folders_loading_error = window.translate('Error while loading folders!');
             });
         };
 
@@ -551,6 +556,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 }
 
                 $location.path('/edit/new/step3');
+
             }else if(stepName == 'step3'){
 
                 delete $scope.job.test_path;
