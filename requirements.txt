@@ -6,7 +6,7 @@ argh==0.24.1
 keyring==4.0
 pathlib==0.97
 pathtools==0.1.2
-requests==2.2.1
+requests>=2.5.1
 watchdog==0.8.1
 cffi>=0.8.6
 flask==0.10.1
