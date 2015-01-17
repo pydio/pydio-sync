@@ -3,12 +3,12 @@ PyDispatcher==2.0.3
 PyYAML==3.10
 appdirs==1.2.0
 argh==0.24.1
-keyring==3.6
+keyring==4.0
 pathlib==0.97
 pathtools==0.1.2
-requests>=2.5.1
+requests==2.2.1
 watchdog==0.8.1
-cffi>=0.8
+cffi>=0.8.6
 flask==0.10.1
 flask-restful==0.2.12
-six>=1.6.1
+six>=1.9.0
