@@ -139,7 +139,8 @@ class PydioSdk():
         try:
             tokens = json.loads(resp.content)
         except ValueError as v:
-            return False
+            raise PydioSdkException("basic_auth", "", "Cannot parse JSON result: " + resp.content + "")
+            #return False
         try:
             keyring.set_password(self.url, self.user_id + '-token', tokens['t'] + ':' + tokens['p'])
         except PasswordSetError:
