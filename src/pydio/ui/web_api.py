@@ -141,10 +141,6 @@ class WorkspacesManager(Resource):
                     data['repositories']['repo'] = [data['repositories']['repo']]
                 data['repositories']['repo'] = filter(lambda x: not x['@access_type'].startswith('ajxp_'), data['repositories']['repo'])
             return data
-        except ValueError:
-            message = "Error while parsing request result:" + resp.content
-            logging.debug(message)
-            return {'error': message}, 400
         except requests.HTTPError:
             r = resp.status_code
             message = "Couldn't load your workspaces, check your server !"
@@ -179,6 +175,10 @@ class WorkspacesManager(Resource):
         except InvalidURL as rt:
             logging.error(rt.message)
             return {'error': _('Http connection error: invalid URL.')}, 400
+        except ValueError:
+            message = "Error while parsing request result:" + resp.content
+            logging.debug(message)
+            return {'error': message}, 400
         except Timeout as to:
             logging.error(to)
             return {'error': _('Connection timeout!')}, 400
