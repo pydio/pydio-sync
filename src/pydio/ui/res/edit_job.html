@@ -10,7 +10,7 @@
     <div class="small pull-left" style="text-align: center; width: 40%; overflow: visible;">
         <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
         {{_('Server')}}: {{job.server}}<br>
-        {{_('Workspace')}}: {{job.workspace}}<br>
+        {{_('Workspace')}}: {{job.workspace}} <a href="{{job.server}}" target="_blank"><span class="glyphicon glyphicon-new-window"></span></a><br>
         <span ng-if="job.remote_folder">{{_('Folder')}}: {{job.remote_folder}}</span>
     </div>
 
@@ -21,6 +21,12 @@
         {{job.directory_label?job.directory_label:job.directory}} <a ng-show="QtObject" ng-click="openFile(job.directory+'/')"><span class="glyphicon glyphicon-new-window"></span></a><br>
     </div>
     <br style="clear: both;">
+
+    <h3 style="margin-top: 30px;">{{_('Label')}}</h3>
+    <div class="">
+        <input type="text" ng-model="job.label" class="form-control">
+    </div>
+
 
     <h3 style="margin-top: 30px;">{{_('Server Connexion')}}</h3>
     <div>
