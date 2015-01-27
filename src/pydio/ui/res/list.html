@@ -1,21 +1,24 @@
 <script id="job_2.html" type="text/ng-template">
     <div class="panel panel-primary" style="clear: both;">
-        <p class="panel-heading" style="background-color: #77b8e2;" >{{_('SYNC')}} {{job.label?job.label:job.id}} <a class="pull-right" href="#/change/{{job.id}}" title="Edit parameters"><span style="color: white;" class="small glyphicon glyphicon-wrench"></span></a></p>
+        <p class="panel-heading" style="background-color: #77b8e2;" >{{job.label?job.label:job.id}}
+            <a class="pull-right" href="#/change/{{job.id}}" title="Edit parameters"><span style="color: white;" class="small glyphicon glyphicon-wrench"></span></a>
+        </p>
         <table style="width: 100%;margin-bottom: 10px;">
             <tr>
                 <td style="width:100px; padding-left: 10px;">
-                    <img src="images/rocket.png" width="80" style="margin-top: -5px;"/>
+                    <img src="images/rocket.png" width="80" ng-class="{'pulse':job.state.tasks && job.state.tasks.total}" style="margin-top: -5px;"/>
                 </td>
-                <td style="vertical-align: top;padding-top: 10px;">
+                <td style="vertical-align: middle; padding-bottom: 5px;">
                     <div class="" ng-if="job.state.tasks && job.state.tasks.total">
-                        {{_('Size')}}: {{job.state.global['queue_bytesize'] | bytes:1}} -
-                        {{_('Estimated time')}}: {{job.state.global['eta'] | seconds}}<br>
-                        {{_('Status')}}: {{_('syncing')}}
+                        <span style="font-size: 1.2em;">{{_('Status')}}: {{_('syncing')}}</span>
+                        <br>{{_('Size')}}: {{job.state.global['queue_bytesize'] | bytes:1}} -
+                        {{_('Estimated time')}}: {{job.state.global['eta'] | seconds}}
+                        <!--{{_('Status')}}: {{_('syncing')}}-->
                     </div>
                     <div class="" ng-if="(!job.state.tasks || !job.state.tasks.total) && job.last_event">
-                        <span ng-if="job.last_event.type != 'error'">{{_('Last sync')}} {{job.last_event.date | moment }}<br></span>
+                        <span style="font-size:1.2em;" ng-if="job.last_event.type != 'error'">{{_('Last sync')}} {{job.last_event.date | moment }}<br></span>
                         <span ng-if="job.last_event.type == 'error'">{{_('ERROR')}}: </span>{{job.last_event.message}}
-                        <br>{{_('Status')}}: {{_('idle')}}
+                        <!--<br>{{_('Status')}}: {{_('idle')}}-->
                     </div>
                 </td>
                 <td style="width:100px; text-align: right;padding-right: 15px;">

@@ -91,8 +91,14 @@
         </div>
     </div>
 
-    <h3 style="margin-top: 50px;">{{_('Advanced parameters')}}</h3>
-    <ng-include src="'advanced.html'" onload="job = job"></ng-include>
+    <h3 style="margin-top: 50px; cursor:pointer;" ng-click="edit_show_advanced=!edit_show_advanced">
+        <span ng-class="{'glyphicon-chevron-right':!edit_show_advanced,'glyphicon-chevron-down':edit_show_advanced}" class="small glyphicon"></span> {{_('Advanced parameters')}}<span ng-if="!edit_show_advanced">...</span>
+    </h3>
+    <div ng-show="edit_show_advanced">
+
+        <ng-include src="'advanced.html'" onload="job = job"></ng-include>
+
+    </div>
 
     <div>
         <br style="clear: both">
