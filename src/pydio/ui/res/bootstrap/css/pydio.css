@@ -96,7 +96,6 @@
     animation-timing-function: ease;
     -webkit-animation-iteration-count: infinite;
     animation-iteration-count: infinite;
-    transform: rotate(5deg);
 }
 
 /* Pulse */
