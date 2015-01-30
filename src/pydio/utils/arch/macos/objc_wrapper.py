@@ -230,7 +230,7 @@ def autorelease(ref):
             CoreFoundation.CFRelease(ref)
 
 
-def add_path_to_shared_list(path, position_top=False):
+def macos_add_to_favorites(path, position_top=False):
     path_cf_str = object_to_native_cfstring(path)
     basename_cf_str = object_to_native_cfstring(os.path.basename(path))
     with autorelease(CoreFoundation.CFURLCreateWithFileSystemPath(kCFAllocatorDefault, path_cf_str.get_ref(),

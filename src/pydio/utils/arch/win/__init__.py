@@ -1,6 +1,6 @@
 #
 # Copyright 2007-2015 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
-# This file is part of Pydio.
+#  This file is part of Pydio.
 #
 #  Pydio is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU Affero General Public License as published by
@@ -17,16 +17,3 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
-def add_to_favorites(path, label):
-    """
-    Try to add a path to the user quick access
-    :param path:
-    """
-    import sys
-
-    if sys.platform == 'darwin':
-        from arch.macos.objc_wrapper import macos_add_to_favorites
-        macos_add_to_favorites(path, False)
-    elif sys.platform == 'win32':
-        from arch.win.favorites import win_add_to_favorites
-        win_add_to_favorites(path, label)

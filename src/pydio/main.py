@@ -110,6 +110,17 @@ def main(argv=sys.argv[1:]):
         jobs_root_path = Path(DEFAULT_DATA_PATH)
         if not jobs_root_path.exists():
             jobs_root_path.mkdir()
+            # This is a first start
+            user_dir_label = 'Pydio'
+            user_dir = unicode(os.path.join(os.path.expanduser("~"), user_dir_label))
+            if not os.path.exists(user_dir):
+                try:
+                    os.mkdir(user_dir)
+                except Exception:
+                    pass
+            if os.path.exists(user_dir):
+                from pydio.utils.favorites_manager import add_to_favorites
+                add_to_favorites(user_dir, user_dir_label)
 
     setup_logging(args.verbose, jobs_root_path)
 
