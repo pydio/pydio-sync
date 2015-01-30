@@ -193,6 +193,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         $scope.Math = window.Math;
         $scope.QtObject = window.PydioQtFileDialog;
 
+        $scope.openLogs = function(){
+          $scope.QtObject.openLogs();
+        }
+
         $scope.openFile = function(source){
           var url = source.split('/');
           url = source.split('/', url.length - 1);
