@@ -43,6 +43,13 @@ def get_user_home():
         return os.path.expanduser('~')
 
 
+def guess_filesystemencoding():
+    fse = sys.getfilesystemencoding()
+    if not fse and sys.platform.startswith('linux'):
+        fse = 'utf-8'
+    return fse
+
+
 class ConnectionHelper:
 
     def __init__(self):

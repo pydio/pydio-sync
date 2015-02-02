@@ -21,7 +21,7 @@
 import logging
 import sys
 import os
-from pydio.utils.functions import get_user_home
+from pydio.utils.functions import get_user_home, guess_filesystemencoding
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-7s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logging.getLogger().setLevel(logging.DEBUG)
@@ -109,7 +109,7 @@ def main(argv=sys.argv[1:]):
 
     jobs_root_path = Path(__file__).parent / 'data'
     if not jobs_root_path.exists():
-        jobs_root_path = Path(DEFAULT_DATA_PATH.encode(sys.getfilesystemencoding()))
+        jobs_root_path = Path(DEFAULT_DATA_PATH.encode(guess_filesystemencoding()))
         if not jobs_root_path.exists():
             jobs_root_path.mkdir()
             # This is a first start
@@ -132,7 +132,7 @@ def main(argv=sys.argv[1:]):
         pydio.autostart.setup(argv)
         return 0
 
-    u_jobs_root_path = str(jobs_root_path).decode(sys.getfilesystemencoding())
+    u_jobs_root_path = str(jobs_root_path).decode(guess_filesystemencoding())
     config_manager = ConfigManager.Instance(configs_path=u_jobs_root_path, data_path=DEFAULT_PARENT_PATH)
 
     jobs_loader = JobsLoader.Instance(data_path=u_jobs_root_path)

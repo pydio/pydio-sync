@@ -23,7 +23,7 @@ from pydispatch import dispatcher
 
 from pydio.job.continous_merger import ContinuousDiffMerger
 from pydio import COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
-from pydio.utils.functions import Singleton
+from pydio.utils.functions import Singleton, guess_filesystemencoding
 from pydio.job import manager
 
 
@@ -64,7 +64,7 @@ class PydioScheduler():
         job_data_path = self.jobs_root_path / str(job_config.id)
         if not job_data_path.exists():
             job_data_path.mkdir(parents=True)
-        job_data_path = str(job_data_path).decode(sys.getfilesystemencoding())
+        job_data_path = str(job_data_path).decode(guess_filesystemencoding())
 
         merger = ContinuousDiffMerger(job_config, job_data_path=job_data_path)
         try:

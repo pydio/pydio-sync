@@ -31,7 +31,7 @@ from pathlib import *
 from watchdog.events import FileSystemEventHandler
 from watchdog.utils.dirsnapshot import DirectorySnapshotDiff
 
-from pydio.utils.functions import hashfile, set_file_hidden
+from pydio.utils.functions import hashfile, set_file_hidden, guess_filesystemencoding
 
 
 class SqlSnapshot(object):
@@ -444,7 +444,7 @@ class SqlEventHandler(FileSystemEventHandler):
         self.includes = includes
         self.excludes = excludes
         db_handler = LocalDbHandler(job_data_path, basepath)
-        self.unique_id = hashlib.md5(job_data_path.encode(sys.getfilesystemencoding())).hexdigest()
+        self.unique_id = hashlib.md5(job_data_path.encode(guess_filesystemencoding())).hexdigest()
         self.db = db_handler.db
         self.reading = False
         self.last_write_time = 0
