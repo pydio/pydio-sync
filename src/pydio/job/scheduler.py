@@ -17,7 +17,7 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
-import logging
+import logging, sys
 
 from pydispatch import dispatcher
 
@@ -64,7 +64,7 @@ class PydioScheduler():
         job_data_path = self.jobs_root_path / str(job_config.id)
         if not job_data_path.exists():
             job_data_path.mkdir(parents=True)
-        job_data_path = str(job_data_path)
+        job_data_path = str(job_data_path).decode(sys.getfilesystemencoding())
 
         merger = ContinuousDiffMerger(job_config, job_data_path=job_data_path)
         try:

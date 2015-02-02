@@ -82,7 +82,7 @@ from pydio.ui.web_api import PydioApi
 from pydio.job.scheduler import PydioScheduler
 
 DEFAULT_DATA_PATH = os.path.join(get_user_home(), ".pydio_data")
-
+DEFAULT_PARENT_PATH = os.path.join(get_user_home(), "Pydio")
 
 def main(argv=sys.argv[1:]):
     parser = argparse.ArgumentParser('Pydio Synchronization Tool')
@@ -109,7 +109,7 @@ def main(argv=sys.argv[1:]):
 
     jobs_root_path = Path(__file__).parent / 'data'
     if not jobs_root_path.exists():
-        jobs_root_path = Path(DEFAULT_DATA_PATH.encode('utf-8'))
+        jobs_root_path = Path(DEFAULT_DATA_PATH.encode(sys.getfilesystemencoding()))
         if not jobs_root_path.exists():
             jobs_root_path.mkdir()
             # This is a first start
@@ -132,8 +132,10 @@ def main(argv=sys.argv[1:]):
         pydio.autostart.setup(argv)
         return 0
 
-    jobs_loader = JobsLoader.Instance(data_path=str(jobs_root_path))
-    config_manager = ConfigManager.Instance(data_path=str(jobs_root_path))
+    u_jobs_root_path = str(jobs_root_path).decode(sys.getfilesystemencoding())
+    config_manager = ConfigManager.Instance(configs_path=u_jobs_root_path, data_path=DEFAULT_PARENT_PATH)
+
+    jobs_loader = JobsLoader.Instance(data_path=u_jobs_root_path)
     config_manager.set_rdiff_path(args.rdiff)
 
     if args.server and args.directory and args.workspace:
@@ -141,7 +143,7 @@ def main(argv=sys.argv[1:]):
         job_config.load_from_cliargs(args)
         data = {job_config.id: job_config}
         if args.save_cfg:
-            logging.info("Storing config in %s", str(jobs_root_path / 'configs.json'))
+            logging.info("Storing config in %s", os.path.join(u_jobs_root_path, 'configs.json'))
             jobs_loader.save_jobs(data)
     else:
         fp = args.file

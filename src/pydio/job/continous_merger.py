@@ -58,7 +58,7 @@ class ContinuousDiffMerger(threading.Thread):
         """
         threading.Thread.__init__(self)
         self.last_run = 0
-        self.data_base = job_data_path
+        self.configs_path = job_data_path
         self.job_config = job_config
         self.init_global_progress()
 
@@ -79,7 +79,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.remote_target_seq = 0
         self.local_seqs = []
         self.remote_seqs = []
-        self.db_handler = LocalDbHandler(self.data_base, job_config.directory)
+        self.db_handler = LocalDbHandler(self.configs_path, job_config.directory)
         self.interrupt = False
         self.event_timer = 2
         self.online_timer = 10
@@ -87,7 +87,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.online_status = True
         self.job_status_running = True
         self.direction = job_config.direction
-        self.event_logger = EventLogger(self.data_base)
+        self.event_logger = EventLogger(self.configs_path)
         self.processing_signals = {}
         self.current_tasks = []
         self.event_handler = None
@@ -101,15 +101,15 @@ class ContinuousDiffMerger(threading.Thread):
             self.event_handler = SqlEventHandler(includes=job_config.filters['includes'],
                                                  excludes=job_config.filters['excludes'],
                                                  basepath=job_config.directory,
-                                                 job_data_path=job_data_path)
+                                                 job_data_path=self.configs_path)
             self.watcher = LocalWatcher(job_config.directory,
-                                        job_data_path,
+                                        self.configs_path,
                                         event_handler=self.event_handler)
             self.db_handler.check_lock_on_event_handler(self.event_handler)
 
-        if os.path.exists(self.data_base + "/sequences"):
+        if os.path.exists(self.configs_path + "/sequences"):
             try:
-                sequences = pickle.load(open(self.data_base + "/sequences", "rb"))
+                sequences = pickle.load(open(self.configs_path + "/sequences", "rb"))
                 self.remote_seq = sequences['remote']
                 self.local_seq = sequences['local']
                 if self.event_handler:
@@ -117,7 +117,7 @@ class ContinuousDiffMerger(threading.Thread):
 
             except Exception:
                 # Wrong content, remove sequences file.
-                os.unlink(self.data_base + "/sequences")
+                os.unlink(self.configs_path + "/sequences")
 
 
         dispatcher.connect( self.handle_transfer_rate_event, signal=TRANSFER_RATE_SIGNAL, sender=dispatcher.Any )
@@ -296,7 +296,7 @@ class ContinuousDiffMerger(threading.Thread):
         """
         Start the thread
         """
-        logger = EventLogger(self.data_base)
+        logger = EventLogger(self.configs_path)
         very_first = False
 
         if self.watcher:
@@ -350,7 +350,7 @@ class ContinuousDiffMerger(threading.Thread):
 
                 # Load local and/or remote changes, depending on the direction
                 from pydio.job.change_stores import SqliteChangeStore
-                self.current_store = SqliteChangeStore(self.data_base + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'])
+                self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'])
                 self.current_store.open()
                 try:
                     if self.job_config.direction != 'up':
@@ -525,7 +525,7 @@ class ContinuousDiffMerger(threading.Thread):
         pickle.dump(dict(
             local=self.local_seq,
             remote=self.remote_seq
-        ), open(self.data_base + '/sequences', 'wb'))
+        ), open(self.configs_path + '/sequences', 'wb'))
         if self.event_handler:
             self.event_handler.last_seq_id = self.local_seq
 

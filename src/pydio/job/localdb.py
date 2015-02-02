@@ -444,15 +444,15 @@ class SqlEventHandler(FileSystemEventHandler):
         self.includes = includes
         self.excludes = excludes
         db_handler = LocalDbHandler(job_data_path, basepath)
-        self.unique_id = hashlib.md5(job_data_path).hexdigest()
+        self.unique_id = hashlib.md5(job_data_path.encode(sys.getfilesystemencoding())).hexdigest()
         self.db = db_handler.db
         self.reading = False
         self.last_write_time = 0
         self.db_wait_duration = 1
         self.last_seq_id = 0
 
-
-    def get_unicode_path(self, src):
+    @staticmethod
+    def get_unicode_path(src):
         if isinstance(src, str):
             src = unicode(src, 'utf-8')
         return src

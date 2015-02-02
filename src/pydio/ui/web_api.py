@@ -231,7 +231,7 @@ class JobManager(Resource):
         new_job = JobConfig.object_decoder(json_req)
 
         if 'test_path' in json_req:
-            json_req['directory'] = os.path.join(get_user_home(), 'Pydio', json_req['repoObject']['label'])
+            json_req['directory'] = os.path.join(ConfigManager.Instance().get_data_path(), json_req['repoObject']['label'])
             return json_req
         elif 'compute_sizes' in json_req:
             dl_rate = 2 * 1024 * 1024

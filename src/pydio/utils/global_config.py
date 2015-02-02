@@ -29,8 +29,12 @@ class ConfigManager:
     data_path = ''
     rdiff_path = ''
 
-    def __init__(self, data_path):
+    def __init__(self, configs_path, data_path):
+        self.configs_path = configs_path
         self.data_path = data_path
+
+    def get_configs_path(self):
+        return self.configs_path
 
     def get_data_path(self):
         return self.data_path

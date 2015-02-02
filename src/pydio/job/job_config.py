@@ -89,7 +89,7 @@ class JobsLoader():
             json.dump(self.jobs, fp, default=JobConfig.encoder, indent=2)
 
     def build_job_data_path(self, job_id):
-        return self.data_path + '/' + job_id
+        return os.path.join(self.data_path, job_id)
 
     def clear_job_data(self, job_id, parent=False):
         job_data_path = self.build_job_data_path(job_id)
