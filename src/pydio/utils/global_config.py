@@ -59,3 +59,7 @@ class ConfigManager:
         self.device_id = str(uuid.uuid1())
         pickle.dump(self.device_id, open(self.configs_path + '/device_id', 'wb'))
         return self.device_id
+
+    def get_version_data(self):
+        from pydio.version import version, build, version_date
+        return {'version': version, 'build':build, 'date':version_date}
