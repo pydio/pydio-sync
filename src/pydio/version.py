@@ -20,3 +20,4 @@
 version = '##VERSION##'
 build = '##BUILD##'
 version_date = '##VERSION_DATE##'
+channel = '##BUILD_CHANNEL##'
