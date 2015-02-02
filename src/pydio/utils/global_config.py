@@ -52,10 +52,10 @@ class ConfigManager:
         if self.device_id:
             return self.device_id
 
-        if os.path.exists(self.data_path + '/device_id'):
-            self.device_id = pickle.load(open(self.data_path + '/device_id', 'rb'))
+        if os.path.exists(self.configs_path + '/device_id'):
+            self.device_id = pickle.load(open(self.configs_path + '/device_id', 'rb'))
             return self.device_id
 
         self.device_id = str(uuid.uuid1())
-        pickle.dump(self.device_id, open(self.data_path + '/device_id', 'wb'))
+        pickle.dump(self.device_id, open(self.configs_path + '/device_id', 'wb'))
         return self.device_id
