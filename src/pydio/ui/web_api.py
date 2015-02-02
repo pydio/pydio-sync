@@ -39,7 +39,7 @@ import sys
 import os
 from pathlib import *
 from pydio.utils.global_config import ConfigManager
-from pydio.utils.functions import connection_helper
+from pydio.utils.functions import connection_helper, get_user_home
 from pydio.utils import i18n
 _ = i18n.language.ugettext
 
@@ -231,8 +231,7 @@ class JobManager(Resource):
         new_job = JobConfig.object_decoder(json_req)
 
         if 'test_path' in json_req:
-            from os.path import expanduser
-            json_req['directory'] = expanduser("~") + '/Pydio/' + json_req['repoObject']['label']
+            json_req['directory'] = os.path.join(get_user_home(), 'Pydio', json_req['repoObject']['label'])
             return json_req
         elif 'compute_sizes' in json_req:
             dl_rate = 2 * 1024 * 1024

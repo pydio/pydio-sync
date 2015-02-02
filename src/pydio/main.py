@@ -21,6 +21,7 @@
 import logging
 import sys
 import os
+from pydio.utils.functions import get_user_home
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-7s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logging.getLogger().setLevel(logging.DEBUG)
@@ -50,6 +51,7 @@ import json
 import thread
 import time
 import pydio.monkeypatch
+import pydio.utils.functions
 from pathlib import Path
 
 if __name__ == "__main__":
@@ -79,7 +81,7 @@ from pydio.utils.global_config import ConfigManager
 from pydio.ui.web_api import PydioApi
 from pydio.job.scheduler import PydioScheduler
 
-DEFAULT_DATA_PATH = os.path.join(os.path.expanduser("~"), ".pydio_data")
+DEFAULT_DATA_PATH = os.path.join(get_user_home(), ".pydio_data")
 
 
 def main(argv=sys.argv[1:]):
@@ -107,12 +109,12 @@ def main(argv=sys.argv[1:]):
 
     jobs_root_path = Path(__file__).parent / 'data'
     if not jobs_root_path.exists():
-        jobs_root_path = Path(DEFAULT_DATA_PATH)
+        jobs_root_path = Path(DEFAULT_DATA_PATH.encode('utf-8'))
         if not jobs_root_path.exists():
             jobs_root_path.mkdir()
             # This is a first start
             user_dir_label = 'Pydio'
-            user_dir = unicode(os.path.join(os.path.expanduser("~"), user_dir_label))
+            user_dir = unicode(os.path.join(get_user_home(), user_dir_label))
             if not os.path.exists(user_dir):
                 try:
                     os.mkdir(user_dir)

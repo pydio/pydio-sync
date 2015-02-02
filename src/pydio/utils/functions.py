@@ -17,8 +17,9 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
-import os
+import os,sys
 import urllib2
+
 
 def hashfile(afile, hasher, blocksize=65536):
     buf = afile.read(blocksize)
@@ -27,10 +28,19 @@ def hashfile(afile, hasher, blocksize=65536):
         buf = afile.read(blocksize)
     return hasher.hexdigest()
 
+
 def set_file_hidden(path):
     if os.name in ("nt", "ce"):
         import ctypes
         ctypes.windll.kernel32.SetFileAttributesW(path, 2)
+
+
+def get_user_home():
+    if sys.platform == 'win32':
+        from arch.win.expanduser import expand_user as win_expand
+        return win_expand()
+    else:
+        return os.path.expanduser('~')
 
 
 class ConnectionHelper:
