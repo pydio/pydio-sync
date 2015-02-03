@@ -83,7 +83,10 @@ from pydio.job.scheduler import PydioScheduler
 
 import appdirs
 APP_NAME='Pydio'
-DEFAULT_DATA_PATH = appdirs.user_data_dir(APP_NAME, roaming=True) # os.path.join(get_user_home(), ".pydio_data")
+if sys.platform == 'win32':
+    DEFAULT_DATA_PATH = os.path.join(os.environ('APPDATA'), APP_NAME)
+else:
+    DEFAULT_DATA_PATH = appdirs.user_data_dir(APP_NAME, roaming=True)
 DEFAULT_PARENT_PATH = get_user_home(APP_NAME)
 
 def main(argv=sys.argv[1:]):
