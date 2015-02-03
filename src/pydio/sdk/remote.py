@@ -35,8 +35,8 @@ import keyring
 from keyring.errors import PasswordSetError
 import xml.etree.ElementTree as ET
 
-from exceptions import PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException, PydioSdkQuotaException, \
-    PydioSdkPermissionException
+from exceptions import PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException, \
+    PydioSdkQuotaException, PydioSdkPermissionException, PydioSdkTokenAuthNotSupportedException
 from .utils import *
 from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
 from pydio.utils import i18n
@@ -65,6 +65,7 @@ class PydioSdk():
         self.upload_max_size = PYDIO_SDK_MAX_UPLOAD_PIECES
         self.rsync_server_support = False
         self.stat_slice_number = 200
+        self.stick_to_basic = False
         if user_id:
             self.auth = (user_id, keyring.get_password(url, user_id))
         else:
@@ -136,6 +137,12 @@ class PydioSdk():
         resp = requests.get(url=url, auth=self.auth, verify=self.verify_ssl)
         if resp.status_code == 401:
             raise PydioSdkBasicAuthException(_('Authentication Error'))
+
+        # If content is empty (but not error status code), the token based auth may not be active
+        # We should switch to basic
+        if resp.content == '':
+            raise PydioSdkTokenAuthNotSupportedException("token_auth")
+
         try:
             tokens = json.loads(resp.content)
         except ValueError as v:
@@ -146,6 +153,47 @@ class PydioSdk():
         except PasswordSetError:
             logging.error(_("Cannot store tokens in keychain, basic auth will be performed each time!"))
         return tokens
+
+    def perform_basic(self, url, request_type='get', data=None, files=None, headers=None, stream=False, with_progress=False):
+        """
+        :param headers:
+        :param url: str url to query
+        :param request_type: str http method, default is "get"
+        :param data: dict query parameters
+        :param files: dict files, described as {'fieldname':'path/to/file'}
+        :param stream: bool get response as a stream
+        :param with_progress: dict an object that can be updated with various progress data
+        :return: Http response
+        """
+        if request_type == 'get':
+            try:
+                resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl, headers=headers,
+                                    auth=self.auth)
+            except ConnectionError as e:
+                raise
+
+        elif request_type == 'post':
+            if not data:
+                data = {}
+            if files:
+                resp = self.upload_file_with_progress(url, dict(**data), files, stream, with_progress,
+                                                      max_size=self.upload_max_size, auth=self.auth)
+            else:
+                resp = requests.post(
+                    url=url,
+                    data=data,
+                    stream=stream,
+                    timeout=20,
+                    verify=self.verify_ssl,
+                    headers=headers,
+                    auth=self.auth)
+        else:
+            raise PydioSdkTokenAuthException(_("Unsupported HTTP method"))
+
+        if resp.status_code == 401:
+            raise PydioSdkTokenAuthException(_("Authentication Exception"))
+        return resp
+
 
     def perform_with_tokens(self, token, private, url, request_type='get', data=None, files=None, headers=None, stream=False,
                             with_progress=False):
@@ -218,9 +266,22 @@ class PydioSdk():
         :param with_progress: dict an object that can be updated with various progress data
         :return:
         """
+        # We knwo that token auth is not supported anyway
+        if self.stick_to_basic:
+            return self.perform_basic(url, request_type=type, data=data, files=files, headers=headers, stream=stream,
+                                          with_progress=with_progress)
+
         tokens = keyring.get_password(self.url, self.user_id + '-token')
         if not tokens:
-            tokens = self.basic_authenticate()
+            try:
+                tokens = self.basic_authenticate()
+            except PydioSdkTokenAuthNotSupportedException as pne:
+                logging.info('Switching to permanent basic auth, as tokens were not correctly received. This is not '
+                             'good for performances, but might be necessary for session credential based setups.')
+                self.stick_to_basic = True
+                return self.perform_basic(url, request_type=type, data=data, files=files, headers=headers, stream=stream,
+                                          with_progress=with_progress)
+
             return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files,
                                             headers=headers, stream=stream)
         else:
@@ -233,7 +294,15 @@ class PydioSdk():
                 raise
             except PydioSdkTokenAuthException as pTok:
                 # Tokens may be revoked? Retry
-                tokens = self.basic_authenticate()
+                try:
+                    tokens = self.basic_authenticate()
+                except PydioSdkTokenAuthNotSupportedException:
+                    self.stick_to_basic = True
+                    logging.info('Switching to permanent basic auth, as tokens were not correctly received. This is not '
+                                 'good for performances, but might be necessary for session credential based setups.')
+                    return self.perform_basic(url, request_type=type, data=data, files=files, headers=headers, stream=stream,
+                                              with_progress=with_progress)
+
                 try:
                     return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files,
                                                     headers=headers, stream=stream, with_progress=with_progress)
@@ -784,7 +853,7 @@ class PydioSdk():
         return self.rsync_supported
 
 
-    def upload_file_with_progress(self, url, fields, files, stream, with_progress, max_size=0):
+    def upload_file_with_progress(self, url, fields, files, stream, with_progress, max_size=0, auth=None):
         """
         Upload a file with progress, file chunking if necessary, and stream content directly from file.
         :param url: url to post
@@ -853,6 +922,19 @@ class PydioSdk():
                     cb(filesize, existing_dlpart_size, existing_dlpart_size, 0)
 
         if not existing_pieces_number:
+
+            # try:
+            #     import http.client as http_client
+            # except ImportError:
+            #     # Python 2
+            #     import httplib as http_client
+            # http_client.HTTPConnection.debuglevel = 1
+            #
+            # logging.getLogger().setLevel(logging.DEBUG)
+            # requests_log = logging.getLogger("requests.packages.urllib3")
+            # requests_log.setLevel(logging.DEBUG)
+            # requests_log.propagate = True
+
             (header_body, close_body, content_type) = encode_multiparts(fields)
             body = BytesIOWithFile(header_body, close_body, files['userfile_0'], callback=cb, chunk_size=max_size, file_part=0)
             resp = requests.post(
@@ -861,7 +943,8 @@ class PydioSdk():
                 headers={'Content-Type': content_type},
                 stream=True,
                 timeout=20,
-                verify=self.verify_ssl
+                verify=self.verify_ssl,
+                auth=auth
             )
 
             existing_pieces_number = 1
@@ -886,7 +969,8 @@ class PydioSdk():
                     data=body,
                     headers={'Content-Type': content_type},
                     stream=True,
-                    verify=self.verify_ssl
+                    verify=self.verify_ssl,
+                    auth=auth
                 )
                 parse_upload_rep(resp)
                 if resp.status_code == 401:

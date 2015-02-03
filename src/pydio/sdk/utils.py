@@ -63,12 +63,12 @@ class BytesIOWithFile(BytesIO):
 
         self.chunk_size=chunk_size
         self.file_part=file_part
-        self.seek = 0
+        self._seek = 0
 
         self.fd = open(filename, 'rb')
         if chunk_size and self.file_length > chunk_size:
             seek = file_part * chunk_size
-            self.seek = seek
+            self._seek = seek
             self.fd.seek(seek)
             # recompute chunk_size
             if self.file_length - seek < chunk_size:
@@ -82,6 +82,9 @@ class BytesIOWithFile(BytesIO):
         Override parent method
         :return:int
         """
+        return self.length
+
+    def tell(self):
         return self.length
 
     def read(self, n=-1):
@@ -126,7 +129,7 @@ class BytesIOWithFile(BytesIO):
         return chunk
 
 
-def encode_multiparts(fields):
+def encode_multiparts(fields, basic_auth=None):
     """
     Breaks up the multipart_encoded content into first and last part, to be able to "insert" the file content
     itself in-between

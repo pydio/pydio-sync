@@ -44,6 +44,10 @@ class PydioSdkTokenAuthException(Exception):
     def __init__(self, type):
         super(PydioSdkTokenAuthException, self).__init__(_('Token-based authentication failed, reload credentials?'))
 
+class PydioSdkTokenAuthNotSupportedException(Exception):
+    def __init__(self, type):
+        super(PydioSdkTokenAuthNotSupportedException, self).__init__(_('Token-based authentication seems unsupported, this may impact performances?'))
+
 class PydioSdkDefaultException(Exception):
     def __init__(self, message):
         super(PydioSdkDefaultException, self).__init__(message)
