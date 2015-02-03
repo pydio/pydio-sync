@@ -81,8 +81,10 @@ from pydio.utils.global_config import ConfigManager
 from pydio.ui.web_api import PydioApi
 from pydio.job.scheduler import PydioScheduler
 
-DEFAULT_DATA_PATH = os.path.join(get_user_home(), ".pydio_data")
-DEFAULT_PARENT_PATH = os.path.join(get_user_home(), "Pydio")
+import appdirs
+APP_NAME='Pydio'
+DEFAULT_DATA_PATH = appdirs.user_data_dir(APP_NAME, roaming=True) # os.path.join(get_user_home(), ".pydio_data")
+DEFAULT_PARENT_PATH = get_user_home(APP_NAME)
 
 def main(argv=sys.argv[1:]):
     parser = argparse.ArgumentParser('Pydio Synchronization Tool')
@@ -113,8 +115,7 @@ def main(argv=sys.argv[1:]):
         if not jobs_root_path.exists():
             jobs_root_path.mkdir()
             # This is a first start
-            user_dir_label = 'Pydio'
-            user_dir = unicode(os.path.join(get_user_home(), user_dir_label))
+            user_dir = unicode(get_user_home(APP_NAME))
             if not os.path.exists(user_dir):
                 try:
                     os.mkdir(user_dir)
@@ -122,7 +123,7 @@ def main(argv=sys.argv[1:]):
                     pass
             if os.path.exists(user_dir):
                 from pydio.utils.favorites_manager import add_to_favorites
-                add_to_favorites(user_dir, user_dir_label)
+                add_to_favorites(user_dir, APP_NAME)
 
     setup_logging(args.verbose, jobs_root_path)
 
