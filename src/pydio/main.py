@@ -113,7 +113,7 @@ def main(argv=sys.argv[1:]):
     if not jobs_root_path.exists():
         jobs_root_path = Path(DEFAULT_DATA_PATH.encode(guess_filesystemencoding()))
         if not jobs_root_path.exists():
-            jobs_root_path.mkdir()
+            jobs_root_path.mkdir(parents=True)
             # This is a first start
             user_dir = unicode(get_user_home(APP_NAME))
             if not os.path.exists(user_dir):
