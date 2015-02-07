@@ -23,10 +23,13 @@ import threading
 import time
 
 
-class ThreadManager(object):
+class ThreadManager(threading.Thread):
+
     def __init__(self):
+        threading.Thread.__init__(self)
         self.continue_run = True
         self.api_server = None
+        self.stop_block = None
 
     def manage(self, thread):
         logging.debug("Storing reference to thread: %s" % thread)
@@ -60,7 +63,7 @@ class ThreadManager(object):
             logging.debug("Threads: \n\t%s" % "\n\t".join([str(t) for t in threading.enumerate()]))
             time.sleep(2)
 
-    def wait(self):
+    def run(self):
         try:
             time.sleep(1)
             logging.debug("Threads: \n\t%s" % "\n\t".join([str(t) for t in threading.enumerate()]))
@@ -70,12 +73,13 @@ class ThreadManager(object):
             logging.debug("Waiting for exit")
             while self.continue_run:
                 time.sleep(5)
-            logging.debug("ThreadManager is no longer waiting")
-        except KeyboardInterrupt, ex:
+            logging.info("ThreadManager is no longer waiting, should exit run function")
+        except KeyboardInterrupt, SystemExit:
             logging.debug("KeyboardInterrupt, shutting down.")
             manager.stop_all()
             self.shutdown_wait()
-
+        if self.stop_block:
+            self.stop_block()
 
 def run_loop(thread_run_function):
     """

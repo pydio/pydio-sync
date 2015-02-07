@@ -22,6 +22,7 @@ import logging
 import sys
 import os
 from pydio.utils.functions import get_user_home, guess_filesystemencoding
+from pydio.utils.native_events import NativeEventListener
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-7s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logging.getLogger().setLevel(logging.DEBUG)
@@ -273,6 +274,9 @@ def setup_logging(verbosity=None, application_path=None):
 
 
 if __name__ == "__main__":
-    main()
-    from pydio.job import manager
-    manager.wait()
+#    main()
+#    from pydio.job import manager
+#    manager.stop_block = NativeEventListener.stop_listening
+#    manager.start()
+
+    NativeEventListener.start_listening()
