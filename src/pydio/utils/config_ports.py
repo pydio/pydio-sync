@@ -19,12 +19,25 @@
 #
 # Get needed open ports on the system and save it to a config file that will be used to
 # sync the client/UI connection ports
+import random, string
 
 class PortsDetector():
 
-    def __init__(self, store_file):
+    def __init__(self, store_file, username=None, password=None):
         self.store = store_file
         self.default_port = 5556
+        if username:
+            self.username = username
+        else:
+            self.username = self.random_string()
+        if password:
+            self.password = password
+        else:
+            self.password = self.random_string()
+
+    @staticmethod
+    def random_string():
+        return ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(16)])
 
     def get_port(self):
         if self.default_port_ok():
@@ -34,6 +47,12 @@ class PortsDetector():
             port = self.get_open_port()
             self.save_config(port)
             return port
+
+    def get_username(self):
+        return self.username
+
+    def get_password(self):
+        return self.password
 
     def default_port_ok(self):
         import socket
@@ -60,4 +79,4 @@ class PortsDetector():
 
     def save_config(self, port_to_save):
         with open(self.store, 'a') as config_file:
-            config_file.write("pydio" + ':' + str(port_to_save) + "\n")
+            config_file.write("pydio" + ':' + str(port_to_save) + ':' + self.username + ':' + self.password +  "\n")

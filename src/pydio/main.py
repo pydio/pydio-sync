@@ -103,6 +103,8 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-dir', '--direction', help='Synchro Direction', type=str, default='bi')
     parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
     parser.add_argument('-i', '--rdiff', type=unicode, help='Path to rdiff executable', default=None)
+    parser.add_argument('--api_user', help='Set the agent API username (instead of random)', type=unicode, default=None)
+    parser.add_argument('--api_password', help='Set the agent API password (instead of random)', type=unicode, default=None)
     parser.add_argument('--diag', help='Run self diagnostic', action='store_true', default=False)
     parser.add_argument('--diag-http', help='Check server connection', action='store_true', default=False)
     parser.add_argument('--diag-imports', help='Check imports and exit', action='store_true', default=False)
@@ -191,11 +193,12 @@ def main(argv=sys.argv[1:]):
             logging.error("Diagnostics failed: %s %s" % (str(rc), smoke_tests.status_message))
         return sys.exit(rc)
 
-    ports_detector = PortsDetector(store_file=str(jobs_root_path / 'ports_config'))
+    ports_detector = PortsDetector(store_file=str(jobs_root_path / 'ports_config'),
+                                   username=args.api_user, password=args.api_password)
     ports_detector.create_config_file()
 
     scheduler = PydioScheduler.Instance(jobs_root_path=jobs_root_path, jobs_loader=jobs_loader)
-    server = PydioApi(ports_detector.get_port())
+    server = PydioApi(ports_detector.get_port(), ports_detector.get_username(), ports_detector.get_password())
     from pydio.job import manager
     manager.api_server = server
 

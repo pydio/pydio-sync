@@ -43,10 +43,30 @@ from pydio.utils.functions import connection_helper, get_user_home
 from pydio.utils import i18n
 _ = i18n.language.ugettext
 
+from functools import wraps
+import authdigest
+import flask
+
+
+class FlaskRealmDigestDB(authdigest.RealmDigestDB):
+    def requires_auth(self, f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            request = flask.request
+            if not self.isAuthenticated(request):
+                return self.challenge()
+
+            return f(*args, **kwargs)
+
+        return decorated
+
+authDB = FlaskRealmDigestDB('PydioSyncAuthRealm')
+
 class PydioApi(Api):
 
-    def __init__(self, server_port):
+    def __init__(self, server_port, user, password):
         self.port = server_port
+        authDB.add_user(user, password)
         self.running = False
         if getattr(sys, 'frozen', False):
             static_folder = str( (Path(sys._MEIPASS)) / 'ui' / 'res' )
@@ -110,6 +130,7 @@ class PydioApi(Api):
 
 class WorkspacesManager(Resource):
 
+    @authDB.requires_auth
     def get(self, job_id):
         if job_id != 'request':
             jobs = JobsLoader.Instance().get_jobs()
@@ -189,6 +210,7 @@ class WorkspacesManager(Resource):
 
 class FoldersManager(Resource):
 
+    @authDB.requires_auth
     def get(self, job_id):
         if job_id != 'request':
             jobs = JobsLoader.Instance().get_jobs()
@@ -220,11 +242,11 @@ class FoldersManager(Resource):
             return [o['tree']['tree']]
         return o['tree']['tree']
 
-
 class JobManager(Resource):
 
     loader = None
 
+    @authDB.requires_auth
     def post(self):
         JobsLoader.Instance().get_jobs()
         json_req = request.get_json()
@@ -274,6 +296,7 @@ class JobManager(Resource):
         scheduler.enable_job(new_job.id)
         return JobConfig.encoder(new_job)
 
+    @authDB.requires_auth
     def get(self, job_id = None):
         if request.path == '/':
             return redirect("/res/index.html", code=302)
@@ -302,6 +325,7 @@ class JobManager(Resource):
         if running:
             job_data['state'] = PydioScheduler.Instance().get_job_progress(job_id)
 
+    @authDB.requires_auth
     def delete(self, job_id):
         JobsLoader.Instance().delete_job(job_id)
         scheduler = PydioScheduler.Instance()
@@ -313,6 +337,7 @@ class JobManager(Resource):
 
 class ConflictsManager(Resource):
 
+    @authDB.requires_auth
     def post(self):
         json_conflict = request.get_json()
         job_id = json_conflict['job_id']
@@ -329,6 +354,7 @@ class ConflictsManager(Resource):
                 t.start_now()
         return json_conflict
 
+    @authDB.requires_auth
     def get(self, job_id):
         if not job_id in JobsLoader.Instance().get_jobs():
             return "Can't find any job config with this ID.", 404
@@ -342,6 +368,7 @@ class LogManager(Resource):
     def __init__(self):
         self.events = {}
 
+    @authDB.requires_auth
     def get(self, job_id):
         if not job_id in JobsLoader.Instance().get_jobs():
             return "Can't find any job config with this ID.", 404
@@ -360,6 +387,7 @@ class LogManager(Resource):
 
 class CmdManager(Resource):
 
+    @authDB.requires_auth
     def get(self, cmd, job_id=None):
         if job_id:
             if cmd == 'enable' or cmd == 'disable':
