@@ -3,16 +3,13 @@
     <div class="well">
         <p class="small">{{_('By default, modifications from both sides (local/remote) are automatically reflected on the other side.')}}</p>
         <div style="text-align: center;">
-            <div class="advanced_radio_box">
-                <input type="radio" name="sync_dir" ng-model="job.direction" value="bi"><br>
-                <label>{{_('Bi-directional')}}</label>
-            </div>
-            <div class="advanced_radio_box">
-                <input type="radio" name="sync_dir" ng-model="job.direction" value="up"><br>
+            <div class="advanced_radio_box" ng-class="{'label-radio-selected':job.direction=='up'}" ng-click="job.direction='up'">
                 <label>{{_('Upload Only')}}<br><span class="small">({{_('computer to server')}})</span></label>
             </div>
-            <div  class="advanced_radio_box">
-                <input type="radio" name="sync_dir" ng-model="job.direction" value="down"><br>
+            <div class="advanced_radio_box" ng-class="{'label-radio-selected':job.direction=='bi'}" ng-click="job.direction='bi'">
+                <label>{{_('Bi-directional')}}<br><span class="small">&nbsp;</span></label>
+            </div>
+            <div  class="advanced_radio_box" ng-class="{'label-radio-selected':job.direction=='down'}" ng-click="job.direction='down'">
                 <label>{{_('Download Only')}}<br><span class="small">({{_('server to computer')}})</span></label>
             </div>
         </div>
@@ -24,22 +21,19 @@
     <div class="well">
         <p class="small">{{_('By default, the application will synchronize automatically')}}</p>
         <div style="text-align: center;">
-            <div class="advanced_radio_box">
-                <input type="radio" name="freq" ng-model="job.frequency" checked="true" value="auto"><br>
+            <div class="advanced_radio_box" class="advanced_radio_box" ng-class="{'label-radio-selected':job.frequency=='auto'}" ng-click="job.frequency='auto'">
                 <label>{{_('Automatically')}}</label>
             </div>
-            <div  class="advanced_radio_box">
-                <input type="radio" name="freq" ng-model="job.frequency" value="manual"><br>
+            <div  class="advanced_radio_box" class="advanced_radio_box" ng-class="{'label-radio-selected':job.frequency=='manual'}" ng-click="job.frequency='manual'">
                 <label>{{_('Manually')}}</label>
             </div>
-            <div  class="advanced_radio_box">
-                <input type="radio" name="freq" ng-model="job.frequency" value="time"><br>
+            <div  class="advanced_radio_box" class="advanced_radio_box" ng-class="{'label-radio-selected':job.frequency=='time'}" ng-click="job.frequency='time'">
                 <label>{{_('Given Time')}}</label>
             </div>
         </div>
 
 
-        <div ng-show="job.frequency=='time'" class="form-group center-block">
+        <div ng-show="job.frequency=='time'" class="form-group center-block" style="padding-top: 10px;">
             {{_('Run the sync every day at')}} <input type="number" style="width:40px" ng-model="job.start_time.h">:<input type="number" style="width:40px" value="00" ng-model="job.start_time.m"><br>
         </div>
     </div>
@@ -51,16 +45,13 @@
     <div class="well">
         <p class="small">{{_('When files were modified on both the server and your computer at the same time, synchronization is stopped.')}}</p>
         <div style="text-align: center;">
-            <div class="advanced_radio_box">
-                <input type="radio" name="solve" ng-model="job.solve" value="manual"><br>
+            <div class="advanced_radio_box" class="advanced_radio_box" ng-class="{'label-radio-selected':job.solve=='manual'}" ng-click="job.solve='manual'">
                 <label>{{_('Solve conflicts manually')}}</label>
             </div>
-            <div class="advanced_radio_box">
-                <input type="radio" name="solve" ng-model="job.solve" value="local"><br>
+            <div class="advanced_radio_box" class="advanced_radio_box" ng-class="{'label-radio-selected':job.solve=='local'}" ng-click="job.solve='local'">
                 <label>{{_('Always prefer local version')}}</label>
             </div>
-            <div class="advanced_radio_box">
-                <input type="radio" name="solve" ng-model="job.solve" value="remote"><br>
+            <div class="advanced_radio_box" class="advanced_radio_box" ng-class="{'label-radio-selected':job.solve=='remote'}" ng-click="job.solve='remote'">
                 <label>{{_('Always prefer remote version')}}</label>
             </div>
         </div>

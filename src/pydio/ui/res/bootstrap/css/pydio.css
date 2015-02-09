@@ -32,12 +32,30 @@
     width: 100%;
 }
 
-.advanced_radio_box{
-    width:27%;
-    display:inline-block;
-    text-align:center;
-    vertical-align: top;
+
+.advanced_radio_box label{
+    cursor: pointer;
 }
+
+.advanced_radio_box {
+width: 32%;
+display: inline-block;
+text-align: center;
+vertical-align: middle;
+padding: 4px 0;
+cursor: pointer;
+border: 1px solid #E7E7E7;
+border-radius: 5px;
+background-color: rgb(250, 250, 250);
+border-width: 1px 1px 3px 1px;
+}
+
+.advanced_radio_box.label-radio-selected {
+border-color: #d8d8d8;
+background-color: rgb(236, 236, 236);
+border-width: 3px 1px 1px 1px;
+}
+
 
 .display_on_hover{
     opacity: 0;

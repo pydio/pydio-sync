@@ -26,8 +26,10 @@
     <div class="small" style="margin-bottom: 1.5em;">{{_('Connect to the server with the same URL as the one you would use to access through a web browser, e.g. http://mydomain.com/pydio')}}</div>
     <form name="myForm" class="form-inline">
         <div class="form-group">
-            <input ng-change="job.server = inline_protocol + inline_host" type="radio" value="http://" ng-model="inline_protocol" name="protocol" id="protocol_http"> <label for="protocol_http">http://</label>
-            <input ng-change="job.server = inline_protocol + inline_host" style="margin-left: 20px;" type="radio" value="https://" ng-model="inline_protocol" name="protocol" id="protocol_https" checked="true"> <label for="protocol_https">https://</label>
+            <div class="btn-group">
+                <button type="button" class="btn btn-default" ng-click="inline_protocol='https://'" ng-class="{'btn-success':inline_protocol=='https://','btn-default':inline_protocol=='http://'}">https</button>
+                <button type="button" class="btn btn-default" ng-click="inline_protocol='http://'" ng-class="{'btn-danger':inline_protocol=='http://','btn-default':inline_protocol=='https://'}">http</button>
+            </div>
         </div>
         <div class="form-group">
             <div class="input-group">
@@ -49,8 +51,7 @@
     <div>
         {{_('Tips')}}: <a href="" ng-click="panel_tips=true" tabindex="8">{{_('where can I find the server URL?')}}</a>
     </div>
-
     <div style="text-align: center; margin-top: 40px;">
         <a href="" ng-click="next()" class="btn btn-primary" tabindex="0" ng-disabled="myForm.$invalid">{{_('Connect')}}</a>
-         <span ng-show="error && inline_protocol == 'https://'">&nbsp;&nbsp;&nbsp;<input type="checkbox" ng-model="job.trust_ssl" id="trust"> <label for="trust">{{_('Trust SSL certificate')}}</label></span>
+         <span ng-show="error && inline_protocol == 'https://'">&nbsp;&nbsp;&nbsp; <span ng-click="job.trust_ssl=!job.trust_ssl"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!job.trust_ssl,'glyphicon-ok':job.trust_ssl}"></span> <label >{{_('Trust SSL certificate')}}</label></span></span>
     </div>

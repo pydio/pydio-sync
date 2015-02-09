@@ -21,7 +21,7 @@
         </div>
 
         <div class="input-group" ng-show="folders && folders.length" style="padding: 7px;">
-            <input type="checkbox" ng-model="showFoldersBox" id="show_folders" ng-click="job.remote_folder = ''" >&nbsp;<label for="show_folders">{{_('Synchronise only a subfolder of this workspace')}}</label>
+            <span ng-click="showFoldersBox=!showFoldersBox;job.remote_folder=''"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!showFoldersBox,'glyphicon-ok':showFoldersBox}"></span> <label >{{_('Synchronise only a subfolder of this workspace')}}</label></span>
         </div>
         <div style="padding:7px 10px;" ng-if="folders_loading"> [{{_('loading')}}...]</div>
         <div style="padding:7px 10px;" ng-if="folders_loading_error">{{folders_loading_error}}</div>

@@ -82,7 +82,7 @@
     <button type="button" class="close" data-dismiss="alert" aria-hidden="true" ng-click="conflict_solver.current=false">&times;</button>
     {{_('An element named %1 was modified on both the server and on your local computer. Select how you want to solve this conflicting case:', conflict_solver.current.node_path)}}
     <div style="text-align: center; margin: 20px 0 0;">
-        <input type="checkbox" id="apply-conflict" ng-model="conflict_solver.applyToAll"> <label for="apply-conflict">{{_('Apply to all conflicts')}}</label><br>
+        <span ng-click="conflict_solver.applyToAll=!conflict_solver.applyToAll;"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!conflict_solver.applyToAll,'glyphicon-ok':conflict_solver.applyToAll}"></span> <label >{{_('Apply to all conflicts')}}</label></span>
         <div class="btn btn-group">
             <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPLOCAL');" class="btn btn-default" tabindex="0">{{_('Mine')}}</a>
             <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPBOTH');" class="btn btn-default" tabindex="0">{{_('Both Versions')}}</a>
