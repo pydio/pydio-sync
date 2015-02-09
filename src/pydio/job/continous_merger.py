@@ -342,11 +342,12 @@ class ContinuousDiffMerger(threading.Thread):
                     self.sleep_offline()
                     continue
 
-                for snap_path in self.marked_for_snapshot_pathes:
-                    logging.info('LOCAL SNAPSHOT : loading snapshot for directory %s' % snap_path)
-                    if self.interrupt or not self.job_status_running:
-                                                    raise InterruptException()
-                    self.watcher.check_from_snapshot(snap_path)
+                if self.watcher:
+                    for snap_path in self.marked_for_snapshot_pathes:
+                        logging.info('LOCAL SNAPSHOT : loading snapshot for directory %s' % snap_path)
+                        if self.interrupt or not self.job_status_running:
+                                                        raise InterruptException()
+                        self.watcher.check_from_snapshot(snap_path)
 
                 # Load local and/or remote changes, depending on the direction
                 from pydio.job.change_stores import SqliteChangeStore

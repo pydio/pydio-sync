@@ -36,7 +36,7 @@ class JobsLoader():
     def __init__(self, data_path, config_file=None):
         self.data_path = data_path
         if not config_file:
-            self.config_file = data_path + '/configs.json'
+            self.config_file = os.path.join(data_path, 'configs.json')
         else:
             self.config_file = config_file
 
