@@ -150,29 +150,73 @@ class WorkspacesManager(Resource):
                 auth = (args['user'], args['password'])
             else:
                 auth = (args['user'], keyring.get_password(base, args['user']))
+            app_name_url = base + '/api/pydio/state/plugins?format=json'
+            display_name_url = base + '/api/pydio/state/user/preferences?format=json'
 
         if verify and "REQUESTS_CA_BUNDLE" in os.environ:
             verify = os.environ["REQUESTS_CA_BUNDLE"]
         try:
-            resp = requests.get(url,stream=True,auth=auth,verify=verify)
+            # TRY TO GET APPLICATION TITLE
+            if app_name_url:
+                resp = requests.get(app_name_url, stream=False, auth=auth, verify=verify)
+                resp.raise_for_status()
+                try:
+                    app_data = json.loads(resp.content)
+                    app_name = ''
+                    ajxpcores = app_data['plugins']['ajxpcore']
+                    for core in ajxpcores:
+                        if core['@id'] == 'core.ajaxplorer':
+                            for prop in core['plugin_configs']['property']:
+                                if prop['@name'] == 'APPLICATION_TITLE':
+                                    app_name = json.loads(prop['$'])
+                                    break
+                            break
+                except KeyError as k:
+                    pass
+                except ValueError:
+                    pass
+            # TRY TO GET USER DISPLAY NAME
+            if display_name_url:
+                resp = requests.get(display_name_url, stream=False, auth=auth, verify=verify)
+                resp.raise_for_status()
+                try:
+                    user_data = json.loads(resp.content)
+                    user_display_name = ''
+                    prefs = user_data['preferences']['pref']
+                    for pref in prefs:
+                        if pref['@name'] == 'USER_DISPLAY_NAME':
+                            if pref['@value']:
+                                user_display_name = pref['@value']
+                            break
+                except KeyError as k:
+                    pass
+                except ValueError:
+                    pass
+
+
+            resp = requests.get(url, stream=True, auth=auth, verify=verify)
             resp.raise_for_status()
             data = json.loads(resp.content)
             if 'repositories' in data and 'repo' in data['repositories']:
                 if isinstance(data['repositories']['repo'], types.DictType):
                     data['repositories']['repo'] = [data['repositories']['repo']]
                 data['repositories']['repo'] = filter(lambda x: not x['@access_type'].startswith('ajxp_'), data['repositories']['repo'])
+            if app_name:
+                data['application_title'] = app_name
+            if user_display_name:
+                data['user_display_name'] = user_display_name
             return data
         except requests.HTTPError:
             r = resp.status_code
-            message = "Couldn't load your workspaces, check your server !"
+            message = _("Couldn't load your workspaces, check your server !")
             if r == 404:
-                message = "Server not found, is it up and has Pydio installed ?"
+                message = _("Server not found (404), is it up and has it Pydio installed ?")
             elif r == 401:
-                message = "Check your login and password"
+                message = _("Authentication failed: please verify your login and password")
             elif r == 403:
-                message = "Access to the server is forbidden"
+                message = _("Access to the server is forbidden")
             elif r == 500 or r == 408:
-                message = "Server seems to be down..."
+                message = _("Server seems to be encountering problems (500)")
             logging.debug("Error while loading workspaces : " + message)
             return {'error': message}, resp.status_code
         except SSLError as rt:

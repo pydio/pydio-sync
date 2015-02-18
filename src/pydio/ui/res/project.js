@@ -385,6 +385,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             job = $scope.job = currentJob.getJob();
             $scope.inline_host = $scope.job.server;
             $scope.parseURL();
+        }else if(currentJob.getJob() && !$scope.job){
+            job = $scope.job = currentJob.getJob();
+            $scope.inline_host = $scope.job.server;
+            $scope.parseURL();
         }
         $scope.next = function(){
             $scope.loading = true;
@@ -403,6 +407,12 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 password:$scope.job.password,
                 trust_ssl:$scope.job.trust_ssl?'true':'false'
             }, function(response){
+                if(response.application_title){
+                    job.application_title = response.application_title;
+                }
+                if(response.user_display_name){
+                    job.user_display_name = response.user_display_name;
+                }
                 job.repositories = response.repositories.repo;
                 $scope.loading = false;
                 $location.path('/edit/new/step2');
@@ -475,6 +485,9 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 trust_ssl:$scope.job.trust_ssl?'true':'false'
             }, function(response){
                 $scope.repositories = response.repositories.repo;
+                if(response.application_title){
+                    $scope.application_title = response.application_title;
+                }
                 angular.forEach($scope.repositories, function(r){
                     if(r['@repositorySlug'] == $scope.job.workspace){
                         $scope.job.repoObject = r;
@@ -552,10 +565,15 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 }else{
                     label = $scope.job.repoObject['label'];
                 }
+                if($scope.job.application_title){
+                    label = $scope.job.application_title + ' - ' + label;
+                }
                 $scope.job.label = label;
                 if(!$scope.job.directory){
                     $scope.job.test_path = true;
-                    $scope.job.$save();
+                    window.setTimeout(function(){
+                        $scope.job.$save();
+                    }, 600);
                     $scope.job.test_path = false;
                 }
 

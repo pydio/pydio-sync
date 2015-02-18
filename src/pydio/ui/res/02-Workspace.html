@@ -1,8 +1,8 @@
 <h3>{{_('1/3 Select a workspace')}}</h3>
 <p class="lead">
     <img src="images/earth.png" style="float: left;width: 100px;margin-top: -20px;">
-    {{_('Welcome!')}}<br>
-    {{_('You are connecting to %1', job.server)}} [<a href="#/new">{{_('change')}}</a>]
+    {{_('Welcome %1!', job.user_display_name?job.user_display_name:job.user)}}<br>
+    {{_('You are connecting to %1', job.application_title?job.application_title+' ('+job.server+')':job.server)}} [<a href="#/new">{{_('change')}}</a>]
     <br style="clear: left;">
 </p>
 
