@@ -30,7 +30,7 @@ from hashlib import sha1
 from urlparse import urlparse
 
 
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, RequestException
 import keyring
 from keyring.errors import PasswordSetError
 import xml.etree.ElementTree as ET
@@ -641,6 +641,8 @@ class PydioSdk():
                 raise PydioSdkPermissionException('Cannot upload '+os.path.basename(path)+' in directory '+os.path.dirname(path))
             else:
                 raise e
+        except RequestException as ce:
+            raise PydioSdkException("upload", path, 'RequestException: ' + ce.message)
 
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
