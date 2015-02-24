@@ -121,8 +121,8 @@ class ContinuousDiffMerger(threading.Thread):
                 os.unlink(self.configs_path + "/sequences")
 
 
-        dispatcher.connect( self.handle_transfer_rate_event, signal=TRANSFER_RATE_SIGNAL, sender=dispatcher.Any )
-        dispatcher.connect( self.handle_transfer_callback_event, signal=TRANSFER_CALLBACK_SIGNAL, sender=dispatcher.Any )
+        dispatcher.connect(self.handle_transfer_rate_event, signal=TRANSFER_RATE_SIGNAL, sender=self.sdk)
+        dispatcher.connect(self.handle_transfer_callback_event, signal=TRANSFER_CALLBACK_SIGNAL, sender=self.sdk)
 
         if self.job_config.frequency == 'manual':
             self.job_status_running = False
