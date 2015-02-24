@@ -70,7 +70,9 @@ class PydioSdk():
             self.auth = (user_id, keyring.get_password(url, user_id))
         else:
             self.auth = auth
+        self.tokens = None
         self.rsync_supported = False
+
     def set_server_configs(self, configs):
         """
         Server specific capacities and limitations, provided by the server itself
@@ -127,6 +129,21 @@ class PydioSdk():
         else:
             return unicode_path
 
+    def set_tokens(self, tokens):
+        self.tokens = tokens
+        try:
+            keyring.set_password(self.url, self.user_id + '-token', tokens['t'] + ':' + tokens['p'])
+        except PasswordSetError:
+            logging.error(_("Cannot store tokens in keychain, there might be an OS permission issue!"))
+
+    def get_tokens(self):
+        if not self.tokens:
+            k_tok = keyring.get_password(self.url, self.user_id + '-token')
+            if k_tok:
+                parts = k_tok.split(':')
+                self.tokens = {'t': parts[0], 'p': parts[1]}
+        return self.tokens
+
     def basic_authenticate(self):
         """
         Use basic-http authenticate to get a key/pair token instead of passing the
@@ -148,10 +165,8 @@ class PydioSdk():
         except ValueError as v:
             raise PydioSdkException("basic_auth", "", "Cannot parse JSON result: " + resp.content + "")
             #return False
-        try:
-            keyring.set_password(self.url, self.user_id + '-token', tokens['t'] + ':' + tokens['p'])
-        except PasswordSetError:
-            logging.error(_("Cannot store tokens in keychain, basic auth will be performed each time!"))
+
+        self.set_tokens(tokens)
         return tokens
 
     def perform_basic(self, url, request_type='get', data=None, files=None, headers=None, stream=False, with_progress=False):
@@ -271,7 +286,7 @@ class PydioSdk():
             return self.perform_basic(url, request_type=type, data=data, files=files, headers=headers, stream=stream,
                                           with_progress=with_progress)
 
-        tokens = keyring.get_password(self.url, self.user_id + '-token')
+        tokens = self.get_tokens()
         if not tokens:
             try:
                 tokens = self.basic_authenticate()
@@ -285,9 +300,8 @@ class PydioSdk():
             return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files,
                                             headers=headers, stream=stream)
         else:
-            tokens = tokens.split(':')
             try:
-                resp = self.perform_with_tokens(tokens[0], tokens[1], url, type, data, files, headers=headers,
+                resp = self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files, headers=headers,
                                                 stream=stream, with_progress=with_progress)
                 return resp
             except requests.exceptions.ConnectionError:
