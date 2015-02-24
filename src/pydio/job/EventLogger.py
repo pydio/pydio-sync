@@ -19,7 +19,8 @@
 #
 import sqlite3
 from sqlite3 import OperationalError
-import os, sys
+import os
+import sys
 from pathlib import *
 import datetime
 import logging
