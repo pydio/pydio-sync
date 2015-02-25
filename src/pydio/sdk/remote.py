@@ -952,7 +952,8 @@ class PydioSdk():
             # requests_log.propagate = True
 
             (header_body, close_body, content_type) = encode_multiparts(fields)
-            body = BytesIOWithFile(header_body, close_body, files['userfile_0'], callback=cb, chunk_size=max_size, file_part=0)
+            body = BytesIOWithFile(header_body, close_body, files['userfile_0'], callback=cb, chunk_size=max_size,
+                                   file_part=0, signal_sender=self)
             resp = requests.post(
                 url,
                 data=body,
@@ -979,7 +980,7 @@ class PydioSdk():
 
                 before = time.time()
                 body = BytesIOWithFile(header_body, close_body, files['userfile_0'],
-                                       callback=cb, chunk_size=max_size, file_part=i)
+                                       callback=cb, chunk_size=max_size, file_part=i, signal_sender=self)
                 resp = requests.post(
                     url,
                     data=body,
