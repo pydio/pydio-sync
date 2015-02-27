@@ -3,7 +3,7 @@
 # This file is part of Pydio.
 #
 # Pydio is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
+# it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
@@ -35,6 +35,8 @@ class SqliteChangeStore():
         self.includes = includes
         self.excludes = excludes
         self.create = False
+        self.local_sdk = None
+        self.remote_sdk = None
         if not os.path.exists(self.db):
             self.create = True
 
@@ -62,7 +64,6 @@ class SqliteChangeStore():
             self.conn.execute("DELETE FROM ajxp_changes")
         self.conn.commit()
 
-
     def __len__(self):
         return self.get_row_count()
 
@@ -87,8 +88,8 @@ class SqliteChangeStore():
             mkdirs.append(r['target'])
         splitsize = 10
         for i in range(0, int(math.ceil(float(len(mkdirs)) / float(splitsize)))):
-            callback({'type':'bulk_mkdirs', 'location':'local', 'pathes':mkdirs[i*splitsize:(i+1)*splitsize]})
-            ids_list = str(','.join(ids[i*splitsize:(i+1)*splitsize]))
+            callback({'type': 'bulk_mkdirs', 'location': 'local', 'pathes': mkdirs[i * splitsize:(i + 1) * splitsize]})
+            ids_list = str(','.join(ids[i * splitsize:(i + 1) * splitsize]))
             self.conn.execute('DELETE FROM ajxp_changes WHERE row_id IN (' + ids_list + ')')
         self.conn.commit()
 
@@ -98,7 +99,7 @@ class SqliteChangeStore():
                 output = callback(self.sqlite_row_to_dict(row, load_node=True))
                 if output:
                     self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (row['row_id'],))
-            except InterruptException as e:
+            except InterruptException:
                 break
         self.conn.commit()
 
@@ -114,10 +115,9 @@ class SqliteChangeStore():
                 output = callback(r)
                 if output:
                     self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (r['row_id'],))
-            except InterruptException as e:
+            except InterruptException:
                 break
         self.conn.commit()
-
 
     def list_changes(self, cursor=0, limit=5, where=''):
         c = self.conn.cursor()
@@ -169,7 +169,6 @@ class SqliteChangeStore():
         #common_parents.append(self.commonprefix(parents))
         self.conn.commit()
         return parents
-
 
     def prune_folders_moves(self):
         sql = 'SELECT * FROM ajxp_changes t1 ' \
@@ -236,12 +235,12 @@ class SqliteChangeStore():
         logging.debug('[change store] Echo : pruned %i rows', res.rowcount)
 
     def delete_copies(self):
-        sql = 'DELETE from ajxp_changes WHERE row_id NOT IN (SELECT max(row_id) from ajxp_changes GROUP BY location, type, source, target, content, md5, bytesize having COUNT(*) > 0 ORDER BY row_id)'
+        sql = 'DELETE from ajxp_changes WHERE row_id NOT IN (SELECT max(row_id) from ajxp_changes GROUP BY location, ' \
+              'type, source, target, content, md5, bytesize having COUNT(*) > 0 ORDER BY row_id)'
         cursor = self.conn.cursor()
         res = cursor.execute(sql)
         self.conn.commit()
         logging.debug('[change store] Echo : pruned %i rows', res.rowcount)
-
 
     def detect_unnecessary_changes(self, local_sdk, remote_sdk):
         self.local_sdk = local_sdk
@@ -251,9 +250,9 @@ class SqliteChangeStore():
         bulk_size = 400
         ids_to_delete = []
         for i in range(0, int(math.ceil(float(local) / float(bulk_size)))):
-            ids_to_delete = ids_to_delete + self.filter_w_stat('local', self.local_sdk, self.remote_sdk, i*bulk_size, bulk_size)
+            ids_to_delete += self.filter_w_stat('local', self.local_sdk, self.remote_sdk, i * bulk_size, bulk_size)
         for j in range(0, int(math.ceil(float(rem) / float(bulk_size)))):
-            ids_to_delete = ids_to_delete + self.filter_w_stat('remote', self.remote_sdk, self.local_sdk, j*bulk_size, bulk_size)
+            ids_to_delete += self.filter_w_stat('remote', self.remote_sdk, self.local_sdk, j * bulk_size, bulk_size)
 
         res = self.conn.execute('DELETE FROM ajxp_changes WHERE row_id IN (' + str(','.join(ids_to_delete)) + ')')
         logging.info('[change store] Filtering unnecessary changes : pruned %i rows', res.rowcount)
@@ -262,7 +261,8 @@ class SqliteChangeStore():
     def filter_w_stat(self, location, sdk, opposite_sdk, offset=0, limit=1000):
         # Load 'limit' changes and filter them
         c = self.conn.cursor()
-        res = c.execute('SELECT * FROM ajxp_changes WHERE location=? ORDER BY source,target LIMIT ?,?', (location, offset, limit))
+        res = c.execute('SELECT * FROM ajxp_changes WHERE location=? ORDER BY source,target LIMIT ?,?',
+                        (location, offset, limit))
         changes = []
         for row in res:
             changes.append(self.sqlite_row_to_dict(row))
@@ -368,15 +368,14 @@ class SqliteChangeStore():
             test_stat = self.stat_path(item['source'], location=opposite, stats=other_stats)
             if not test_stat:
                 res = True
-        else:  #MOVE
+        else:  # MOVE
             source_stat = self.stat_path(item['source'], location=opposite, stats=other_stats)
             target_stat = self.stat_path(item['target'], location=opposite, stats=other_stats, with_hash=True)
             if not target_stat or source_stat:
                 return False
             elif item['md5'] == 'directory':
                 res = True
-            elif target_stat['size'] == item['bytesize'] and 'hash' in target_stat and target_stat['hash'] == item[
-                'md5']:
+            elif target_stat['size'] == item['bytesize'] and 'hash' in target_stat and target_stat['hash'] == item['md5']:
                 res = True
 
         if res:
@@ -388,7 +387,6 @@ class SqliteChangeStore():
 
         return False
 
-
     def buffer_real_operation(self, location, type, source, target):
         location = 'remote' if location == 'local' else 'local'
         self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)",
@@ -396,18 +394,18 @@ class SqliteChangeStore():
         self.conn.commit()
 
     def bulk_buffer_real_operation(self, bulk):
-        if bulk :
+        if bulk:
             for operation in bulk:
                 location = operation['location']
                 location = 'remote' if location == 'local' else 'local'
-                self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (operation['type'], location, operation['source'].replace("\\", "/"), operation['target'].replace("\\", "/")))
+                self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (
+                operation['type'], location, operation['source'].replace("\\", "/"),
+                operation['target'].replace("\\", "/")))
             self.conn.commit()
-
 
     def clear_operations_buffer(self):
         self.conn.execute("DELETE FROM ajxp_last_buffer")
         self.conn.commit()
-
 
     def stat_path(self, path, location, stats=None, with_hash=False):
         """
@@ -499,30 +497,28 @@ class SqliteChangeStore():
     def remove(self, location, seq_id):
         self.conn.execute("DELETE FROM ajxp_changes WHERE location=? AND seq_id=?", (location, seq_id))
 
-
     def sync(self):
         self.conn.commit()
 
     def echo_match(self, location, change):
-        #if location == 'remote':
-        #    pass
 
         source = change['source'].replace("\\", "/")
         target = change['target'].replace("\\", "/")
         action = change['type']
-        for _ in self.conn.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (action, location, source, target)):
+        for _ in self.conn.execute(
+                "SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?",
+                (action, location, source, target)):
             logging.debug('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
             return True
         return False
 
-    def flatten_and_store(self, location, row, last_info=dict()):
-        previous_id = last_info['node_id'] if (last_info and last_info.has_key('node_id')) else -1
-        change = last_info['change'] if (last_info and last_info.has_key('change')) else dict()
-        max_seq = last_info['max_seq'] if (last_info and last_info.has_key('max_seq')) else -1
+    def flatten_and_store(self, location, row, last_info=None):
+        previous_id = last_info['node_id'] if (last_info and 'node_id' in last_info) else -1
+        change = last_info['change'] if (last_info and 'change' in last_info) else dict()
+        max_seq = last_info['max_seq'] if (last_info and 'max_seq' in last_info) else -1
 
         if not row:
-            if last_info and last_info.has_key('change') and change:
-                seq = change['seq']
+            if last_info and 'change' in last_info and change:
                 first, second = self.reformat(change)
                 if first:
                     self.store(location, first['seq'], first)
@@ -591,17 +587,21 @@ class SqliteChangeStore():
             elif target != source and dc:
                 content = 'edit_move'
             elif target == source and dc:
-               content = 'content'
+                content = 'content'
 
         if content != 'edit_move':
             stat_result = change['node'].pop('stat_result') if change['node'].has_key('stat_result') else None
-            return {'location': 'local', 'node_id': change['node'].pop('node_id'), 'source':  source, 'target': target, 'type': content, 'seq':change.pop('seq'), 'stat_result': stat_result, 'node': change['node']}, None
+            return {'location': 'local', 'node_id': change['node'].pop('node_id'), 'source': source, 'target': target,
+                    'type': content, 'seq': change.pop('seq'), 'stat_result': stat_result, 'node': change['node']}, None
         else:
             seq = change.pop('seq')
             node_id = change['node'].pop('node_id')
             stat_result = change['node'].pop('stat_result') if change['node'].has_key('stat_result') else None
-            return {'location': 'local', 'node_id': node_id, 'source':  source, 'target': 'NULL', 'type': 'delete', 'seq':seq, 'stat_result':stat_result, 'node':None},\
-                   {'location': 'local', 'node_id': node_id, 'source':  'NULL', 'target': target, 'type': 'create', 'seq':seq, 'stat_result':stat_result, 'node': change['node']}
+            return {'location': 'local', 'node_id': node_id, 'source': source, 'target': 'NULL', 'type': 'delete',
+                    'seq': seq, 'stat_result': stat_result, 'node': None}, \
+                   {'location': 'local', 'node_id': node_id, 'source': 'NULL', 'target': target, 'type': 'create',
+                    'seq': seq, 'stat_result': stat_result, 'node': change['node']}
+
 
 class PathOperation(object):
     @staticmethod
