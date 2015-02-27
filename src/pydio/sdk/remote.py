@@ -377,7 +377,8 @@ class PydioSdk():
                         callback('remote', one_change, info)
 
                     except ValueError as v:
-                        raise Exception(_("Invalid JSON value received while getting remote changes."))
+                        logging.error('Invalid JSON Response, line was ' + line)
+                        raise Exception(_('Invalid JSON value received while getting remote changes'))
                     except Exception as e:
                         raise e
 
