@@ -594,8 +594,10 @@ class SqlEventHandler(FileSystemEventHandler):
             hash_key = 'directory'
         else:
             if os.path.exists(src_path):
-                hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
-
+                try:
+                    hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
+                except Exception as e:
+                    return
 
         node_id = False
         conn = sqlite3.connect(self.db)
