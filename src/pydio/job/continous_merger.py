@@ -28,7 +28,8 @@ import logging
 
 from requests.exceptions import ConnectionError, RequestException, Timeout, SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, InvalidSchema, InvalidURL
 from pydio.job.change_processor import ChangeProcessor
-from pydio.job.localdb import LocalDbHandler, SqlEventHandler
+from pydio.job.job_config import JobsLoader
+from pydio.job.localdb import LocalDbHandler, SqlEventHandler, DBCorruptedException
 from pydio.job.local_watcher import LocalWatcher
 from pydio.sdk.exceptions import ProcessException, InterruptException, PydioSdkDefaultException
 from pydio.sdk.remote import PydioSdk
@@ -120,8 +121,8 @@ class ContinuousDiffMerger(threading.Thread):
                 os.unlink(self.configs_path + "/sequences")
 
 
-        dispatcher.connect( self.handle_transfer_rate_event, signal=TRANSFER_RATE_SIGNAL, sender=dispatcher.Any )
-        dispatcher.connect( self.handle_transfer_callback_event, signal=TRANSFER_CALLBACK_SIGNAL, sender=dispatcher.Any )
+        dispatcher.connect(self.handle_transfer_rate_event, signal=TRANSFER_RATE_SIGNAL, sender=self.sdk)
+        dispatcher.connect(self.handle_transfer_callback_event, signal=TRANSFER_CALLBACK_SIGNAL, sender=self.sdk)
 
         if self.job_config.frequency == 'manual':
             self.job_status_running = False
@@ -301,9 +302,16 @@ class ContinuousDiffMerger(threading.Thread):
 
         if self.watcher:
             if self.watcher_first_run:
-                logger.log_state(_('Checking changes since last launch...'), "sync")
-                very_first = True
-                self.watcher.check_from_snapshot()
+                try:
+                    logger.log_state(_('Checking changes since last launch...'), "sync")
+                    very_first = True
+                    self.watcher.check_from_snapshot()
+                except DBCorruptedException as e:
+                    self.stop()
+                    JobsLoader.Instance().clear_job_data(self.job_config.id)
+                    logging.error(e)
+                    return
+
                 self.watcher_first_run = False
             self.watcher.start()
 
@@ -522,7 +530,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.remote_seq = self.current_store.get_min_seq('remote', success=success)
         if self.remote_seq == -1:
             self.remote_seq = self.remote_target_seq
-        logging.debug('Storing sequences remote %i local %i', self.local_seq, self.remote_seq)
+        logging.debug('Storing sequences remote=%i local=%i', self.remote_seq, self.local_seq)
         pickle.dump(dict(
             local=self.local_seq,
             remote=self.remote_seq

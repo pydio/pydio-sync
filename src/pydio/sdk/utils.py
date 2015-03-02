@@ -36,7 +36,8 @@ from pydio.sdk.exceptions import PydioSdkDefaultException
 
 class BytesIOWithFile(BytesIO):
 
-    def __init__(self, data_buffer, closing_boundary, filename, callback=None, chunk_size=0, file_part=0):
+    def __init__(self, data_buffer, closing_boundary, filename, callback=None, chunk_size=0, file_part=0,
+                 signal_sender=None):
         """
         Class extending the standard BytesIO to read data directly from file instead of loading all file content
         in memory. It's initially started with all the necessary data to build the full body of the POST request,
@@ -55,7 +56,7 @@ class BytesIOWithFile(BytesIO):
 
         self.callback = callback
         self.cursor = 0
-        self.start = time.clock()
+        self.start = time.time()
         self.closing_boundary = closing_boundary
         self.data_buffer_length = len(data_buffer)
         self.file_length = os.stat(filename).st_size
@@ -64,6 +65,7 @@ class BytesIOWithFile(BytesIO):
         self.chunk_size=chunk_size
         self.file_part=file_part
         self._seek = 0
+        self._signal_sender=signal_sender
 
         self.fd = open(filename, 'rb')
         if chunk_size and self.file_length > chunk_size:
@@ -111,7 +113,7 @@ class BytesIOWithFile(BytesIO):
 
         self.cursor += int(len(chunk))
 
-        time_delta = (time.clock() - self.start)
+        time_delta = (time.time() - self.start)
         if time_delta > 0:
             transfer_rate = self.cursor//time_delta
         else:
@@ -122,7 +124,7 @@ class BytesIOWithFile(BytesIO):
                 self.callback(self.full_length, self.cursor + (self.file_part)*self.chunk_size, len(chunk), transfer_rate)
             except Exception as e:
                 logging.warning('Buffered reader callback error')
-        dispatcher.send(signal=TRANSFER_RATE_SIGNAL, transfer_rate=transfer_rate)
+        dispatcher.send(signal=TRANSFER_RATE_SIGNAL, transfer_rate=transfer_rate, sender=self._signal_sender)
         #duration = time.time() - before
         #if duration > 0 :
             #logging.info('Read 8kb of data in %'+str(duration))

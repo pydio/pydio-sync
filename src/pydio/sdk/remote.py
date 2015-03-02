@@ -30,7 +30,7 @@ from hashlib import sha1
 from urlparse import urlparse
 
 
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, RequestException
 import keyring
 from keyring.errors import PasswordSetError
 import xml.etree.ElementTree as ET
@@ -70,7 +70,9 @@ class PydioSdk():
             self.auth = (user_id, keyring.get_password(url, user_id))
         else:
             self.auth = auth
+        self.tokens = None
         self.rsync_supported = False
+
     def set_server_configs(self, configs):
         """
         Server specific capacities and limitations, provided by the server itself
@@ -127,6 +129,21 @@ class PydioSdk():
         else:
             return unicode_path
 
+    def set_tokens(self, tokens):
+        self.tokens = tokens
+        try:
+            keyring.set_password(self.url, self.user_id + '-token', tokens['t'] + ':' + tokens['p'])
+        except PasswordSetError:
+            logging.error(_("Cannot store tokens in keychain, there might be an OS permission issue!"))
+
+    def get_tokens(self):
+        if not self.tokens:
+            k_tok = keyring.get_password(self.url, self.user_id + '-token')
+            if k_tok:
+                parts = k_tok.split(':')
+                self.tokens = {'t': parts[0], 'p': parts[1]}
+        return self.tokens
+
     def basic_authenticate(self):
         """
         Use basic-http authenticate to get a key/pair token instead of passing the
@@ -148,10 +165,8 @@ class PydioSdk():
         except ValueError as v:
             raise PydioSdkException("basic_auth", "", "Cannot parse JSON result: " + resp.content + "")
             #return False
-        try:
-            keyring.set_password(self.url, self.user_id + '-token', tokens['t'] + ':' + tokens['p'])
-        except PasswordSetError:
-            logging.error(_("Cannot store tokens in keychain, basic auth will be performed each time!"))
+
+        self.set_tokens(tokens)
         return tokens
 
     def perform_basic(self, url, request_type='get', data=None, files=None, headers=None, stream=False, with_progress=False):
@@ -271,7 +286,7 @@ class PydioSdk():
             return self.perform_basic(url, request_type=type, data=data, files=files, headers=headers, stream=stream,
                                           with_progress=with_progress)
 
-        tokens = keyring.get_password(self.url, self.user_id + '-token')
+        tokens = self.get_tokens()
         if not tokens:
             try:
                 tokens = self.basic_authenticate()
@@ -285,9 +300,8 @@ class PydioSdk():
             return self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files,
                                             headers=headers, stream=stream)
         else:
-            tokens = tokens.split(':')
             try:
-                resp = self.perform_with_tokens(tokens[0], tokens[1], url, type, data, files, headers=headers,
+                resp = self.perform_with_tokens(tokens['t'], tokens['p'], url, type, data, files, headers=headers,
                                                 stream=stream, with_progress=with_progress)
                 return resp
             except requests.exceptions.ConnectionError:
@@ -363,7 +377,8 @@ class PydioSdk():
                         callback('remote', one_change, info)
 
                     except ValueError as v:
-                        raise Exception(_("Invalid JSON value received while getting remote changes."))
+                        logging.error('Invalid JSON Response, line was ' + line)
+                        raise Exception(_('Invalid JSON value received while getting remote changes'))
                     except Exception as e:
                         raise e
 
@@ -641,6 +656,8 @@ class PydioSdk():
                 raise PydioSdkPermissionException('Cannot upload '+os.path.basename(path)+' in directory '+os.path.dirname(path))
             else:
                 raise e
+        except RequestException as ce:
+            raise PydioSdkException("upload", path, 'RequestException: ' + ce.message)
 
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
@@ -869,7 +886,7 @@ class PydioSdk():
                 with_progress['total_size'] = size
                 with_progress['bytes_sent'] = delta
                 with_progress['total_bytes_sent'] = progress
-                dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, change=with_progress)
+                dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, sender=self, change=with_progress)
         else:
             def cb(size=0, progress=0, delta=0, rate=0):
                 logging.debug('Current transfer rate ' + str(rate))
@@ -936,7 +953,8 @@ class PydioSdk():
             # requests_log.propagate = True
 
             (header_body, close_body, content_type) = encode_multiparts(fields)
-            body = BytesIOWithFile(header_body, close_body, files['userfile_0'], callback=cb, chunk_size=max_size, file_part=0)
+            body = BytesIOWithFile(header_body, close_body, files['userfile_0'], callback=cb, chunk_size=max_size,
+                                   file_part=0, signal_sender=self)
             resp = requests.post(
                 url,
                 data=body,
@@ -963,7 +981,7 @@ class PydioSdk():
 
                 before = time.time()
                 body = BytesIOWithFile(header_body, close_body, files['userfile_0'],
-                                       callback=cb, chunk_size=max_size, file_part=i)
+                                       callback=cb, chunk_size=max_size, file_part=i, signal_sender=self)
                 resp = requests.post(
                     url,
                     data=body,

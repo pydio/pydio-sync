@@ -20,8 +20,11 @@
 import sqlite3
 from sqlite3 import OperationalError
 import os
+import sys
+from pathlib import *
 import datetime
 import logging
+from pydio.job.localdb import DBCorruptedException
 
 
 class EventLogger():
@@ -36,8 +39,14 @@ class EventLogger():
     def init_db(self):
         conn = sqlite3.connect(self.db)
         cursor = conn.cursor()
-        cursor.execute("create table events (id INTEGER PRIMARY KEY AUTOINCREMENT, type text, message text, source text,"
-                       "target text, action text, status text, date text)")
+        if getattr(sys, 'frozen', False):
+            respath = (Path(sys._MEIPASS)) / 'res' / 'create.sql'
+        else:
+            respath = (Path(__file__)).parent.parent / 'res' / 'create.sql'
+        logging.debug("respath: %s" % respath)
+        with open(str(respath), 'r') as inserts:
+            for statement in inserts:
+                cursor.execute(statement)
         conn.close()
 
     def log_state(self, message, status):
@@ -47,9 +56,12 @@ class EventLogger():
         insert = True
         conn = sqlite3.connect(self.db)
         if uniq:
-            sel = conn.execute('SELECT id FROM events WHERE type=?', (type, ))
-            for r in sel:
-                insert = False
+            try:
+                sel = conn.execute('SELECT id FROM events WHERE type=?', (type, ))
+                for r in sel:
+                    insert = False
+            except sqlite3.OperationalError as oe:
+                raise DBCorruptedException(oe)
 
         try:
             date_time = str(datetime.datetime.now())
@@ -61,9 +73,9 @@ class EventLogger():
                              " WHERE type=?", (type, message, source, action, target, status, date_time, type))
 
             conn.commit()
-            conn.close()
         except sqlite3.Error as e:
             logging.error('sql insert error while trying to log event : %s ' % (e.message,))
+        conn.close()
 
     def get_all(self, limit=10, offset=0, filter_type=None, filter_action=None):
         conn = sqlite3.connect(self.db)
@@ -89,9 +101,9 @@ class EventLogger():
                     'status': event['status'],
                     'date': event['date']
                 })
-            c.close()
         except OperationalError as e:
             pass
+        conn.close()
         return events
 
     def filter(self, filter, filter_parameter):

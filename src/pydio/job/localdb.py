@@ -19,6 +19,7 @@
 #
 
 import sqlite3
+from sqlite3 import OperationalError
 import sys
 import os
 import hashlib
@@ -34,6 +35,10 @@ from watchdog.utils.dirsnapshot import DirectorySnapshotDiff
 from pydio.utils.functions import hashfile, set_file_hidden, guess_filesystemencoding
 
 
+class DBCorruptedException(Exception):
+    pass
+
+
 class SqlSnapshot(object):
 
     def __init__(self, basepath, job_data_path, sub_folder=None):
@@ -43,7 +48,10 @@ class SqlSnapshot(object):
         self._inode_to_path = {}
         self.is_recursive = True
         self.sub_folder = sub_folder
-        self.load_from_db()
+        try:
+            self.load_from_db()
+        except OperationalError as oe:
+            raise DBCorruptedException(oe)
 
     def load_from_db(self):
 
