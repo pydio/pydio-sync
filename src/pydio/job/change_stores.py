@@ -17,6 +17,7 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
+import inspect
 import sqlite3
 import json
 import os
@@ -29,6 +30,7 @@ from pydio.sdk.exceptions import InterruptException
 
 class SqliteChangeStore():
     conn = None
+    DEBUG = False;
 
     def __init__(self, filename, includes, excludes):
         self.db = filename
@@ -72,6 +74,8 @@ class SqliteChangeStore():
         else:
             res = self.conn.execute("SELECT count(row_id) FROM ajxp_changes WHERE location=?", (location,))
         count = res.fetchone()
+        if(self.DEBUG):
+            logging.info("Changes store count #"+str(count[0]))
         return count[0]
 
     def process_changes_with_callback(self, callback):
@@ -128,6 +132,8 @@ class SqliteChangeStore():
         changes = []
         for row in res:
             changes.append(self.sqlite_row_to_dict(row, load_node=True))
+        if(self.DEBUG):
+            self.debug("")
         return changes
 
     def sum_sizes(self, where=''):
@@ -140,6 +146,8 @@ class SqliteChangeStore():
         for row in res:
             if row['total']:
                 total = float(row['total'])
+        if(self.DEBUG):
+            logging.info("Total size of changes:" + str(total) + " bytes")
         return total
 
     def commonprefix(self, path_list):
@@ -168,6 +176,10 @@ class SqliteChangeStore():
 
         #common_parents.append(self.commonprefix(parents))
         self.conn.commit()
+        if(self.DEBUG):
+            logging.info("Modified parents after the prevous operation:")
+            for parent in parents:
+                logging.info(parent)
         return parents
 
 
@@ -183,8 +195,10 @@ class SqliteChangeStore():
             r = self.sqlite_row_to_dict(row)
             res = self.conn.execute("DELETE FROM ajxp_changes WHERE location=? AND type=? AND source LIKE ?",
                                     (row['location'], row['type'], row['source'].replace("\\", "/") + "/%"))
-            logging.debug('[change store] Pruning %i rows', res.rowcount)
         self.conn.commit()
+        logging.debug('[change store] Pruning %i rows', res.rowcount)
+        if(self.DEBUG):
+            self.debug("Pruning folder moves")
 
     def dedup_changes(self):
         """
@@ -210,6 +224,9 @@ class SqliteChangeStore():
         self.conn.commit()
         logging.debug('[change store] Dedup: pruned %i rows', res.rowcount)
 
+        if(self.DEBUG):
+            self.debug("Removing duplicated changes (both sides)")
+
     def filter_out_echoes_events(self):
         """
         Remove changes that are found in ajxp_last_buffer : echoes from last cycle
@@ -234,6 +251,9 @@ class SqliteChangeStore():
         res = cursor.execute(sql)
         self.conn.commit()
         logging.debug('[change store] Echo : pruned %i rows', res.rowcount)
+        if(self.DEBUG):
+            self.debug("Detecting and removing echoes")
+
 
     def delete_copies(self):
         sql = 'DELETE from ajxp_changes WHERE row_id NOT IN (SELECT max(row_id) from ajxp_changes GROUP BY location, type, source, target, content, md5, bytesize having COUNT(*) > 0 ORDER BY row_id)'
@@ -241,6 +261,8 @@ class SqliteChangeStore():
         res = cursor.execute(sql)
         self.conn.commit()
         logging.debug('[change store] Echo : pruned %i rows', res.rowcount)
+        if(self.DEBUG):
+            self.debug("Detecting and removing copies")
 
 
     def detect_unnecessary_changes(self, local_sdk, remote_sdk):
@@ -258,6 +280,8 @@ class SqliteChangeStore():
         res = self.conn.execute('DELETE FROM ajxp_changes WHERE row_id IN (' + str(','.join(ids_to_delete)) + ')')
         logging.info('[change store] Filtering unnecessary changes : pruned %i rows', res.rowcount)
         self.conn.commit()
+        if(self.DEBUG):
+            self.debug("Detecting unnecessary changes")
 
     def filter_w_stat(self, location, sdk, opposite_sdk, offset=0, limit=1000):
         # Load 'limit' changes and filter them
@@ -499,6 +523,14 @@ class SqliteChangeStore():
     def remove(self, location, seq_id):
         self.conn.execute("DELETE FROM ajxp_changes WHERE location=? AND seq_id=?", (location, seq_id))
 
+    #showing the changes store state
+    def debug(self, after=""):
+        logging.info(2*"\n" + 15*"#")
+        logging.info("changes store after : "+after)
+        res = self.conn.execute("SELECT * FROM ajxp_changes")
+        for row in res:
+            logging.info("\t"+row['location'] + "\t|\tsource =>"+row["source"] + "\t " + "target =>"+row['target'])
+        logging.info("\n" + 15*"#" + 2*"\n")
 
     def sync(self):
         self.conn.commit()
