@@ -16,7 +16,8 @@
                         <!--{{_('Status')}}: {{_('syncing')}}-->
                     </div>
                     <div class="" ng-if="(!job.state.tasks || !job.state.tasks.total) && job.last_event">
-                        <span style="font-size:1.2em;" ng-if="job.last_event.type != 'error'">{{_('Last sync')}} {{job.last_event.date | moment }}<br></span>
+                        <span ng-if="job.state.global.status_indexing" style="font-size: 1.2em;">{{_('Status')}}: {{_('syncing')}}<br></span>
+                        <span ng-if="!job.state.global.status_indexing" style="font-size:1.2em;" ng-if="job.last_event.type != 'error'">{{_('Last sync')}} {{job.last_event.date | moment }}<br></span>
                         <span ng-if="job.last_event.type == 'error'">{{_('ERROR')}}: </span>{{job.last_event.message}}
                         <!--<br>{{_('Status')}}: {{_('idle')}}-->
                     </div>

@@ -158,6 +158,7 @@ class ContinuousDiffMerger(threading.Thread):
         :return:None
         """
         self.global_progress = {
+            'status_indexing'   :0,
             'queue_length'      :0,
             'queue_done'        :0.0,
             'queue_bytesize'    :0,
@@ -293,6 +294,18 @@ class ContinuousDiffMerger(threading.Thread):
         self.last_run = time.time()
         time.sleep(self.event_timer)
 
+    def exit_loop_clean(self, logger):
+        self.marked_for_snapshot_pathes = []
+        self.current_store.close()
+        self.init_global_progress()
+        logger.log_state(_('Synchronized'), 'success')
+        if self.job_config.frequency == 'manual':
+            self.job_status_running = False
+            self.sleep_offline()
+        else:
+            self.sleep_online()
+
+
     def run(self):
         """
         Start the thread
@@ -302,10 +315,15 @@ class ContinuousDiffMerger(threading.Thread):
 
         if self.watcher:
             if self.watcher_first_run:
+                def status_callback(status):
+                    logger.log_state(status, 'sync')
+                self.init_global_progress()
+
                 try:
+                    self.global_progress['status_indexing'] = 1
                     logger.log_state(_('Checking changes since last launch...'), "sync")
                     very_first = True
-                    self.watcher.check_from_snapshot()
+                    self.watcher.check_from_snapshot(state_callback=status_callback)
                 except DBCorruptedException as e:
                     self.stop()
                     JobsLoader.Instance().clear_job_data(self.job_config.id)
@@ -321,6 +339,9 @@ class ContinuousDiffMerger(threading.Thread):
                 # logging.info('Starting cycle with cycles local %i and remote %is' % (self.local_seq, self.remote_seq))
                 self.processing_signals = {}
                 self.init_global_progress()
+                if very_first:
+                    self.global_progress['status_indexing'] = 1
+
                 interval = int(time.time() - self.last_run)
                 if (self.online_status and interval < self.online_timer) or (not self.online_status and interval < self.offline_timer):
                     time.sleep(self.event_timer)
@@ -402,7 +423,17 @@ class ContinuousDiffMerger(threading.Thread):
                     self.local_target_seq = 1
                 if not connection_helper.internet_ok:
                     connection_helper.is_connected_to_internet()
+
+                changes_length = len(self.current_store)
+                if not changes_length:
+                    logging.info('No changes detected')
+                    self.exit_loop_clean(logger)
+                    very_first = False
+                    continue
+
+                self.global_progress['status_indexing'] = 1
                 logging.info('Reducing changes')
+                logger.log_state(_('Merging changes between remote and local, please wait...'), 'sync')
 
                 logging.debug('Delete Copies')
                 self.current_store.delete_copies()
@@ -430,54 +461,55 @@ class ContinuousDiffMerger(threading.Thread):
                     continue
 
                 changes_length = len(self.current_store)
-                if changes_length:
-                    import change_processor
-                    self.global_progress['queue_length'] = changes_length
-                    logging.info('Processing %i changes' % changes_length)
-                    logger.log_state(_('Processing %i changes') % changes_length, "start")
-                    counter = [1]
-                    def processor_callback(change):
-                        try:
-                            if self.interrupt or not self.job_status_running:
-                                raise InterruptException()
-                            self.update_current_tasks()
-                            self.update_global_progress()
-                            proc = ChangeProcessor(change, self.current_store, self.job_config, self.system, self.sdk,
-                                                   self.db_handler, self.event_logger)
-                            proc.process_change()
-                            self.update_min_seqs_from_store(success=True)
-                            self.global_progress['queue_done'] = float(counter[0])
-                            counter[0] += 1
-                            self.update_current_tasks()
-                            self.update_global_progress()
-                            time.sleep(0.1)
-                            if self.interrupt or not self.job_status_running:
-                                raise InterruptException()
-
-                        except ProcessException as pe:
-                            logging.error(pe.message)
-                            return False
-                        except InterruptException as i:
-                            raise i
-                        except PydioSdkDefaultException as p:
-                            raise p
-                        except Exception as ex:
-                            logging.exception(ex.message)
-                            return False
-                        return True
-
-                    try:
-                        if sys.platform.startswith('win'):
-                            self.marked_for_snapshot_pathes = list(set(self.current_store.find_modified_parents()) - set(self.marked_for_snapshot_pathes))
-                        self.current_store.process_changes_with_callback(processor_callback)
-                    except InterruptException as iexc:
-                        pass
-                    logger.log_state(_('%i files modified') % self.global_progress['queue_done'], "success")
-                else:
+                if not changes_length:
                     logging.info('No changes detected')
-                    self.marked_for_snapshot_pathes = []
-                    if very_first:
-                        logger.log_state(_('Synchronized'), 'success')
+                    self.exit_loop_clean(logger)
+                    very_first = False
+                    continue
+
+                self.global_progress['status_indexing'] = 0
+                import change_processor
+                self.global_progress['queue_length'] = changes_length
+                logging.info('Processing %i changes' % changes_length)
+                logger.log_state(_('Processing %i changes') % changes_length, "start")
+                counter = [1]
+                def processor_callback(change):
+                    try:
+                        if self.interrupt or not self.job_status_running:
+                            raise InterruptException()
+                        self.update_current_tasks()
+                        self.update_global_progress()
+                        proc = ChangeProcessor(change, self.current_store, self.job_config, self.system, self.sdk,
+                                               self.db_handler, self.event_logger)
+                        proc.process_change()
+                        self.update_min_seqs_from_store(success=True)
+                        self.global_progress['queue_done'] = float(counter[0])
+                        counter[0] += 1
+                        self.update_current_tasks()
+                        self.update_global_progress()
+                        time.sleep(0.1)
+                        if self.interrupt or not self.job_status_running:
+                            raise InterruptException()
+
+                    except ProcessException as pe:
+                        logging.error(pe.message)
+                        return False
+                    except InterruptException as i:
+                        raise i
+                    except PydioSdkDefaultException as p:
+                        raise p
+                    except Exception as ex:
+                        logging.exception(ex.message)
+                        return False
+                    return True
+
+                try:
+                    if sys.platform.startswith('win'):
+                        self.marked_for_snapshot_pathes = list(set(self.current_store.find_modified_parents()) - set(self.marked_for_snapshot_pathes))
+                    self.current_store.process_changes_with_callback(processor_callback)
+                except InterruptException as iexc:
+                    pass
+                logger.log_state(_('%i files modified') % self.global_progress['queue_done'], "success")
 
             except PydioSdkDefaultException as re:
                 logging.error(re.message)
@@ -515,13 +547,8 @@ class ContinuousDiffMerger(threading.Thread):
                     logger.log_state(_('Unexpected Error: %s') % e.message, 'error')
 
             logging.debug('Finished this cycle, waiting for %i seconds' % self.online_timer)
-            self.current_store.close()
-            self.init_global_progress()
-            if self.job_config.frequency == 'manual':
-                self.job_status_running = False
-                self.sleep_offline()
-            else:
-                self.sleep_online()
+            self.exit_loop_clean(logger)
+            very_first = False
 
     def update_min_seqs_from_store(self, success=False):
         self.local_seq = self.current_store.get_min_seq('local', success=success)

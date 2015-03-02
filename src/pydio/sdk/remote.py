@@ -404,6 +404,9 @@ class PydioSdk():
             blocks: 0
         }
         """
+        if self.interrupt_tasks:
+            raise PydioSdkException("stat", path=path, detail=_('Task interrupted by user'))
+
         path = self.remote_folder + path
         action = '/stat_hash' if with_hash else '/stat'
         try:
@@ -442,6 +445,9 @@ class PydioSdk():
         :param with_hash: bool whether to ask for files hash or not (md5)
         :return:
         """
+        if self.interrupt_tasks:
+            raise PydioSdkException("stat", path=pathes[0], detail=_('Task interrupted by user'))
+
         from requests.exceptions import Timeout
         # NORMALIZE PATHES FROM START
         pathes = map(lambda p: self.normalize(p), pathes)

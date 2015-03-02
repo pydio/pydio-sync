@@ -103,7 +103,10 @@ class LocalWatcher(threading.Thread):
         self.interrupt = False
         self.event_handler = event_handler
 
-    def check_from_snapshot(self, sub_folder=None):
+    def check_from_snapshot(self, sub_folder=None, state_callback=(lambda status: None)):
+        from pydio.utils import i18n
+        _ = i18n.language.ugettext
+
         logging.info('Scanning for changes since last application launch')
         if (not sub_folder and os.path.exists(self.basepath)) or (sub_folder and os.path.exists(self.basepath + sub_folder)):
             previous_snapshot = SqlSnapshot(self.basepath, self.job_data_path, sub_folder)
@@ -111,8 +114,14 @@ class LocalWatcher(threading.Thread):
                 local_path = self.basepath + os.path.normpath(sub_folder)
             else:
                 local_path = self.basepath
+            state_callback(status=_('Walking through your local folder, please wait...'))
             snapshot = DirectorySnapshot(local_path, recursive=True)
             diff = SnapshotDiffStart(previous_snapshot, snapshot)
+            state_callback(status=_('Detected %i local changes...') % (len(diff.dirs_created) + len(diff.files_created)
+                                                                       + len(diff.dirs_moved) + len(diff.dirs_deleted)
+                                                                       + len(diff.files_moved) +
+                                                                       len(diff.files_modified) +
+                                                                       len(diff.files_deleted)))
             for path in diff.dirs_created:
                 if self.interrupt:
                     return
