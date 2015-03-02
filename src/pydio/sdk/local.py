@@ -53,6 +53,8 @@ class SystemSdk(object):
     def bulk_stat(self, pathes, with_hash=False):
         return None
 
+    def mkfile(self, path):
+        open(self.basepath + path, 'w').close()
 
     def stat(self, path, full_path=False, with_hash=False):
         """

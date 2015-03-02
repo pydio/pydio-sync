@@ -57,6 +57,7 @@ class ChangeProcessor:
             return
 
         if item['type'] == 'create' or item['type'] == 'content':
+
             if item['node']['md5'] == 'directory':
                 if item['node']['node_path']:
                     logging.debug('[' + location + '] Create folder ' + item['node']['node_path'])
@@ -65,6 +66,15 @@ class ChangeProcessor:
                     else:
                         self.process_remote_mkdir(item['node']['node_path'])
                     self.change_store.buffer_real_operation(location, item['type'], 'NULL', item['node']['node_path'])
+
+            elif item['node']['bytesize'] == 0:
+                logging.debug('[' + location + '] Create file ' + item['node']['node_path'])
+                if location == 'remote':
+                    self.process_local_mkfile(item['node']['node_path'])
+                else:
+                    self.process_remote_mkfile(item['node']['node_path'])
+                self.change_store.buffer_real_operation(location, 'create', 'NULL', item['node']['node_path'])
+
             else:
                 if item['node']['node_path']:
                     if location == 'remote':
@@ -239,3 +249,14 @@ class ChangeProcessor:
         self.update_node_status(path, 'IDLE')
         self.log(type='remote', action='upload', status='success', target=path,
                  console_message=message, message=(_('File %s uploaded to server') % path))
+
+    def process_local_mkfile(self, path):
+        message = path + ' <============ MKFILE'
+        self.local_sdk.mkfile(path)
+        self.log(type='local', action='mkfile', status='success', target=path, console_message=message, message=(_('New file created at %s') % path))
+
+    def process_remote_mkfile(self, path):
+        message = 'MKFILE ============> ' + path
+        self.remote_sdk.mkfile(path)
+        self.log(type='remote', action='mkfile', status='success', target=path,
+                 console_message=message, message=(_('File created at %s') % path))

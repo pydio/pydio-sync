@@ -446,7 +446,7 @@ class ContinuousDiffMerger(threading.Thread):
                 self.update_min_seqs_from_store()
                 #self.current_store.filter_out_echoes_events()
                 #self.update_min_seqs_from_store()
-                logging.debug('Clear op and prune folders moves')
+                logging.debug('Clearing op and pruning folders moves')
                 self.current_store.clear_operations_buffer()
                 self.current_store.prune_folders_moves()
                 self.update_min_seqs_from_store()
