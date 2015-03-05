@@ -87,9 +87,6 @@ DEFAULT_DATA_PATH = appdirs.user_data_dir(APP_NAME, roaming=True)
 if sys.platform == 'win32' and DEFAULT_DATA_PATH.endswith(os.path.join(APP_NAME, APP_NAME)):
     # Remove double folder Pydio/Pydio on windows
     DEFAULT_DATA_PATH = DEFAULT_DATA_PATH.replace(os.path.join(APP_NAME, APP_NAME), APP_NAME)
-if sys.platform.startswith('linux'):
-    # Force Linux path, strange /.config/ case
-    DEFAULT_DATA_PATH = os.path.join(os.getenv('XDG_DATA_HOME', os.path.expanduser("~/.local/share")), APP_NAME)
 
 DEFAULT_PARENT_PATH = get_user_home(APP_NAME)
 
