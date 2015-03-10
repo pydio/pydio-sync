@@ -84,11 +84,20 @@ from pydio.job.scheduler import PydioScheduler
 import appdirs
 APP_NAME='Pydio'
 DEFAULT_DATA_PATH = appdirs.user_data_dir(APP_NAME, roaming=True)
-logging.info('Default Config Path: '+DEFAULT_DATA_PATH)
 
 if sys.platform == 'win32' and DEFAULT_DATA_PATH.endswith(os.path.join(APP_NAME, APP_NAME)):
     # Remove double folder Pydio/Pydio on windows
     DEFAULT_DATA_PATH = DEFAULT_DATA_PATH.replace(os.path.join(APP_NAME, APP_NAME), APP_NAME)
+elif sys.platform == 'linux2':
+    # According to XDG specification
+    # http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+    CONFIGDIR = os.getenv('XDG_DATA_HOME')
+    logging.info('Linux CONFIG DIR XDG_DATA_HOME: ' + CONFIGDIR)
+    if not CONFIGDIR:
+        CONFIGDIR = os.path.expanduser('~/.local/share')
+        logging.info('Linux CONFIG DIR EXPANDED: ' + CONFIGDIR)
+    DEFAULT_DATA_PATH = os.path.join(CONFIGDIR, APP_NAME)
+    logging.info('Linux DEFAULT_DATA_PATH: ' + DEFAULT_DATA_PATH)
 
 DEFAULT_PARENT_PATH = get_user_home(APP_NAME)
 
