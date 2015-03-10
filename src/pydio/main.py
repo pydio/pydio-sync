@@ -92,7 +92,8 @@ elif sys.platform == 'linux2':
     # According to XDG specification
     # http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
     CONFIGDIR = os.getenv('XDG_DATA_HOME')
-    logging.info('Linux CONFIG DIR XDG_DATA_HOME: ' + CONFIGDIR)
+    if CONFIGDIR:
+        logging.info('Linux CONFIG DIR XDG_DATA_HOME: ' + CONFIGDIR)
     if not CONFIGDIR:
         CONFIGDIR = os.path.expanduser('~/.local/share')
         logging.info('Linux CONFIG DIR EXPANDED: ' + CONFIGDIR)
