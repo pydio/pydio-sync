@@ -115,7 +115,15 @@ class LocalWatcher(threading.Thread):
             else:
                 local_path = self.basepath
             state_callback(status=_('Walking through your local folder, please wait...'))
-            snapshot = DirectorySnapshot(local_path, recursive=True)
+
+            def listdir(dir_path):
+                try:
+                    return os.listdir(dir_path)
+                except OSError as o:
+                    logging.error(o)
+                    return []
+
+            snapshot = DirectorySnapshot(local_path, recursive=True, listdir=listdir)
             diff = SnapshotDiffStart(previous_snapshot, snapshot)
             state_callback(status=_('Detected %i local changes...') % (len(diff.dirs_created) + len(diff.files_created)
                                                                        + len(diff.dirs_moved) + len(diff.dirs_deleted)

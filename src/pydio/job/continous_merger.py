@@ -329,6 +329,10 @@ class ContinuousDiffMerger(threading.Thread):
                     JobsLoader.Instance().clear_job_data(self.job_config.id)
                     logging.error(e)
                     return
+                except Exception as e:
+                    self.interrupt = True
+                    logger.log_state(_('Oops, error while indexing the local folder. Pausing the task.'), 'error')
+                    logging.error(e)
 
                 self.watcher_first_run = False
             self.watcher.start()
