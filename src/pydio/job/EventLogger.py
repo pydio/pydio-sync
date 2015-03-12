@@ -52,12 +52,15 @@ class EventLogger():
     def log_state(self, message, status):
         self.log('sync', message, 'loop', status, uniq=True)
 
-    def log(self, type, message, action, status, source='', target='', uniq=False):
+    def log_notif(self, message, status):
+        self.log('notif', message, 'loop', status, uniq=True)
+
+    def log(self, event_type, message, action, status, source='', target='', uniq=False):
         insert = True
         conn = sqlite3.connect(self.db)
         if uniq:
             try:
-                sel = conn.execute('SELECT id FROM events WHERE type=?', (type, ))
+                sel = conn.execute('SELECT id FROM events WHERE type=?', (event_type, ))
                 for r in sel:
                     insert = False
             except sqlite3.OperationalError as oe:
@@ -67,10 +70,10 @@ class EventLogger():
             date_time = str(datetime.datetime.now())
             if insert:
                 conn.execute("INSERT INTO events('type', 'message', 'source', 'action', 'target', 'status', 'date') "
-                             "VALUES (?, ?, ?, ?, ?, ?, ?)", (type, message, source, action, target, status, date_time))
+                             "VALUES (?, ?, ?, ?, ?, ?, ?)", (event_type, message, source, action, target, status, date_time))
             else:
                 conn.execute("UPDATE events SET type=?, message=?, source=?, action=?, target=?, status=?, date=? "
-                             " WHERE type=?", (type, message, source, action, target, status, date_time, type))
+                             " WHERE type=?", (event_type, message, source, action, target, status, date_time, event_type))
 
             conn.commit()
         except sqlite3.Error as e:
@@ -88,7 +91,7 @@ class EventLogger():
             elif filter_action:
                 res = c.execute("SELECT * FROM events WHERE action=? ORDER BY date DESC LIMIT ?,?", (filter_action, offset, limit))
             else:
-                res = c.execute("SELECT * FROM events ORDER BY date DESC LIMIT ?,?", (offset, limit))
+                res = c.execute("SELECT * FROM events WHERE type!=? ORDER BY date DESC LIMIT ?,?", ('notif', offset, limit))
             
             for event in res:
                 events.append({
@@ -105,6 +108,16 @@ class EventLogger():
             pass
         conn.close()
         return events
+
+    def consume_notification(self):
+        events = self.get_all(1, 0, filter_type='notif')
+        if len(events):
+            conn = sqlite3.connect(self.db)
+            conn.execute("DELETE FROM events WHERE type=?", ('notif',))
+            conn.commit()
+            conn.close()
+            return events[0]
+        return None
 
     def filter(self, filter, filter_parameter):
         logging.debug("Filtering logs on '%s' with filter '%s'" %(filter, filter_parameter))

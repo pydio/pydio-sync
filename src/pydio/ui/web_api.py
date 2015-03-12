@@ -349,7 +349,7 @@ class JobManager(Resource):
             json_jobs = []
             for k in jobs:
                 data = JobConfig.encoder(jobs[k])
-                self.enrich_job(data, k)
+                self.enrich_job(data, k, (request.path == '/jobs-status'))
                 json_jobs.append(data)
             if request.path == '/jobs-status':
                 response = {'is_connected_to_internet': connection_helper.internet_ok, 'jobs': json_jobs}
@@ -359,10 +359,14 @@ class JobManager(Resource):
         self.enrich_job(data, job_id)
         return data
 
-    def enrich_job(self, job_data, job_id):
+    def enrich_job(self, job_data, job_id, get_notification=False):
         running = PydioScheduler.Instance().is_job_running(job_id)
         job_data['running'] = running
         logger = EventLogger(JobsLoader.Instance().build_job_data_path(job_id))
+        if get_notification:
+            notification = logger.consume_notification()
+            if notification:
+                job_data['notification'] = notification
         last_events = logger.get_all(1, 0)
         if len(last_events):
             job_data['last_event'] = last_events.pop()

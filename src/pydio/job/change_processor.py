@@ -38,7 +38,7 @@ class ChangeProcessor:
     def log(self, type, action, status, message, console_message, source='', target=''):
         logging.info(console_message)
         logging.info(message)
-        self.log_handler.log(type=type, action=action, status=status, source=source, target=target, message=message)
+        self.log_handler.log(event_type=type, action=action, status=status, source=source, target=target, message=message)
 
     def update_node_status(self, path, status):
         self.status_handler.update_node_status(path, status)

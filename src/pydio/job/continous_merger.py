@@ -509,7 +509,9 @@ class ContinuousDiffMerger(threading.Thread):
                     self.current_store.process_changes_with_callback(processor_callback)
                 except InterruptException as iexc:
                     pass
-                logger.log_state(_('%i files modified') % self.global_progress['queue_done'], "success")
+                logger.log_state(_('%i files modified') % self.global_progress['queue_done'], 'success')
+                if self.global_progress['queue_done']:
+                    logger.log_notif(_('%i files modified') % self.global_progress['queue_done'], 'success')
 
             except PydioSdkDefaultException as re:
                 logging.error(re.message)
