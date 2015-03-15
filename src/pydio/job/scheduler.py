@@ -38,8 +38,7 @@ class PydioScheduler():
         dispatcher.connect(self.handle_generic_signal, signal=COMMAND_SIGNAL, sender=dispatcher.Any)
 
     def start_all(self):
-        for job_id in self.job_configs:
-            job_config = self.job_configs[job_id]
+        for job_config in self.job_configs:
             self.start_from_config(job_config)
 
     def pause_all(self):
