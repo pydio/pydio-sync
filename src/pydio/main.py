@@ -104,6 +104,7 @@ DEFAULT_PARENT_PATH = get_user_home(APP_NAME)
 
 def main(argv=sys.argv[1:]):
     parser = argparse.ArgumentParser('Pydio Synchronization Tool')
+    # Pass a server configuration via arguments
     parser.add_argument('-s', '--server', help='Server URL, with http(s) and path to pydio', type=unicode,
                         default='http://localhost')
     parser.add_argument('-d', '--directory', help='Local directory', type=unicode, default=None)
@@ -113,10 +114,17 @@ def main(argv=sys.argv[1:]):
     parser.add_argument('-u', '--user', help='User name', type=unicode, default=None)
     parser.add_argument('-p', '--password', help='Password', type=unicode, default=None)
     parser.add_argument('-dir', '--direction', help='Synchro Direction', type=str, default='bi')
+    # Pass a configuration file
     parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
+    # Pass a path to rdiff binary
     parser.add_argument('-i', '--rdiff', type=unicode, help='Path to rdiff executable', default=None)
+    # Configure API access
     parser.add_argument('--api_user', help='Set the agent API username (instead of random)', type=unicode, default=None)
     parser.add_argument('--api_password', help='Set the agent API password (instead of random)', type=unicode, default=None)
+    parser.add_argument('--api_address', help='Set the agent IP address. By default, no address means that local '
+                                              'access only is allowed.', type=str, default=None)
+    parser.add_argument('--api_port', help='Set the agent port. By default, will try to use 5556, and if not '
+                                           'available will switch to another port.', type=int, default=5556)
     parser.add_argument('--diag', help='Run self diagnostic', action='store_true', default=False)
     parser.add_argument('--diag-http', help='Check server connection', action='store_true', default=False)
     parser.add_argument('--diag-imports', help='Check imports and exit', action='store_true', default=False)
@@ -205,12 +213,13 @@ def main(argv=sys.argv[1:]):
             logging.error("Diagnostics failed: %s %s" % (str(rc), smoke_tests.status_message))
         return sys.exit(rc)
 
-    ports_detector = PortsDetector(store_file=str(jobs_root_path / 'ports_config'),
-                                   username=args.api_user, password=args.api_password)
+    ports_detector = PortsDetector(store_file=str(jobs_root_path / 'ports_config'), username=args.api_user,
+                                   password=args.api_password, default_port=args.api_port)
     ports_detector.create_config_file()
 
     scheduler = PydioScheduler.Instance(jobs_root_path=jobs_root_path, jobs_loader=jobs_loader)
-    server = PydioApi(ports_detector.get_port(), ports_detector.get_username(), ports_detector.get_password())
+    server = PydioApi(ports_detector.get_port(), ports_detector.get_username(),
+        ports_detector.get_password(), external_ip=args.api_address)
     from pydio.job import manager
     manager.api_server = server
 

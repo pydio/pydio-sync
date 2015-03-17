@@ -64,8 +64,17 @@ authDB = FlaskRealmDigestDB('PydioSyncAuthRealm')
 
 class PydioApi(Api):
 
-    def __init__(self, server_port, user, password):
+    def __init__(self, server_port, user, password, external_ip=None):
+        logging.info('-----------------------------------------------')
+        if external_ip:
+            logging.info('Starting agent on http://' + external_ip + ':' + str(server_port) + '/')
+            logging.info('Warning, this agent UI is world accessible!')
+        else:
+            logging.info('Starting agent locally on http://localhost:' + str(server_port) + '/')
+        logging.info('------------------------------------------------')
+
         self.port = server_port
+        self.external_ip = external_ip
         authDB.add_user(user, password)
         self.running = False
         if getattr(sys, 'frozen', False):
@@ -115,7 +124,7 @@ class PydioApi(Api):
     def start_server(self):
         try:
             self.running = True
-            self.app.run(port=self.port)
+            self.app.run(port=self.port, host=self.external_ip)
         except Exception:
             self.running = False
             logging.exception("Error while starting web server")

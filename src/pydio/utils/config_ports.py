@@ -23,9 +23,9 @@ import random, string
 
 class PortsDetector():
 
-    def __init__(self, store_file, username=None, password=None):
+    def __init__(self, store_file, username=None, password=None, default_port=5556):
         self.store = store_file
-        self.default_port = 5556
+        self.default_port = default_port
         if username:
             self.username = username
         else:
