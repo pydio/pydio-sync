@@ -568,6 +568,25 @@ class PydioSdk():
         self.is_pydio_error_response(resp)
         return resp.content
 
+    def lsync(self, source=None, target=None, copy=False):
+        """
+        Rename a path to another. Will decide automatically to trigger a rename or a move in the API.
+        :param source: origin path
+        :param target: target path
+        :return: response of the server
+        """
+        url = self.url + '/lsync'
+        data = dict()
+        if source:
+            data['from'] = self.normalize(self.remote_folder + source).encode('utf-8')
+        if target:
+            data['to'] = self.normalize(self.remote_folder + target).encode('utf-8')
+        if copy:
+            data['copy'] = 'true'
+        resp = self.perform_request(url=url, type='post', data=data)
+        self.is_pydio_error_response(resp)
+        return resp.content
+
     def delete(self, path):
         """
         Delete a resource on the server
