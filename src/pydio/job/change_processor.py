@@ -27,6 +27,16 @@ _ = i18n.language.ugettext
 
 class ChangeProcessor:
     def __init__(self, change, change_store, job_config, local_sdk, remote_sdk, status_handler, event_logs_handler):
+        """
+
+        :param change: dict
+        :param change_store: pydio.job.change_stores.SqliteChangeStore
+        :param job_config: dict
+        :param local_sdk: pydio.sdk.local.SystemSdk
+        :param status_handler: pydio.local.status_handler
+        :param event_logs_handler: pydio.job.EventLogger
+        :type remote_sdk: pydio.sdk.remote.PydioSdk
+        """
         self.job_config = job_config
         self.local_sdk = local_sdk
         self.remote_sdk = remote_sdk
@@ -260,3 +270,59 @@ class ChangeProcessor:
         self.remote_sdk.mkfile(path)
         self.log(type='remote', action='mkfile', status='success', target=path,
                  console_message=message, message=(_('File created at %s') % path))
+
+
+class StorageChangeProcessor(ChangeProcessor):
+
+    def process_change(self):
+        """
+        Process the "change" by just sending an lsync command to server
+        :return:
+        """
+        item = self.change
+        location = item['location']
+        item['progress'] = 0
+        if location == 'remote':
+            # Just ignore all remote changes
+            return
+
+        if item['type'] == 'create' or item['type'] == 'content':
+
+            if item['node']['md5'] == 'directory':
+                if item['node']['node_path']:
+                    logging.debug('[' + location + '] Create folder ' + item['node']['node_path'])
+                    self.remote_sdk.lsync(target=item['node']['node_path'])
+                    self.change_store.buffer_real_operation(location, item['type'], 'NULL', item['node']['node_path'])
+
+            elif item['node']['bytesize'] == 0:
+                logging.debug('[' + location + '] Create file ' + item['node']['node_path'])
+                self.remote_sdk.lsync(target=item['node']['node_path'])
+                self.change_store.buffer_real_operation(location, 'create', 'NULL', item['node']['node_path'])
+
+            else:
+                if item['node']['node_path']:
+                    self.remote_sdk.lsync(target=item['node']['node_path'])
+                    self.change_store.buffer_real_operation(location, item['type'], ('NULL' if item['type'] =='create' else item['node']['node_path']),
+                                                            item['node']['node_path'])
+
+        elif item['type'] == 'delete':
+            logging.debug('[' + location + '] Should delete ' + item['source'])
+            self.remote_sdk.lsync(source=item['source'])
+            self.change_store.buffer_real_operation(location, 'delete', item['source'], 'NULL')
+
+        elif item['type'] == 'bulk_mkdirs':
+            try:
+                bulk_location = item['location']
+                bulk = list()
+                for path in item['pathes']:
+                    self.remote_sdk.lsync(target=path)
+                    bulk.append({'type': 'create', 'location': bulk_location, 'source':'NULL', 'target': path})
+
+                if bulk:
+                    self.change_store.bulk_buffer_real_operation(bulk)
+            except Exception as e :
+                pass
+        else:
+            logging.debug('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
+            self.remote_sdk.lsync(source=item['source'], target=item['target'])
+            self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'])
