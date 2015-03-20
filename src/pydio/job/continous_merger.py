@@ -27,7 +27,7 @@ import pickle
 import logging
 
 from requests.exceptions import ConnectionError, RequestException, Timeout, SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, InvalidSchema, InvalidURL
-from pydio.job.change_processor import ChangeProcessor
+from pydio.job.change_processor import ChangeProcessor, StorageChangeProcessor
 from pydio.job.job_config import JobsLoader
 from pydio.job.localdb import LocalDbHandler, SqlEventHandler, DBCorruptedException
 from pydio.job.local_watcher import LocalWatcher
@@ -94,6 +94,8 @@ class ContinuousDiffMerger(threading.Thread):
         self.event_handler = None
         self.watcher = None
         self.watcher_first_run = True
+        # TODO: TO BE LOADED FROM CONFIG
+        self.storage_watcher = job_config.label.startswith('LSYNC')
 
         self.marked_for_snapshot_pathes = []
 
@@ -431,6 +433,7 @@ class ContinuousDiffMerger(threading.Thread):
                 changes_length = len(self.current_store)
                 if not changes_length:
                     logging.info('No changes detected')
+                    self.update_min_seqs_from_store()
                     self.exit_loop_clean(logger)
                     very_first = False
                     continue
@@ -445,11 +448,10 @@ class ContinuousDiffMerger(threading.Thread):
                 logging.debug('Dedup changes')
                 self.current_store.dedup_changes()
                 self.update_min_seqs_from_store()
-                logging.debug('Detect unnecessary changes')
-                self.current_store.detect_unnecessary_changes(local_sdk=self.system, remote_sdk=self.sdk)
+                if not self.storage_watcher or very_first:
+                    logging.debug('Detect unnecessary changes')
+                    self.current_store.detect_unnecessary_changes(local_sdk=self.system, remote_sdk=self.sdk)
                 self.update_min_seqs_from_store()
-                #self.current_store.filter_out_echoes_events()
-                #self.update_min_seqs_from_store()
                 logging.debug('Clearing op and pruning folders moves')
                 self.current_store.clear_operations_buffer()
                 self.current_store.prune_folders_moves()
@@ -483,7 +485,8 @@ class ContinuousDiffMerger(threading.Thread):
                             raise InterruptException()
                         self.update_current_tasks()
                         self.update_global_progress()
-                        proc = ChangeProcessor(change, self.current_store, self.job_config, self.system, self.sdk,
+                        Processor = StorageChangeProcessor if self.storage_watcher else ChangeProcessor
+                        proc = Processor(change, self.current_store, self.job_config, self.system, self.sdk,
                                                self.db_handler, self.event_logger)
                         proc.process_change()
                         self.update_min_seqs_from_store(success=True)
