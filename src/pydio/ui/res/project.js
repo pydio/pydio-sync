@@ -443,6 +443,12 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             })
         };
 
+        $scope.updateProtocol = function(protocol){
+            $scope.inline_protocol = protocol;
+            if($scope.job.server && $scope.inline_host){
+                $scope.job.server = $scope.inline_protocol + $scope.inline_host;
+            }
+        };
 
         $scope.loadWorkspaces = function(){
             if($scope.job.id == 'new' && !$scope.job.password) {

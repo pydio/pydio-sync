@@ -28,8 +28,8 @@
         <div ng-show="ui_config.login_mode=='standard'">
             <div class="form-group">
                 <div class="btn-group">
-                    <button type="button" class="btn btn-default" ng-click="inline_protocol='https://'" ng-class="{'btn-success':inline_protocol=='https://','btn-default':inline_protocol=='http://'}">https</button>
-                    <button type="button" class="btn btn-default" ng-click="inline_protocol='http://'" ng-class="{'btn-danger':inline_protocol=='http://','btn-default':inline_protocol=='https://'}">http</button>
+                    <button type="button" class="btn btn-default" ng-click="updateProtocol('https://')" ng-class="{'btn-success':inline_protocol=='https://','btn-default':inline_protocol=='http://'}">https</button>
+                    <button type="button" class="btn btn-default" ng-click="updateProtocol('http://')" ng-class="{'btn-danger':inline_protocol=='http://','btn-default':inline_protocol=='https://'}">http</button>
                 </div>
             </div>
             <div class="form-group">

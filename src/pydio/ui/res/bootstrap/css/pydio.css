@@ -93,7 +93,7 @@ border-width: 3px 1px 1px 1px;
     padding-top: 200px;
 }
 
-.navbar{
+.navbar.navbar-fixed-top{
   background-color: #165170;
   border-color: #165170;
 }
