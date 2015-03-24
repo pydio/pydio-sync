@@ -105,5 +105,6 @@
 
 <!-- NAV BAR -->
 <div  class="navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
-    <a href="#/new" class="btn btn-default btn-lg btn-block"><span class="glyphicon glyphicon-plus-sign"></span> {{_('Create a new synchronization')}}</a>
+    <a ng-if="ui_config.login_mode=='standard'" href="#/new" class="btn btn-default btn-lg btn-block"><span class="glyphicon glyphicon-plus-sign"></span> {{_('Create a new synchronization')}}</a>
+    <a ng-if="ui_config.login_mode=='alias'" href="#/welcome" class="btn btn-default btn-lg btn-block"><span class="glyphicon glyphicon-plus-sign"></span> {{_('Create a new synchronization')}}</a>
 </div>

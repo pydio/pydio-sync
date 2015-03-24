@@ -39,14 +39,19 @@ import sys
 import os
 from pathlib import *
 from pydio.utils.global_config import ConfigManager
-from pydio.utils.functions import connection_helper, get_user_home
+from pydio.utils.functions import connection_helper
 from pydio.utils import i18n
 _ = i18n.language.ugettext
 
 from functools import wraps
 import authdigest
 import flask
-
+try:
+    from pydio.endpoint.resolver import EndpointResolver, RESOLVER_CONFIG, EndpointException
+except ImportError:
+    EndpointResolver = False
+    RESOLVER_CONFIG = False
+    EndpointException = False
 
 class FlaskRealmDigestDB(authdigest.RealmDigestDB):
     def requires_auth(self, f):
@@ -73,6 +78,7 @@ class PydioApi(Api):
             logging.info('Starting agent locally on http://localhost:' + str(server_port) + '/')
         logging.info('------------------------------------------------')
 
+        self.user_data_path = JobsLoader.Instance().data_path
         self.port = server_port
         self.external_ip = external_ip
         authDB.add_user(user, password)
@@ -95,6 +101,11 @@ class PydioApi(Api):
         self.add_resource(ConflictsManager, '/jobs/<string:job_id>/conflicts', '/jobs/conflicts')
         self.add_resource(CmdManager, '/cmd/<string:cmd>/<string:job_id>', '/cmd/<string:cmd>')
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
+        self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
+        self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
+        if EndpointResolver:
+            self.add_resource(ResolverManager, '/resolve/<string:client_id>')
+            self.app.add_url_rule('/res/dynamic.png', 'dynamic_png', self.serve_dynamic_image)
 
     def serve_i18n_file(self):
         s = ''
@@ -116,10 +127,31 @@ class PydioApi(Api):
 
         s += '\n'
         s += 'window.PydioEnvLanguages = ' + json.dumps(short_lang) + ';'
-        resp = Response(response=s,
+        return Response(response=s,
                         status=200,
                         mimetype="text/javascript")
-        return resp
+
+    def server_js_config(self):
+        content = "window.ui_config = {'login_mode':'standard'}"
+        if EndpointResolver:
+            content = EndpointResolver.Instance().get_ui_config()
+        return Response(response=content,
+                        status=200,
+                        mimetype="text/javascript")
+
+    def serve_dynamic_css(self):
+        content = ''
+        if EndpointResolver:
+            content = EndpointResolver.Instance().load_css()
+        return Response(response=content,
+                        status=200,
+                        mimetype="text/css")
+
+    def serve_dynamic_image(self):
+        # This is called only if there is a resolved.
+        return Response(response=EndpointResolver.Instance().load_image_content(),
+                        status=200,
+                        mimetype="image/png")
 
     def start_server(self):
         try:
@@ -456,3 +488,13 @@ class CmdManager(Resource):
         else:
             return PydioScheduler.Instance().handle_generic_signal(self, cmd)
         return ('success',)
+
+
+class ResolverManager(Resource):
+
+    @authDB.requires_auth
+    def get(self, client_id):
+        try:
+            return EndpointResolver.Instance().get_customer_endpoints(client_id)
+        except EndpointException as e:
+            return {'message': e.message, 'code': e.error_id}, 500

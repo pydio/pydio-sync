@@ -46,7 +46,7 @@
 
     <div class="small pull-left" style="text-align: center; width: 40%; overflow: visible;">
         <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
-        {{_('Server')}}: {{job.server}}<br>
+        <span ng-if="ui_config.login_mode == 'standard'">{{_('Server')}}: {{job.server}}<br></span>
         {{_('Workspace')}}: {{job.repoObject['label']}}<br>
         {{_('Folder')}}: <span ng-if="job.remote_folder">{{job.remote_folder}}</span><span ng-if="!job.remote_folder">{{_('Whole workspace')}}</span>
         [<a href="#/edit/new/step2">{{_('change')}}</a>]

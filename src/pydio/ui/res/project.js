@@ -51,6 +51,13 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             });
         }])
 
+    .factory('Endpoints', ['$resource',
+        function($resource){
+            return $resource('/resolve/:client_id', {}, {
+                query: {method:'GET', params:{client_id:''}, isArray:false}
+            });
+        }])
+
     .filter('bytes', function() {
         return function(bytes, precision) {
             if (bytes == 0) return bytes;
@@ -192,6 +199,9 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         };
         $scope.Math = window.Math;
         $scope.QtObject = window.PydioQtFileDialog;
+        if (window.ui_config){
+            $scope.ui_config = window.ui_config;
+        }
 
         $scope.openLogs = function(){
           $scope.QtObject.openLogs();
@@ -349,8 +359,15 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         };
     })
 
-    .controller('CreateCtrl', function($scope, $location, $timeout, Jobs, Ws, currentJob) {
+    .controller('CreateCtrl', function($scope, $location, $timeout, Jobs, Ws, currentJob, Endpoints) {
+
+        if (window.ui_config){
+            $scope.ui_config = window.ui_config;
+        }
+
         $scope._ = window.translate;
+        $scope.loading = false;
+        $scope.error = null;
 
         $scope.parseURL = function(){
             if(!$scope.inline_host) return;
@@ -366,10 +383,11 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         };
 
         var job;
-        if(currentJob.getJob() == null && $location.path() == '/new'){
+        if(currentJob.getJob() == null && ($location.path() == '/new' || $location.path() == '/welcome')){
             job = new Jobs();
             $scope.inline_protocol='https://';
-            $scope.inline_host  ='';
+            $scope.inline_host  = '';
+            job.server          = 'https://'
             job.id              = 'new';
             job.remote_folder   = '';
             job.directory       = '';
@@ -394,6 +412,37 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             $scope.loading = true;
             $scope.loadWorkspaces();
         }
+
+        $scope.resolveClientId = function(){
+            if(!$scope.job.client_id){
+                return;
+            }
+            $scope.loading = true;
+            $scope.error = null;
+            Endpoints.get({
+                client_id:job.client_id
+            }, function(response){
+                if (response['endpoints'] && response.endpoints.length){
+                    $scope.job.server = response.endpoints[0].url;
+                    try{
+                        document.getElementById('dynasheet').href += '?';
+                    }catch(e){}
+                    $location.path('/new');
+                    $scope.loading = false;
+                    $scope.error = null;
+                    return;
+                }else{
+
+                }
+            }, function(response){
+                $scope.loading = false;
+                $scope.error = response.data.message;
+                window.setTimeout(function(){
+                    $scope.error = null;
+                }, 7000);
+            })
+        };
+
 
         $scope.loadWorkspaces = function(){
             if($scope.job.id == 'new' && !$scope.job.password) {
@@ -427,7 +476,11 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
     })
 
     .controller('EditCtrl', function($scope, $location, $routeParams, $window, $timeout, Jobs, currentJob, Ws, Folders, Commands) {
+
         $scope._ = window.translate;
+        if (window.ui_config){
+            $scope.ui_config = window.ui_config;
+        }
 
         $scope.loadFolders = function(){
             if($scope.job.repoObject && $scope.job.repoObject['@repositorySlug'] != $scope.job.workspace){

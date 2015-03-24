@@ -2,7 +2,9 @@
 <p class="lead">
     <img src="images/earth.png" style="float: left;width: 100px;margin-top: -20px;">
     {{_('Welcome %1!', job.user_display_name?job.user_display_name:job.user)}}<br>
-    {{_('You are connecting to %1', job.application_title?job.application_title+' ('+job.server+')':job.server)}} [<a href="#/new">{{_('change')}}</a>]
+    {{_('You are connecting to %1', job.application_title?job.application_title+ (ui_config.login_mode=='standard'?' ('+job.server+')':''):job.server)}}
+    <span ng-if="ui_config.login_mode=='standard'">[<a href="#/new">{{_('change')}}</a>]</span>
+    <span ng-if="ui_config.login_mode!='standard'">[<a href="#/welcome">{{_('change')}}</a>]</span>
     <br style="clear: left;">
 </p>
 

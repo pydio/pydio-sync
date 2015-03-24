@@ -93,6 +93,28 @@ border-width: 3px 1px 1px 1px;
     padding-top: 200px;
 }
 
+.navbar{
+  background-color: #165170;
+  border-color: #165170;
+}
+
+a.navbar-brand{
+    display:block;
+    width: 100%;
+    background-image: url('../../images/logo.png');
+    background-position: 11px 8px;
+    background-size: auto 37px;
+    background-repeat: no-repeat;
+}
+
+div.loader_image{
+    background-image:url('../../images/pydio.png');
+    background-repeat:no-repeat;
+    width:129px;
+    height:133px;
+    display:inline-block;
+}
+
 .editHeader{
     position: fixed;
     background-color: #77b8e2;

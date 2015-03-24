@@ -12,7 +12,7 @@
 
 </div>
 <div ng-show="loading" style="position: absolute;top: 0;right: 0;left: 0;bottom: 0;z-index: 1300; background-color: #ededed; padding: 45% 0; text-align: center;" >
-    <img src="images/pydio.png" class="pulse">
+    <div class="loader_image pulse"></div>
     <br>{{_('Connecting ...')}}
 </div>
 <h3>{{_('Configure Connection')}}</h3>
@@ -25,18 +25,20 @@
 <div class="well">
     <div class="small" style="margin-bottom: 1.5em;">{{_('Connect to the server with the same URL as the one you would use to access through a web browser, e.g. http://mydomain.com/pydio')}}</div>
     <form name="myForm" class="form-inline">
-        <div class="form-group">
-            <div class="btn-group">
-                <button type="button" class="btn btn-default" ng-click="inline_protocol='https://'" ng-class="{'btn-success':inline_protocol=='https://','btn-default':inline_protocol=='http://'}">https</button>
-                <button type="button" class="btn btn-default" ng-click="inline_protocol='http://'" ng-class="{'btn-danger':inline_protocol=='http://','btn-default':inline_protocol=='https://'}">http</button>
+        <div ng-show="ui_config.login_mode=='standard'">
+            <div class="form-group">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default" ng-click="inline_protocol='https://'" ng-class="{'btn-success':inline_protocol=='https://','btn-default':inline_protocol=='http://'}">https</button>
+                    <button type="button" class="btn btn-default" ng-click="inline_protocol='http://'" ng-class="{'btn-danger':inline_protocol=='http://','btn-default':inline_protocol=='https://'}">http</button>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <div class="input-group">
-                <span class="input-group-addon" style="min-width: 70px;">{{inline_protocol}}</span>
-                <input autofocus="true" ng-change="parseURL(); error=false;" type="text" name="site" ng-model="inline_host" class="form-control" placeholder="Server URL" required>
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon" style="min-width: 70px;">{{inline_protocol}}</span>
+                    <input autofocus="true" ng-change="parseURL(); error=false;" type="text" name="site" ng-model="inline_host" class="form-control" placeholder="Server URL" required>
+                </div>
+                <span ng-show="myForm.site.$error.required && !myForm.site.$pristine" class="help-inline">{{_('Required')}}</span>
             </div>
-            <span ng-show="myForm.site.$error.required && !myForm.site.$pristine" class="help-inline">{{_('Required')}}</span>
         </div>
         <div class="form-group">
             <input type="text" name="user" ng-model="job.user" class="form-control" placeholder="Login" required>
@@ -48,7 +50,7 @@
         </div>
     </form>
 </div>
-    <div>
+    <div ng-show="ui_config.login_mode=='standard'">
         {{_('Tips')}}: <a href="" ng-click="panel_tips=true" tabindex="8">{{_('where can I find the server URL?')}}</a>
     </div>
     <div style="text-align: center; margin-top: 40px;">

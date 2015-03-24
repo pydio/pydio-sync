@@ -1,7 +1,7 @@
 <!doctype html>
 <html ng-app="project">
 <head>
-    <title>Pydio Sync</title>
+    <title>Sync</title>
     <script src="angularjs/angular.min.js"></script>
     <script src="angularjs/angular-resource.min.js"></script>
     <script src="angularjs/angular-route.min.js"></script>
@@ -12,11 +12,15 @@
 
     <link rel="stylesheet" href="bootstrap/css/bootstrap_lumen.min.css">
     <link rel="stylesheet" href="bootstrap/css/pydio.css">
+    <link id="dynasheet" rel="stylesheet" href="dynamic.css">
+    <script src="config.js"></script>
     <script src="project.js"></script>
 </head>
 <body style="padding: 50px 20px;">
-<nav class="navbar navbar-default navbar-fixed-top" role="navigation" style="background-color: #165170;border-color: #165170;">
-    <a class="navbar-brand" style="color: white;padding: 10px 14px;" href="#"><img src="images/logo.png" width="80"></a>
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <a class="navbar-brand" href="#">
+        <!--<img src="images/logo.png" width="80">-->
+    </a>
 </nav>
 
 <div ng-view></div>
