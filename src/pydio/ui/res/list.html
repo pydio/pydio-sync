@@ -58,6 +58,7 @@
                     <span ng-if="log.action!=='delete' && log.type=='remote'" class="glyphicon glyphicon-cloud-upload"></span>
                     <span ng-if="log.action!=='delete' && log.type=='local'" class="glyphicon glyphicon-cloud-download"></span>
                 </td>
+                <td style="padding:2px 0;">{{log.date | dateDisplay }}</td>
                 <td style="padding:2px 0;">{{log.source && log.source!='NULL' ? log.source:log.target | basename}}</td>
                 <td ng-show="QtObject && log.action!='delete'" ng-click="openFile(job.directory + (log.source && log.source!='NULL' ? log.source:log.target))" style="text-align: right;padding:2px 0; width: 15%;"><a style="text-decoration: none;" class="small" href="">{{_('Open File')}}</a></td>
             </tr>

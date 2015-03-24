@@ -98,6 +98,19 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
     })
 
+    .filter('dateDisplay', function(){
+        return function(dateString) {
+            var now = new Date();
+            var now_day = ("0" + now.getDate()).slice(-2);
+            var now_month = ("0" + (now.getMonth() + 1)).slice(-2);
+            var today_date = now.getFullYear()+"-"+now_month+"-"+now_day
+
+            var disp_date = /\d+-\d+-\d+/.exec(dateString).pop()
+            var disp_time = /\d+:\d+:\d+/.exec(dateString).pop()
+            return (disp_date == today_date)? disp_time : disp_date
+        }
+    })
+
     .service('currentJob', function() {
         var objectValue = null;
         return {
