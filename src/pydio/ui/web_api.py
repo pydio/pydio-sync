@@ -84,9 +84,12 @@ class PydioApi(Api):
         authDB.add_user(user, password)
         self.running = False
         if getattr(sys, 'frozen', False):
-            static_folder = str( (Path(sys._MEIPASS)) / 'ui' / 'res' )
+            self.real_static_folder = Path(sys._MEIPASS) / 'ui' / 'res'
+            static_folder = str(self.real_static_folder)
         else:
+            self.real_static_folder = Path(__file__).parent / 'res'
             static_folder = 'res'
+
         logging.debug('Starting Flask server with following static folder : '+ static_folder)
         self.app = Flask(__name__, static_folder=static_folder, static_url_path='/res')
         self.app.logger.setLevel(logging.ERROR)
@@ -103,6 +106,7 @@ class PydioApi(Api):
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
+        self.app.add_url_rule('/res/about.html', 'dynamic_about', self.serve_about_content)
         if EndpointResolver:
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
             self.app.add_url_rule('/res/dynamic.png', 'dynamic_png', self.serve_dynamic_image)
@@ -116,12 +120,7 @@ class PydioApi(Api):
         for l in languages:
             short_lang.append(l.split('_')[0])
 
-        if getattr(sys, 'frozen', False):
-            static_folder = (Path(sys._MEIPASS)) / 'ui' / 'res'
-        else:
-            static_folder = Path(__file__).parent / 'res'
-
-        with open(str(static_folder / 'i18n.js')) as js:
+        with open(str(self.real_static_folder / 'i18n.js')) as js:
             for line in js:
                 s += line
 
@@ -158,6 +157,18 @@ class PydioApi(Api):
         return Response(response=EndpointResolver.Instance().load_image_content(),
                         status=200,
                         mimetype="image/png")
+
+    def serve_about_content(self):
+        content = ''
+        if EndpointResolver:
+            content = EndpointResolver.Instance().load_about_content()
+        else:
+            about_file = str(self.real_static_folder / 'about.html')
+            with open(about_file, 'r') as handle:
+                content = handle.read()
+        return Response(response=content,
+                        status=200,
+                        mimetype="text/html")
 
     def start_server(self):
         try:
