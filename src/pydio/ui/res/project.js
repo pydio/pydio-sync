@@ -427,9 +427,14 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     try{
                         document.getElementById('dynasheet').href += '?';
                     }catch(e){}
-                    $location.path('/new');
                     $scope.loading = false;
                     $scope.error = null;
+                    $timeout(function(){
+                        document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
+                        $timeout(function(){
+                            $location.path('/new');
+                        }, 1000);
+                    }, 700);
                     return;
                 }else{
 
@@ -437,7 +442,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             }, function(response){
                 $scope.loading = false;
                 $scope.error = response.data.message;
-                window.setTimeout(function(){
+                $timeout(function(){
                     $scope.error = null;
                 }, 7000);
             })
@@ -630,7 +635,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 $scope.job.label = label;
                 if(!$scope.job.directory){
                     $scope.job.test_path = true;
-                    window.setTimeout(function(){
+                    $timeout(function(){
                         $scope.job.$save();
                     }, 600);
                     $scope.job.test_path = false;

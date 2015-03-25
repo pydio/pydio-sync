@@ -125,6 +125,12 @@ class PydioApi(Api):
             for line in js:
                 s += line
 
+        if EndpointResolver:
+            additional_strings = EndpointResolver.Instance().load_additional_strings()
+            if additional_strings:
+                s += '\nvar PydioAdditionalStrings = ' + json.dumps(additional_strings) + ';'
+                s += '\nwindow.PydioLangs = merge(PydioAdditionalStrings, PydioLangs);'
+
         s += '\n'
         s += 'window.PydioEnvLanguages = ' + json.dumps(short_lang) + ';'
         return Response(response=s,
