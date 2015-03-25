@@ -1,0 +1,608 @@
+# Dutch translations for PACKAGE package
+# Copyright (C) 2014 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Charles du Jeu <charles@pydio.com>, 2015.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-01-26 22:23+0100\n"
+"PO-Revision-Date: 2014-10-01 16:43+0200\n"
+"Last-Translator: Charles du Jeu <charles@pydio.com>\n"
+"Language-Team: Dutch\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Language: nl_NL\n"
+"X-Source-Language: en_US\n"
+#: job/change_processor.py:134
+#, python-format
+msgid "New folder created at %s"
+msgstr "Nieuwe map gemaakt: %s"
+#: job/change_processor.py:140 job/change_processor.py:147
+#, python-format
+msgid "Folder created at %s"
+msgstr "Map gemaakt: %s"
+#: job/change_processor.py:159
+#, python-format
+msgid "Deleted file %s"
+msgstr "Bestand %s verwijderd"
+#: job/change_processor.py:165
+#, python-format
+msgid "Folder %s deleted"
+msgstr "Map %s verwijderd"
+#: job/change_processor.py:175 job/change_processor.py:183
+#, python-format
+msgid "Moved %(source)s to %(target)s"
+msgstr "%(source)s naar %(target)s verplaatst"
+#: job/change_processor.py:209
+#, python-format
+msgid "File %s downloaded from server"
+msgstr "Bestand %s van server gedownload"
+#: job/change_processor.py:241
+#, python-format
+msgid "File %s uploaded to server"
+msgstr "Bestand %s naar server geüpload"
+#: job/continous_merger.py:254
+msgid "Job Paused"
+msgstr "Taak gepauseerd"
+#: job/continous_merger.py:263
+msgid "Job Started"
+msgstr "Taak gestart"
+#: job/continous_merger.py:273
+msgid "Job stopping"
+msgstr "Taak wordt stopgezet"
+#: job/continous_merger.py:304
+msgid "Checking changes since last launch..."
+msgstr "Wijzigingen sinds laatste sessie controleren"
+#: job/continous_merger.py:323
+msgid "Status: Paused"
+msgstr "Status: gepauseerd"
+#: job/continous_merger.py:332
+#, python-format
+msgid "Status: scheduled for %s"
+msgstr "Status: ingepland voor %s"
+#: job/continous_merger.py:339
+#, python-format
+msgid ""
+"Cannot find local folder! Did you disconnect a volume? Waiting %s seconds "
+"before retry"
+msgstr ""
+"Kan de lokale map niet vinden, heeft u misschien een station ontkoppeld? "
+"Nieuwe poging over %s seconden"
+#: job/continous_merger.py:341
+msgid "Cannot find local folder, did you disconnect a volume?"
+msgstr ""
+"Kan de lokale map niet vinden, heeft u misschien een station "
+"ontkoppeld?"
+#: job/continous_merger.py:359
+msgid "Gathering data from remote workspace, this can take a while..."
+msgstr ""
+"Data van werkplek op afstand verzamelen, dit kan even duren..."
+#: job/continous_merger.py:368
+#, python-format
+msgid "No Internet connection detected! Waiting for %s seconds to retry"
+msgstr ""
+"Geen internet verbinding gevonden, nieuwe poging over %s "
+"seconden"
+#: job/continous_merger.py:370
+#, python-format
+msgid ""
+"Connection to server failed, server is probably down. Waiting %s seconds to "
+"retry"
+msgstr ""
+"Verbinding met externe server mislukt. Nieuwe poging over %s "
+"seconden"
+#: job/continous_merger.py:379
+#, python-format
+msgid "Error while connecting to remote server (%s)"
+msgstr "Fout tijdens verbinden met externe server (%s)"
+#: job/continous_merger.py:418
+msgid "Conflicts detected, cannot continue!"
+msgstr "Conflicten gevonden, kies een oplossing!"
+#: job/continous_merger.py:428
+#, python-format
+msgid "Processing %i changes"
+msgstr "Verwerken van %i wijzigingen"
+#: job/continous_merger.py:466
+#, python-format
+msgid "%i files modified"
+msgstr "%i bestanden gewijzigd"
+#: job/continous_merger.py:471
+msgid "Synchronized"
+msgstr "Gesynchroniseerd"
+#: job/continous_merger.py:478
+msgid "An SSL error happened, please check the logs"
+msgstr "Er is een SSL fout opgetreden, bekijk de logbestanden"
+#: job/continous_merger.py:481 ui/web_api.py:162
+msgid "A proxy error happened, please check the logs"
+msgstr "Er is een proxy fout opgetreden, bekijk de logbestanden"
+#: job/continous_merger.py:484 ui/web_api.py:165
+msgid "Connection error: too many redirects"
+msgstr "Verbindingsfout: te veel omleidingen"
+#: job/continous_merger.py:487 ui/web_api.py:168
+msgid "Chunked encoding error, please check the logs"
+msgstr "Chunk encoding fout, bekijk de logbestanden"
+#: job/continous_merger.py:490 ui/web_api.py:171
+msgid "Content Decoding error, please check the logs"
+msgstr ""
+"Fout tijdens decoderen van de inhoud, bekijk de logbestanden"
+#: job/continous_merger.py:493 ui/web_api.py:174
+msgid "Http connection error: invalid schema."
+msgstr "HTTP verbindingsfout: ongeldig schema"
+#: job/continous_merger.py:496 ui/web_api.py:177
+msgid "Http connection error: invalid URL."
+msgstr "HTTP verbindingsfout: ongeldige URL"
+#: job/continous_merger.py:499
+msgid "Connection timeout, will retry later."
+msgstr "Verbindingstimeout: een nieuwe poging volgt."
+#: job/continous_merger.py:502 ui/web_api.py:187
+msgid "Cannot resolve domain!"
+msgstr "Kan het domein niet vinden, een DNS probleem?"
+#: job/continous_merger.py:506
+#, python-format
+msgid "Unexpected Error: %s"
+msgstr "Fout: %s"
+#: res/i18n/html_strings.py:2
+msgid "How can I find my server URL?"
+msgstr "Hoe vind ik mijn server URL?"
+#: res/i18n/html_strings.py:3
+msgid ""
+"The server URL is the adress that you can see in your browser when accessing "
+"Pydio via the web."
+msgstr ""
+"De server URL is het adres in de adresbalk dat te zien is wanneer pydio "
+"via een browser bezocht wordt."
+#: res/i18n/html_strings.py:4
+msgid "It starts with http or https depending on your server configuration."
+msgstr "Het begint met HTTP of HTTPS afhankelijk van de serverinstelling."
+#: res/i18n/html_strings.py:5
+msgid ""
+"If you are logged in Pydio and you see the last part of the URL starting "
+"with \"ws-\", remove this part and only keep the beginning (see image below)."
+msgstr ""
+"Als u ingelogd bent en u ziet het laatste deel van de URL, dat begint met "
+"\"ws-\", verwijdert u dit deel zodat u het gedeelte aan het begin over houdt."
+"(Zie afbeelding)"
+"que le début (voir l'image)."
+#: res/i18n/html_strings.py:6
+msgid "Got it!"
+msgstr "Begrepen"
+#: res/i18n/html_strings.py:7
+msgid "Connecting ..."
+msgstr "Verbinding maken..."
+#: res/i18n/html_strings.py:8
+msgid "Configure Connection"
+msgstr "De verbinding configureren"
+#: res/i18n/html_strings.py:9
+#, qt-format
+msgid "Error while trying to connect to %1 :"
+msgstr "Fout tijdens verbinden met %1:"
+#: res/i18n/html_strings.py:10
+#, qt-format
+msgid "%1"
+msgstr "%1"
+#: res/i18n/html_strings.py:11
+msgid ""
+"Connect to the server with the same URL as the one you would use to access "
+"through a web browser, e.g. http://mydomain.com/pydio"
+msgstr ""
+"Maak verbinding met de server door middel van dezelfde URL als wanneer u "
+"via een browser verbinding met Pydio zou maken, bijvoorbeeld "
+"http://mijndomein.nl/pydio"
+#: res/i18n/html_strings.py:12 res/i18n/html_strings.py:13
+#: res/i18n/html_strings.py:14
+msgid "Required"
+msgstr "Verplicht"
+#: res/i18n/html_strings.py:15
+msgid "Tips"
+msgstr "Tips"
+#: res/i18n/html_strings.py:16
+msgid "where can I find the server URL?"
+msgstr "Waar kan ik de server URL vinden?"
+#: res/i18n/html_strings.py:17
+msgid "Connect"
+msgstr "Maak verbinding"
+#: res/i18n/html_strings.py:18
+msgid "Trust SSL certificate"
+msgstr "Vertrouw het SSL certificaat"
+#: res/i18n/html_strings.py:19
+msgid "1/3 Select a workspace"
+msgstr "1/3 Kies een werkplek"
+#: res/i18n/html_strings.py:20
+msgid "Welcome!"
+msgstr "Welkom!"
+#: res/i18n/html_strings.py:21
+#, qt-format
+msgid "You are connecting to %1"
+msgstr "U maakt verbinding met %1"
+#: res/i18n/html_strings.py:22 res/i18n/html_strings.py:42
+#: res/i18n/html_strings.py:44
+msgid "change"
+msgstr "verander"
+#: res/i18n/html_strings.py:23 res/i18n/html_strings.py:91
+msgid "Remote workspace"
+msgstr "Werkplek op afstand"
+#: res/i18n/html_strings.py:24 res/i18n/html_strings.py:95
+msgid "Synchronise only a subfolder of this workspace"
+msgstr "Synchroniseer alleen een submap van deze werkplek"
+#: res/i18n/html_strings.py:25 res/i18n/html_strings.py:27
+msgid "loading"
+msgstr "laden"
+#: res/i18n/html_strings.py:26 res/i18n/html_strings.py:41
+#: res/i18n/html_strings.py:96
+msgid "Whole workspace"
+msgstr "Gehele werkplek"
+#: res/i18n/html_strings.py:28 res/i18n/html_strings.py:39
+#: res/i18n/html_strings.py:83 res/i18n/html_strings.py:92
+msgid "Workspace"
+msgstr "Werkplek"
+#: res/i18n/html_strings.py:29 res/i18n/html_strings.py:40
+#: res/i18n/html_strings.py:84 res/i18n/html_strings.py:93
+msgid "Folder"
+msgstr "Map"
+#: res/i18n/html_strings.py:30 res/i18n/html_strings.py:36
+#: res/i18n/html_strings.py:94
+msgid "Change"
+msgstr "Verander"
+#: res/i18n/html_strings.py:31 res/i18n/html_strings.py:48
+#: res/i18n/html_strings.py:50
+msgid "Next"
+msgstr "Volgende"
+#: res/i18n/html_strings.py:32 res/i18n/html_strings.py:46
+msgid "Advanced Parameters"
+msgstr "Geavanceerde parameters"
+#: res/i18n/html_strings.py:33
+msgid "Save changes"
+msgstr "Bewaar wijzigingen"
+#: res/i18n/html_strings.py:34
+msgid "2/3 Select a destination"
+msgstr "2/3 Kies een bestemming"
+#: res/i18n/html_strings.py:35
+msgid "By default a local folder will be created on your computer"
+msgstr "De standaard aktie is het aanmaken van een map op uw computer"
+#: res/i18n/html_strings.py:37
+msgid "3/3 Optional Parameters"
+msgstr "3/3 Optionele parameters"
+#: res/i18n/html_strings.py:38 res/i18n/html_strings.py:82
+msgid "Server"
+msgstr "Server"
+#: res/i18n/html_strings.py:43
+msgid "Local folder"
+msgstr "Lokale map"
+#: res/i18n/html_strings.py:45
+msgid "Name this synchro"
+msgstr "Geef deze synchronisatie een naam"
+#: res/i18n/html_strings.py:47 res/i18n/html_strings.py:49
+msgid "Previous"
+msgstr "Vorige"
+#: res/i18n/html_strings.py:51
+msgid "SYNC NAME"
+msgstr "SYNC NAAM"
+#: res/i18n/html_strings.py:52
+msgid "DATA SIZE"
+msgstr "OMVANG DATA"
+#: res/i18n/html_strings.py:53
+msgid "ESTIMATED TIME"
+msgstr "GESCHATTE TIJDSDUUR"
+#: res/i18n/html_strings.py:54
+msgid "Ready for ignition!"
+msgstr "Klaar om te starten!"
+#: res/i18n/html_strings.py:55
+msgid "Are you ready to launch the synchronization?"
+msgstr "Bent u klaar om de synchronisatie te starten?"
+#: res/i18n/html_strings.py:56
+msgid "Your data will be in orbit in no time!"
+msgstr "Uw data staat binnen de kortste keren online!"
+#: res/i18n/html_strings.py:57
+msgid "FIRE THE ROCKET!"
+msgstr "Vuur de raket af!"
+#: res/i18n/html_strings.py:58
+msgid "change parameters"
+msgstr "Verander de parameters"
+#: res/i18n/html_strings.py:59
+msgid "Synchronization running..."
+msgstr "Synchronisatie loopt..."
+#: res/i18n/html_strings.py:60
+msgid "Liftoff! First sync can take some time..."
+msgstr "Gestart! De aanvankelijke synchronisatie kan wat tijd in beslag nemen..."
+#: res/i18n/html_strings.py:61
+msgid "CREATE NEW SYNCHRO"
+msgstr "CREËER EEN NIEUWE SYNCHRONISATIE"
+#: res/i18n/html_strings.py:62
+msgid "DONE"
+msgstr "KLAAR"
+#: res/i18n/html_strings.py:63
+msgid "Sync Direction"
+msgstr "Synchronisatie richting"
+#: res/i18n/html_strings.py:64
+msgid ""
+"By default, modifications from both sides (local/remote) are automatically "
+"reflected on the other side."
+msgstr ""
+"De standaard aktie is om wijzigingen van beide kanten (server/lokaal) "
+"automatisch te spiegelen aan de andere kant."
+#: res/i18n/html_strings.py:65
+msgid "Bi-directional"
+msgstr "Twee richtingen"
+#: res/i18n/html_strings.py:66
+msgid "Upload Only"
+msgstr "Alleen uploaden"
+#: res/i18n/html_strings.py:67
+msgid "computer to server"
+msgstr "computer naar server"
+#: res/i18n/html_strings.py:68
+msgid "Download Only"
+msgstr "Alleen downloaden"
+#: res/i18n/html_strings.py:69
+msgid "server to computer"
+msgstr "server naar computer"
+#: res/i18n/html_strings.py:70
+msgid "Sync Frequency"
+msgstr "Synchronisatie frequentie"
+#: res/i18n/html_strings.py:71
+msgid "By default, the application will synchronize automatically"
+msgstr "Standaard wordt de werkplek automatisch gesynchroniseerd"
+#: res/i18n/html_strings.py:72
+msgid "Automatically"
+msgstr "Automatisch"
+#: res/i18n/html_strings.py:73
+msgid "Manually"
+msgstr "Handmatig"
+#: res/i18n/html_strings.py:74
+msgid "Given Time"
+msgstr "Een specifiek tijdstip"
+#: res/i18n/html_strings.py:75
+msgid "Run the sync every day at"
+msgstr "Voer de sync elke dag uit om "
+#: res/i18n/html_strings.py:76
+msgid "Versionning"
+msgstr "Versiebeheer"
+#: res/i18n/html_strings.py:77
+msgid ""
+"When files were modified on both the server and your computer at the same "
+"time, synchronization is stopped."
+msgstr ""
+"Wanneer bestanden op zowel de computer als de server op hetzelfde moment "
+"gewijzigd zijn stopt de synchronisatie."
+#: res/i18n/html_strings.py:78
+msgid "Solve conflicts manually"
+msgstr "Los conflicten handmatig op"
+#: res/i18n/html_strings.py:79
+msgid "Always prefer local version"
+msgstr "Geef altijd voorrang aan de lokale versie"
+#: res/i18n/html_strings.py:80
+msgid "Always prefer remote version"
+msgstr "Geef altijd voorrang aan de server versie"
+#: res/i18n/html_strings.py:81
+#, qt-format
+msgid "SYNC %1 parameters"
+msgstr "Parameters van sync %1"
+#: res/i18n/html_strings.py:85
+msgid "Label"
+msgstr "Label"
+#: res/i18n/html_strings.py:86
+msgid "Server Connexion"
+msgstr "Server"
+#: res/i18n/html_strings.py:87
+msgid "Login"
+msgstr "Gebruikersnaam"
+#: res/i18n/html_strings.py:88
+msgid "Password"
+msgstr "Wachtwoord"
+#: res/i18n/html_strings.py:89
+msgid "Local Folder"
+msgstr "Lokale map"
+#: res/i18n/html_strings.py:90
+msgid "Choose"
+msgstr "Kies"
+#: res/i18n/html_strings.py:97
+msgid "[loading...]"
+msgstr "[laden...]"
+#: res/i18n/html_strings.py:98
+msgid "Advanced parameters"
+msgstr "Geavanceerde parameters"
+#: res/i18n/html_strings.py:99
+msgid "Delete Sync"
+msgstr "Verwijder deze synchronisatie"
+#: res/i18n/html_strings.py:100
+msgid "Save Parameters"
+msgstr "Bewaar parameters"
+#: res/i18n/html_strings.py:101
+msgid ""
+"Ooops, cannot contact agent! Make sure it is running correctly, process will "
+"try to reconnect in 20s"
+msgstr ""
+"Kan geen verbinding maken met de agent, zorg dat deze correct gestart is, "
+"een nieuwe poging volgt over 20 seconden."
+#: res/i18n/html_strings.py:102
+msgid "Select a workspace"
+msgstr "Kies een werkplek"
+#: res/i18n/html_strings.py:103
+msgid "Full path to the local folder"
+msgstr "Complete pad naar de lokale map"
+#: res/i18n/html_strings.py:104
+msgid "Are you sure you want to delete this synchro? No data will be deleted"
+msgstr ""
+"Weet u zeker dat u deze synchronisatie wilt verwijderen? Er wordt geen "
+"data verwijderd"
+#: res/i18n/html_strings.py:105
+msgid "computing..."
+msgstr "berekenen..."
+#: res/i18n/html_strings.py:106
+msgid "SYNC"
+msgstr "SYNCHRO"
+#: res/i18n/html_strings.py:107
+msgid "Size"
+msgstr "Grootte"
+#: res/i18n/html_strings.py:108
+msgid "Estimated time"
+msgstr "Geschatte tijd"
+#: res/i18n/html_strings.py:109 res/i18n/html_strings.py:113
+msgid "Status"
+msgstr "Status"
+#: res/i18n/html_strings.py:110
+msgid "syncing"
+msgstr "synchroniseren"
+#: res/i18n/html_strings.py:111
+msgid "Last sync"
+msgstr "Laatste synchronisatie."
+#: res/i18n/html_strings.py:112
+msgid "ERROR"
+msgstr "FOUT"
+#: res/i18n/html_strings.py:114
+msgid "idle"
+msgstr "staat klaar"
+#: res/i18n/html_strings.py:115
+msgid "[DISABLED]"
+msgstr "[GEDEACTIVEERD]"
+#: res/i18n/html_strings.py:116
+msgid "Conflicts"
+msgstr "Conflicten"
+#: res/i18n/html_strings.py:117
+msgid "Solve Conflict"
+msgstr "Los conflicten op"
+#: res/i18n/html_strings.py:118
+msgid "Solved"
+msgstr "Opgelost"
+#: res/i18n/html_strings.py:119
+msgid "Last files synced"
+msgstr "Laatst gesynchroniseerde bestanden"
+#: res/i18n/html_strings.py:120
+msgid "Open File"
+msgstr "Open bestand"
+#: res/i18n/html_strings.py:121
+msgid "Transfers in progress"
+msgstr "Overdracht bezig"
+#: res/i18n/html_strings.py:122
+#, qt-format
+msgid ""
+"An element named %1 was modified on both the server and on your local "
+"computer. Select how you want to solve this conflicting case:"
+msgstr ""
+"Een element genaamd %1 is zowel lokaal als op de server gewijzigd, "
+"kies hoe u dit conflict wilt oplossen."
+#: res/i18n/html_strings.py:123
+msgid "Apply to all conflicts"
+msgstr "Pas toe op alle conflicten"
+#: res/i18n/html_strings.py:124
+msgid "Mine"
+msgstr "Lokale versie"
+#: res/i18n/html_strings.py:125
+msgid "Both Versions"
+msgstr "Beide versies"
+#: res/i18n/html_strings.py:126
+msgid "Theirs"
+msgstr "Server versie"
+#: res/i18n/html_strings.py:127
+msgid "Create a new synchronization"
+msgstr "Creëer een nieuwe synchronisatie"
+#: res/i18n/html_strings.py:128
+msgid "Welcome to the Pydio Sync"
+msgstr "Welkom bij Pydio Sync"
+#: res/i18n/html_strings.py:129
+msgid "The easiest way to keep your data in control"
+msgstr "De meest makkelijke manier om controle over uw data te houden"
+#: res/i18n/html_strings.py:130
+msgid "Get Started"
+msgstr "Begin"
+#: sdk/exceptions.py:41
+msgid "Http-Basic authentication failed, wrong credentials?"
+msgstr "HTTP-basic autorisatie mislukt, kloppen de naam en het wachtwoord?"
+#: sdk/exceptions.py:45
+msgid "Token-based authentication failed, reload credentials?"
+msgstr "Fout tijdens token authenticatie, naam en wachtwoord opnieuw laden?"
+#: sdk/exceptions.py:56
+#, python-format
+msgid ""
+"[Quota limit reached] - You are using %(usage)iMB of %(total)iMB, you cannot "
+"upload %(filename)s (%(filesize)iMB)"
+msgstr ""
+"[Quotum limiet] U gebruikt %(usage)iMB van %(total)iMB, u kunt "
+"%(filename)s (%(filesize)iMB) niet uploaden"
+#: sdk/exceptions.py:61
+#, python-format
+msgid "[File permission] %s"
+msgstr "[Permissie] %s"
+#: sdk/exceptions.py:66
+msgid "Stopping tasks"
+msgstr "Stoppen van taken"
+#: sdk/local.py:104
+msgid "Cannot remove local folder"
+msgstr ""
+"Kan de lokale map niet verwijderen, is deze in gebruik "
+"door een andere applicatie?"
+#: sdk/remote.py:138
+msgid "Authentication Error"
+msgstr "Authentificatie fout"
+#: sdk/remote.py:147
+msgid ""
+"Cannot store tokens in keychain, basic auth will be performed each time!"
+msgstr "Kan tokens niet in keychain opslaan, basis authenticatie wordt iedere keer uitgevoerd."
+#: sdk/remote.py:199
+msgid "Unsupported HTTP method"
+msgstr "Niet ondersteunde HTTP methode"
+#: sdk/remote.py:202
+msgid "Authentication Exception"
+msgstr "Authentificatie uitzondering"
+#: sdk/remote.py:261
+msgid ""
+"Invalid JSON value received while getting remote changes. Is the server "
+"correctly configured?"
+msgstr ""
+"Foutieve JSON waarden ontvangen tijdens ophalen gegevens op afstand, is "
+"de server correct ingesteld?"
+#: sdk/remote.py:297
+msgid "Invalid JSON value received while getting remote changes."
+msgstr ""
+"Foutieve JSON waarden ontvangen bij ophalen gegevens op afstand."
+#: sdk/remote.py:536
+msgid "Local file to upload not found!"
+msgstr "Lokaal bestand niet gevonden!"
+#: sdk/remote.py:541
+msgid "File not correct after upload (expected size was 0 bytes)"
+msgstr "Bestand incorrect na uploaden (verwachte grootte was 0 bytes)"
+#: sdk/remote.py:578
+msgid "File is incorrect after upload"
+msgstr "Bestand incorrect na uploaden"
+#: sdk/remote.py:591
+msgid "Original file was not found on server"
+msgstr "Originele bestand niet gevonden op de server"
+#: sdk/remote.py:631 sdk/remote.py:879
+msgid "Task interrupted by user"
+msgstr "Taak onderbroken door gebruiker"
+#: sdk/remote.py:648
+msgid "File not found after download"
+msgstr "Bestand niet gevonden na downloaden."
+#: sdk/remote.py:653
+msgid "File is not correct after download"
+msgstr "Bestand niet correct na downloaden."
+#: sdk/remote.py:672
+#, python-format
+msgid "Error while downloading file: %s"
+msgstr "Fout tijdens downloaden bestand: %s"
+#: ui/web_api.py:159
+msgid ""
+"An SSL error happened! Is your server using a self-signed certificate? In "
+"that case please check 'Trust SSL certificate'"
+msgstr ""
+"Een SSL fout heeft zich voorgedaan! Is uw server ingesteld voor SSL? "
+"In dat geval vinkt u 'Vertrouw SSL certificaat' aan."
+#: ui/web_api.py:184
+msgid "Connection timeout!"
+msgstr "Timeout connectie!"
+#~ msgid "Did you enter the correct login/password?"
+#~ msgstr "Heeft u de juiste gebruikersnaam en het juiste wachtwoord ingevoerd?"
+#~ msgid ""
+#~ "If you are using https, is your certificate self-signed? If yes, check "
+#~ "\"Trust SSL certificate\""
+#~ msgstr ""
+#~ "Als u HTTPS gebruikt, is het certificaat zelf-ondertekenend? Zo ja, "
+#~ "vink dan \"Vertrouw SSL certificaat\" aan."
+#~ msgid "Files in process"
+#~ msgstr "Overdrachten in behandeling"
+#~ msgid "You"
+#~ msgstr "U"
