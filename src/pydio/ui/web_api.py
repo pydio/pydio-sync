@@ -118,7 +118,9 @@ class PydioApi(Api):
         languages = get_languages()
         short_lang = []
         for l in languages:
-            short_lang.append(l.split('_')[0])
+            lang_part = l.split('_')[0]
+            if lang_part:
+                short_lang.append(lang_part)
 
         with open(str(self.real_static_folder / 'i18n.js')) as js:
             for line in js:
