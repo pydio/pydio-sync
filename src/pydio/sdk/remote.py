@@ -49,7 +49,8 @@ PYDIO_SDK_MAX_UPLOAD_PIECES = 40 * 1024 * 1024
 
 class PydioSdk():
 
-    def __init__(self, url='', ws_id='', remote_folder='', user_id='', auth=(), device_id='python_client', skip_ssl_verify=False):
+    def __init__(self, url='', ws_id='', remote_folder='', user_id='', auth=(), device_id='python_client',
+                 skip_ssl_verify=False, proxies=None):
         self.ws_id = ws_id
         self.device_id = device_id
         self.verify_ssl = not skip_ssl_verify
@@ -72,6 +73,7 @@ class PydioSdk():
             self.auth = auth
         self.tokens = None
         self.rsync_supported = False
+        self.proxies = proxies
 
     def set_server_configs(self, configs):
         """
@@ -151,7 +153,7 @@ class PydioSdk():
         :return:dict()
         """
         url = self.base_url + 'pydio/keystore_generate_auth_token/' + self.device_id
-        resp = requests.get(url=url, auth=self.auth, verify=self.verify_ssl)
+        resp = requests.get(url=url, auth=self.auth, verify=self.verify_ssl, proxies=self.proxies)
         if resp.status_code == 401:
             raise PydioSdkBasicAuthException(_('Authentication Error'))
 
@@ -183,7 +185,7 @@ class PydioSdk():
         if request_type == 'get':
             try:
                 resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl, headers=headers,
-                                    auth=self.auth)
+                                    auth=self.auth, proxies=self.proxies)
             except ConnectionError as e:
                 raise
 
@@ -201,7 +203,8 @@ class PydioSdk():
                     timeout=20,
                     verify=self.verify_ssl,
                     headers=headers,
-                    auth=self.auth)
+                    auth=self.auth,
+                    proxies=self.proxies)
         else:
             raise PydioSdkTokenAuthException(_("Unsupported HTTP method"))
 
@@ -238,7 +241,8 @@ class PydioSdk():
             else:
                 url += '?' + auth_string
             try:
-                resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl, headers=headers)
+                resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl,
+                                    headers=headers, proxies=self.proxies)
             except ConnectionError as e:
                 raise
 
@@ -257,7 +261,8 @@ class PydioSdk():
                     stream=stream,
                     timeout=20,
                     verify=self.verify_ssl,
-                    headers=headers)
+                    headers=headers,
+                    proxies=self.proxies)
         else:
             raise PydioSdkTokenAuthException(_("Unsupported HTTP method"))
 
@@ -987,7 +992,8 @@ class PydioSdk():
                 stream=True,
                 timeout=20,
                 verify=self.verify_ssl,
-                auth=auth
+                auth=auth,
+                proxies=self.proxies
             )
 
             existing_pieces_number = 1
@@ -1013,7 +1019,8 @@ class PydioSdk():
                     headers={'Content-Type': content_type},
                     stream=True,
                     verify=self.verify_ssl,
-                    auth=auth
+                    auth=auth,
+                    proxies=self.proxies
                 )
                 parse_upload_rep(resp)
                 if resp.status_code == 401:

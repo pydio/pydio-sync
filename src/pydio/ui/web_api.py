@@ -218,7 +218,8 @@ class WorkspacesManager(Resource):
         try:
             # TRY TO GET APPLICATION TITLE
             if app_name_url:
-                resp = requests.get(app_name_url, stream=False, auth=auth, verify=verify)
+                resp = requests.get(app_name_url, stream=False, auth=auth, verify=verify,
+                                    proxies=ConfigManager.Instance().get_defined_proxies())
                 resp.raise_for_status()
                 try:
                     app_data = json.loads(resp.content)
@@ -237,7 +238,8 @@ class WorkspacesManager(Resource):
                     pass
             # TRY TO GET USER DISPLAY NAME
             if display_name_url:
-                resp = requests.get(display_name_url, stream=False, auth=auth, verify=verify)
+                resp = requests.get(display_name_url, stream=False, auth=auth, verify=verify,
+                                    proxies=ConfigManager.Instance().get_defined_proxies())
                 resp.raise_for_status()
                 try:
                     user_data = json.loads(resp.content)
@@ -254,7 +256,8 @@ class WorkspacesManager(Resource):
                     pass
 
 
-            resp = requests.get(url, stream=True, auth=auth, verify=verify)
+            resp = requests.get(url, stream=True, auth=auth, verify=verify,
+                                proxies=ConfigManager.Instance().get_defined_proxies())
             resp.raise_for_status()
             data = json.loads(resp.content)
             if 'repositories' in data and 'repo' in data['repositories']:
@@ -336,7 +339,8 @@ class FoldersManager(Resource):
 
         if verify and "REQUESTS_CA_BUNDLE" in os.environ:
             verify = os.environ["REQUESTS_CA_BUNDLE"]
-        resp = requests.get( url, stream = True, auth=auth, verify=verify)
+        resp = requests.get( url, stream=True, auth=auth, verify=verify,
+                             proxies=ConfigManager.Instance().get_defined_proxies())
         o = xmltodict.parse(resp.content)
         if not 'tree' in o or 'message' in o['tree']:
             return [{'error':'Cannot load workspace'}]
@@ -345,6 +349,7 @@ class FoldersManager(Resource):
         if isinstance(o['tree']['tree'], types.DictType):
             return [o['tree']['tree']]
         return o['tree']['tree']
+
 
 class JobManager(Resource):
 
@@ -370,7 +375,8 @@ class JobManager(Resource):
             sdk = PydioSdk(json_req['server'], json_req['workspace'], json_req['remote_folder'], '',
                            auth=(json_req['user'], json_req['password']),
                            device_id=ConfigManager.Instance().get_device_id(),
-                           skip_ssl_verify=trust_ssl)
+                           skip_ssl_verify=trust_ssl,
+                           proxies=ConfigManager.Instance().get_defined_proxies())
             up = [0.0]
             def callback(location, change, info):
                 if change and "bytesize" in change and change["md5"] != "directory":

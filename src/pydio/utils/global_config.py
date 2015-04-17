@@ -20,7 +20,7 @@
 from .functions import Singleton
 import pickle
 import os
-import uuid
+import uuid, json,logging
 
 @Singleton
 class ConfigManager:
@@ -28,6 +28,8 @@ class ConfigManager:
     device_id = ''
     data_path = ''
     rdiff_path = ''
+    proxies = None
+    proxies_loaded = False
 
     def __init__(self, configs_path, data_path):
         self.configs_path = configs_path
@@ -63,3 +65,19 @@ class ConfigManager:
     def get_version_data(self):
         from pydio.version import version, build, version_date
         return {'version': version, 'build':build, 'date':version_date}
+
+    def get_defined_proxies(self):
+        if not self.proxies_loaded:
+            # Try to load data from self.configs_path/proxies.json
+            proxies_file = self.configs_path + '/proxies.json'
+            if os.path.exists(proxies_file):
+                try:
+                    with open(proxies_file, 'r') as handle:
+                        data = json.load(handle)
+                    if isinstance(data, dict) and ('http' in data or 'https' in data):
+                        self.proxies = data
+                except Exception as e:
+                    logging.error('Error while trying to load proxies.json file')
+            self.proxies_loaded = True
+            pass
+        return self.proxies
