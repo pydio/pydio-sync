@@ -57,7 +57,7 @@ class ConnectionHelper:
 
     def is_connected_to_internet(self):
         try:
-            resp = urllib2.urlopen('http://74.125.228.100', timeout=1)
+            resp = urllib2.urlopen('http://www.google.com', timeout=1)
             self.internet_ok = True
             return True
         except Exception as e:
