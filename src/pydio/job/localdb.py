@@ -23,6 +23,7 @@ from sqlite3 import OperationalError
 import sys
 import os
 import hashlib
+import threading
 import time
 import fnmatch
 import pickle
@@ -34,6 +35,7 @@ from watchdog.utils.dirsnapshot import DirectorySnapshotDiff
 
 from pydio.utils.functions import hashfile, set_file_hidden, guess_filesystemencoding
 
+import cProfile
 
 class DBCorruptedException(Exception):
     pass
@@ -440,7 +442,9 @@ class LocalDbHandler():
         return last
 
 
+
 class SqlEventHandler(FileSystemEventHandler):
+
 
     """reading = False
     last_write_time = 0
@@ -458,6 +462,8 @@ class SqlEventHandler(FileSystemEventHandler):
         self.last_write_time = 0
         self.db_wait_duration = 1
         self.last_seq_id = 0
+        self.prevent_atomic_commit = False
+        self.con = None
 
     @staticmethod
     def get_unicode_path(src):
@@ -492,17 +498,18 @@ class SqlEventHandler(FileSystemEventHandler):
         return True
 
     def on_moved(self, event):
+
         if not self.included(event):
             logging.debug('ignoring move event ' + event.src_path + event.dest_path)
             return
 
-        self.lock_db()
+        #self.lock_db()
         logging.debug("Event: move noticed: " + event.event_type + " on file " + event.dest_path + " at " + time.asctime())
         target_key = self.remove_prefix(self.get_unicode_path(event.dest_path))
         source_key = self.remove_prefix(self.get_unicode_path(event.src_path))
 
         try:
-            conn = sqlite3.connect(self.db)
+            conn = self.conn()
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
             target_id = None
@@ -524,19 +531,16 @@ class SqlEventHandler(FileSystemEventHandler):
             else:
                 t = (target_key,source_key,)
                 conn.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", t)
-            conn.commit()
-            conn.close()
+            self.commit()
         except Exception as ex:
             logging.exception(ex)
 
         self.last_write_time = int(round(time.time() * 1000))
 
     def on_created(self, event):
-
         if not self.included(event):
             logging.debug('ignoring create event %s ' % event.src_path)
             return
-        self.lock_db()
         logging.debug("Event: creation noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
         try:
@@ -551,26 +555,22 @@ class SqlEventHandler(FileSystemEventHandler):
     def on_deleted(self, event):
         if not self.included(event):
             return
-        logging.debug("Event: deletion noticed: " + event.event_type +
-                         " on file " + event.src_path + " at " + time.asctime())
-        self.lock_db()
+        logging.debug("Event: deletion noticed: " + event.event_type + " on file " + event.src_path + " at " + time.asctime())
         try:
             src_path = self.get_unicode_path(event.src_path)
-            conn = sqlite3.connect(self.db)
+            conn = self.conn()
             conn.execute("DELETE FROM ajxp_index WHERE node_path LIKE ?", (self.remove_prefix(src_path) + '%',))
-            conn.commit()
-            conn.close()
+            self.commit()
 
         except Exception as ex:
             logging.exception(ex)
-        self.unlock_db()
 
     def on_modified(self, event):
         super(SqlEventHandler, self).on_modified(event)
         if not self.included(event):
             logging.debug('ignoring modified event ' + event.src_path)
             return
-        self.lock_db()
+        #self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
             if event.is_directory:
@@ -592,7 +592,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
         except Exception as ex:
             logging.exception(ex)
-        self.unlock_db()
+        #self.unlock_db()
 
     def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert = False):
         search_key = self.remove_prefix(src_path)
@@ -608,7 +608,7 @@ class SqlEventHandler(FileSystemEventHandler):
                     return
 
         node_id = False
-        conn = sqlite3.connect(self.db)
+        conn = self.conn()
         if not force_insert:
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
@@ -650,7 +650,8 @@ class SqlEventHandler(FileSystemEventHandler):
                 c.execute("INSERT INTO ajxp_index (node_id,node_path,bytesize,md5,mtime,stat_result) "
                           "VALUES (?,?,?,?,?,?)", t)
                 c.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", (search_key, del_element['source']))
-                conn.commit()
+                if not self.prevent_atomic_commit:
+                    self.commit()
             else:
                 if hash_key == 'directory' and existing_id:
                     self.clear_windows_folder_id(src_path)
@@ -681,8 +682,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 )
                 logging.debug("Real update %s" % search_key)
                 conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=?", t)
-        conn.commit()
-        conn.close()
+        self.commit()
 
     def set_windows_folder_id(self, node_id, path):
         if os.name in ("nt", "ce"):
@@ -730,18 +730,20 @@ class SqlEventHandler(FileSystemEventHandler):
 
         return None
 
-    def lock_db(self):
-        ###################################################################
-        while self.reading:
-            time.sleep(self.db_wait_duration)
-        self.last_write_time = int(round(time.time() * 1000))
-        ###################################################################
+    def commit(self):
+        if not self.prevent_atomic_commit:
+            self.con.commit()
+            self.con.close()
 
-    def unlock_db(self):
-        self.last_write_time = int(round(time.time() * 1000))
+    def conn(self):
+        if not self.prevent_atomic_commit:
+            self.con = sqlite3.connect(self.db)
+        return self.con
 
+    def begin_transaction(self):
+        self.con = sqlite3.connect(self.db, check_same_thread=False)
+        self.prevent_atomic_commit = True
 
-
-
-
-
+    def end_transaction(self):
+        self.prevent_atomic_commit = False
+        self.commit()

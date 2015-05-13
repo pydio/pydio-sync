@@ -22,6 +22,7 @@ import logging
 import stat
 import sys
 import os
+import time
 
 from watchdog.events import DirCreatedEvent, DirDeletedEvent, DirMovedEvent, \
     FileCreatedEvent, FileDeletedEvent, FileMovedEvent, FileModifiedEvent
@@ -38,7 +39,7 @@ from pydio.job.localdb import SqlEventHandler, SqlSnapshot
 class SnapshotDiffStart(DirectorySnapshotDiff):
     def __init__(self, ref_dirsnap, dirsnap):
         """
-    """
+        """
         self._files_deleted = list()
         self._files_modified = list()
         self._files_created = list()
@@ -130,6 +131,9 @@ class LocalWatcher(threading.Thread):
                                                                        + len(diff.files_moved) +
                                                                        len(diff.files_modified) +
                                                                        len(diff.files_deleted)))
+
+            self.event_handler.begin_transaction()
+
             for path in diff.dirs_created:
                 if self.interrupt:
                     return
@@ -138,6 +142,7 @@ class LocalWatcher(threading.Thread):
                 if self.interrupt:
                     return
                 self.event_handler.on_created(FileCreatedEvent(path))
+
             for path in diff.dirs_moved:
                 if self.interrupt:
                     return
@@ -159,6 +164,8 @@ class LocalWatcher(threading.Thread):
                     return
                 self.event_handler.on_deleted(DirDeletedEvent(path))
 
+            self.event_handler.end_transaction()
+
     def stop(self):
         self.interrupt = True
         if self.observer:
@@ -169,7 +176,6 @@ class LocalWatcher(threading.Thread):
                 logging.error("Error while stopping watchdog thread!")
 
     def run(self):
-
         if not os.path.exists(self.basepath):
             logging.error('Cannot start monitor on non-existing path ' + self.basepath)
             return
