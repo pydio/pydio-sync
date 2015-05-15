@@ -504,7 +504,11 @@ class SqlEventHandler(FileSystemEventHandler):
         source_key = self.remove_prefix(self.get_unicode_path(event.src_path))
 
         try:
-            conn = self.conn()
+            if self.prevent_atomic_commit:
+                conn = self.transaction_conn
+            else:
+                conn = sqlite3.connect(self.db)
+
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
             target_id = None
@@ -526,7 +530,9 @@ class SqlEventHandler(FileSystemEventHandler):
             else:
                 t = (target_key,source_key,)
                 conn.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", t)
-            self.commit()
+            if not self.prevent_atomic_commit:
+                conn.commit()
+                conn.close()
         except Exception as ex:
             logging.exception(ex)
 
@@ -555,9 +561,16 @@ class SqlEventHandler(FileSystemEventHandler):
         self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
-            conn = self.conn()
+            if self.prevent_atomic_commit:
+                conn = self.transaction_conn
+            else:
+                conn = sqlite3.connect(self.db)
+
             conn.execute("DELETE FROM ajxp_index WHERE node_path LIKE ?", (self.remove_prefix(src_path) + '%',))
-            self.commit()
+
+            if not self.prevent_atomic_commit:
+                conn.commit()
+                conn.close()
 
         except Exception as ex:
             logging.exception(ex)
@@ -606,7 +619,10 @@ class SqlEventHandler(FileSystemEventHandler):
                     return
 
         node_id = False
-        conn = self.conn()
+        if self.prevent_atomic_commit:
+            conn = self.transaction_conn
+        else:
+            conn = sqlite3.connect(self.db)
         if not force_insert:
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
@@ -648,7 +664,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 c.execute("INSERT INTO ajxp_index (node_id,node_path,bytesize,md5,mtime,stat_result) "
                           "VALUES (?,?,?,?,?,?)", t)
                 c.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", (search_key, del_element['source']))
-                self.commit()
+
             else:
                 if hash_key == 'directory' and existing_id:
                     self.clear_windows_folder_id(src_path)
@@ -679,7 +695,9 @@ class SqlEventHandler(FileSystemEventHandler):
                 )
                 logging.debug("Real update %s" % search_key)
                 conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=?", t)
-        self.commit()
+        if not self.prevent_atomic_commit:
+            conn.commit()
+            conn.close()
 
     def set_windows_folder_id(self, node_id, path):
         if os.name in ("nt", "ce"):
@@ -726,17 +744,6 @@ class SqlEventHandler(FileSystemEventHandler):
                 pass
 
         return None
-
-    def commit(self):
-        if not self.prevent_atomic_commit:
-            self.con.commit()
-            self.con.close()
-
-    def conn(self):
-        if not self.prevent_atomic_commit:
-            self.con = sqlite3.connect(self.db)
-            return self.con
-        return self.transaction_conn
 
     def begin_transaction(self):
         self.transaction_conn = sqlite3.connect(self.db)
