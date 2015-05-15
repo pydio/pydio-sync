@@ -243,7 +243,6 @@ class LocalDbHandler():
             cb(d)
         c.close()
 
-
     def update_node_status(self, node_path, status='IDLE', detail=''):
         node_path = self.normpath(node_path)
         if detail:
@@ -351,9 +350,6 @@ class LocalDbHandler():
                 self.event_handler.reading = False
             return info['seq_id']
 
-
-
-
     def get_local_changes(self, seq_id, accumulator=dict()):
         logging.debug("Local sequence " + str(seq_id))
         last = seq_id
@@ -442,7 +438,6 @@ class LocalDbHandler():
         return last
 
 
-
 class SqlEventHandler(FileSystemEventHandler):
 
 
@@ -503,7 +498,7 @@ class SqlEventHandler(FileSystemEventHandler):
             logging.debug('ignoring move event ' + event.src_path + event.dest_path)
             return
 
-        #self.lock_db()
+        self.lock_db()
         logging.debug("Event: move noticed: " + event.event_type + " on file " + event.dest_path + " at " + time.asctime())
         target_key = self.remove_prefix(self.get_unicode_path(event.dest_path))
         source_key = self.remove_prefix(self.get_unicode_path(event.src_path))
@@ -543,6 +538,7 @@ class SqlEventHandler(FileSystemEventHandler):
             return
         logging.debug("Event: creation noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
+        self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
             if not os.path.exists(src_path):
@@ -556,6 +552,7 @@ class SqlEventHandler(FileSystemEventHandler):
         if not self.included(event):
             return
         logging.debug("Event: deletion noticed: " + event.event_type + " on file " + event.src_path + " at " + time.asctime())
+        self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
             conn = self.conn()
@@ -564,13 +561,14 @@ class SqlEventHandler(FileSystemEventHandler):
 
         except Exception as ex:
             logging.exception(ex)
+        self.unlock_db()
 
     def on_modified(self, event):
         super(SqlEventHandler, self).on_modified(event)
         if not self.included(event):
             logging.debug('ignoring modified event ' + event.src_path)
             return
-        #self.lock_db()
+        self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
             if event.is_directory:
@@ -592,7 +590,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 self.updateOrInsert(modified_filename, is_directory=False, skip_nomodif=True)
         except Exception as ex:
             logging.exception(ex)
-        #self.unlock_db()
+        self.unlock_db()
 
     def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert = False):
         search_key = self.remove_prefix(src_path)
@@ -650,8 +648,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 c.execute("INSERT INTO ajxp_index (node_id,node_path,bytesize,md5,mtime,stat_result) "
                           "VALUES (?,?,?,?,?,?)", t)
                 c.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", (search_key, del_element['source']))
-                if not self.prevent_atomic_commit:
-                    self.commit()
+                self.commit()
             else:
                 if hash_key == 'directory' and existing_id:
                     self.clear_windows_folder_id(src_path)
@@ -738,12 +735,24 @@ class SqlEventHandler(FileSystemEventHandler):
     def conn(self):
         if not self.prevent_atomic_commit:
             self.con = sqlite3.connect(self.db)
-        return self.con
+            return self.con
+        return self.transaction_conn
 
     def begin_transaction(self):
-        self.con = sqlite3.connect(self.db, check_same_thread=False)
+        self.transaction_conn = sqlite3.connect(self.db)
         self.prevent_atomic_commit = True
 
     def end_transaction(self):
         self.prevent_atomic_commit = False
-        self.commit()
+        self.transaction_conn.commit()
+        self.transaction_conn.close()
+
+    def lock_db(self):
+        ###################################################################
+        while self.reading:
+            time.sleep(self.db_wait_duration)
+        self.last_write_time = int(round(time.time() * 1000))
+        ###################################################################
+
+    def unlock_db(self):
+        self.last_write_time = int(round(time.time() * 1000))
