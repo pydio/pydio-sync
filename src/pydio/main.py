@@ -113,6 +113,7 @@ def main(argv=sys.argv[1:]):
                         type=unicode, default=None)
     parser.add_argument('-u', '--user', help='User name', type=unicode, default=None)
     parser.add_argument('-p', '--password', help='Password', type=unicode, default=None)
+    parser.add_argument('-mp', '--memory_profile', help="To Generate the memory profile :: use <<-mp True >> as argument", type=unicode, default=False)
     parser.add_argument('-dir', '--direction', help='Synchro Direction', type=str, default='bi')
     # Pass a configuration file
     parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
@@ -185,6 +186,10 @@ def main(argv=sys.argv[1:]):
     if args.diag_imports:
         # nothing more to do
         return sys.exit(0)
+
+    if args.memory_profile:
+        from pydio.utils.pydio_profiler import LogFile
+        sys.stdout = LogFile('stdout')
 
     if args.extract_html:
         from pydio.utils.i18n import PoProcessor

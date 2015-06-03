@@ -23,7 +23,7 @@ import shutil
 from pydio.utils.global_config import ConfigManager
 from pydio.utils import i18n
 _ = i18n.language.ugettext
-
+from pydio.utils.pydio_profiler import pydio_profile
 
 class ChangeProcessor:
     def __init__(self, change, change_store, job_config, local_sdk, remote_sdk, status_handler, event_logs_handler):
@@ -53,6 +53,7 @@ class ChangeProcessor:
     def update_node_status(self, path, status):
         self.status_handler.update_node_status(path, status)
 
+    @pydio_profile
     def process_change(self):
         """
         Process the "change"
@@ -184,6 +185,7 @@ class ChangeProcessor:
         self.log(type='remote', action='delete', status='success',
                  target=path, console_message=message, message=(_('Folder %s deleted') % path))
 
+    @pydio_profile
     def process_local_move(self, source, target):
         if os.path.exists(self.job_config.directory + source):
             if not os.path.exists(self.job_config.directory + os.path.dirname(target)):
@@ -196,6 +198,7 @@ class ChangeProcessor:
             return True
         return False
 
+    @pydio_profile
     def process_remote_move(self, source, target):
         message = 'MOVE ============> ' + source + ' to ' + target
         self.log(type='remote', action='move', status='success', target=target,
@@ -203,6 +206,7 @@ class ChangeProcessor:
                  message=(_('Moved %(source)s to %(target)s') % ({'source': source, 'target': target})))
         self.remote_sdk.rename(source, target)
 
+    @pydio_profile
     def process_download(self, path, is_mod=False, callback_dict=None):
         self.update_node_status(path, 'DOWN')
         full_path = self.job_config.directory + path
@@ -228,6 +232,7 @@ class ChangeProcessor:
         self.log(type='local', action='download', status='success',
                  target=path, console_message=message, message=(_('File %s downloaded from server') % path))
 
+    @pydio_profile
     def process_upload(self, path, is_mod=False, callback_dict=None):
         self.update_node_status(path, 'UP')
         max_upload_size = -1
@@ -274,6 +279,7 @@ class ChangeProcessor:
 
 class StorageChangeProcessor(ChangeProcessor):
 
+    @pydio_profile
     def process_change(self):
         """
         Process the "change" by just sending an lsync command to server

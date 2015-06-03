@@ -25,6 +25,7 @@ from pathlib import *
 import datetime
 import logging
 from pydio.job.localdb import DBCorruptedException
+from pydio.utils.pydio_profiler import pydio_profile
 
 
 class EventLogger():
@@ -55,6 +56,7 @@ class EventLogger():
     def log_notif(self, message, status):
         self.log('notif', message, 'loop', status, uniq=True)
 
+    @pydio_profile
     def log(self, event_type, message, action, status, source='', target='', uniq=False):
         insert = True
         conn = sqlite3.connect(self.db)
@@ -80,6 +82,7 @@ class EventLogger():
             logging.error('sql insert error while trying to log event : %s ' % (e.message,))
         conn.close()
 
+    @pydio_profile
     def get_all(self, limit=10, offset=0, filter_type=None, filter_action=None):
         conn = sqlite3.connect(self.db)
         events = []
@@ -92,7 +95,7 @@ class EventLogger():
                 res = c.execute("SELECT * FROM events WHERE action=? ORDER BY date DESC LIMIT ?,?", (filter_action, offset, limit))
             else:
                 res = c.execute("SELECT * FROM events WHERE type!=? ORDER BY date DESC LIMIT ?,?", ('notif', offset, limit))
-            
+
             for event in res:
                 events.append({
                     'id': event['id'],
@@ -109,6 +112,7 @@ class EventLogger():
         conn.close()
         return events
 
+    @pydio_profile
     def consume_notification(self):
         events = self.get_all(1, 0, filter_type='notif')
         if len(events):
@@ -130,6 +134,7 @@ class EventLogger():
         else:
             return "No filter of this kind", 404
 
+    @pydio_profile
     def get_all_from_type(self, type):
         type_list = ['local', 'remote']
         if type in type_list:
@@ -142,6 +147,7 @@ class EventLogger():
         else:
             return "No type of this kind", 404
 
+    @pydio_profile
     def get_all_from_action(self, action):
         action_list = ['download', 'upload', 'move', 'mkdir', 'delete_folder', 'delete_file', 'delete']
         if action in action_list:
@@ -153,6 +159,7 @@ class EventLogger():
         else:
             return "No action of this kind", 404
 
+    @pydio_profile
     def get_all_from_status(self, status):
         status_list = ['in_progress', 'done', 'undefined']
         if status in status_list:

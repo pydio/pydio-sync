@@ -45,11 +45,12 @@ from pydio.utils.global_config import ConfigManager
 
 from pydio.utils import i18n
 _ = i18n.language.ugettext
-
+from pydio.utils.pydio_profiler import pydio_profile
 
 class ContinuousDiffMerger(threading.Thread):
     """Main Thread grabbing changes from both sides, computing the necessary changes to apply, and applying them"""
 
+    @pydio_profile
     def __init__(self, job_config, job_data_path):
         """
         Initialize thread internals
@@ -130,12 +131,13 @@ class ContinuousDiffMerger(threading.Thread):
         if self.job_config.frequency == 'manual':
             self.job_status_running = False
 
-
+    @pydio_profile
     def handle_transfer_callback_event(self, sender, change):
         self.processing_signals[change['target']] = change
         self.global_progress["queue_bytesize"] -= change['bytes_sent']
         self.global_progress["queue_done"] += float(change['bytes_sent']) / float(change["total_size"])
 
+    @pydio_profile
     def handle_transfer_rate_event(self, sender, transfer_rate):
         """
         Handler for TRANSFER_SIGNAL to update the transfer rate internally. It's averaged with previous value.
@@ -148,6 +150,7 @@ class ContinuousDiffMerger(threading.Thread):
         else:
             self.global_progress['last_transfer_rate'] = float(transfer_rate)
 
+    @pydio_profile
     def is_running(self):
         """
         Whether the job is in Running state or not.
@@ -170,6 +173,7 @@ class ContinuousDiffMerger(threading.Thread):
             'total_time'        :0
         }
 
+    @pydio_profile
     def update_global_progress(self, compute_queue_size=True):
         """
         Compute a dict representation with many indications about the current state of the queue
@@ -195,6 +199,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.update_global_progress(compute_queue_size=False)
         return self.global_progress
 
+    @pydio_profile
     def update_current_tasks(self, cursor=0, limit=5):
         """
         Get a list of the current tasks
@@ -209,6 +214,7 @@ class ContinuousDiffMerger(threading.Thread):
                 for key in progress.keys():
                     change[key] = progress[key]
 
+    @pydio_profile
     def get_current_tasks(self):
         for change in self.current_tasks:
             if change['target'] in self.processing_signals:
@@ -220,6 +226,7 @@ class ContinuousDiffMerger(threading.Thread):
             'current': self.current_tasks
         }
 
+    @pydio_profile
     def compute_queue_bytesize(self):
         """
         Sum all the bytesize of the nodes that are planned to be uploaded/downloaded in the queue.
@@ -240,6 +247,7 @@ class ContinuousDiffMerger(threading.Thread):
         else:
             return self.current_store.sum_sizes()
 
+    @pydio_profile
     def start_now(self):
         """
         Resume task (set it in running mode) and make sure the cycle starts now
@@ -258,6 +266,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.sdk.set_interrupt()
         self.info(_('Job Paused'), toUser='PAUSE', channel='status')
 
+    @pydio_profile
     def resume(self):
         """
         Set the task out of pause mode.
@@ -309,6 +318,7 @@ class ContinuousDiffMerger(threading.Thread):
             self.sleep_online()
 
 
+    @pydio_profile
     def run(self):
         """
         Start the thread
@@ -560,6 +570,7 @@ class ContinuousDiffMerger(threading.Thread):
             self.exit_loop_clean(logger)
             very_first = False
 
+    @pydio_profile
     def update_min_seqs_from_store(self, success=False):
         self.local_seq = self.current_store.get_min_seq('local', success=success)
         if self.local_seq == -1:
@@ -575,6 +586,7 @@ class ContinuousDiffMerger(threading.Thread):
         if self.event_handler:
             self.event_handler.last_seq_id = self.local_seq
 
+    @pydio_profile
     def ping_remote(self):
         """
         Simple stat of the remote server root, to know if it's reachable.
@@ -588,6 +600,7 @@ class ContinuousDiffMerger(threading.Thread):
         if toUser:
             dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel=channel, message=message)
 
+    @pydio_profile
     def load_remote_changes_in_store(self, seq_id, store):
         last_seq = self.sdk.changes_stream(seq_id, store.flatten_and_store)
         return last_seq

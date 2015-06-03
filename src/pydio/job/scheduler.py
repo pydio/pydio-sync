@@ -25,6 +25,7 @@ from pydio.job.continous_merger import ContinuousDiffMerger
 from pydio import COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
 from pydio.utils.functions import Singleton, guess_filesystemencoding
 from pydio.job import manager
+from pydio.utils.pydio_profiler import pydio_profile
 
 
 @Singleton
@@ -36,7 +37,8 @@ class PydioScheduler():
         self.jobs_root_path = jobs_root_path
         dispatcher.connect(self.handle_job_signal, signal=JOB_COMMAND_SIGNAL, sender=dispatcher.Any)
         dispatcher.connect(self.handle_generic_signal, signal=COMMAND_SIGNAL, sender=dispatcher.Any)
-
+        
+    @pydio_profile
     def start_all(self):
         for job_id in self.job_configs:
             job_config = self.job_configs[job_id]
@@ -48,6 +50,7 @@ class PydioScheduler():
             #merger.stop()
             self.pause_job(job_id)
 
+    @pydio_profile
     def start_job(self, job_id):
         config = self.get_config(job_id)
         if not config:
@@ -58,6 +61,7 @@ class PydioScheduler():
         else:
             thread.start_now()
 
+    @pydio_profile
     def start_from_config(self, job_config):
         if not job_config.active:
             return
@@ -73,18 +77,21 @@ class PydioScheduler():
         except (KeyboardInterrupt, SystemExit):
             merger.stop()
 
+    @pydio_profile
     def is_job_running(self, job_id):
         thread = self.get_thread(job_id)
         if not thread:
             return False
         return thread.is_running()
 
+    @pydio_profile
     def get_job_progress(self, job_id):
         thread = self.get_thread(job_id)
         if not thread:
             return False
         return {"global": thread.get_global_progress(), "tasks": thread.get_current_tasks()}
 
+    @pydio_profile
     def pause_job(self, job_id):
         thread = self.get_thread(job_id)
         if not thread:
@@ -92,6 +99,7 @@ class PydioScheduler():
         logging.info("should pause job : %s" %job_id)
         thread.pause()
 
+    @pydio_profile
     def enable_job(self, job_id):
         thread = self.get_thread(job_id)
         if thread:
@@ -99,6 +107,7 @@ class PydioScheduler():
         elif job_id in self.job_configs:
             self.start_from_config(self.job_configs[job_id])
 
+    @pydio_profile
     def disable_job(self, job_id):
         thread = self.get_thread(job_id)
         if not thread:
