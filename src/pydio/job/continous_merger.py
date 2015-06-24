@@ -521,6 +521,8 @@ class ContinuousDiffMerger(threading.Thread):
                 if self.global_progress['queue_done']:
                     logger.log_notif(_('%i files modified') % self.global_progress['queue_done'], 'success')
 
+                self.exit_loop_clean(logger)
+
             except PydioSdkDefaultException as re:
                 logging.error(re.message)
                 logger.log_state(re.message, 'error')
@@ -557,7 +559,6 @@ class ContinuousDiffMerger(threading.Thread):
                     logger.log_state(_('Unexpected Error: %s') % e.message, 'error')
 
             logging.debug('Finished this cycle, waiting for %i seconds' % self.online_timer)
-            self.exit_loop_clean(logger)
             very_first = False
 
     def update_min_seqs_from_store(self, success=False):
