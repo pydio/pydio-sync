@@ -21,6 +21,8 @@ from .functions import Singleton
 import pickle
 import os
 import uuid, json,logging
+import keyring
+
 
 @Singleton
 class ConfigManager:
@@ -74,10 +76,66 @@ class ConfigManager:
                 try:
                     with open(proxies_file, 'r') as handle:
                         data = json.load(handle)
-                    if isinstance(data, dict) and ('http' in data or 'https' in data):
-                        self.proxies = data
+                    if isinstance(data, dict) and ('http' == data["type"] or 'https' == data["type"]):
+                        if data["password"] =="__pydio_proxy_pwd__":
+                            msg = {
+                            'http': data["type"] + '://' + data["username"] + ':' + keyring.get_password(data["hostname"], data["username"]) + '@' + data["hostname"] + ':' + data["port"],
+                            'https': data["type"] + '://' + data["username"] + ':' + keyring.get_password(data["hostname"], data["username"]) + '@' + data["hostname"] + ':' + data["port"]
+                              }
+                            self.proxies = msg
+                        else:
+                            msg = {
+                            'http': data["type"] + '://' + data["username"] + ':' + data["password"] + '@' + data["hostname"] + ':' + data["port"],
+                            'https': data["type"] + '://' + data["username"] + ':' + data["password"] + '@' + data["hostname"] + ':' + data["port"]
+                              }
+                            self.proxies = msg
+
                 except Exception as e:
                     logging.error('Error while trying to load proxies.json file')
             self.proxies_loaded = True
             pass
         return self.proxies
+
+    def set_user_proxy(self, data, check_proxy_flag=True, file_name=None):
+        """
+        Set the proxy by writing the contents to a file (usually proxies.json)
+
+        :param data: list with 4 entries [username,password,proxyIP,proxyPort]
+        :param file_name: filename to be written with proxy details
+        :return: response
+        """
+
+        def write_json_file(filename, msg):
+            try:
+                with open(filename, 'w') as f:
+                    json.dump(msg, f)
+            except Exception as ex:
+                logging.exception(ex)
+
+        def check_proxy(data):
+            """
+            Check if the proxy is up by trying to open a well known url via proxy
+            """
+            try:
+                proxies = {}
+                for protocol in data.keys():
+                    if data[protocol]["password"] =="__pydio_proxy_pwd__":
+                        proxy = protocol + '://' + data[protocol]["username"] + ':' + keyring.get_password(data[protocol]["hostname"], data[protocol]["username"]) + '@' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
+                    else:
+                        proxy = protocol + '://' + data[protocol]["username"] + ':' + data[protocol]["password"] + '@' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
+                    proxies[protocol] = proxy
+
+                import urllib
+                urllib.urlopen("http://google.com", proxies = proxies)
+            except IOError:
+                logging.error("Connection error! (Check proxy)")
+            else:
+                logging.info("Server is reachable via proxy %s from client" %proxies)
+
+        if file_name is None:
+            file_name = os.path.join(self.configs_path, 'proxies.json')
+
+        if check_proxy_flag:
+            check_proxy(data)
+        write_json_file(file_name, data)
+        return "write to Proxies.json file is successful"

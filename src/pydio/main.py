@@ -113,7 +113,10 @@ def main(argv=sys.argv[1:]):
                         type=unicode, default=None)
     parser.add_argument('-u', '--user', help='User name', type=unicode, default=None)
     parser.add_argument('-p', '--password', help='Password', type=unicode, default=None)
-    parser.add_argument('-mp', '--memory_profile', help="To Generate the memory profile :: use <<-mp True >> as argument", type=unicode, default=False)
+    parser.add_argument('-px', '--proxy', help='Enter like http::username::password::proxyIP::proxyPort::...::check_proxy_flag '
+                        'By default proxy connection test happens, to avoid mention 0 or False', type=unicode, default=None)
+    parser.add_argument('-mp', '--memory_profile', help="To Generate the memory profile :: use <<-mp True >> as argument",
+                        type=unicode, default=False)
     parser.add_argument('-dir', '--direction', help='Synchro Direction', type=str, default='bi')
     # Pass a configuration file
     parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
@@ -165,6 +168,15 @@ def main(argv=sys.argv[1:]):
 
     jobs_loader = JobsLoader.Instance(data_path=u_jobs_root_path)
     config_manager.set_rdiff_path(args.rdiff)
+
+    if args.proxy is not None:
+        data = args.proxy.split('::') if len(args.proxy.split('::'))%5 in range(0, 2) else logging.error("Wrong number of parameters pased for proxy")
+        msg = {}
+        for i in range(len(args.proxy.split('::'))/5):
+            msg[data[i*5]] = {"username": data[i*5+1], "password": data[i*5+2], "hostname": data[i*5+3], "port": data[i*5+4]}
+        proxy_flag = data[-1] if len(args.proxy.split('::'))%5 == 1 else True  # default true
+        config_manager.set_user_proxy(msg, check_proxy_flag=proxy_flag)
+        return 0
 
     if args.server and args.directory and args.workspace:
         job_config = JobConfig()

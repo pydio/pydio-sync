@@ -105,6 +105,7 @@ class PydioApi(Api):
         self.add_resource(LogManager, '/jobs/<string:job_id>/logs')
         self.add_resource(ConflictsManager, '/jobs/<string:job_id>/conflicts', '/jobs/conflicts')
         self.add_resource(CmdManager, '/cmd/<string:cmd>/<string:job_id>', '/cmd/<string:cmd>')
+        self.add_resource(ProxyManager, '/proxy')
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
@@ -539,3 +540,53 @@ class ResolverManager(Resource):
             return EndpointResolver.Instance().get_customer_endpoints(client_id)
         except EndpointException as e:
             return {'message': e.message, 'code': e.error_id}, 500
+
+
+class ProxyManager(Resource):
+
+    #@authDB.requires_auth
+    #@pydio_profile
+    def get(self):
+        # read contents from proxy.json
+        f = open(os.path.join(ConfigManager.Instance().get_configs_path(), 'proxies.json'))
+        res = json.load(f)
+        f.close()
+        response={}
+        # parse the content and only return some fields
+        for protocol in res.keys():
+            response[protocol] = {"hostname": res[protocol]["hostname"],"port": res[protocol]["port"], "username": res[protocol]["username"]}
+        return response
+
+    #@authDB.requires_auth
+    #@pydio_profile
+    def post(self):
+        """
+        read the contents from the web page
+        expected a json file like
+        {
+            "type": ""
+            "username": ""
+            "password": ""
+            "hostname": ""
+            "port": ""
+            "test_proxy_flag": True/ False (optional)
+        }
+        """
+        json_req = request.get_json()
+
+        try:
+            for protocol in json_req.keys():
+                keyring.set_password(json_req[protocol]["hostname"], json_req[protocol]["username"],json_req[protocol]["password"])
+                json_req[protocol]["password"] = "__pydio_proxy_pwd__"
+        except keyring.errors.PasswordSetError as e:
+            logging.error("Error while storing password in keychain, should we store it cyphered in the config?")
+
+        if "test_proxy_flag" in json_req.keys():
+            proxy_flag = json_req["test_proxy_flag"]
+            del json_req["test_proxy_flag"]
+        else:
+            proxy_flag = True  # default true
+
+        # write the content into local proxy.json file
+        response = ConfigManager.Instance().set_user_proxy(json_req, check_proxy_flag=proxy_flag)
+        return response
