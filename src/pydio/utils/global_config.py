@@ -76,20 +76,17 @@ class ConfigManager:
                 try:
                     with open(proxies_file, 'r') as handle:
                         data = json.load(handle)
-                    if isinstance(data, dict) and ('http' == data["type"] or 'https' == data["type"]):
-                        if data["password"] =="__pydio_proxy_pwd__":
-                            msg = {
-                            'http': data["type"] + '://' + data["username"] + ':' + keyring.get_password(data["hostname"], data["username"]) + '@' + data["hostname"] + ':' + data["port"],
-                            'https': data["type"] + '://' + data["username"] + ':' + keyring.get_password(data["hostname"], data["username"]) + '@' + data["hostname"] + ':' + data["port"]
-                              }
-                            self.proxies = msg
-                        else:
-                            msg = {
-                            'http': data["type"] + '://' + data["username"] + ':' + data["password"] + '@' + data["hostname"] + ':' + data["port"],
-                            'https': data["type"] + '://' + data["username"] + ':' + data["password"] + '@' + data["hostname"] + ':' + data["port"]
-                              }
-                            self.proxies = msg
-
+                    if isinstance(data, dict):
+                        proxies = {}
+                        for protocol in data.keys():
+                            if data[protocol]["password"] =="__pydio_proxy_pwd__":
+                                proxy = protocol + '://' + data[protocol]["username"] + ':' + keyring.get_password(data[protocol]["hostname"], data[protocol]["username"]) + '@' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
+                            else:
+                                proxy = protocol + '://' + data[protocol]["username"] + ':' + data[protocol]["password"] + '@' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
+                            proxies[protocol] = proxy
+                        self.proxies = proxies
+                    else:
+                        logging.error('The proxy data is not the form of dict obj')
                 except Exception as e:
                     logging.error('Error while trying to load proxies.json file')
             self.proxies_loaded = True
@@ -130,7 +127,7 @@ class ConfigManager:
             except IOError:
                 logging.error("Connection error! (Check proxy)")
             else:
-                logging.info("Server is reachable via proxy %s from client" %proxies)
+                logging.info("Server is reachable via proxy from client")
 
         if file_name is None:
             file_name = os.path.join(self.configs_path, 'proxies.json')
