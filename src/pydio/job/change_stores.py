@@ -26,7 +26,7 @@ import fnmatch
 import math
 
 from pydio.sdk.exceptions import InterruptException
-
+from pydio.utils.pydio_profiler import pydio_profile
 
 class SqliteChangeStore():
     conn = None
@@ -68,6 +68,7 @@ class SqliteChangeStore():
     def __len__(self):
         return self.get_row_count()
 
+    @pydio_profile
     def get_row_count(self, location='all'):
         if location == 'all':
             res = self.conn.execute("SELECT count(row_id) FROM ajxp_changes")
@@ -78,6 +79,7 @@ class SqliteChangeStore():
             logging.info("Changes store count #"+str(count[0]))
         return count[0]
 
+    @pydio_profile
     def process_changes_with_callback(self, callback):
         c = self.conn.cursor()
 
@@ -122,7 +124,7 @@ class SqliteChangeStore():
                 break
         self.conn.commit()
 
-
+    @pydio_profile
     def list_changes(self, cursor=0, limit=5, where=''):
         c = self.conn.cursor()
         sql = 'SELECT * FROM ajxp_changes ORDER BY seq_id LIMIT ?,?'
@@ -136,6 +138,7 @@ class SqliteChangeStore():
             self.debug("")
         return changes
 
+    @pydio_profile
     def sum_sizes(self, where=''):
         c = self.conn.cursor()
         sql = 'SELECT SUM(bytesize) as total FROM ajxp_changes'
@@ -153,6 +156,7 @@ class SqliteChangeStore():
     def commonprefix(self, path_list):
         return os.path.commonprefix(path_list).rpartition('/')[0]
 
+    @pydio_profile
     def find_modified_parents(self):
         sql = 'SELECT * FROM ajxp_changes t1 ' \
               '     WHERE type="create" ORDER BY target ASC'
@@ -182,7 +186,7 @@ class SqliteChangeStore():
                 logging.info(parent)
         return parents
 
-
+    @pydio_profile
     def prune_folders_moves(self):
         sql = 'SELECT * FROM ajxp_changes t1 ' \
               '     WHERE (type="delete" OR type="path") ' \
@@ -200,6 +204,7 @@ class SqliteChangeStore():
         if(self.DEBUG):
             self.debug("Pruning folder moves")
 
+    @pydio_profile
     def dedup_changes(self):
         """
         Remove changes that are found on both sides, except content > conflict
@@ -227,6 +232,7 @@ class SqliteChangeStore():
         if(self.DEBUG):
             self.debug("Removing duplicated changes (both sides)")
 
+    @pydio_profile
     def filter_out_echoes_events(self):
         """
         Remove changes that are found in ajxp_last_buffer : echoes from last cycle
@@ -254,7 +260,7 @@ class SqliteChangeStore():
         if(self.DEBUG):
             self.debug("Detecting and removing echoes")
 
-
+    @pydio_profile
     def delete_copies(self):
         sql = 'DELETE from ajxp_changes WHERE row_id NOT IN (SELECT max(row_id) from ajxp_changes GROUP BY location, type, source, target, content, md5, bytesize having COUNT(*) > 0 ORDER BY row_id)'
         cursor = self.conn.cursor()
@@ -264,7 +270,7 @@ class SqliteChangeStore():
         if(self.DEBUG):
             self.debug("Detecting and removing copies")
 
-
+    @pydio_profile
     def detect_unnecessary_changes(self, local_sdk, remote_sdk):
         self.local_sdk = local_sdk
         self.remote_sdk = remote_sdk
@@ -283,6 +289,7 @@ class SqliteChangeStore():
         if(self.DEBUG):
             self.debug("Detecting unnecessary changes")
 
+    @pydio_profile
     def filter_w_stat(self, location, sdk, opposite_sdk, offset=0, limit=1000):
         # Load 'limit' changes and filter them
         c = self.conn.cursor()
@@ -305,6 +312,7 @@ class SqliteChangeStore():
         to_remove = filter(lambda it: self.filter_change(it, local_stats, opposite_stats), changes)
         return map(lambda row: str(row['row_id']), to_remove)
 
+    @pydio_profile
     def clean_and_detect_conflicts(self, status_handler):
 
         # transform solved conflicts into process operation
@@ -353,6 +361,7 @@ class SqliteChangeStore():
             change['node'] = data['node']
         return change
 
+    @pydio_profile
     def filter_change(self, item, my_stat=None, other_stats=None):
         """
         Try to detect if a change can be ignored, depending on the state of the "target". For example, if a delete
@@ -453,6 +462,7 @@ class SqliteChangeStore():
         else:
             return self.local_sdk.stat(path, with_hash=True)
 
+    @pydio_profile
     def get_min_seq(self, location, success=False):
         res = self.conn.execute("SELECT min(seq_id) FROM ajxp_changes WHERE location=?", (location,))
         for row in res:
@@ -488,6 +498,7 @@ class SqliteChangeStore():
             if (e.startswith('/') or e.startswith('*/')) and fnmatch.fnmatch(path, e):
                 return True
 
+    @pydio_profile
     def store(self, location, seq_id, change):
         #if location == 'local':
         #    print change['type'], " : ", change['source'], " => ", change['target']
@@ -535,6 +546,7 @@ class SqliteChangeStore():
     def sync(self):
         self.conn.commit()
 
+    @pydio_profile
     def echo_match(self, location, change):
         #if location == 'remote':
         #    pass
@@ -547,6 +559,7 @@ class SqliteChangeStore():
             return True
         return False
 
+    @pydio_profile
     def flatten_and_store(self, location, row, last_info=dict()):
         previous_id = last_info['node_id'] if (last_info and last_info.has_key('node_id')) else -1
         change = last_info['change'] if (last_info and last_info.has_key('change')) else dict()

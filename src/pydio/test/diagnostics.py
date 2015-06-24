@@ -25,6 +25,7 @@ import sys
 
 from pydio.sdk.remote import PydioSdk
 from pydio.utils.global_config import ConfigManager
+from pydio.utils.pydio_profiler import pydio_profile
 
 class PydioDiagnostics():
 
@@ -41,6 +42,7 @@ class PydioDiagnostics():
         self.run_ping_server_test()
         return self.status
 
+    @pydio_profile
     def run_ping_server_test(self):
         logging.info('---- Server ping test ---')
         logging.debug("self.url: %s" % self.url)

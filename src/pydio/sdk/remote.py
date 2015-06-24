@@ -435,6 +435,8 @@ class PydioSdk():
                 return False
         except requests.exceptions.ConnectionError:
             raise
+        except requests.exceptions.Timeout:
+            raise
         except Exception, ex:
             logging.warning("Stat failed", exc_info=ex)
             return False

@@ -22,6 +22,7 @@ import logging
 import stat
 import sys
 import os
+import time
 
 from watchdog.events import DirCreatedEvent, DirDeletedEvent, DirMovedEvent, \
     FileCreatedEvent, FileDeletedEvent, FileMovedEvent, FileModifiedEvent
@@ -32,13 +33,13 @@ if platform.is_linux():
 from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
 
 from pydio.job.localdb import SqlEventHandler, SqlSnapshot
-
+from pydio.utils.pydio_profiler import pydio_profile
 
 # -*- coding: utf-8 -*-
 class SnapshotDiffStart(DirectorySnapshotDiff):
     def __init__(self, ref_dirsnap, dirsnap):
         """
-    """
+        """
         self._files_deleted = list()
         self._files_modified = list()
         self._files_created = list()
@@ -103,6 +104,7 @@ class LocalWatcher(threading.Thread):
         self.interrupt = False
         self.event_handler = event_handler
 
+    @pydio_profile
     def check_from_snapshot(self, sub_folder=None, state_callback=(lambda status: None)):
         from pydio.utils import i18n
         _ = i18n.language.ugettext
@@ -130,6 +132,9 @@ class LocalWatcher(threading.Thread):
                                                                        + len(diff.files_moved) +
                                                                        len(diff.files_modified) +
                                                                        len(diff.files_deleted)))
+
+            self.event_handler.begin_transaction()
+
             for path in diff.dirs_created:
                 if self.interrupt:
                     return
@@ -138,6 +143,7 @@ class LocalWatcher(threading.Thread):
                 if self.interrupt:
                     return
                 self.event_handler.on_created(FileCreatedEvent(path))
+
             for path in diff.dirs_moved:
                 if self.interrupt:
                     return
@@ -159,6 +165,9 @@ class LocalWatcher(threading.Thread):
                     return
                 self.event_handler.on_deleted(DirDeletedEvent(path))
 
+            self.event_handler.end_transaction()
+
+    @pydio_profile
     def stop(self):
         self.interrupt = True
         if self.observer:
@@ -168,8 +177,8 @@ class LocalWatcher(threading.Thread):
             except Exception:
                 logging.error("Error while stopping watchdog thread!")
 
+    @pydio_profile
     def run(self):
-
         if not os.path.exists(self.basepath):
             logging.error('Cannot start monitor on non-existing path ' + self.basepath)
             return

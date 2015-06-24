@@ -46,6 +46,8 @@ _ = i18n.language.ugettext
 from functools import wraps
 import authdigest
 import flask
+from pydio.utils.pydio_profiler import pydio_profile
+
 try:
     from pydio.endpoint.resolver import EndpointResolver, RESOLVER_CONFIG, EndpointException
 except ImportError:
@@ -111,6 +113,7 @@ class PydioApi(Api):
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
             self.app.add_url_rule('/res/dynamic.png', 'dynamic_png', self.serve_dynamic_image)
 
+    @pydio_profile
     def serve_i18n_file(self):
         s = ''
         from pydio.utils.i18n import get_languages
@@ -172,6 +175,7 @@ class PydioApi(Api):
                         status=200,
                         mimetype="text/html")
 
+    @pydio_profile
     def start_server(self):
         try:
             self.running = True
@@ -180,6 +184,7 @@ class PydioApi(Api):
             self.running = False
             logging.exception("Error while starting web server")
 
+    @pydio_profile
     def shutdown_server(self):
         logging.debug("Shutdown api server: %s" % self.app)
         with self.app.test_request_context():
@@ -191,6 +196,7 @@ class PydioApi(Api):
 class WorkspacesManager(Resource):
 
     @authDB.requires_auth
+    @pydio_profile
     def get(self, job_id):
         if job_id != 'request':
             jobs = JobsLoader.Instance().get_jobs()
@@ -318,6 +324,7 @@ class WorkspacesManager(Resource):
 class FoldersManager(Resource):
 
     @authDB.requires_auth
+    @pydio_profile
     def get(self, job_id):
         if job_id != 'request':
             jobs = JobsLoader.Instance().get_jobs()
@@ -356,6 +363,7 @@ class JobManager(Resource):
     loader = None
 
     @authDB.requires_auth
+    @pydio_profile
     def post(self):
         JobsLoader.Instance().get_jobs()
         json_req = request.get_json()
@@ -407,6 +415,7 @@ class JobManager(Resource):
         return JobConfig.encoder(new_job)
 
     @authDB.requires_auth
+    @pydio_profile
     def get(self, job_id = None):
         if request.path == '/':
             return redirect("/res/index.html", code=302)
@@ -425,6 +434,7 @@ class JobManager(Resource):
         self.enrich_job(data, job_id)
         return data
 
+    @pydio_profile
     def enrich_job(self, job_data, job_id, get_notification=False):
         running = PydioScheduler.Instance().is_job_running(job_id)
         job_data['running'] = running
@@ -440,6 +450,7 @@ class JobManager(Resource):
             job_data['state'] = PydioScheduler.Instance().get_job_progress(job_id)
 
     @authDB.requires_auth
+    @pydio_profile
     def delete(self, job_id):
         JobsLoader.Instance().delete_job(job_id)
         scheduler = PydioScheduler.Instance()
@@ -452,6 +463,7 @@ class JobManager(Resource):
 class ConflictsManager(Resource):
 
     @authDB.requires_auth
+    @pydio_profile
     def post(self):
         json_conflict = request.get_json()
         job_id = json_conflict['job_id']
@@ -469,6 +481,7 @@ class ConflictsManager(Resource):
         return json_conflict
 
     @authDB.requires_auth
+    @pydio_profile
     def get(self, job_id):
         if not job_id in JobsLoader.Instance().get_jobs():
             return "Can't find any job config with this ID.", 404
@@ -483,6 +496,7 @@ class LogManager(Resource):
         self.events = {}
 
     @authDB.requires_auth
+    @pydio_profile
     def get(self, job_id):
         if not job_id in JobsLoader.Instance().get_jobs():
             return "Can't find any job config with this ID.", 404
@@ -502,6 +516,7 @@ class LogManager(Resource):
 class CmdManager(Resource):
 
     @authDB.requires_auth
+    @pydio_profile
     def get(self, cmd, job_id=None):
         if job_id:
             if cmd == 'enable' or cmd == 'disable':
@@ -518,6 +533,7 @@ class CmdManager(Resource):
 class ResolverManager(Resource):
 
     @authDB.requires_auth
+    @pydio_profile
     def get(self, client_id):
         try:
             return EndpointResolver.Instance().get_customer_endpoints(client_id)

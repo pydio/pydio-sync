@@ -23,17 +23,20 @@ from sqlite3 import OperationalError
 import sys
 import os
 import hashlib
+import threading
 import time
 import fnmatch
 import pickle
 import logging
 from pathlib import *
+from pydio.utils.pydio_profiler import pydio_profile
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.utils.dirsnapshot import DirectorySnapshotDiff
 
 from pydio.utils.functions import hashfile, set_file_hidden, guess_filesystemencoding
 
+import cProfile
 
 class DBCorruptedException(Exception):
     pass
@@ -53,6 +56,7 @@ class SqlSnapshot(object):
         except OperationalError as oe:
             raise DBCorruptedException(oe)
 
+    @pydio_profile
     def load_from_db(self):
 
         conn = sqlite3.connect(self.db)
@@ -81,6 +85,7 @@ class SqlSnapshot(object):
         return DirectorySnapshotDiff(previous_dirsnap, self)
 
     @property
+    @pydio_profile
     def stat_snapshot(self):
         """
         Returns a dictionary of stat information with file paths being keys.
@@ -161,6 +166,7 @@ class LocalDbHandler():
                 cursor.execute(statement)
         conn.close()
 
+    @pydio_profile
     def find_node_by_id(self, node_path, with_status=False):
         node_path = self.normpath(node_path)
         conn = sqlite3.connect(self.db)
@@ -176,6 +182,7 @@ class LocalDbHandler():
         c.close()
         return id
 
+    @pydio_profile
     def get_node_md5(self, node_path):
         node_path = self.normpath(node_path)
         conn = sqlite3.connect(self.db)
@@ -188,6 +195,7 @@ class LocalDbHandler():
         c.close()
         return hashfile(self.base + node_path, hashlib.md5())
 
+    @pydio_profile
     def get_node_status(self, node_path):
         node_path = self.normpath(node_path)
         conn = sqlite3.connect(self.db)
@@ -201,6 +209,7 @@ class LocalDbHandler():
         c.close()
         return status
 
+    @pydio_profile
     def list_conflict_nodes(self):
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
@@ -218,6 +227,7 @@ class LocalDbHandler():
         c.close()
         return rows
 
+    @pydio_profile
     def count_conflicts(self):
         conn = sqlite3.connect(self.db)
         c = 0
@@ -226,6 +236,7 @@ class LocalDbHandler():
         conn.close()
         return c
 
+    @pydio_profile
     def list_solved_nodes_w_callback(self, cb):
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
@@ -241,7 +252,7 @@ class LocalDbHandler():
             cb(d)
         c.close()
 
-
+    @pydio_profile
     def update_node_status(self, node_path, status='IDLE', detail=''):
         node_path = self.normpath(node_path)
         if detail:
@@ -257,6 +268,7 @@ class LocalDbHandler():
         conn.commit()
         conn.close()
 
+    @pydio_profile
     def compare_raw_pathes(self, row1, row2):
         if row1['source'] != 'NULL':
             cmp1 = row1['source']
@@ -268,6 +280,7 @@ class LocalDbHandler():
             cmp2 = row2['target']
         return cmp1 == cmp2
 
+    @pydio_profile
     def get_last_operations(self):
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
@@ -284,6 +297,7 @@ class LocalDbHandler():
         c.close()
         return operations
 
+    @pydio_profile
     def is_last_operation(self, location, type, source, target):
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
@@ -294,7 +308,7 @@ class LocalDbHandler():
         c.close()
         return False
 
-
+    @pydio_profile
     def buffer_real_operation(self, location, type, source, target):
         location = 'remote' if location == 'local' else 'local'
         conn = sqlite3.connect(self.db)
@@ -302,12 +316,14 @@ class LocalDbHandler():
         conn.commit()
         conn.close()
 
+    @pydio_profile
     def clear_operations_buffer(self):
         conn = sqlite3.connect(self.db)
         conn.execute("DELETE FROM ajxp_last_buffer")
         conn.commit()
         conn.close()
 
+    @pydio_profile
     def get_local_changes_as_stream(self, seq_id, flatten_and_store_callback):
         if self.event_handler:
             i = 1
@@ -349,9 +365,7 @@ class LocalDbHandler():
                 self.event_handler.reading = False
             return info['seq_id']
 
-
-
-
+    @pydio_profile
     def get_local_changes(self, seq_id, accumulator=dict()):
         logging.debug("Local sequence " + str(seq_id))
         last = seq_id
@@ -442,6 +456,7 @@ class LocalDbHandler():
 
 class SqlEventHandler(FileSystemEventHandler):
 
+
     """reading = False
     last_write_time = 0
     db_wait_duration = 1"""
@@ -458,6 +473,8 @@ class SqlEventHandler(FileSystemEventHandler):
         self.last_write_time = 0
         self.db_wait_duration = 1
         self.last_seq_id = 0
+        self.prevent_atomic_commit = False
+        self.con = None
 
     @staticmethod
     def get_unicode_path(src):
@@ -469,6 +486,7 @@ class SqlEventHandler(FileSystemEventHandler):
         text = text[len(self.base):] if text.startswith(self.base) else text
         return os.path.normpath(text)
 
+    @pydio_profile
     def included(self, event, base=None):
         path = ''
         if not base:
@@ -491,7 +509,9 @@ class SqlEventHandler(FileSystemEventHandler):
                 return False
         return True
 
+    @pydio_profile
     def on_moved(self, event):
+
         if not self.included(event):
             logging.debug('ignoring move event ' + event.src_path + event.dest_path)
             return
@@ -502,7 +522,11 @@ class SqlEventHandler(FileSystemEventHandler):
         source_key = self.remove_prefix(self.get_unicode_path(event.src_path))
 
         try:
-            conn = sqlite3.connect(self.db)
+            if self.prevent_atomic_commit:
+                conn = self.transaction_conn
+            else:
+                conn = sqlite3.connect(self.db)
+
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
             target_id = None
@@ -524,21 +548,22 @@ class SqlEventHandler(FileSystemEventHandler):
             else:
                 t = (target_key,source_key,)
                 conn.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", t)
-            conn.commit()
-            conn.close()
+            if not self.prevent_atomic_commit:
+                conn.commit()
+                conn.close()
         except Exception as ex:
             logging.exception(ex)
 
         self.last_write_time = int(round(time.time() * 1000))
 
+    @pydio_profile
     def on_created(self, event):
-
         if not self.included(event):
             logging.debug('ignoring create event %s ' % event.src_path)
             return
-        self.lock_db()
         logging.debug("Event: creation noticed: " + event.event_type +
                          " on file " + event.src_path + " at " + time.asctime())
+        self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
             if not os.path.exists(src_path):
@@ -548,23 +573,30 @@ class SqlEventHandler(FileSystemEventHandler):
             logging.exception(ex)
         self.last_write_time = int(round(time.time() * 1000))
 
+    @pydio_profile
     def on_deleted(self, event):
         if not self.included(event):
             return
-        logging.debug("Event: deletion noticed: " + event.event_type +
-                         " on file " + event.src_path + " at " + time.asctime())
+        logging.debug("Event: deletion noticed: " + event.event_type + " on file " + event.src_path + " at " + time.asctime())
         self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
-            conn = sqlite3.connect(self.db)
+            if self.prevent_atomic_commit:
+                conn = self.transaction_conn
+            else:
+                conn = sqlite3.connect(self.db)
+
             conn.execute("DELETE FROM ajxp_index WHERE node_path LIKE ?", (self.remove_prefix(src_path) + '%',))
-            conn.commit()
-            conn.close()
+
+            if not self.prevent_atomic_commit:
+                conn.commit()
+                conn.close()
 
         except Exception as ex:
             logging.exception(ex)
         self.unlock_db()
 
+    @pydio_profile
     def on_modified(self, event):
         super(SqlEventHandler, self).on_modified(event)
         if not self.included(event):
@@ -594,6 +626,7 @@ class SqlEventHandler(FileSystemEventHandler):
             logging.exception(ex)
         self.unlock_db()
 
+    @pydio_profile
     def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert = False):
         search_key = self.remove_prefix(src_path)
         hash_key = 'directory'
@@ -608,7 +641,10 @@ class SqlEventHandler(FileSystemEventHandler):
                     return
 
         node_id = False
-        conn = sqlite3.connect(self.db)
+        if self.prevent_atomic_commit:
+            conn = self.transaction_conn
+        else:
+            conn = sqlite3.connect(self.db)
         if not force_insert:
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
@@ -650,7 +686,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 c.execute("INSERT INTO ajxp_index (node_id,node_path,bytesize,md5,mtime,stat_result) "
                           "VALUES (?,?,?,?,?,?)", t)
                 c.execute("UPDATE ajxp_index SET node_path=? WHERE node_path=?", (search_key, del_element['source']))
-                conn.commit()
+
             else:
                 if hash_key == 'directory' and existing_id:
                     self.clear_windows_folder_id(src_path)
@@ -681,9 +717,11 @@ class SqlEventHandler(FileSystemEventHandler):
                 )
                 logging.debug("Real update %s" % search_key)
                 conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=?", t)
-        conn.commit()
-        conn.close()
+        if not self.prevent_atomic_commit:
+            conn.commit()
+            conn.close()
 
+    @pydio_profile
     def set_windows_folder_id(self, node_id, path):
         if os.name in ("nt", "ce"):
             logging.debug("Created folder %s with node id %i" % (path, node_id))
@@ -696,6 +734,7 @@ class SqlEventHandler(FileSystemEventHandler):
             except Exception as e:
                 logging.error("Error while trying to save hidden file .pydio_id : %s" % e.message)
 
+    @pydio_profile
     def find_windows_folder_id(self, path):
         if os.name in("nt", "ce") and os.path.exists(path + "\\.pydio_id"):
             with open(path + "\\.pydio_id") as hidden_file:
@@ -715,6 +754,7 @@ class SqlEventHandler(FileSystemEventHandler):
         if os.name in("nt", "ce") and os.path.exists(path + "\\.pydio_id"):
             os.unlink(path + "\\.pydio_id")
 
+    @pydio_profile
     def find_deleted_element(self, cursor, start_seq, basename, md5=None, node_id=None):
         res = cursor.execute('SELECT * FROM ajxp_changes WHERE source LIKE ? AND type="delete" '
                              'AND node_id NOT IN (SELECT node_id FROM ajxp_index) '
@@ -730,6 +770,18 @@ class SqlEventHandler(FileSystemEventHandler):
 
         return None
 
+    @pydio_profile
+    def begin_transaction(self):
+        self.transaction_conn = sqlite3.connect(self.db)
+        self.prevent_atomic_commit = True
+
+    @pydio_profile
+    def end_transaction(self):
+        self.prevent_atomic_commit = False
+        self.transaction_conn.commit()
+        self.transaction_conn.close()
+
+    @pydio_profile
     def lock_db(self):
         ###################################################################
         while self.reading:
@@ -737,11 +789,6 @@ class SqlEventHandler(FileSystemEventHandler):
         self.last_write_time = int(round(time.time() * 1000))
         ###################################################################
 
+    @pydio_profile
     def unlock_db(self):
         self.last_write_time = int(round(time.time() * 1000))
-
-
-
-
-
-
