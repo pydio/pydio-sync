@@ -163,6 +163,10 @@ def file_start_hash_match(local_file, size, remote_hash):
     md5 = hashlib.md5()
     block_size = 8192
     cursor = 0
+    if size < 0:
+        logging.error("The size of file cannot be a negative value, seems like 32 bit int value over flow problem, "
+                      "check file stat returnned by server")
+        return
     with open(local_file,'rb') as f:
         while cursor < size:
             data = f.read(min(block_size, size-cursor))
