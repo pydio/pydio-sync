@@ -62,6 +62,17 @@ class ContinuousDiffMerger(threading.Thread):
         self.last_run = 0
         self.configs_path = job_data_path
         self.job_config = job_config
+        from pydio.utils.check_sqlite import check_sqlite_file
+        try:
+            exists_and_correct = check_sqlite_file(self.configs_path + "/pydio.sqlite")
+            if exists_and_correct:
+                logging.info("Structure and Integrity of SQLite file %s is intact " % str(self.configs_path + "/pydio.sqlite"))
+        except DBCorruptedException as e:
+            logging.debug("SQLite file %s is corrupted (Reason: %s), Deleting file and Reinitialising sync"
+                          % (str(self.configs_path + "/pydio.sqlite"),e.message))
+            os.unlink(self.configs_path + "/pydio.sqlite")
+            self.update_sequences_file(0, 0)
+
         self.init_global_progress()
 
         self.basepath = job_config.directory
@@ -124,12 +135,17 @@ class ContinuousDiffMerger(threading.Thread):
                 # Wrong content, remove sequences file.
                 os.unlink(self.configs_path + "/sequences")
 
-
         dispatcher.connect(self.handle_transfer_rate_event, signal=TRANSFER_RATE_SIGNAL, sender=self.sdk)
         dispatcher.connect(self.handle_transfer_callback_event, signal=TRANSFER_CALLBACK_SIGNAL, sender=self.sdk)
 
         if self.job_config.frequency == 'manual':
             self.job_status_running = False
+
+    def update_sequences_file(self, local_seq, remote_seq):
+        pickle.dump(dict(
+            local=local_seq,
+            remote=remote_seq
+        ), open(self.configs_path + '/sequences', 'wb'))
 
     @pydio_profile
     def handle_transfer_callback_event(self, sender, change):
@@ -580,10 +596,7 @@ class ContinuousDiffMerger(threading.Thread):
         if self.remote_seq == -1:
             self.remote_seq = self.remote_target_seq
         logging.debug('Storing sequences remote=%i local=%i', self.remote_seq, self.local_seq)
-        pickle.dump(dict(
-            local=self.local_seq,
-            remote=self.remote_seq
-        ), open(self.configs_path + '/sequences', 'wb'))
+        self.update_sequences_file(self.local_seq, self.remote_seq)
         if self.event_handler:
             self.event_handler.last_seq_id = self.local_seq
 
