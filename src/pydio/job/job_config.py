@@ -101,24 +101,6 @@ class JobsLoader():
             import shutil
             shutil.rmtree(job_data_path)
 
-    def get_filter(self, job):
-        self.jobs[job.id] = job
-        return job.filters  # dict
-
-    def update_filter(self, job, updates):
-        """
-        update include/ exclude filter
-
-        :param updates: (dict)  { "includes": ['*'],
-                                  "excludes"=['*.txt', '*.docx'] }
-        :param job: job instance
-        :return: updated job instance
-        """
-        self.jobs[job.id] = job
-        job.filters["includes"] += [x for x in updates["includes"] if x not in job.filters["includes"]]
-        job.filters["excludes"] += [x for x in updates["excludes"] if x not in job.filters["excludes"]]
-        return job
-
 class JobConfig:
 
     def __init__(self):
