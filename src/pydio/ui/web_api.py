@@ -544,8 +544,8 @@ class ResolverManager(Resource):
 
 class ProxyManager(Resource):
 
-    #@authDB.requires_auth
-    #@pydio_profile
+    @authDB.requires_auth
+    @pydio_profile
     def get(self):
         # read contents from proxy.json
         f = open(os.path.join(ConfigManager.Instance().get_configs_path(), 'proxies.json'))
@@ -557,8 +557,8 @@ class ProxyManager(Resource):
             response[protocol] = {"hostname": res[protocol]["hostname"],"port": res[protocol]["port"], "username": res[protocol]["username"]}
         return response
 
-    #@authDB.requires_auth
-    #@pydio_profile
+    @authDB.requires_auth
+    @pydio_profile
     def post(self):
         """
         read the contents from the web page

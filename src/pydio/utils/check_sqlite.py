@@ -19,8 +19,6 @@
 #
 
 import sqlite3
-import logging
-import os
 from contextlib import closing
 
 def check_structure_sqlite_file(filename):
