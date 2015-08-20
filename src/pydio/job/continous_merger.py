@@ -62,16 +62,19 @@ class ContinuousDiffMerger(threading.Thread):
         self.last_run = 0
         self.configs_path = job_data_path
         self.job_config = job_config
+        sqlite_files = [file for file in os.listdir(self.configs_path) if file.endswith(".sqlite")]
+
         from pydio.utils.check_sqlite import check_sqlite_file
-        try:
-            exists_and_correct = check_sqlite_file(self.configs_path + "/pydio.sqlite")
-            if exists_and_correct:
-                logging.info("Structure and Integrity of SQLite file %s is intact " % str(self.configs_path + "/pydio.sqlite"))
-        except DBCorruptedException as e:
-            logging.debug("SQLite file %s is corrupted (Reason: %s), Deleting file and Reinitialising sync"
-                          % (str(self.configs_path + "/pydio.sqlite"),e.message))
-            os.unlink(self.configs_path + "/pydio.sqlite")
-            self.update_sequences_file(0, 0)
+        for sqlite_file in sqlite_files:
+            try:
+                exists_and_correct = check_sqlite_file(self.configs_path + "/" + sqlite_file)
+                if exists_and_correct:
+                    logging.info("Structure and Integrity of SQLite file %s is intact " % str(self.configs_path + "/" + sqlite_file))
+            except DBCorruptedException as e:
+                logging.debug("SQLite file %s is corrupted (Reason: %s), Deleting file and Reinitialising sync"
+                              % (str(self.configs_path + "/" + sqlite_file),e.message))
+                os.unlink(self.configs_path + "/" + sqlite_file)
+                self.update_sequences_file(0, 0)
 
         self.init_global_progress()
 
