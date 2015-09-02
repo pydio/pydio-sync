@@ -128,7 +128,8 @@ class ContinuousDiffMerger(threading.Thread):
 
         if os.path.exists(self.configs_path + "/sequences"):
             try:
-                sequences = pickle.load(open(self.configs_path + "/sequences", "rb"))
+                with open(self.configs_path + "/sequences", "rb") as f:
+                    sequences = pickle.load(f)
                 self.remote_seq = sequences['remote']
                 self.local_seq = sequences['local']
                 if self.event_handler:
@@ -145,10 +146,11 @@ class ContinuousDiffMerger(threading.Thread):
             self.job_status_running = False
 
     def update_sequences_file(self, local_seq, remote_seq):
-        pickle.dump(dict(
-            local=local_seq,
-            remote=remote_seq
-        ), open(self.configs_path + '/sequences', 'wb'))
+        with open(self.configs_path + "/sequences", "wb") as f:
+            pickle.dump(dict(
+                local=local_seq,
+                remote=remote_seq
+            ), f)
 
     @pydio_profile
     def handle_transfer_callback_event(self, sender, change):

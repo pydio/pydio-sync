@@ -57,11 +57,13 @@ class ConfigManager:
             return self.device_id
 
         if os.path.exists(self.configs_path + '/device_id'):
-            self.device_id = pickle.load(open(self.configs_path + '/device_id', 'rb'))
+            with open(self.configs_path + '/device_id', 'rb') as f:
+                self.device_id = pickle.load(f)
             return self.device_id
 
         self.device_id = str(uuid.uuid1())
-        pickle.dump(self.device_id, open(self.configs_path + '/device_id', 'wb'))
+        with open(self.configs_path + '/device_id', 'wb') as f:
+            pickle.dump(self.device_id, f)
         return self.device_id
 
     def get_version_data(self):
