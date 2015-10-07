@@ -518,11 +518,11 @@ msgstr "Fout tijdens token authenticatie, naam en wachtwoord opnieuw laden?"
 #: sdk/exceptions.py:56
 #, python-format
 msgid ""
-"[Quota limit reached] - You are using %(usage)iMB of %(total)iMB, you cannot "
-"upload %(filename)s (%(filesize)iMB)"
+"[Quota limit reached] - You are using %(usage)s iMB of %(total)s iMB, you cannot "
+"upload %(filename)s (%(filesize)s iMB)"
 msgstr ""
-"[Quotum limiet] U gebruikt %(usage)iMB van %(total)iMB, u kunt "
-"%(filename)s (%(filesize)iMB) niet uploaden"
+"[Quotum limiet] U gebruikt %(usage)s iMB van %(total)s iMB, u kunt "
+"%(filename)s (%(filesize)s iMB) niet uploaden"
 #: sdk/exceptions.py:61
 #, python-format
 msgid "[File permission] %s"
