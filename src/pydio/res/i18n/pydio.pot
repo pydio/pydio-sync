@@ -624,8 +624,8 @@ msgstr ""
 #: sdk/exceptions.py:56
 #, python-format
 msgid ""
-"[Quota limit reached] - You are using %(usage)iMB of %(total)iMB, you cannot "
-"upload %(filename)s (%(filesize)iMB)"
+"[Quota limit reached] - You are using %(usage)s iMB of %(total)s iMB, you cannot "
+"upload %(filename)s (%(filesize)s iMB)"
 msgstr ""
 
 #: sdk/exceptions.py:61
