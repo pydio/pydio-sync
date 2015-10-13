@@ -329,6 +329,8 @@ class SqliteChangeStore():
                 logging.info("[DEBUG] work in progress -- keepboth")
                 # remove conflict from table, effect: FILES out of sync,
                 #self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?', ('remote', node['node_path'].replace('\\', '/')))
+                from pydio.job.job_config import JobConfig
+                logging.info(JobConfig.user_id) # TODO get the user id instead of .mine
                 self.local_sdk.copy(node['node_path'])
                 self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
                                   ('local', node['node_path'].replace('\\', '/')))
