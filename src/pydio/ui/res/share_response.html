@@ -1,0 +1,21 @@
+<h3>{{_('Share via Pydio')}}</h3>
+
+<div class="well">
+    <form name="myForm" class="form-inline">
+        <div>
+            <h4>{{_('Shared Link')}}</h4>
+            <div class="form-group">
+                <div />
+                    <div class="input-group" align="centre">
+                        <input type="text" ng-model="share_link" readonly class="form-control" ng-value="GetShareLink()">
+                    </div>
+                <div />
+                <div class="input-group" align="centre">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" id="copyToClipboard" ng-click="copyToClipboard(document.getElementById('link').innerHTML)" type="button">{{_('Copy To Clipboard')}}</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

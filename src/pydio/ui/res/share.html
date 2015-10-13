@@ -1,0 +1,93 @@
+<h3>{{_('Share via Pydio')}}</h3>
+
+<div class="well">
+    <div class="small" style="margin-bottom: 1.5em;">{{_('Share Selected file via Customized / public link')}}</div>
+    <form name="myForm" class="form-inline">
+        <div>
+            <div class="form-group">
+                <table>
+                    <tbody>
+                    <tr> <td> <h4> Description </h4> </td></tr>
+                        <tr>
+                            <td>
+                            Path*:
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <input ng-model="share_filename" type="text" readonly class="form-control" ng-value="ShareFileChooser()">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" ng-click="openFile()" type="button">{{_('Choose')}}</button>
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                    <tr>
+                        <td>
+                        Description:
+                        </td>
+                        <td>
+                            <input ng-model="share_description" type="text" class="form-control" placeholder="file description">
+                        </td>
+                    </tr>
+                    <tr />
+                    <tr> <td> <h4> Link Handle </h4> </td></tr>
+                    <tr>
+                        <td>
+                        Link Handle:
+                        </td>
+                        <td>
+                            <input ng-model="share_link_handler" type="text" class="form-control" placeholder="get pretty link like https//../my-link">
+                        </td>
+                    </tr>
+
+                    <tr />
+                    <tr> <td> <h4> Security </h4> </td></tr>
+                    <tr>
+                        <td>
+                        Password:
+                        </td>
+                        <td>
+                            <input ng-model="share_password" type="password" class="form-control">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                        Expire IN (DAYS):
+                        </td>
+                        <td>
+                            <input ng-model="share_expire_in" type="number" class="form-control" placeholder="default: permanent">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                        Allowed Downloads:
+                        </td>
+                        <td>
+                            <input ng-model="share_allowed_downloads" type="number" class="form-control">
+                        </td>
+                    </tr>
+                    <tr />
+                    <tr>
+                        <td>
+                        Access Rights:
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                        <input ng-model="share_preview" type="checkbox" value="Preview" checked="true">
+                        Preview:
+                        </td>
+                        <td>
+                        <input ng-model="share_download_checkbox" type="checkbox" value="download" checked="true">
+                        Download:
+                        </td>
+                    </tr>
+                    </tbody></table>
+            </div>
+        </div>
+    </form>
+    <div> *  mandatory fields</div>
+</div>
+<div style="text-align: center; margin-top: 20px;">
+        <a href="" class="btn btn-primary" tabindex="0" ng-click="generateLink()" type="button">{{_('Generate Link')}}</a>
+</div>
