@@ -325,6 +325,13 @@ class SqliteChangeStore():
                 # remove remote operation
                 self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
                                   ('remote', node['node_path'].replace('\\', '/')))
+            elif node['status'] == 'SOLVED:KEEPBOTH':
+                logging.info("[DEBUG] work in progress -- keepboth")
+                # remove conflict from table, effect: FILES out of sync,
+                #self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?', ('remote', node['node_path'].replace('\\', '/')))
+                self.local_sdk.copy(node['node_path'])
+                self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
+                                  ('local', node['node_path'].replace('\\', '/')))
 
         status_handler.list_solved_nodes_w_callback(handle_solved)
         self.conn.commit()
