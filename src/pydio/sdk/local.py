@@ -125,19 +125,19 @@ class SystemSdk(object):
             os.unlink(file_path)
             os.rename(output_path, file_path)
 
-        def copy(self, file_path):
-            dot_index = file_path.rfind('.')
-            if dot_index > -1:
-                ext = file_path[dot_index:]
-                new_path = file_path[:dot_index]
-            else:
-                new_path = file_path
-            new_path += '.mine'
-            i = 1
-            while os.path.exists(self.basepath + new_path):  # generate new name
-                new_path += str(i)
-                i += 1
-            if dot_index > -1:
-                new_path += ext
-            # logging.info(self.basepath + file_path + " - cp -> " + self.basepath + new_path)
-            shutil.copy2(self.basepath + file_path, self.basepath + new_path)
+    def copy(self, file_path):
+        dot_index = file_path.rfind('.')
+        if dot_index > -1:
+            ext = file_path[dot_index:]
+            new_path = file_path[:dot_index]
+        else:
+            new_path = file_path
+        new_path += '.mine'
+        i = 1
+        while os.path.exists(self.basepath + new_path):  # generate new name
+            new_path += str(i)
+            i += 1
+        if dot_index > -1:
+            new_path += ext
+        # logging.info(self.basepath + file_path + " - cp -> " + self.basepath + new_path)
+        shutil.copy2(self.basepath + file_path, self.basepath + new_path)
