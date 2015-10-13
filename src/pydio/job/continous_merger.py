@@ -505,6 +505,8 @@ class ContinuousDiffMerger(threading.Thread):
                     very_first = False
                     continue
 
+                self.current_store.update_pending_status(self.db_handler,self.local_seq)
+
                 self.global_progress['status_indexing'] = 0
                 import change_processor
                 self.global_progress['queue_length'] = changes_length

@@ -83,6 +83,8 @@ class ConfigManager:
                         for protocol in data.keys():
                             if data[protocol]["password"] =="__pydio_proxy_pwd__":
                                 proxy = protocol + '://' + data[protocol]["username"] + ':' + keyring.get_password(data[protocol]["hostname"], data[protocol]["username"]) + '@' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
+                            elif data[protocol]["password"] == "" and data[protocol]["username"] == "":
+                                proxy = protocol + '://' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
                             else:
                                 proxy = protocol + '://' + data[protocol]["username"] + ':' + data[protocol]["password"] + '@' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
                             proxies[protocol] = proxy

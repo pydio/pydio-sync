@@ -139,6 +139,23 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             });
         }])
 
+    .factory('Share', ['$resource',
+        function($resource){
+            return $resource('/share/:job_id/', {}, {
+                query: {method:'GET', params:{
+                    job_id:'',
+                    ws_label:'',
+                    ws_description:'',
+                    password:'',
+                    expiration:'',
+                    downloads:'',
+                    can_read:'',
+                    can_download:'',
+                    relative_path:''
+                }, isArray:true}
+            });
+        }])
+
     .config(function($routeProvider) {
         $routeProvider
             .when('/', {
@@ -148,6 +165,14 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             .when('/about', {
                 controller:'ListCtrl',
                 templateUrl:'about.html'
+            })
+            .when('/share', {
+                controller:'ShareCtrl',
+                templateUrl:'share.html'
+            })
+            .when('/share/response', {
+                controller:'ShareCtrl',
+                templateUrl:'share_response.html'
             })
             .when('/edit/:jobId/full', {
                 controller:'EditCtrl',
@@ -262,6 +287,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
         var t0;
         var t1;
+        var Share_Link = "hi2";
 
         $scope.openLogsForJob = function(jobId){
 
@@ -693,4 +719,92 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 $location.path('/');
             }
         };
+    })
+
+    .controller('ShareCtrl', function($scope, $window, $location, Share) {
+        $scope._ = window.translate;
+        if (window.ui_config){
+            $scope.ui_config = window.ui_config;
+        }
+
+        $scope.QtObject = window.PydioQtFileDialog;
+
+        $scope.ShareFileChooser = function(){
+            var res;
+            res = window.PydioQtFileDialog.getShareName();
+            if(res){
+                $scope.share_filename = res;
+            }
+        };
+
+        $scope.generateLink = function(){
+            var res;
+            //res = window.prompt($scope.filename);
+            //window.prompt(document.getElementById("share_filename"));
+            //window.prompt(window.translate('Full path to the local folder'));
+            // generate the link and load a new html page with response (generated link)
+            /*
+            $scope.share = Share.query({
+                path = $scope.share_filename
+                ws_label = $scope.share_filename.replace(/^.*[\\\/]/, '')
+                ws_description = $scope.share_description
+                password = $scope.share_password
+                expiration = $scope.share_expire_in
+                downloads = $scope.share_allowed_downloads
+                can_read = $scope.share_preview
+                can_download = $scope.share_download_checkbox
+            }
+            */
+            //Share.$save();
+            //$scope.share_loading = true;
+            //$scope.share_loading_error = '';
+            //var content = window.PydioQtFileDialog.getShareContent();
+            res = Share.query({
+                job_id:window.PydioQtFileDialog.getShareJobId(),
+                ws_label:$scope.share_filename.replace(/^.*[\\\/]/, ''),
+                ws_description:$scope.share_description,
+                password:$scope.share_password,
+                expiration:$scope.share_expire_in,
+                downloads:$scope.share_allowed_downloads,
+                can_read:$scope.share_preview,
+                can_download:$scope.share_download_checkbox,
+                relative_path: $scope.share_filename
+            });
+            Share_Link = res;
+            //$window.prompt(Object.getOwnPropertyNames(res.$promise));
+            //$window.prompt(res.$resolved);
+            //$window.prompt(res.$promise.$then);
+            //Share_Link = "hello";
+            //relative_path: Just for the moment - should get it from qt
+            //Share.$save();
+            //$window.prompt("hello");
+            //$scope.share_link = res;
+            //$window.prompt(res);
+            //$window.prompt(res.GetType());
+            //$scope.loading = false;
+            $location.path('/share/response');
+        };
+
+        $scope.GetShareLink = function(){
+            $scope.share_link = Share_Link;
+        };
+
+        $scope.openFile = function(){
+
+            var res;
+            if(!window.PydioQtFileDialog) {
+                res = window.prompt(window.translate('Full path to the local folder'));
+            }else{
+                res = window.PydioQtFileDialog.getFilePath();
+            }
+            if(res){
+                $scope.share_filename = res;
+            }
+
+        };
+
+        $scope.copyToClipboard = function(text){
+            // copy to clipboard the passed text
+        };
+
     });

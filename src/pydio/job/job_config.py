@@ -151,7 +151,8 @@ class JobConfig:
                     "start_time": obj.start_time,
                     "trust_ssl":obj.trust_ssl,
                     "active": obj.active,
-                    "filter": obj.filters}
+                    "filter": obj.filters,
+                    "directory": obj.directory}
         raise TypeError(repr(JobConfig) + " can't be encoded")
 
     def load_from_cliargs(self, args):

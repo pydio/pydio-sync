@@ -1032,3 +1032,32 @@ class PydioSdk():
                 logging.info('Uploaded '+str(max_size)+' bytes of data in about %'+str(duration)+' s')
 
         return resp
+
+    def share(self, ws_label, ws_description, password, expiration, downloads, can_read, can_download, paths, temp_workspace=""):
+        data = dict()
+        #data["get_action"] = "share"
+        data["sub_action"] = "create_minisite"
+        data["guest_user_pass"] = password
+        data["create_guest_user"] = "true"
+        data["share_type"] = "on"
+        data["expiration"] = expiration
+        data["downloadlimit"] = downloads
+        data["repo_description"] = ws_description
+        data["repo_label"] = ws_label
+        data["file"] = paths
+
+        if can_download == "true":
+            data["simple_right_download"] = "on"
+        if can_read == "true":
+            data["simple_right_read"] = "on"
+
+
+        resp = requests.post(
+                    url=self.url+'/share',
+                    data=data,
+                    timeout=20,
+                    verify=self.verify_ssl,
+                    auth=self.auth,
+                    proxies=self.proxies)
+
+        return resp.content

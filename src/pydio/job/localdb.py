@@ -210,6 +210,23 @@ class LocalDbHandler():
         return status
 
     @pydio_profile
+    def get_directory_node_status(self, node_path):
+        node_path = self.normpath(node_path)
+        conn = sqlite3.connect(self.db)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        status = "IDLE"
+        if [r[0] for r in c.execute("SELECT COUNT(ajxp_index.node_id) \
+                     FROM ajxp_index \
+                     LEFT JOIN ajxp_node_status \
+                     ON ajxp_node_status.node_id = ajxp_index.node_id\
+                     WHERE ajxp_node_status.status<>'IDLE' \
+                     AND ajxp_index.node_path LIKE ?",(node_path + "\\" + "%",))][0] > 0:
+            status = "PENDING"
+        c.close()
+        return status
+
+    @pydio_profile
     def list_conflict_nodes(self):
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
@@ -267,6 +284,33 @@ class LocalDbHandler():
             conn.execute("UPDATE ajxp_node_status SET status=?, detail=? WHERE node_id=?", (status, detail, node_id))
         conn.commit()
         conn.close()
+
+    @pydio_profile
+    def update_bulk_node_status_as_pending(self, list_seq_ids):
+        if(len(list_seq_ids)) > 0:
+            conn = sqlite3.connect(self.db)
+
+            try:
+                seq_ids = str(",".join(list_seq_ids))
+
+                # Only update status for files, for directories we handle them separately
+                conn.execute('UPDATE ajxp_node_status \
+                              SET status="PENDING" \
+                              WHERE ajxp_node_status.status<>"CONFLICT" \
+                              AND node_id IN \
+                             (SELECT ajxp_changes.node_id  \
+                              FROM ajxp_changes, ajxp_index \
+                              WHERE ajxp_changes.seq IN (' + seq_ids + ') \
+                              AND ajxp_changes.node_id = ajxp_index.node_id \
+                              AND ajxp_index.md5<>"directory" \
+                              AND ajxp_index.bytesize>0)')
+
+            except Exception as ex:
+                logging.exception(ex)
+                pass
+
+            conn.commit()
+            conn.close()
 
     @pydio_profile
     def compare_raw_pathes(self, row1, row2):
