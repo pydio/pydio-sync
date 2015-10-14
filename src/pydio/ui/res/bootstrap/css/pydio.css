@@ -50,6 +50,10 @@ background-color: rgb(250, 250, 250);
 border-width: 1px 1px 3px 1px;
 }
 
+.advanced_radio_box.conflict{
+width: 24%;
+}
+
 .advanced_radio_box.label-radio-selected {
 border-color: #d8d8d8;
 background-color: rgb(236, 236, 236);

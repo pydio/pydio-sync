@@ -492,6 +492,12 @@ class ContinuousDiffMerger(threading.Thread):
                 logging.debug('Store conflicts')
                 store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler, self.job_config)
                 if store_conflicts:
+                    if self.job_config.solve == 'both':
+                        logging.info('Marking nodes SOLVED:KEEPBOTH')
+                        for row in self.db_handler.list_conflict_nodes():
+                            self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPBOTH')
+                        store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler, self.job_config)
+                if store_conflicts:
                     logging.info('Conflicts detected, cannot continue!')
                     logger.log_state(_('Conflicts detected, cannot continue!'), 'error')
                     self.current_store.close()

@@ -21,13 +21,13 @@
     <div class="well">
         <p class="small">{{_('By default, the application will synchronize automatically')}}</p>
         <div style="text-align: center;">
-            <div class="advanced_radio_box" class="advanced_radio_box" ng-class="{'label-radio-selected':job.frequency=='auto'}" ng-click="job.frequency='auto'">
+            <div class="advanced_radio_box" ng-class="{'label-radio-selected':job.frequency=='auto'}" ng-click="job.frequency='auto'">
                 <label>{{_('Automatically')}}</label>
             </div>
-            <div  class="advanced_radio_box" class="advanced_radio_box" ng-class="{'label-radio-selected':job.frequency=='manual'}" ng-click="job.frequency='manual'">
+            <div  class="advanced_radio_box" ng-class="{'label-radio-selected':job.frequency=='manual'}" ng-click="job.frequency='manual'">
                 <label>{{_('Manually')}}</label>
             </div>
-            <div  class="advanced_radio_box" class="advanced_radio_box" ng-class="{'label-radio-selected':job.frequency=='time'}" ng-click="job.frequency='time'">
+            <div  class="advanced_radio_box" ng-class="{'label-radio-selected':job.frequency=='time'}" ng-click="job.frequency='time'">
                 <label>{{_('Given Time')}}</label>
             </div>
         </div>
@@ -41,17 +41,20 @@
 
 
 <div style="clear: left;">
-    <h4>{{_('Versionning')}}</h4>
+    <h4>{{_('Conflicts')}}</h4>
     <div class="well">
         <p class="small">{{_('When files were modified on both the server and your computer at the same time, synchronization is stopped.')}}</p>
         <div style="text-align: center;">
-            <div class="advanced_radio_box" class="advanced_radio_box" ng-class="{'label-radio-selected':job.solve=='manual'}" ng-click="job.solve='manual'">
+            <div class="advanced_radio_box conflict" ng-class="{'label-radio-selected':job.solve=='both'}" ng-click="job.solve='both'">
+                <label>{{_('Auto solve, keep both')}}</label>
+            </div>
+            <div class="advanced_radio_box conflict" ng-class="{'label-radio-selected':job.solve=='manual'}" ng-click="job.solve='manual'">
                 <label>{{_('Solve conflicts manually')}}</label>
             </div>
-            <div class="advanced_radio_box" class="advanced_radio_box" ng-class="{'label-radio-selected':job.solve=='local'}" ng-click="job.solve='local'">
+            <div class="advanced_radio_box conflict" ng-class="{'label-radio-selected':job.solve=='local'}" ng-click="job.solve='local'">
                 <label>{{_('Always prefer local version')}}</label>
             </div>
-            <div class="advanced_radio_box" class="advanced_radio_box" ng-class="{'label-radio-selected':job.solve=='remote'}" ng-click="job.solve='remote'">
+            <div class="advanced_radio_box conflict" ng-class="{'label-radio-selected':job.solve=='remote'}" ng-click="job.solve='remote'">
                 <label>{{_('Always prefer remote version')}}</label>
             </div>
         </div>

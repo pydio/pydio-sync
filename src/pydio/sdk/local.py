@@ -126,19 +126,18 @@ class SystemSdk(object):
             os.rename(output_path, file_path)
 
     def copy(self, file_path, custom='mine'):
-        dot_index = file_path.rfind('.')
-        ext = ''
-        if dot_index > -1:  # handle extensions
-            ext = file_path[dot_index:]
-            new_path = file_path[:dot_index]
-        else:
-            new_path = file_path
+        f = os.path.splitext(file_path)
+        ext = f[1]
+        new_path = f[0]
+        dot_index = new_path.rfind('.')
+        if dot_index > -1:  # if file was already conflict created
+            if new_path[dot_index:] == '.' + custom:
+                new_path = new_path[:dot_index]
         new_path += '.' + custom
-        i = 1
-        while os.path.exists(self.basepath + new_path + ext):  # generate new name
-            new_path += str(i)
+        i, version = 1, "1"
+        while os.path.exists(self.basepath + new_path + version + ext):  # generate new name
             i += 1
-        if dot_index > -1:
-            new_path += ext
+            version = str(i)
+        new_path += version + ext
         # logging.info(self.basepath + file_path + " - cp -> " + self.basepath + new_path)
         shutil.copy2(self.basepath + file_path, self.basepath + new_path)

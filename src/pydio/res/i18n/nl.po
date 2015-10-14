@@ -359,7 +359,7 @@ msgstr "Een specifiek tijdstip"
 msgid "Run the sync every day at"
 msgstr "Voer de sync elke dag uit om "
 #: res/i18n/html_strings.py:76
-msgid "Versionning"
+msgid "Conflicts"
 msgstr "Versiebeheer"
 #: res/i18n/html_strings.py:77
 msgid ""
