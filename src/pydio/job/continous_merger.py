@@ -490,7 +490,7 @@ class ContinuousDiffMerger(threading.Thread):
                 self.update_min_seqs_from_store()
 
                 logging.debug('Store conflicts')
-                store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
+                store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler, self.job_config)
                 if store_conflicts:
                     logging.info('Conflicts detected, cannot continue!')
                     logger.log_state(_('Conflicts detected, cannot continue!'), 'error')

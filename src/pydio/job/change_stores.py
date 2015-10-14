@@ -313,7 +313,7 @@ class SqliteChangeStore():
         return map(lambda row: str(row['row_id']), to_remove)
 
     @pydio_profile
-    def clean_and_detect_conflicts(self, status_handler):
+    def clean_and_detect_conflicts(self, status_handler, job_config):
 
         # transform solved conflicts into process operation
         def handle_solved(node):
@@ -329,9 +329,7 @@ class SqliteChangeStore():
                 logging.info("[DEBUG] work in progress -- keepboth")
                 # remove conflict from table, effect: FILES out of sync,
                 #self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?', ('remote', node['node_path'].replace('\\', '/')))
-                from pydio.job.job_config import JobConfig
-                logging.info(JobConfig.user_id) # TODO get the user id instead of .mine
-                self.local_sdk.copy(node['node_path'])
+                self.local_sdk.copy(node['node_path'], job_config.user_id)
                 self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
                                   ('local', node['node_path'].replace('\\', '/')))
 
