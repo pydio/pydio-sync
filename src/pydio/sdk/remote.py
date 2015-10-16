@@ -1033,7 +1033,23 @@ class PydioSdk():
 
         return resp
 
-    def share(self, ws_label, ws_description, password, expiration, downloads, can_read, can_download, paths, temp_workspace=""):
+    def check_share_link(self, file_name):
+        data = dict()
+        #data["action"] = "load_shared_element_data"
+        #data["file"] = file_name
+        #data["element_type"] = 'file'
+
+        resp = requests.post(
+                    url=self.url + "/load_shared_element_data" + file_name,
+                    data=data,
+                    timeout=20,
+                    verify=self.verify_ssl,
+                    auth=self.auth,
+                    proxies=self.proxies)
+
+        return resp.content
+
+    def share(self, ws_label, ws_description, password, expiration, downloads, can_read, can_download, paths, link_handler, temp_workspace=""):
         data = dict()
         #data["get_action"] = "share"
         data["sub_action"] = "create_minisite"
@@ -1044,16 +1060,32 @@ class PydioSdk():
         data["downloadlimit"] = downloads
         data["repo_description"] = ws_description
         data["repo_label"] = ws_label
+        data["nodes[]"] = paths
+        data["custom_handle"] = link_handler
         data["file"] = paths
+        data["dir"] = os.path.dirname(paths)
 
         if can_download == "true":
             data["simple_right_download"] = "on"
         if can_read == "true":
             data["simple_right_read"] = "on"
 
-
         resp = requests.post(
                     url=self.url+'/share',
+                    data=data,
+                    timeout=20,
+                    verify=self.verify_ssl,
+                    auth=self.auth,
+                    proxies=self.proxies)
+        return resp.content
+
+
+    def unshare(self, path):
+        data = dict()
+        #data["file"] = path
+
+        resp = requests.post(
+                    url=self.url+'/unshare' + path,
                     data=data,
                     timeout=20,
                     verify=self.verify_ssl,

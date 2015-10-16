@@ -7,15 +7,14 @@
             <div class="form-group">
                 <div />
                     <div class="input-group" align="centre">
-                        <input type="text" ng-model="share_link" readonly class="form-control" ng-value="GetShareLink()">
+                        <input type="text" size="60" ng-model="share_link" readonly class="form-control" ng-value="GetShareLink()">
                     </div>
                 <div />
-                <div class="input-group" align="centre">
-                    <span class="input-group-btn">
-                        <button class="btn btn-default" id="copyToClipboard" ng-click="copyToClipboard(document.getElementById('link').innerHTML)" type="button">{{_('Copy To Clipboard')}}</button>
-                    </span>
-                </div>
+                <div class="input-group" align="centre"> Use <kbd>Ctrl</kbd> + <kbd>C</kbd> to Copy the Link</div>
             </div>
         </div>
     </form>
+</div>
+<div style="text-align: center; margin-top: 20px;">
+        <a href="" class="btn btn-primary" tabindex="0" ng-click="unShareLink()" type="button">{{_('UnShare Link')}}</a>
 </div>

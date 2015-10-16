@@ -143,6 +143,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         function($resource){
             return $resource('/share/:job_id/', {}, {
                 query: {method:'GET', params:{
+                    action:'',
                     job_id:'',
                     ws_label:'',
                     ws_description:'',
@@ -151,8 +152,14 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     downloads:'',
                     can_read:'',
                     can_download:'',
-                    relative_path:''
-                }, isArray:true}
+                    relative_path:'',
+                    link_handler: ''
+                }, isArray:false},
+                unshare: {method:'GET', params:{
+                    job_id:'',
+                    action:'unshare',
+                    path:''
+                }, isArray:false}
             });
         }])
 
@@ -288,6 +295,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         var t0;
         var t1;
         var Share_Link = "hi2";
+        var Share_File_Name = "";
+        var Share_Job_Id = "";
 
         $scope.openLogsForJob = function(jobId){
 
@@ -723,6 +732,11 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
     .controller('ShareCtrl', function($scope, $window, $location, Share) {
         $scope._ = window.translate;
+        $scope.share_preview = true;
+        $scope.share_download_checkbox = true;
+        $scope.share_allowed_downloads = 0;
+        $scope.share_expire_in = 0;
+
         if (window.ui_config){
             $scope.ui_config = window.ui_config;
         }
@@ -737,8 +751,15 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             }
         };
 
+        $scope.GetShareLink = function(){
+            $scope.share_link = Share_Link;
+            //$scope.share_link = $scope.share_link;
+        };
+
         $scope.generateLink = function(){
             var res;
+            Share_File_Name = $scope.share_filename;
+            Share_Job_Id = window.PydioQtFileDialog.getShareJobId();
             //res = window.prompt($scope.filename);
             //window.prompt(document.getElementById("share_filename"));
             //window.prompt(window.translate('Full path to the local folder'));
@@ -760,7 +781,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             //$scope.share_loading_error = '';
             //var content = window.PydioQtFileDialog.getShareContent();
             res = Share.query({
-                job_id:window.PydioQtFileDialog.getShareJobId(),
+                action:'share',
+                job_id:Share_Job_Id,
                 ws_label:$scope.share_filename.replace(/^.*[\\\/]/, ''),
                 ws_description:$scope.share_description,
                 password:$scope.share_password,
@@ -768,25 +790,14 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 downloads:$scope.share_allowed_downloads,
                 can_read:$scope.share_preview,
                 can_download:$scope.share_download_checkbox,
-                relative_path: $scope.share_filename
-            });
-            Share_Link = res;
-            //$window.prompt(Object.getOwnPropertyNames(res.$promise));
-            //$window.prompt(res.$resolved);
-            //$window.prompt(res.$promise.$then);
-            //Share_Link = "hello";
-            //relative_path: Just for the moment - should get it from qt
-            //Share.$save();
-            //$window.prompt("hello");
-            //$scope.share_link = res;
-            //$window.prompt(res);
-            //$window.prompt(res.GetType());
+                relative_path: $scope.share_filename,
+                link_handler: $scope.share_link_handler
+            }, function(){
+                Share_Link = res.link;
+                $location.path('/share/response');
+                }
+            );
             //$scope.loading = false;
-            $location.path('/share/response');
-        };
-
-        $scope.GetShareLink = function(){
-            $scope.share_link = Share_Link;
         };
 
         $scope.openFile = function(){
@@ -803,8 +814,15 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
         };
 
-        $scope.copyToClipboard = function(text){
-            // copy to clipboard the passed text
+        $scope.unShareLink = function(){
+            res = Share.unshare({
+                job_id:Share_Job_Id,
+                action:'unshare',
+                path: Share_File_Name
+            }, function(){
+                $location.path('/');
+                }
+            );
         };
 
     });

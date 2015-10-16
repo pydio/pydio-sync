@@ -665,16 +665,30 @@ class ShareManager(Resource):
                            skip_ssl_verify=job.trust_ssl,
                            proxies=ConfigManager.Instance().get_defined_proxies())
 
-            # Check if the shared link is already present
-            res = remote_instance.share(
-                args["ws_label"],
-                args["ws_description"],
-                args["password"],
-                args["expiration"],
-                args["downloads"],
-                args["can_read"],
-                args["can_download"],
-                args["relative_path"]
-            )
-            return res
+            if args['action'] == 'share':
+                relative_path = os.path.normpath("/" + args["relative_path"]).replace('\\', '/')
+                # Check if the shared link is already present
+                check_res = remote_instance.check_share_link(
+                    relative_path
+                )
 
+                if len(check_res) > 2:  # when share link doesn't exists content length will be zero for file and 2 for folder
+                    res = json.loads(check_res)
+                    if res["minisite"]["public"]:
+                        return {"link": res["minisite"]["public_link"]}
+
+                res = remote_instance.share(
+                    args["ws_label"],
+                    args["ws_description"] if "ws_description" in args else "",
+                    args["password"] if "password" in args else "",
+                    args["expiration"] if "expiration" in args else 0,
+                    args["downloads"] if "downloads" in args else 0,
+                    args["can_read"] if "can_read" in args else "true",
+                    args["can_download"] if "can_download" in args else "true",
+                    relative_path,
+                    args["link_handler"] if "link_handler" in args else ""
+                )
+                return {"link": res}
+            else:
+                res = remote_instance.unshare("/" + args["path"])
+                return {"response": res}
