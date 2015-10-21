@@ -15,6 +15,8 @@
         </div>
     </form>
 </div>
-<div style="text-align: center; margin-top: 20px;">
-        <a href="" class="btn btn-primary" tabindex="0" ng-click="unShareLink()" type="button">{{_('UnShare Link')}}</a>
+
+<div  style="text-align: center; margin-top: 20px;">
+    <button type="button" ng-click="copyToClipBoard(share_link)" class="btn btn-primary" style="width: 40%;margin:0 1%;">{{_('Copy to Clipboard')}}</button>
+    <button type="button"  class="btn btn-danger" ng-click="unShareLink()" style="width: 40%;margin:0 1%;" href>{{_('UnShare Link')}}</button>
 </div>

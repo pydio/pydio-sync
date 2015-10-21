@@ -123,10 +123,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             'shareLink':'',
             'shareJobId':''};
         return {
-            getJob: function() {
+            get: function() {
                 return objectValue;
             },
-            setJob: function(key, value) {
+            set: function(key, value) {
                 objectValue[key] = value;
             }
         }
@@ -168,7 +168,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     can_read:'',
                     can_download:'',
                     relative_path:'',
-                    link_handler: ''
+                    link_handler: '',
+                    itemType: ''
                 }, isArray:false},
                 unshare: {method:'GET', params:{
                     job_id:'',
@@ -743,6 +744,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         $scope.share_preview = true;
         $scope.share_download_checkbox = true;
         $scope.share_allowed_downloads = 0;
+        $scope.itemType = false;
         $scope.share_expire_in = 0;
 
         if (window.ui_config){
@@ -751,23 +753,18 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
         $scope.QtObject = window.PydioQtFileDialog;
 
-        $scope.ShareFileChooser = function(){
-            var res;
-            res = window.PydioQtFileDialog.getShareName();
-            if(res){
-                $scope.share_filename = res;
-            }
-        };
+        $scope.share_filename = window.PydioQtFileDialog.getShareName();
+        $scope.itemType = window.PydioQtFileDialog.getItemType();
 
         $scope.GetShareLink = function(){
-            share_details = shareFile.getJob();
+            share_details = shareFile.get();
             $scope.share_link = share_details['shareLink'];
         };
 
         $scope.generateLink = function(){
             var res;
-            shareFile.setJob('fileName',$scope.share_filename)
-            shareFile.setJob('shareJobId',window.PydioQtFileDialog.getShareJobId())
+            shareFile.set('fileName',$scope.share_filename)
+            shareFile.set('shareJobId',window.PydioQtFileDialog.getShareJobId())
 
             res = Share.query({
                 action:'share',
@@ -780,9 +777,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 can_read:$scope.share_preview,
                 can_download:$scope.share_download_checkbox,
                 relative_path: $scope.share_filename,
-                link_handler: $scope.share_link_handler
+                link_handler: $scope.share_link_handler,
+                itemType: $scope.share_upload_checkbox
             }, function(){
-                shareFile.setJob('shareLink',res.link)
+                shareFile.set('shareLink',res.link)
                 $location.path('/share/response');
                 }
             );
@@ -803,7 +801,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         };
 
         $scope.unShareLink = function(){
-            share_details = shareFile.getJob();
+            share_details = shareFile.get();
             res = Share.unshare({
                 job_id:share_details['shareJobId'],
                 action:'unshare',
@@ -814,4 +812,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             );
         };
 
+        $scope.copyToClipBoard = function(value){
+            $scope.QtObject.copyToClipBoard(value);
+        };
     });

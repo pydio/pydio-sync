@@ -106,7 +106,7 @@ class PydioApi(Api):
         self.add_resource(ConflictsManager, '/jobs/<string:job_id>/conflicts', '/jobs/conflicts')
         self.add_resource(CmdManager, '/cmd/<string:cmd>/<string:job_id>', '/cmd/<string:cmd>')
         self.add_resource(ProxyManager, '/proxy')
-        self.add_resource(UpdateManager, '/update')
+        self.add_resource(UrlManager, '/url/<path:complete_url>')
         self.add_resource(TaskInfoManager, '/stat', '/stat/<string:job_id>', '/stat/<string:job_id>/<path:relative_path>')
         self.add_resource(ShareManager, '/share/<string:job_id>')
         #self.add_resource(ShareManager, '/share/<string:file_name>/<string:link_handle>/<string:password>/<string:expireIn>/<string:allowed_downloads>/<string:preview>/<string:download>/<path:relative_path>')
@@ -641,11 +641,13 @@ class TaskInfoManager(Resource):
             return {"file_size": r.st_size,
                     "node_status": node_status}
 
-class UpdateManager(Resource):
+class UrlManager(Resource):
     @authDB.requires_auth
     @pydio_profile
-    def get(self):
-        return ConfigManager.Instance().get_version_data()
+    def get(self, complete_url):
+        resp = requests.get(complete_url, stream=False, proxies=ConfigManager.Instance().get_defined_proxies())
+        return json.loads(resp.content)
+
 
 class ShareManager(Resource):
 
@@ -686,7 +688,8 @@ class ShareManager(Resource):
                     args["can_read"] if "can_read" in args else "true",
                     args["can_download"] if "can_download" in args else "true",
                     relative_path,
-                    args["link_handler"] if "link_handler" in args else ""
+                    args["link_handler"] if "link_handler" in args else "",
+                    args["can_write"] if "can_write" in args else "false"
                 )
                 return {"link": res}
             else:

@@ -1,93 +1,38 @@
-<h3>{{_('Share via Pydio')}}</h3>
+<h1 class="shareHeader">{{_('Share %1 via Pydio', share_filename.split("/").pop())}}</h1>
 
-<div class="well">
-    <div class="small" style="margin-bottom: 1.5em;">{{_('Share Selected file via Customized / public link')}}</div>
-    <form name="myForm" class="form-inline">
-        <div>
-            <div class="form-group">
-                <table>
-                    <tbody>
-                    <tr> <td> <h4> Description </h4> </td></tr>
-                        <tr>
-                            <td>
-                            Path*:
-                            </td>
-                            <td>
-                                <div class="input-group">
-                                    <input ng-model="share_filename" type="text" readonly class="form-control" ng-value="ShareFileChooser()">
-                                    <span class="input-group-btn">
-                                        <button class="btn btn-default" ng-click="openFile()" type="button">{{_('Choose')}}</button>
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                    <tr>
-                        <td>
-                        Description:
-                        </td>
-                        <td>
-                            <input ng-model="share_description" type="text" class="form-control" placeholder="file description">
-                        </td>
-                    </tr>
-                    <tr />
-                    <tr> <td> <h4> Link Handle </h4> </td></tr>
-                    <tr>
-                        <td>
-                        Link Handle:
-                        </td>
-                        <td>
-                            <input ng-model="share_link_handler" type="text" class="form-control" placeholder="get pretty link like https//../my-link">
-                        </td>
-                    </tr>
+<div style="margin-top: 60px;" class="well">  <!-- try with class="well" -->
+    <h2> Description </h2>
+    <div class="input-group">
+        <span class="input-group-addon">{{_('Path')}}</span>
+        <input type="text" ng-model="share_filename" class="form-control" placeholder="path" readonly required >
+    </div>
 
-                    <tr />
-                    <tr> <td> <h4> Security </h4> </td></tr>
-                    <tr>
-                        <td>
-                        Password:
-                        </td>
-                        <td>
-                            <input ng-model="share_password" type="password" class="form-control">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                        Expire IN (DAYS):
-                        </td>
-                        <td>
-                            <input ng-model="share_expire_in" type="number" class="form-control" placeholder="default: permanent" >
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                        Allowed Downloads:
-                        </td>
-                        <td>
-                            <input ng-model="share_allowed_downloads" type="number" class="form-control">
-                        </td>
-                    </tr>
-                    <tr />
-                    <tr>
-                        <td>
-                        Access Rights:
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                        <input ng-model="share_preview" type="checkbox">
-                        Preview:
-                        </td>
-                        <td>
-                        <input ng-model="share_download_checkbox" type="checkbox">
-                        Download:
-                        </td>
-                    </tr>
-                    </tbody></table>
-            </div>
-        </div>
-    </form>
-    <div> *  mandatory fields</div>
+    <h2> Security </h2>
+    <div class="input-group">
+        <span class="input-group-addon">{{_('Password')}}</span>
+        <input ng-model="share_password" type="password" class="form-control">
+    </div>
+
+    <h4> Expires after </h4>
+    <div class="input-group">
+        <span class="input-group-addon">{{_('Days')}}</span>
+        <input type="number" ng-model="share_expire_in"  class="form-control" >
+        <span class="input-group-addon">{{_('Downloads')}}</span>
+        <input type="number" ng-model="share_allowed_downloads" class="form-control" >
+    </div>
+
+        <h3 style="margin-top: 50px; cursor:pointer;" ng-click="share_show_advanced=!share_show_advanced">
+        <span ng-class="{'glyphicon-chevron-right':!share_show_advanced,'glyphicon-chevron-down':share_show_advanced}" class="small glyphicon"></span> {{_('Advanced parameters')}}<span ng-if="!share_show_advanced">...</span>
+    </h3>
+    <div ng-show="share_show_advanced">
+        <ng-include src="'advanced_share.html'"></ng-include>
+    </div>
+
+    <div>
+        <br style="clear: both">
+    </div>
 </div>
-<div style="text-align: center; margin-top: 20px;">
-        <a href="" class="btn btn-primary" tabindex="0" ng-click="generateLink()" type="button">{{_('Generate Link')}}</a>
+
+<div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: center; background-color: #77b8e2;">
+    <button type="button" ng-click="generateLink()" class="btn btn-primary" style="width: 40%;margin:0 1%;">{{_('Generate Link')}}</button>
 </div>

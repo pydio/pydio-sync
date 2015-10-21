@@ -1049,7 +1049,8 @@ class PydioSdk():
 
         return resp.content
 
-    def share(self, ws_label, ws_description, password, expiration, downloads, can_read, can_download, paths, link_handler, temp_workspace=""):
+    def share(self, ws_label, ws_description, password, expiration, downloads, can_read, can_download, paths,
+                    link_handler, can_write):
         data = dict()
         #data["get_action"] = "share"
         data["sub_action"] = "create_minisite"
@@ -1069,6 +1070,8 @@ class PydioSdk():
             data["simple_right_download"] = "on"
         if can_read == "true":
             data["simple_right_read"] = "on"
+        if can_write == "true":
+            data["simple_right_write"] = "on"
 
         resp = requests.post(
                     url=self.url+'/share',
