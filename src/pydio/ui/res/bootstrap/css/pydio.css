@@ -60,6 +60,9 @@ background-color: rgb(236, 236, 236);
 border-width: 3px 1px 1px 1px;
 }
 
+.advanced_radio_box.label-radio-hidden {
+    display: none;
+}
 
 .display_on_hover{
     opacity: 0;

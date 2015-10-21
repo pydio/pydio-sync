@@ -3,10 +3,10 @@
     <div class="well">
         <p class="small">{{_('By default, modifications from both sides (local/remote) are automatically reflected on the other side.')}}</p>
         <div style="text-align: center;">
-            <div class="advanced_radio_box" ng-class="{'label-radio-selected':job.direction=='up'}" ng-click="job.direction='up'">
+            <div class="advanced_radio_box" ng-class="{'label-radio-selected':job.direction=='up', 'label-radio-hidden': job.hide_up_dir}" ng-click="job.direction='up'">
                 <label>{{_('Upload Only')}}<br><span class="small">({{_('computer to server')}})</span></label>
             </div>
-            <div class="advanced_radio_box" ng-class="{'label-radio-selected':job.direction=='bi'}" ng-click="job.direction='bi'">
+            <div class="advanced_radio_box" ng-class="{'label-radio-selected':job.direction=='bi', 'label-radio-hidden': job.hide_bi_dir }" ng-click="job.direction='bi'">
                 <label>{{_('Bi-directional')}}<br><span class="small">&nbsp;</span></label>
             </div>
             <div  class="advanced_radio_box" ng-class="{'label-radio-selected':job.direction=='down'}" ng-click="job.direction='down'">

@@ -397,6 +397,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             job.direction       = 'bi'; // up, bi, down
             job.label           = 'New Job';
             job.__type__        = 'JobConfig';
+
             $scope.job          = job;
             currentJob.setJob($scope.job);
         } else if ($scope.job && $scope.job.server){
@@ -410,14 +411,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         }
         $scope.next = function(){
             $scope.loading = true;
-             if(getAcl() == 'r'){
-                job.direction = 'down';
-            } else if(getAcl() == 'w'){
-                job.direction = 'up';
-            } else {
-                job.direction = 'bi';
-            }
-            console.log("jobdir -> "+$scope.job.direction);
             $scope.loadWorkspaces();
         }
 
@@ -648,8 +641,11 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     }, 600);
                     $scope.job.test_path = false;
                 }
-                if($scope.job.repoObject['@acl'] === 'r')
+                if($scope.job.repoObject['@acl'] === 'r'){
                     $scope.job.direction = 'down';
+                    $scope.job.hide_up_dir = true;
+                    $scope.job.hide_bi_dir = true;
+                }
                 $location.path('/edit/new/step3');
 
             }else if(stepName == 'step3'){
