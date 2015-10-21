@@ -125,7 +125,12 @@ class SystemSdk(object):
             os.unlink(file_path)
             os.rename(output_path, file_path)
 
-    def copy(self, file_path, custom='mine'):
+    def duplicateWith(self, file_path, custom='mine'):
+        """
+        Copies the file from file_path, keeps the extension and optionally add a custom path modifier to the filename
+        :param file_path: file that will be duplicated
+        :param custom: custom path modifier used to identify the copied file
+        """
         f = os.path.splitext(file_path)
         ext = f[1]
         new_path = f[0]
