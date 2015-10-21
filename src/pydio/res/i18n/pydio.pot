@@ -428,7 +428,7 @@ msgid "Run the sync every day at"
 msgstr ""
 
 #: res/i18n/html_strings.py:76
-msgid "Conflicts"
+msgid "Versionning"
 msgstr ""
 
 #: res/i18n/html_strings.py:77
