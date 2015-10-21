@@ -18,10 +18,9 @@
             </button>
             <ul class="dropdown-menu" role="menu">
                 <li class="repos" ng-click="OnWorkspaceClick(repo)" ng-repeat="repo in repositories | filter:{'@meta_syncable_REPO_SYNCABLE':'true'}">{{repo.label}}
-                <div class="repo-desc">{{repo.description}}</div></li>
+                <div class="repo-desc">{{ repo.description }} || ACL info: {{ repo['@acl'] }}</div></li>
             </ul>
         </div>
-
         <div class="input-group" ng-show="folders && folders.length" style="padding: 7px;">
             <span ng-click="showFoldersBox=!showFoldersBox;job.remote_folder=''"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!showFoldersBox,'glyphicon-ok':showFoldersBox}"></span> <label >{{_('Synchronise only a subfolder of this workspace')}}</label></span>
         </div>
