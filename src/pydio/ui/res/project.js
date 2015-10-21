@@ -312,7 +312,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 if(!appToAll && conflict.node_id != nodeId) return;
                 if(appToAll && conflict.status.indexOf('SOLVED:') === 0) return;
                 conflict.status = status;
-                console.log(status)
                 conflict.job_id = $scope.opened_logs_panel;
                 conflict.$save();
             });
