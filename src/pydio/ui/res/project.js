@@ -1,4 +1,5 @@
 function debug(){
+    // adds a cute random color to the pydio brand header
     document.querySelector("a.navbar-brand").style.backgroundColor = '#'+Math.random().toString(16).slice(-6);
 }
 
@@ -21,7 +22,7 @@ window.translate = function(string){
         string = string.replace('%'+i, arguments[i]);
         i++;
     }
-    debug();
+    debug(); // TODO:, FIXME: REMOVE ME FOR PRODUCTION
     return string;
 }
 
