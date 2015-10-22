@@ -22,7 +22,7 @@ window.translate = function(string){
         string = string.replace('%'+i, arguments[i]);
         i++;
     }
-    debug(); // TODO:, FIXME: REMOVE ME FOR PRODUCTION
+    //debug(); // TODO:, FIXME: REMOVE FOR PRODUCTION
     return string;
 }
 
@@ -402,6 +402,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             job.solve           = 'both'; // both, manual, local, remote
             job.direction       = 'bi'; // up, bi, down
             job.label           = 'New Job';
+            job.hide_up_dir     = 'false'; // to hide buttons in gui
+            job.hide_bi_dir     = 'false';  // to hide buttons in gui
             job.__type__        = 'JobConfig';
 
             $scope.job          = job;
@@ -494,7 +496,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
     })
 
     .controller('EditCtrl', function($scope, $location, $routeParams, $window, $timeout, Jobs, currentJob, Ws, Folders, Commands) {
-
         $scope._ = window.translate;
         if (window.ui_config){
             $scope.ui_config = window.ui_config;
@@ -649,8 +650,9 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 }
                 if($scope.job.repoObject['@acl'] === 'r'){
                     $scope.job.direction = 'down';
-                    $scope.job.hide_up_dir = true;
-                    $scope.job.hide_bi_dir = true;
+                    $scope.job.hide_up_dir = 'true';
+                    $scope.job.hide_bi_dir = 'true';
+                    $scope.job.$save();
                 }
                 $location.path('/edit/new/step3');
 
