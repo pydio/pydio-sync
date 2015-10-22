@@ -1,3 +1,7 @@
+function debug(){
+    document.querySelector("a.navbar-brand").style.backgroundColor = '#'+Math.random().toString(16).slice(-6);
+}
+
 window.translate = function(string){
     var lang;
     if(window.PydioLangs){
@@ -17,6 +21,7 @@ window.translate = function(string){
         string = string.replace('%'+i, arguments[i]);
         i++;
     }
+    debug();
     return string;
 }
 
