@@ -653,14 +653,12 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     $scope.job.direction = 'down';
                     $scope.job.hide_up_dir = 'true';
                     $scope.job.hide_bi_dir = 'true';
-                    //$scope.job.$save();
                 } else if ($scope.job.repoObject['@acl'] === 'w'){
-                    console.log("there :)")
                     $scope.job.direction = 'up';
                     $scope.job.hide_down_dir = 'true';
                     $scope.job.hide_bi_dir = 'true';
-                    //$scope.job.$save();
                 }
+                $scope.job.$save();
                 $location.path('/edit/new/step3');
 
             }else if(stepName == 'step3'){
