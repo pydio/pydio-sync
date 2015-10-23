@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-01-26 22:23+0100\n"
+"POT-Creation-Date: 2015-10-23 17:18+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,155 +17,182 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: job/change_processor.py:134
+#: job/change_processor.py:155
 #, python-format
 msgid "New folder created at %s"
 msgstr ""
 
-#: job/change_processor.py:140 job/change_processor.py:147
+#: job/change_processor.py:161 job/change_processor.py:168
 #, python-format
 msgid "Folder created at %s"
 msgstr ""
 
-#: job/change_processor.py:159
+#: job/change_processor.py:180
 #, python-format
 msgid "Deleted file %s"
 msgstr ""
 
-#: job/change_processor.py:165
+#: job/change_processor.py:186
 #, python-format
 msgid "Folder %s deleted"
 msgstr ""
 
-#: job/change_processor.py:175 job/change_processor.py:183
+#: job/change_processor.py:197 job/change_processor.py:206
 #, python-format
 msgid "Moved %(source)s to %(target)s"
 msgstr ""
 
-#: job/change_processor.py:209
+#: job/change_processor.py:233
 #, python-format
 msgid "File %s downloaded from server"
 msgstr ""
 
-#: job/change_processor.py:241
+#: job/change_processor.py:266
 #, python-format
 msgid "File %s uploaded to server"
 msgstr ""
 
-#: job/continous_merger.py:254
+#: job/change_processor.py:271
+#, python-format
+msgid "New file created at %s"
+msgstr ""
+
+#: job/change_processor.py:277
+#, python-format
+msgid "File created at %s"
+msgstr ""
+
+#: job/continous_merger.py:288
 msgid "Job Paused"
 msgstr ""
 
-#: job/continous_merger.py:263
+#: job/continous_merger.py:298
 msgid "Job Started"
 msgstr ""
 
-#: job/continous_merger.py:273
+#: job/continous_merger.py:308
 msgid "Job stopping"
 msgstr ""
 
-#: job/continous_merger.py:304
+#: job/continous_merger.py:334
+msgid "Synchronized"
+msgstr ""
+
+#: job/continous_merger.py:358
 msgid "Checking changes since last launch..."
 msgstr ""
 
-#: job/continous_merger.py:323
+#: job/continous_merger.py:368
+msgid "Oops, error while indexing the local folder. Pausing the task."
+msgstr ""
+
+#: job/continous_merger.py:390
 msgid "Status: Paused"
 msgstr ""
 
-#: job/continous_merger.py:332
+#: job/continous_merger.py:399
 #, python-format
 msgid "Status: scheduled for %s"
 msgstr ""
 
-#: job/continous_merger.py:339
+#: job/continous_merger.py:406
 #, python-format
 msgid ""
 "Cannot find local folder! Did you disconnect a volume? Waiting %s seconds "
 "before retry"
 msgstr ""
 
-#: job/continous_merger.py:341
+#: job/continous_merger.py:408
 msgid "Cannot find local folder, did you disconnect a volume?"
 msgstr ""
 
-#: job/continous_merger.py:359
+#: job/continous_merger.py:427
 msgid "Gathering data from remote workspace, this can take a while..."
 msgstr ""
 
-#: job/continous_merger.py:368
+#: job/continous_merger.py:436
 #, python-format
 msgid "No Internet connection detected! Waiting for %s seconds to retry"
 msgstr ""
 
-#: job/continous_merger.py:370
+#: job/continous_merger.py:438
 #, python-format
 msgid ""
 "Connection to server failed, server is probably down. Waiting %s seconds to "
 "retry"
 msgstr ""
 
-#: job/continous_merger.py:379
+#: job/continous_merger.py:447
 #, python-format
 msgid "Error while connecting to remote server (%s)"
 msgstr ""
 
-#: job/continous_merger.py:418
+#: job/continous_merger.py:475
+msgid "Merging changes between remote and local, please wait..."
+msgstr ""
+
+#: job/continous_merger.py:502
 msgid "Conflicts detected, cannot continue!"
 msgstr ""
 
-#: job/continous_merger.py:428
+#: job/continous_merger.py:518
 #, python-format
 msgid "Processing %i changes"
 msgstr ""
 
-#: job/continous_merger.py:466
+#: job/continous_merger.py:557 job/continous_merger.py:559
 #, python-format
 msgid "%i files modified"
 msgstr ""
 
-#: job/continous_merger.py:471
-msgid "Synchronized"
-msgstr ""
-
-#: job/continous_merger.py:478
+#: job/continous_merger.py:568
 msgid "An SSL error happened, please check the logs"
 msgstr ""
 
-#: job/continous_merger.py:481 ui/web_api.py:162
+#: job/continous_merger.py:571 ui/web_api.py:297
 msgid "A proxy error happened, please check the logs"
 msgstr ""
 
-#: job/continous_merger.py:484 ui/web_api.py:165
+#: job/continous_merger.py:574 ui/web_api.py:300
 msgid "Connection error: too many redirects"
 msgstr ""
 
-#: job/continous_merger.py:487 ui/web_api.py:168
+#: job/continous_merger.py:577 ui/web_api.py:303
 msgid "Chunked encoding error, please check the logs"
 msgstr ""
 
-#: job/continous_merger.py:490 ui/web_api.py:171
+#: job/continous_merger.py:580 ui/web_api.py:306
 msgid "Content Decoding error, please check the logs"
 msgstr ""
 
-#: job/continous_merger.py:493 ui/web_api.py:174
+#: job/continous_merger.py:583 ui/web_api.py:309
 msgid "Http connection error: invalid schema."
 msgstr ""
 
-#: job/continous_merger.py:496 ui/web_api.py:177
+#: job/continous_merger.py:586 ui/web_api.py:312
 msgid "Http connection error: invalid URL."
 msgstr ""
 
-#: job/continous_merger.py:499
+#: job/continous_merger.py:589
 msgid "Connection timeout, will retry later."
 msgstr ""
 
-#: job/continous_merger.py:502 ui/web_api.py:187
+#: job/continous_merger.py:592 ui/web_api.py:322
 msgid "Cannot resolve domain!"
 msgstr ""
 
-#: job/continous_merger.py:506
+#: job/continous_merger.py:596
 #, python-format
 msgid "Unexpected Error: %s"
+msgstr ""
+
+#: job/local_watcher.py:119
+msgid "Walking through your local folder, please wait..."
+msgstr ""
+
+#: job/local_watcher.py:130
+#, python-format
+msgid "Detected %i local changes..."
 msgstr ""
 
 #: res/i18n/html_strings.py:2
@@ -215,7 +242,7 @@ msgid ""
 msgstr ""
 
 #: res/i18n/html_strings.py:12 res/i18n/html_strings.py:13
-#: res/i18n/html_strings.py:14
+#: res/i18n/html_strings.py:14 res/i18n/html_strings.py:143
 msgid "Required"
 msgstr ""
 
@@ -240,376 +267,402 @@ msgid "1/3 Select a workspace"
 msgstr ""
 
 #: res/i18n/html_strings.py:20
-msgid "Welcome!"
+msgid "Welcome %1!"
 msgstr ""
 
 #: res/i18n/html_strings.py:21
 msgid "You are connecting to %1"
 msgstr ""
 
-#: res/i18n/html_strings.py:22 res/i18n/html_strings.py:42
-#: res/i18n/html_strings.py:44
+#: res/i18n/html_strings.py:22 res/i18n/html_strings.py:23
+#: res/i18n/html_strings.py:44 res/i18n/html_strings.py:46
 msgid "change"
 msgstr ""
 
-#: res/i18n/html_strings.py:23 res/i18n/html_strings.py:91
+#: res/i18n/html_strings.py:24 res/i18n/html_strings.py:97
 msgid "Remote workspace"
 msgstr ""
 
-#: res/i18n/html_strings.py:24 res/i18n/html_strings.py:95
+#: res/i18n/html_strings.py:25
+msgid "Permissions"
+msgstr ""
+
+#: res/i18n/html_strings.py:26 res/i18n/html_strings.py:101
 msgid "Synchronise only a subfolder of this workspace"
 msgstr ""
 
-#: res/i18n/html_strings.py:25 res/i18n/html_strings.py:27
+#: res/i18n/html_strings.py:27 res/i18n/html_strings.py:29
 msgid "loading"
 msgstr ""
 
-#: res/i18n/html_strings.py:26 res/i18n/html_strings.py:41
-#: res/i18n/html_strings.py:96
+#: res/i18n/html_strings.py:28 res/i18n/html_strings.py:43
+#: res/i18n/html_strings.py:102
 msgid "Whole workspace"
 msgstr ""
 
-#: res/i18n/html_strings.py:28 res/i18n/html_strings.py:39
-#: res/i18n/html_strings.py:83 res/i18n/html_strings.py:92
+#: res/i18n/html_strings.py:30 res/i18n/html_strings.py:41
+#: res/i18n/html_strings.py:89 res/i18n/html_strings.py:98
 msgid "Workspace"
 msgstr ""
 
-#: res/i18n/html_strings.py:29 res/i18n/html_strings.py:40
-#: res/i18n/html_strings.py:84 res/i18n/html_strings.py:93
+#: res/i18n/html_strings.py:31 res/i18n/html_strings.py:42
+#: res/i18n/html_strings.py:90 res/i18n/html_strings.py:99
 msgid "Folder"
 msgstr ""
 
-#: res/i18n/html_strings.py:30 res/i18n/html_strings.py:36
-#: res/i18n/html_strings.py:94
+#: res/i18n/html_strings.py:32 res/i18n/html_strings.py:38
+#: res/i18n/html_strings.py:100
 msgid "Change"
 msgstr ""
 
-#: res/i18n/html_strings.py:31 res/i18n/html_strings.py:48
-#: res/i18n/html_strings.py:50
+#: res/i18n/html_strings.py:33 res/i18n/html_strings.py:50
+#: res/i18n/html_strings.py:52
 msgid "Next"
 msgstr ""
 
-#: res/i18n/html_strings.py:32 res/i18n/html_strings.py:46
+#: res/i18n/html_strings.py:34 res/i18n/html_strings.py:48
 msgid "Advanced Parameters"
 msgstr ""
 
-#: res/i18n/html_strings.py:33
+#: res/i18n/html_strings.py:35
 msgid "Save changes"
 msgstr ""
 
-#: res/i18n/html_strings.py:34
+#: res/i18n/html_strings.py:36
 msgid "2/3 Select a destination"
 msgstr ""
 
-#: res/i18n/html_strings.py:35
+#: res/i18n/html_strings.py:37
 msgid "By default a local folder will be created on your computer"
 msgstr ""
 
-#: res/i18n/html_strings.py:37
+#: res/i18n/html_strings.py:39
 msgid "3/3 Optional Parameters"
 msgstr ""
 
-#: res/i18n/html_strings.py:38 res/i18n/html_strings.py:82
+#: res/i18n/html_strings.py:40 res/i18n/html_strings.py:88
 msgid "Server"
 msgstr ""
 
-#: res/i18n/html_strings.py:43
+#: res/i18n/html_strings.py:45
 msgid "Local folder"
 msgstr ""
 
-#: res/i18n/html_strings.py:45
+#: res/i18n/html_strings.py:47
 msgid "Name this synchro"
 msgstr ""
 
-#: res/i18n/html_strings.py:47 res/i18n/html_strings.py:49
+#: res/i18n/html_strings.py:49 res/i18n/html_strings.py:51
 msgid "Previous"
 msgstr ""
 
-#: res/i18n/html_strings.py:51
+#: res/i18n/html_strings.py:53
 msgid "SYNC NAME"
 msgstr ""
 
-#: res/i18n/html_strings.py:52
+#: res/i18n/html_strings.py:54
 msgid "DATA SIZE"
 msgstr ""
 
-#: res/i18n/html_strings.py:53
+#: res/i18n/html_strings.py:55
 msgid "ESTIMATED TIME"
 msgstr ""
 
-#: res/i18n/html_strings.py:54
+#: res/i18n/html_strings.py:56
 msgid "Ready for ignition!"
 msgstr ""
 
-#: res/i18n/html_strings.py:55
+#: res/i18n/html_strings.py:57
 msgid "Are you ready to launch the synchronization?"
 msgstr ""
 
-#: res/i18n/html_strings.py:56
+#: res/i18n/html_strings.py:58
 msgid "Your data will be in orbit in no time!"
 msgstr ""
 
-#: res/i18n/html_strings.py:57
+#: res/i18n/html_strings.py:59
 msgid "FIRE THE ROCKET!"
 msgstr ""
 
-#: res/i18n/html_strings.py:58
+#: res/i18n/html_strings.py:60
 msgid "change parameters"
 msgstr ""
 
-#: res/i18n/html_strings.py:59
+#: res/i18n/html_strings.py:61
 msgid "Synchronization running..."
 msgstr ""
 
-#: res/i18n/html_strings.py:60
+#: res/i18n/html_strings.py:62
 msgid "Liftoff! First sync can take some time..."
 msgstr ""
 
-#: res/i18n/html_strings.py:61
+#: res/i18n/html_strings.py:63
 msgid "CREATE NEW SYNCHRO"
 msgstr ""
 
-#: res/i18n/html_strings.py:62
+#: res/i18n/html_strings.py:64
 msgid "DONE"
 msgstr ""
 
-#: res/i18n/html_strings.py:63
+#: res/i18n/html_strings.py:65
 msgid "Sync Direction"
 msgstr ""
 
-#: res/i18n/html_strings.py:64
-msgid ""
-"By default, modifications from both sides (local/remote) are automatically "
-"reflected on the other side."
-msgstr ""
-
-#: res/i18n/html_strings.py:65
-msgid "Bi-directional"
-msgstr ""
-
 #: res/i18n/html_strings.py:66
-msgid "Upload Only"
+msgid ""
+"Modifications are sent to the server but the client does not download "
+"anything."
 msgstr ""
 
 #: res/i18n/html_strings.py:67
-msgid "computer to server"
+msgid ""
+"Modifications from both sides (local/remote) are automatically reflected on "
+"the other side."
 msgstr ""
 
 #: res/i18n/html_strings.py:68
-msgid "Download Only"
+msgid ""
+"Modifications from the server are downloaded buth nothing is sent to the "
+"server."
 msgstr ""
 
 #: res/i18n/html_strings.py:69
-msgid "server to computer"
+msgid "Upload Only"
 msgstr ""
 
 #: res/i18n/html_strings.py:70
-msgid "Sync Frequency"
+msgid "computer to server"
 msgstr ""
 
 #: res/i18n/html_strings.py:71
-msgid "By default, the application will synchronize automatically"
+msgid "Bi-directional"
 msgstr ""
 
 #: res/i18n/html_strings.py:72
-msgid "Automatically"
+msgid "default when possible"
 msgstr ""
 
 #: res/i18n/html_strings.py:73
-msgid "Manually"
+msgid "Download Only"
 msgstr ""
 
 #: res/i18n/html_strings.py:74
-msgid "Given Time"
+msgid "server to computer"
 msgstr ""
 
 #: res/i18n/html_strings.py:75
-msgid "Run the sync every day at"
+msgid "Sync Frequency"
 msgstr ""
 
 #: res/i18n/html_strings.py:76
-msgid "Versionning"
+msgid "By default, the application will synchronize automatically"
 msgstr ""
 
 #: res/i18n/html_strings.py:77
+msgid "Automatically"
+msgstr ""
+
+#: res/i18n/html_strings.py:78
+msgid "Manually"
+msgstr ""
+
+#: res/i18n/html_strings.py:79
+msgid "Given Time"
+msgstr ""
+
+#: res/i18n/html_strings.py:80
+msgid "Run the sync every day at"
+msgstr ""
+
+#: res/i18n/html_strings.py:81 res/i18n/html_strings.py:125
+msgid "Conflicts"
+msgstr ""
+
+#: res/i18n/html_strings.py:82
 msgid ""
 "When files were modified on both the server and your computer at the same "
 "time, synchronization is stopped."
 msgstr ""
 
-#: res/i18n/html_strings.py:78
+#: res/i18n/html_strings.py:83
+msgid "Auto solve, keep both"
+msgstr ""
+
+#: res/i18n/html_strings.py:84
 msgid "Solve conflicts manually"
 msgstr ""
 
-#: res/i18n/html_strings.py:79
+#: res/i18n/html_strings.py:85
 msgid "Always prefer local version"
 msgstr ""
 
-#: res/i18n/html_strings.py:80
+#: res/i18n/html_strings.py:86
 msgid "Always prefer remote version"
 msgstr ""
 
-#: res/i18n/html_strings.py:81
+#: res/i18n/html_strings.py:87
 msgid "SYNC %1 parameters"
 msgstr ""
 
-#: res/i18n/html_strings.py:85
+#: res/i18n/html_strings.py:91
 msgid "Label"
 msgstr ""
 
-#: res/i18n/html_strings.py:86
+#: res/i18n/html_strings.py:92
 msgid "Server Connexion"
 msgstr ""
 
-#: res/i18n/html_strings.py:87
+#: res/i18n/html_strings.py:93
 msgid "Login"
 msgstr ""
 
-#: res/i18n/html_strings.py:88
+#: res/i18n/html_strings.py:94
 msgid "Password"
 msgstr ""
 
-#: res/i18n/html_strings.py:89
+#: res/i18n/html_strings.py:95
 msgid "Local Folder"
 msgstr ""
 
-#: res/i18n/html_strings.py:90
+#: res/i18n/html_strings.py:96
 msgid "Choose"
 msgstr ""
 
-#: res/i18n/html_strings.py:97
+#: res/i18n/html_strings.py:103
 msgid "[loading...]"
 msgstr ""
 
-#: res/i18n/html_strings.py:98
+#: res/i18n/html_strings.py:104
 msgid "Advanced parameters"
 msgstr ""
 
-#: res/i18n/html_strings.py:99
+#: res/i18n/html_strings.py:105
 msgid "Delete Sync"
 msgstr ""
 
-#: res/i18n/html_strings.py:100
+#: res/i18n/html_strings.py:106
 msgid "Save Parameters"
 msgstr ""
 
-#: res/i18n/html_strings.py:101
+#: res/i18n/html_strings.py:107
 msgid ""
 "Ooops, cannot contact agent! Make sure it is running correctly, process will "
 "try to reconnect in 20s"
 msgstr ""
 
-#: res/i18n/html_strings.py:102
+#: res/i18n/html_strings.py:108
 msgid "Select a workspace"
 msgstr ""
 
-#: res/i18n/html_strings.py:103
+#: res/i18n/html_strings.py:109
 msgid "Full path to the local folder"
 msgstr ""
 
-#: res/i18n/html_strings.py:104
+#: res/i18n/html_strings.py:110
 msgid "Are you sure you want to delete this synchro? No data will be deleted"
 msgstr ""
 
-#: res/i18n/html_strings.py:105
+#: res/i18n/html_strings.py:111
 msgid "computing..."
 msgstr ""
 
-#: res/i18n/html_strings.py:106
-msgid "SYNC"
-msgstr ""
-
-#: res/i18n/html_strings.py:107
-msgid "Size"
-msgstr ""
-
-#: res/i18n/html_strings.py:108
-msgid "Estimated time"
-msgstr ""
-
-#: res/i18n/html_strings.py:109 res/i18n/html_strings.py:113
+#: res/i18n/html_strings.py:112 res/i18n/html_strings.py:116
+#: res/i18n/html_strings.py:118 res/i18n/html_strings.py:122
 msgid "Status"
 msgstr ""
 
-#: res/i18n/html_strings.py:110
+#: res/i18n/html_strings.py:113 res/i18n/html_strings.py:117
+#: res/i18n/html_strings.py:119
 msgid "syncing"
 msgstr ""
 
-#: res/i18n/html_strings.py:111
-msgid "Last sync"
-msgstr ""
-
-#: res/i18n/html_strings.py:112
-msgid "ERROR"
-msgstr ""
-
 #: res/i18n/html_strings.py:114
-msgid "idle"
+msgid "Size"
 msgstr ""
 
 #: res/i18n/html_strings.py:115
-msgid "[DISABLED]"
-msgstr ""
-
-#: res/i18n/html_strings.py:116
-msgid "Conflicts"
-msgstr ""
-
-#: res/i18n/html_strings.py:117
-msgid "Solve Conflict"
-msgstr ""
-
-#: res/i18n/html_strings.py:118
-msgid "Solved"
-msgstr ""
-
-#: res/i18n/html_strings.py:119
-msgid "Last files synced"
+msgid "Estimated time"
 msgstr ""
 
 #: res/i18n/html_strings.py:120
-msgid "Open File"
+msgid "Last sync"
 msgstr ""
 
 #: res/i18n/html_strings.py:121
+msgid "ERROR"
+msgstr ""
+
+#: res/i18n/html_strings.py:123
+msgid "idle"
+msgstr ""
+
+#: res/i18n/html_strings.py:124
+msgid "[DISABLED]"
+msgstr ""
+
+#: res/i18n/html_strings.py:126
+msgid "Solve Conflict"
+msgstr ""
+
+#: res/i18n/html_strings.py:127
+msgid "Solved"
+msgstr ""
+
+#: res/i18n/html_strings.py:128
+msgid "Last files synced"
+msgstr ""
+
+#: res/i18n/html_strings.py:129
+msgid "Open File"
+msgstr ""
+
+#: res/i18n/html_strings.py:130
 msgid "Transfers in progress"
 msgstr ""
 
-#: res/i18n/html_strings.py:122
+#: res/i18n/html_strings.py:131
 msgid ""
 "An element named %1 was modified on both the server and on your local "
 "computer. Select how you want to solve this conflicting case:"
 msgstr ""
 
-#: res/i18n/html_strings.py:123
+#: res/i18n/html_strings.py:132
 msgid "Apply to all conflicts"
 msgstr ""
 
-#: res/i18n/html_strings.py:124
+#: res/i18n/html_strings.py:133
 msgid "Mine"
 msgstr ""
 
-#: res/i18n/html_strings.py:125
+#: res/i18n/html_strings.py:134
 msgid "Both Versions"
 msgstr ""
 
-#: res/i18n/html_strings.py:126
+#: res/i18n/html_strings.py:135
 msgid "Theirs"
 msgstr ""
 
-#: res/i18n/html_strings.py:127
+#: res/i18n/html_strings.py:136 res/i18n/html_strings.py:137
 msgid "Create a new synchronization"
 msgstr ""
 
-#: res/i18n/html_strings.py:128
+#: res/i18n/html_strings.py:138
+msgid "Please wait ..."
+msgstr ""
+
+#: res/i18n/html_strings.py:139
 msgid "Welcome to the Pydio Sync"
 msgstr ""
 
-#: res/i18n/html_strings.py:129
+#: res/i18n/html_strings.py:140
 msgid "The easiest way to keep your data in control"
 msgstr ""
 
-#: res/i18n/html_strings.py:130
+#: res/i18n/html_strings.py:141
+msgid "Loading..."
+msgstr ""
+
+#: res/i18n/html_strings.py:142 res/i18n/html_strings.py:144
 msgid "Get Started"
 msgstr ""
 
@@ -621,92 +674,116 @@ msgstr ""
 msgid "Token-based authentication failed, reload credentials?"
 msgstr ""
 
-#: sdk/exceptions.py:56
-#, python-format
+#: sdk/exceptions.py:49
 msgid ""
-"[Quota limit reached] - You are using %(usage)s iMB of %(total)s iMB, you cannot "
-"upload %(filename)s (%(filesize)s iMB)"
+"Token-based authentication seems unsupported, this may impact performances?"
 msgstr ""
 
-#: sdk/exceptions.py:61
+#: sdk/exceptions.py:60
+#, python-format
+msgid ""
+"[Quota limit reached] - You are using %(usage)s iMB of %(total)s iMB, you "
+"cannot upload %(filename)s - %(filesize)s iMB"
+msgstr ""
+
+#: sdk/exceptions.py:65
 #, python-format
 msgid "[File permission] %s"
 msgstr ""
 
-#: sdk/exceptions.py:66
+#: sdk/exceptions.py:70
 msgid "Stopping tasks"
 msgstr ""
 
-#: sdk/local.py:104
+#: sdk/local.py:106
 msgid "Cannot remove local folder"
 msgstr ""
 
-#: sdk/remote.py:138
+#: sdk/remote.py:139
+msgid "Cannot store tokens in keychain, there might be an OS permission issue!"
+msgstr ""
+
+#: sdk/remote.py:158
 msgid "Authentication Error"
 msgstr ""
 
-#: sdk/remote.py:147
-msgid ""
-"Cannot store tokens in keychain, basic auth will be performed each time!"
-msgstr ""
-
-#: sdk/remote.py:199
+#: sdk/remote.py:209 sdk/remote.py:267
 msgid "Unsupported HTTP method"
 msgstr ""
 
-#: sdk/remote.py:202
+#: sdk/remote.py:212 sdk/remote.py:270
 msgid "Authentication Exception"
 msgstr ""
 
-#: sdk/remote.py:261
+#: sdk/remote.py:349
 msgid ""
 "Invalid JSON value received while getting remote changes. Is the server "
 "correctly configured?"
 msgstr ""
 
-#: sdk/remote.py:297
-msgid "Invalid JSON value received while getting remote changes."
+#: sdk/remote.py:386
+msgid "Invalid JSON value received while getting remote changes"
 msgstr ""
 
-#: sdk/remote.py:536
-msgid "Local file to upload not found!"
-msgstr ""
-
-#: sdk/remote.py:541
-msgid "File not correct after upload (expected size was 0 bytes)"
-msgstr ""
-
-#: sdk/remote.py:578
-msgid "File is incorrect after upload"
-msgstr ""
-
-#: sdk/remote.py:591
-msgid "Original file was not found on server"
-msgstr ""
-
-#: sdk/remote.py:631 sdk/remote.py:879
+#: sdk/remote.py:413 sdk/remote.py:456 sdk/remote.py:749 sdk/remote.py:1013
 msgid "Task interrupted by user"
 msgstr ""
 
-#: sdk/remote.py:648
+#: sdk/remote.py:652
+msgid "Local file to upload not found!"
+msgstr ""
+
+#: sdk/remote.py:657
+msgid "File not correct after upload (expected size was 0 bytes)"
+msgstr ""
+
+#: sdk/remote.py:696
+msgid "File is incorrect after upload"
+msgstr ""
+
+#: sdk/remote.py:709
+msgid "Original file was not found on server"
+msgstr ""
+
+#: sdk/remote.py:766
 msgid "File not found after download"
 msgstr ""
 
-#: sdk/remote.py:653
+#: sdk/remote.py:771
 msgid "File is not correct after download"
 msgstr ""
 
-#: sdk/remote.py:672
+#: sdk/remote.py:790
 #, python-format
 msgid "Error while downloading file: %s"
 msgstr ""
 
-#: ui/web_api.py:159
+#: ui/web_api.py:281
+msgid "Couldn't load your workspaces, check your server !"
+msgstr ""
+
+#: ui/web_api.py:283
+msgid "Server not found (404), is it up and has it Pydio installed ?"
+msgstr ""
+
+#: ui/web_api.py:285
+msgid "Authentication failed: please verify your login and password"
+msgstr ""
+
+#: ui/web_api.py:287
+msgid "Access to the server is forbidden"
+msgstr ""
+
+#: ui/web_api.py:289
+msgid "Server seems to be encountering problems (500)"
+msgstr ""
+
+#: ui/web_api.py:294
 msgid ""
 "An SSL error happened! Is your server using a self-signed certificate? In "
 "that case please check 'Trust SSL certificate'"
 msgstr ""
 
-#: ui/web_api.py:184
+#: ui/web_api.py:319
 msgid "Connection timeout!"
 msgstr ""
