@@ -404,6 +404,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             job.label           = 'New Job';
             job.hide_up_dir     = 'false'; // to hide buttons in gui
             job.hide_bi_dir     = 'false';  // to hide buttons in gui
+            job.hide_down_dir   = 'false';  // to hide buttons in gui
             job.__type__        = 'JobConfig';
 
             $scope.job          = job;
@@ -648,11 +649,17 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     }, 600);
                     $scope.job.test_path = false;
                 }
-                if($scope.job.repoObject['@acl'] === 'r'){
+                if($scope.job.repoObject['@acl'] === 'r'){ // custom GUI for ACL
                     $scope.job.direction = 'down';
                     $scope.job.hide_up_dir = 'true';
                     $scope.job.hide_bi_dir = 'true';
-                    $scope.job.$save();
+                    //$scope.job.$save();
+                } else if ($scope.job.repoObject['@acl'] === 'w'){
+                    console.log("there :)")
+                    $scope.job.direction = 'up';
+                    $scope.job.hide_down_dir = 'true';
+                    $scope.job.hide_bi_dir = 'true';
+                    //$scope.job.$save();
                 }
                 $location.path('/edit/new/step3');
 

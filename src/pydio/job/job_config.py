@@ -126,6 +126,7 @@ class JobConfig:
         )
         self.hide_up_dir = 'false'
         self.hide_bi_dir = 'false'
+        self.hide_down_dir = 'false'
 
     def make_id(self):
         i = 1
@@ -155,7 +156,8 @@ class JobConfig:
                     "active": obj.active,
                     "filter": obj.filters,
                     "hide_up_dir": obj.hide_up_dir,
-                    "hide_bi_dir": obj.hide_bi_dir
+                    "hide_bi_dir": obj.hide_bi_dir,
+                    "hide_down_dir": obj.hide_down_dir
                     }
         raise TypeError(repr(JobConfig) + " can't be encoded")
 
@@ -228,6 +230,8 @@ class JobConfig:
                 job_config.hide_up_dir = obj['hide_up_dir']
             if 'hide_bi_dir' in obj:
                 job_config.hide_bi_dir = obj['hide_bi_dir']
+            if 'hide_down_dir' in obj:
+                job_config.hide_down_dir = obj['hide_down_dir']
 
             return job_config
         return obj

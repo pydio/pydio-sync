@@ -350,7 +350,7 @@ class FoldersManager(Resource):
         resp = requests.get( url, stream=True, auth=auth, verify=verify,
                              proxies=ConfigManager.Instance().get_defined_proxies())
         o = xmltodict.parse(resp.content)
-        if not 'tree' in o or 'message' in o['tree']:
+        if not 'tree' in o or not o['tree'] or 'message' in o['tree']:
             return [{'error':'Cannot load workspace'}]
         if not 'tree' in o['tree']:
             return []
