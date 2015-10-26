@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-10-23 17:18+0200\n"
+"POT-Creation-Date: 2015-10-26 10:39+0100\n"
 "PO-Revision-Date: 2014-10-01 16:43+0200\n"
 "Last-Translator: Charles du Jeu <charles@pydio.com>\n"
 "Language-Team: French\n"
@@ -306,9 +306,8 @@ msgid "Remote workspace"
 msgstr "Workspace"
 
 #: res/i18n/html_strings.py:25
-#, fuzzy
-msgid "Permissions"
-msgstr "[Permission] %s"
+msgid "This workspace is read only!"
+msgstr "Cet espace de travail est en lecture seule !"
 
 #: res/i18n/html_strings.py:26 res/i18n/html_strings.py:101
 msgid "Synchronise only a subfolder of this workspace"
@@ -832,6 +831,10 @@ msgstr ""
 #: ui/web_api.py:319
 msgid "Connection timeout!"
 msgstr "Connexion trop longue!"
+
+#, fuzzy
+#~ msgid "Permissions"
+#~ msgstr "[Permission] %s"
 
 #~ msgid "Versionning"
 #~ msgstr "Versions et conflits"
