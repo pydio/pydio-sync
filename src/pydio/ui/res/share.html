@@ -1,19 +1,20 @@
 <h1 class="shareHeader">{{_('Share %1 via Pydio', share_filename.split("/").pop())}}</h1>
+<!--h1 class="shareHeader" ng-value="checkExistingLink()">{{_('Share %1 via Pydio', share_filename.split("/").pop())}}</h1-->
 
 <div style="margin-top: 60px;" class="well">  <!-- try with class="well" -->
-    <h2> Description </h2>
+    <h2> {{_('Description')}} </h2>
     <div class="input-group">
         <span class="input-group-addon">{{_('Path')}}</span>
         <input type="text" ng-model="share_filename" class="form-control" placeholder="path" readonly required >
     </div>
 
-    <h2> Security </h2>
+    <h2> {{_('Security')}} </h2>
     <div class="input-group">
         <span class="input-group-addon">{{_('Password')}}</span>
         <input ng-model="share_password" type="password" class="form-control">
     </div>
 
-    <h4> Expires after </h4>
+    <h4> {{_('Expires after')}} </h4>
     <div class="input-group">
         <span class="input-group-addon">{{_('Days')}}</span>
         <input type="number" ng-model="share_expire_in"  class="form-control" >

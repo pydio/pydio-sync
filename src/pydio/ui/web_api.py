@@ -617,6 +617,13 @@ class TaskInfoManager(Resource):
     @authDB.requires_auth
     @pydio_profile
     def get(self, job_id='', relative_path=''):
+        """
+        retrieves the stat info for a given file / list the active job details
+        :param job_id: (optional) Job Id of the file/ folder
+        :param relative_path: (optional) relative path of the file/folder with respect
+               to the corresponding repository(job_id)
+        :returns a json response
+        """
         if request.path == '/stat':
             jobs = JobsLoader.Instance().get_jobs()
             json_jobs = {}
@@ -627,7 +634,7 @@ class TaskInfoManager(Resource):
 
             directory_path = JobsLoader.Instance().get_job(job_id).directory
             base_path = JobsLoader.Instance().build_job_data_path(job_id)
-            path = directory_path + "\\" + relative_path
+            path = os.path.join(directory_path, relative_path)
 
             r = os.stat(path)
 
@@ -642,6 +649,10 @@ class TaskInfoManager(Resource):
                     "node_status": node_status}
 
 class UrlManager(Resource):
+    """
+        performs a url request via proxy if present
+        :returns a json response
+    """
     @authDB.requires_auth
     @pydio_profile
     def get(self, complete_url):
@@ -650,10 +661,20 @@ class UrlManager(Resource):
 
 
 class ShareManager(Resource):
+    """
+        performs a url request via proxy if present
+        :returns a json response
+    """
 
     @authDB.requires_auth
     @pydio_profile
     def get(self, job_id):
+            """
+            retrieves the stat info for a given file / list the active job details
+            :param job_id: (optional) Job Id of the file/ folder that needs to be shared
+            :returns a json response
+                        on success: returns a shared link
+            """
             args = request.args
             jobs = JobsLoader.Instance().get_jobs()
             if not job_id in jobs:
@@ -677,7 +698,9 @@ class ShareManager(Resource):
                 if len(check_res) > 2:  # when share link doesn't exists content length will be zero for file and 2 for folder
                     res = json.loads(check_res)
                     if res["minisite"]["public"]:
-                        return {"link": res["minisite"]["public_link"]}
+                        return {"link": res["minisite"]["public_link"], "existingLinkFlag": "true"}
+                elif args["checkExistingLinkFlag"]:
+                    return {"existingLinkFlag": "false"}
 
                 res = remote_instance.share(
                     args["ws_label"],
@@ -694,4 +717,4 @@ class ShareManager(Resource):
                 return {"link": res}
             else:
                 res = remote_instance.unshare("/" + args["path"])
-                return {"response": res}
+                return {"response": res, "existingLinkFlag": "false"}

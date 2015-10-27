@@ -1061,10 +1061,10 @@ class PydioSdk():
         data["downloadlimit"] = downloads
         data["repo_description"] = ws_description
         data["repo_label"] = ws_label
-        data["nodes[]"] = paths
+        #data["nodes[]"] = paths
         data["custom_handle"] = link_handler
-        data["file"] = paths
-        data["dir"] = os.path.dirname(paths)
+        #data["file"] = paths
+        #data["dir"] = os.path.dirname(paths)
 
         if can_download == "true":
             data["simple_right_download"] = "on"
@@ -1074,7 +1074,7 @@ class PydioSdk():
             data["simple_right_write"] = "on"
 
         resp = requests.post(
-                    url=self.url+'/share',
+                    url=self.url+'/share/public' + self.urlencode_normalized(paths),
                     data=data,
                     timeout=20,
                     verify=self.verify_ssl,

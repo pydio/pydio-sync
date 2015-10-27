@@ -21,16 +21,16 @@
 <div style="">
     <h4>{{_('Access Rights')}}</h4>
     <div class="well">
-        <p class="small" style="text-align: center;">{{_('By default, the application will synchronize automatically')}}</p>
+        <p class="small" style="text-align: center;">{{_('By default, the item will be previewed and downloadable')}}</p>
         <div style="text-align: center;">
             <div>
                 <label>{{_('Preview')}}</label>
                 <input ng-model="$parent.share_preview" type="checkbox">
                 <label>{{_('Download')}}</label>
                 <input ng-model="$parent.share_download_checkbox" type="checkbox">
-                <span ng-show="$parent.itemType">
+                <span ng-show="$parent.can_write=='true'">
                     <label>{{_('Upload')}}</label>
-                    <input ng-model="$parent.share_upload_checkbox" type="checkbox">
+                    <input ng-model="$parent.share_upload_checkbox" type="checkbox" >
                 </span>
             </div>
         </div>

@@ -1,16 +1,17 @@
-<h3>{{_('Share via Pydio')}}</h3>
+<h1 class="shareHeader" ng-value="GetShareLink()">{{_('Share %1 via Pydio', share_filename.split("/").pop())}}</h1>
 
-<div class="well">
+<div class="well" style="margin-top: 60px;">
     <form name="myForm" class="form-inline">
         <div>
             <h4>{{_('Shared Link')}}</h4>
             <div class="form-group">
                 <div />
+                    <p ng-show="existingLinkFlag" class="small">{{_('Shared link to the selected item already exists. Below is the link to the selected item')}}</p>
+                    <p ng-show="!existingLinkFlag" class="small">{{_('New shared link to the selected item has been generated')}}</p>
                     <div class="input-group" align="centre">
-                        <input type="text" size="60" ng-model="share_link" readonly class="form-control" ng-value="GetShareLink()">
+                        <input type="text" size="60" ng-model="share_link" readonly class="form-control">
                     </div>
                 <div />
-                <div class="input-group" align="centre"> Use <kbd>Ctrl</kbd> + <kbd>C</kbd> to Copy the Link</div>
             </div>
         </div>
     </form>

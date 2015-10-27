@@ -121,7 +121,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         var objectValue = {
             'fileName':'',
             'shareLink':'',
-            'shareJobId':''};
+            'shareJobId':'',
+            'existingLinkFlag':''};
         return {
             get: function() {
                 return objectValue;
@@ -169,7 +170,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     can_download:'',
                     relative_path:'',
                     link_handler: '',
-                    itemType: ''
+                    can_write: '',
+                    checkExistingLinkFlag:''
                 }, isArray:false},
                 unshare: {method:'GET', params:{
                     job_id:'',
@@ -739,12 +741,12 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         };
     })
 
-    .controller('ShareCtrl', function($scope, $window, $location, Share, shareFile) {
+     .controller('ShareCtrl', function($scope, $window, $route, $location, Share, shareFile) {
         $scope._ = window.translate;
         $scope.share_preview = true;
         $scope.share_download_checkbox = true;
         $scope.share_allowed_downloads = 0;
-        $scope.itemType = false;
+        $scope.can_write = false;
         $scope.share_expire_in = 0;
 
         if (window.ui_config){
@@ -754,12 +756,29 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         $scope.QtObject = window.PydioQtFileDialog;
 
         $scope.share_filename = window.PydioQtFileDialog.getShareName();
-        $scope.itemType = window.PydioQtFileDialog.getItemType();
+        $scope.can_write = window.PydioQtFileDialog.getItemType();
+        shareFile.set('can_write',$scope.can_write)
 
-        $scope.GetShareLink = function(){
-            share_details = shareFile.get();
-            $scope.share_link = share_details['shareLink'];
+        checkExistingLink = function(){
+            var res;
+            shareFile.set('fileName',$scope.share_filename)
+            shareFile.set('shareJobId',window.PydioQtFileDialog.getShareJobId())
+
+            res = Share.query({
+                action:'share',
+                job_id:window.PydioQtFileDialog.getShareJobId(),
+                relative_path: $scope.share_filename,
+                checkExistingLinkFlag:'true'
+            }, function(){
+                if(res.existingLinkFlag == 'true') {
+                shareFile.set('shareLink',res.link)
+                $location.path('/share/response');
+                }
+                }
+            );
         };
+
+        checkExistingLink();
 
         $scope.generateLink = function(){
             var res;
@@ -778,12 +797,20 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 can_download:$scope.share_download_checkbox,
                 relative_path: $scope.share_filename,
                 link_handler: $scope.share_link_handler,
-                itemType: $scope.share_upload_checkbox
+                can_write: $scope.share_upload_checkbox
             }, function(){
                 shareFile.set('shareLink',res.link)
+                shareFile.set('existingLinkFlag',res.existingLinkFlag)
                 $location.path('/share/response');
                 }
             );
+        };
+
+        $scope.GetShareLink = function(){
+            share_details = shareFile.get();
+            $scope.share_link = share_details['shareLink'];
+            $scope.existingLinkFlag = share_details['existingLinkFlag'];
+            $scope.share_filename = share_details['fileName'];
         };
 
         $scope.openFile = function(){
