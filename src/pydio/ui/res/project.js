@@ -1,3 +1,8 @@
+function debug(){
+    // adds a cute random color to the pydio brand header
+    document.querySelector("a.navbar-brand").style.backgroundColor = '#'+Math.random().toString(16).slice(-6);
+}
+
 window.translate = function(string){
     var lang;
     if(window.PydioLangs){
@@ -17,6 +22,7 @@ window.translate = function(string){
         string = string.replace('%'+i, arguments[i]);
         i++;
     }
+    //debug(); // TODO:, FIXME: REMOVE FOR PRODUCTION
     return string;
 }
 
@@ -387,23 +393,27 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             job = new Jobs();
             $scope.inline_protocol='https://';
             $scope.inline_host  = '';
-            job.server          = 'https://'
+            job.server          = 'https://';
             job.id              = 'new';
             job.remote_folder   = '';
             job.directory       = '';
             job.workspace       = '';
-            job.direction       = 'bi';
-            job.frequency       = 'auto';
-            job.solve           = 'manual';
+            job.frequency       = 'auto'; // auto, manual, time
+            job.solve           = 'both'; // both, manual, local, remote
+            job.direction       = 'bi'; // up, bi, down
             job.label           = 'New Job';
-            job.__type__        = 'JobConfig'
+            job.hide_up_dir     = 'false'; // to hide buttons in gui
+            job.hide_bi_dir     = 'false';  // to hide buttons in gui
+            job.hide_down_dir   = 'false';  // to hide buttons in gui
+            job.__type__        = 'JobConfig';
+
             $scope.job          = job;
             currentJob.setJob($scope.job);
-        }else if ($scope.job && $scope.job.server){
+        } else if ($scope.job && $scope.job.server){
             job = $scope.job = currentJob.getJob();
             $scope.inline_host = $scope.job.server;
             $scope.parseURL();
-        }else if(currentJob.getJob() && !$scope.job){
+        } else if(currentJob.getJob() && !$scope.job){
             job = $scope.job = currentJob.getJob();
             $scope.inline_host = $scope.job.server;
             $scope.parseURL();
@@ -487,7 +497,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
     })
 
     .controller('EditCtrl', function($scope, $location, $routeParams, $window, $timeout, Jobs, currentJob, Ws, Folders, Commands) {
-
         $scope._ = window.translate;
         if (window.ui_config){
             $scope.ui_config = window.ui_config;
@@ -640,7 +649,16 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     }, 600);
                     $scope.job.test_path = false;
                 }
-
+                if($scope.job.repoObject['@acl'] === 'r'){ // custom GUI for ACL
+                    $scope.job.direction = 'down';
+                    $scope.job.hide_up_dir = 'true';
+                    $scope.job.hide_bi_dir = 'true';
+                } else if ($scope.job.repoObject['@acl'] === 'w'){
+                    $scope.job.direction = 'up';
+                    $scope.job.hide_down_dir = 'true';
+                    $scope.job.hide_bi_dir = 'true';
+                }
+                $scope.job.$save();
                 $location.path('/edit/new/step3');
 
             }else if(stepName == 'step3'){

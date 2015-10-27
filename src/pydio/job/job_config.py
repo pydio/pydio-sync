@@ -124,6 +124,9 @@ class JobConfig:
             includes=['*'],
             excludes=['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store', '.~lock.*']
         )
+        self.hide_up_dir = 'false'
+        self.hide_bi_dir = 'false'
+        self.hide_down_dir = 'false'
 
     def make_id(self):
         i = 1
@@ -151,7 +154,11 @@ class JobConfig:
                     "start_time": obj.start_time,
                     "trust_ssl":obj.trust_ssl,
                     "active": obj.active,
-                    "filter": obj.filters}
+                    "filter": obj.filters,
+                    "hide_up_dir": obj.hide_up_dir,
+                    "hide_bi_dir": obj.hide_bi_dir,
+                    "hide_down_dir": obj.hide_down_dir
+                    }
         raise TypeError(repr(JobConfig) + " can't be encoded")
 
     def load_from_cliargs(self, args):
@@ -219,6 +226,12 @@ class JobConfig:
                 job_config.monitor = True
             else:
                 job_config.monitor = False
+            if 'hide_up_dir' in obj:
+                job_config.hide_up_dir = obj['hide_up_dir']
+            if 'hide_bi_dir' in obj:
+                job_config.hide_bi_dir = obj['hide_bi_dir']
+            if 'hide_down_dir' in obj:
+                job_config.hide_down_dir = obj['hide_down_dir']
 
             return job_config
         return obj
