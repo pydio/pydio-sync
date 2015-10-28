@@ -18,7 +18,7 @@
             </button>
             <ul class="dropdown-menu" role="menu">
                 <li class="repos" ng-click="OnWorkspaceClick(repo)" ng-repeat="repo in repositories | filter:({'@meta_syncable_REPO_SYNCABLE':'true'} && {'@acl':'r'})">{{repo.label}}
-                <div class="repo-desc">{{ repo.description }} <span ng-show="repo['@acl'] == 'r'" class="label label-warning">{{ _('This workspace is read only!') }}</span></div></li>
+                <div class="repo-desc">{{ repo.description }} <span style="padding:3px; vertical-align:10%;" ng-show="repo['@acl'] == 'r'" class="label label-warning">{{ _('This workspace is read only!') }}</span></div></li>
             </ul>
         </div>
         <div class="input-group" ng-show="folders && folders.length" style="padding: 7px;">
