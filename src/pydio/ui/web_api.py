@@ -404,7 +404,8 @@ class JobManager(Resource):
                            auth=(json_req['user'], json_req['password']),
                            device_id=ConfigManager.Instance().get_device_id(),
                            skip_ssl_verify=trust_ssl,
-                           proxies=ConfigManager.Instance().get_defined_proxies())
+                           proxies=ConfigManager.Instance().get_defined_proxies(),
+                           timeout=json_req["timeout"])
             up = [0.0]
             def callback(location, change, info):
                 if change and "bytesize" in change and change["md5"] != "directory":
@@ -686,13 +687,14 @@ class ShareManager(Resource):
                            auth="",
                            device_id=ConfigManager.Instance().get_device_id(),
                            skip_ssl_verify=job.trust_ssl,
-                           proxies=ConfigManager.Instance().get_defined_proxies())
+                           proxies=ConfigManager.Instance().get_defined_proxies(),
+                           timeout=job.timeout)
 
             if args['action'] == 'share':
                 relative_path = os.path.normpath("/" + args["relative_path"]).replace('\\', '/')
                 # Check if the shared link is already present
                 check_res = remote_instance.check_share_link(
-                    relative_path
+                    relative_path, timeout=job.timeout
                 )
 
                 if len(check_res) > 2:  # when share link doesn't exists content length will be zero for file and 2 for folder

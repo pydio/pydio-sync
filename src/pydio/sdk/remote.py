@@ -50,7 +50,7 @@ PYDIO_SDK_MAX_UPLOAD_PIECES = 40 * 1024 * 1024
 class PydioSdk():
 
     def __init__(self, url='', ws_id='', remote_folder='', user_id='', auth=(), device_id='python_client',
-                 skip_ssl_verify=False, proxies=None):
+                 skip_ssl_verify=False, proxies=None, timeout = 20):
         self.ws_id = ws_id
         self.device_id = device_id
         self.verify_ssl = not skip_ssl_verify
@@ -74,6 +74,7 @@ class PydioSdk():
         self.tokens = None
         self.rsync_supported = False
         self.proxies = proxies
+        self.timeout = timeout
 
     def set_server_configs(self, configs):
         """
@@ -184,7 +185,7 @@ class PydioSdk():
         """
         if request_type == 'get':
             try:
-                resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl, headers=headers,
+                resp = requests.get(url=url, stream=stream, timeout=self.timeout, verify=self.verify_ssl, headers=headers,
                                     auth=self.auth, proxies=self.proxies)
             except ConnectionError as e:
                 raise
@@ -200,7 +201,7 @@ class PydioSdk():
                     url=url,
                     data=data,
                     stream=stream,
-                    timeout=20,
+                    timeout=self.timeout,
                     verify=self.verify_ssl,
                     headers=headers,
                     auth=self.auth,
@@ -241,7 +242,7 @@ class PydioSdk():
             else:
                 url += '?' + auth_string
             try:
-                resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl,
+                resp = requests.get(url=url, stream=stream, timeout=self.timeout, verify=self.verify_ssl,
                                     headers=headers, proxies=self.proxies)
             except ConnectionError as e:
                 raise
@@ -259,7 +260,7 @@ class PydioSdk():
                     url=url,
                     data=data,
                     stream=stream,
-                    timeout=20,
+                    timeout=self.timeout,
                     verify=self.verify_ssl,
                     headers=headers,
                     proxies=self.proxies)
@@ -992,7 +993,7 @@ class PydioSdk():
                 data=body,
                 headers={'Content-Type': content_type},
                 stream=True,
-                timeout=20,
+                timeout=self.timeout,
                 verify=self.verify_ssl,
                 auth=auth,
                 proxies=self.proxies
@@ -1042,7 +1043,7 @@ class PydioSdk():
         resp = requests.post(
                     url=self.url + "/load_shared_element_data" + file_name,
                     data=data,
-                    timeout=20,
+                    timeout=self.timeout,
                     verify=self.verify_ssl,
                     auth=self.auth,
                     proxies=self.proxies)
@@ -1076,7 +1077,7 @@ class PydioSdk():
         resp = requests.post(
                     url=self.url+'/share/public' + self.urlencode_normalized(paths),
                     data=data,
-                    timeout=20,
+                    timeout=self.timeout,
                     verify=self.verify_ssl,
                     auth=self.auth,
                     proxies=self.proxies)
@@ -1090,7 +1091,7 @@ class PydioSdk():
         resp = requests.post(
                     url=self.url+'/unshare' + path,
                     data=data,
-                    timeout=20,
+                    timeout=self.timeout,
                     verify=self.verify_ssl,
                     auth=self.auth,
                     proxies=self.proxies)

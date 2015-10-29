@@ -87,7 +87,8 @@ class ContinuousDiffMerger(threading.Thread):
             user_id=job_config.user_id,
             device_id=ConfigManager.Instance().get_device_id(),
             skip_ssl_verify=job_config.trust_ssl,
-            proxies=ConfigManager.Instance().get_defined_proxies()
+            proxies=ConfigManager.Instance().get_defined_proxies(),
+            timeout=job_config.timeout
         )
         self.system = SystemSdk(job_config.directory)
         self.remote_seq = 0

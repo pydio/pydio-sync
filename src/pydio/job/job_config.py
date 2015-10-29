@@ -124,6 +124,7 @@ class JobConfig:
             includes=['*'],
             excludes=['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store', '.~lock.*']
         )
+        self.timeout = 20
 
     def make_id(self):
         i = 1
@@ -152,7 +153,7 @@ class JobConfig:
                     "trust_ssl":obj.trust_ssl,
                     "active": obj.active,
                     "filter": obj.filters,
-                    "directory": obj.directory}
+                    "timeout": obj.timeout}
         raise TypeError(repr(JobConfig) + " can't be encoded")
 
     def load_from_cliargs(self, args):
@@ -215,6 +216,8 @@ class JobConfig:
                 job_config.make_id()
             else:
                 job_config.id = obj['id']
+            if 'timeout' in obj:
+                job_config.timeout = obj['timeout']
 
             if job_config.frequency == 'auto' or job_config.frequency == 'time':
                 job_config.monitor = True
