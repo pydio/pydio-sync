@@ -16,7 +16,7 @@
 #  along with Pydio.  If not, see <http://www.gnu.org/licenses/>.
 #
 #  The latest code can be found at <http://pyd.io/>.
-#
+# -*- coding: utf-8 -*-
 
 from flask import Flask
 from flask_restful import Api
@@ -49,6 +49,7 @@ import flask
 from pydio.utils.pydio_profiler import pydio_profile
 
 try:
+    #raise ImportError
     from pydio.endpoint.resolver import EndpointResolver, RESOLVER_CONFIG, EndpointException
 except ImportError:
     EndpointResolver = False
@@ -105,14 +106,16 @@ class PydioApi(Api):
         self.add_resource(LogManager, '/jobs/<string:job_id>/logs')
         self.add_resource(ConflictsManager, '/jobs/<string:job_id>/conflicts', '/jobs/conflicts')
         self.add_resource(CmdManager, '/cmd/<string:cmd>/<string:job_id>', '/cmd/<string:cmd>')
-        self.add_resource(ProxyManager, '/proxy')
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
         self.app.add_url_rule('/res/about.html', 'dynamic_about', self.serve_about_content)
         if EndpointResolver:
+            self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
             self.app.add_url_rule('/res/dynamic.png', 'dynamic_png', self.serve_dynamic_image)
+        else:
+            self.app.add_url_rule('/res/settings.html', 'dynamic_settings', self.serve_settings)
 
     @pydio_profile
     def serve_i18n_file(self):
@@ -143,7 +146,7 @@ class PydioApi(Api):
                         mimetype="text/javascript")
 
     def server_js_config(self):
-        content = "window.ui_config = {'login_mode':'standard'}"
+        content = "window.ui_config = {'login_mode':'standard', 'proxy_enabled':'false'}"
         if EndpointResolver:
             content = EndpointResolver.Instance().get_ui_config()
         return Response(response=content,
@@ -176,6 +179,15 @@ class PydioApi(Api):
                         status=200,
                         mimetype="text/html")
 
+    def serve_settings(self):
+        content = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0; ' \
+                  'url=#" /></head><body></body></html>'
+        if EndpointResolver:
+            with open(self.real_static_folder + '/settings.html', 'r') as handle:
+                content = handle.read()
+        return Response(response=content,
+                        status=200,
+                        mimetype="text/html")
     @pydio_profile
     def start_server(self):
         try:
@@ -548,45 +560,39 @@ class ProxyManager(Resource):
     @pydio_profile
     def get(self):
         # read contents from proxy.json
-        f = open(os.path.join(ConfigManager.Instance().get_configs_path(), 'proxies.json'))
-        res = json.load(f)
-        f.close()
-        response={}
+        res, response = {}, {}
+        try:
+            f = open(os.path.join(ConfigManager.Instance().get_configs_path(), 'proxies.json'))
+            res = json.load(f)
+            f.close()
+        except IOError: # no proxy file exists
+            res = json.loads('{"http": {"username": "", "password": "","hostname": "","port": "","active":false},"https": {"username": "", "password": "", "hostname": "","port": "","active":false}}')
         # parse the content and only return some fields
         for protocol in res.keys():
-            response[protocol] = {"hostname": res[protocol]["hostname"],"port": res[protocol]["port"], "username": res[protocol]["username"]}
+            response[protocol] = {}
+            for field in res[protocol]:
+                if field != u"password":
+                    response[protocol][field] = res[protocol][field]
         return response
 
     @authDB.requires_auth
     @pydio_profile
     def post(self):
-        """
-        read the contents from the web page
-        expected a json file like
-        {
-            "type": ""
-            "username": ""
-            "password": ""
-            "hostname": ""
-            "port": ""
-            "test_proxy_flag": True/ False (optional)
-        }
-        """
         json_req = request.get_json()
-
+        #logging.info(json_req)
         try:
             for protocol in json_req.keys():
-                keyring.set_password(json_req[protocol]["hostname"], json_req[protocol]["username"],json_req[protocol]["password"])
-                json_req[protocol]["password"] = "__pydio_proxy_pwd__"
+                if json_req[protocol]['password'] != "":
+                    keyring.set_password(json_req[protocol]["hostname"], json_req[protocol]["username"], json_req[protocol]["password"])
+                    json_req[protocol]["password"] = "__pydio_proxy_pwd__"
         except keyring.errors.PasswordSetError as e:
             logging.error("Error while storing password in keychain, should we store it cyphered in the config?")
-
         if "test_proxy_flag" in json_req.keys():
             proxy_flag = json_req["test_proxy_flag"]
             del json_req["test_proxy_flag"]
         else:
-            proxy_flag = True  # default true
-
-        # write the content into local proxy.json file
-        response = ConfigManager.Instance().set_user_proxy(json_req, check_proxy_flag=proxy_flag)
-        return response
+            proxy_flag = True
+        ConfigManager.Instance().proxies_loaded = False
+        response = ConfigManager.Instance().set_user_proxy(json_req) # write proxies.json
+        logging.info(ConfigManager.Instance().get_defined_proxies())
+        return json_req # echoes incoming json for cute REST behavior

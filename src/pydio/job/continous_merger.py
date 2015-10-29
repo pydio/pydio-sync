@@ -294,6 +294,7 @@ class ContinuousDiffMerger(threading.Thread):
         :return:
         """
         self.job_status_running = True
+        self.sdk.proxies = ConfigManager.Instance().get_defined_proxies()
         self.sdk.remove_interrupt()
         self.info(_('Job Started'), toUser='START', channel='status')
 
