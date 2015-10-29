@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <!-- <meta http-equiv="refresh" content="0; url=#" ng-show="ui_config.proxy_enabled"/> -->
+</head>
+<body>
+<h2 class="settingsHeader">Proxy Configuration<div class="pull-right"><div class="btn-group">
+            <button type="button" ng-click="proxies.https.active = 'true'" class="btn" ng-class="{'btn-success':proxies.https.active == 'true','btn-default':proxies.https.active =='true'}">On</button>
+            <button type="button" ng-click="proxies.https.active = 'false'" class="btn" ng-class="{'btn-danger':proxies.https.active == 'false','btn-default':proxies.https.active =='false'}">Off</button>
+        </div></div></h2>
+<h3 style="margin-top:3em;">Proxy URL</h3>
+<p>If you need to set up a proxy to connect to the Internet, use the form below and hit save parameters.</p>
+<div class="well">
+    <form name="settingsHTTPS" class="form-inline">
+        <div class="form-group">
+            <input type="text" name="s_proxy_url" ng-model="proxies.https.url" class="form-control" placeholder="{{ proxies.https.url === '' ? 'pydio.com:8083' : proxies.https.url }}" autofocus required/>
+            </div>
+        <div class="form-group">
+                <input type="text" name="https_user" ng-model="proxies.https.username" class="form-control" placeholder="{{ proxies.https.username ==''?'username' : proxies.https.username}}">
+            </div>
+        <div class="form-group">
+                <input type="password" name="https_password" ng-model="proxies.https.password" class="form-control" placeholder="P*ssw*rd">
+            </div>
+                <!-- &nbsp;<input type="checkbox" name="s_use_proxy" ng-model="proxies.https.active" ng-checked="proxies.https.active == true"/> Ain't no checkboxes in QWebView-->
+        </div>
+    </form>
+</div>
+<h4 ng-click="showBlock=!showBlock; scroll(0,10);" ng-init="showBlock = false" style="cursor:pointer;"><span style="font-size: 75%;" class="glyphicon" ng-class="{'glyphicon-chevron-right': !showBlock, 'glyphicon-chevron-down': showBlock}"></span>&nbsp;Advanced Options...</h4>
+    <div class="well" ng-show="showBlock">
+        <p>
+        If you need to set up a different proxy for http and https, please use the form below. The main configuration will be used for https, this one will be used for http.
+        </p>
+    <form name="settingsHTTP" class="form-inline">
+        <div class="form-group">
+            <div class="form-group">
+                <input type="text" name="proxy_url" ng-model="proxies.http.url" class="form-control" placeholder="{{ proxies.http.url === '' ? 'pydio.com:8080' : proxies.http.url }}" required/>
+            </div>
+            <div class="form-group">
+                <input type="text" name="http_user" ng-model="proxies.http.username" class="form-control" placeholder="{{ proxies.http.username === '' ? 'username' : proxies.http.username}}">
+            </div>
+            <div class="form-group">
+                <input type="password" name="http_password" ng-model="proxies.http.password" class="form-control" placeholder="P*ssw*rd">
+            </div>
+            </div>
+        </form>
+        </div>
+    <div class="alert" style="background-color:#D6E9C6; color:#3C763D;" type="warning" role="alert" ng-show="updatedProxyParams">
+      <div style="text-align:center;">{{_('To activate the new settings pause and resume a synchronization, or restart the client.')}}</div>
+    </div>
+<div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; background-color: #77b8e2;">
+    <a href="#" title="back"><span class="glyphicon glyphicon-arrow-left" style="color: white;font-size: 2em; vertical-align:middle;" ng-click="updateProxy()"></span></a>
+    <button type="button" ng-click="updateProxy(); updatedProxyParams=true;" class="btn btn-info" style="width: 70%; margin: 0 0 0 10%;">{{_('Save Parameters')}}</button>
+</div>
+</body>
+</html>

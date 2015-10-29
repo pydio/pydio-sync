@@ -63,7 +63,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 query: {method:'GET', params:{client_id:''}, isArray:false}
             });
         }])
-
+    .factory('Proxy', ['$resource',
+        function($resource){return $resource('/proxy', {}, {query:{method:'GET'}, isArray: false});}])
     .filter('bytes', function() {
         return function(bytes, precision) {
             if (bytes == 0) return bytes;
@@ -191,23 +192,26 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 controller:'ListLogsCtrl',
                 templateUrl:'logs.html'
             })
+            .when('/settings',{
+                controller:'SettingsCtrl',
+                templateUrl:'settings.html'
+            })
             .otherwise({
                 redirectTo:'/'
             });
     })
 
     .controller('ListCtrl', function($scope, $window, $location, $timeout, Jobs, Logs, Conflicts, currentJob, Commands) {
-
-        $scope.conflict_solver = {current:false,applyToAll:false};
         $scope._ = window.translate;
+        if (window.ui_config){
+            $scope.ui_config = window.ui_config;
+        }
+        $scope.conflict_solver = {current:false,applyToAll:false};
         $scope.progressCircleData = {
             value: 0
         };
         $scope.Math = window.Math;
         $scope.QtObject = window.PydioQtFileDialog;
-        if (window.ui_config){
-            $scope.ui_config = window.ui_config;
-        }
 
         $scope.openLogs = function(){
           $scope.QtObject.openLogs();
@@ -327,6 +331,9 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
     .controller('ListLogsCtrl', function($scope, $routeParams, $timeout, Jobs, Logs, Conflicts){
         $scope._ = window.translate;
+        if (window.ui_config){
+            $scope.ui_config = window.ui_config;
+        }
         var tO;
         var t1;
         (function tickLog() {
@@ -366,18 +373,15 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
     })
 
     .controller('CreateCtrl', function($scope, $location, $timeout, Jobs, Ws, currentJob, Endpoints) {
-
+        $scope._ = window.translate;
         if (window.ui_config){
             $scope.ui_config = window.ui_config;
         }
-
-        $scope._ = window.translate;
         $scope.loading = false;
         $scope.error = null;
 
         $scope.parseURL = function(){
             if(!$scope.inline_host) return;
-
             if ($scope.inline_host.indexOf('http://') === 0){
                 $scope.inline_protocol = 'http://';
                 $scope.inline_host = $scope.inline_host.substr(7)
@@ -711,4 +715,49 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 $location.path('/');
             }
         };
+    })
+    .controller('SettingsCtrl', function($scope, $routeParams, $timeout, Jobs, Logs, Conflicts, Proxy){
+        $scope._ = window.translate;
+        if (window.ui_config){
+            $scope.ui_config = window.ui_config;
+        }
+        var proxies = Proxy.query(function(){
+            proxies.http.password = "";
+            proxies.https.password = "";
+            proxies.https.url = proxies.https.hostname + ":" + proxies.https.port;
+            proxies.http.url = proxies.http.hostname + ":" + proxies.http.port;
+            // check for a nice gui, in the model?!
+            if (proxies.https.url === ":") proxies.https.url = "";
+            if (proxies.http.url === ":") proxies.http.url = "";
+            $scope.proxies = proxies;
+        });
+
+        $scope.save = function(param){
+            console.log("Am I called?");
+        };
+        $scope.updateProxy = function (){
+            function cutHostPort(url, hostOrPort){
+                // removes https:// from url if present, @hostOrPort: 0 for host, 1 for port
+                url = url.replace("http://", "");
+                url = url.replace("https://", "");
+                var res = url.split(':')[hostOrPort];
+                return res == undefined ? "" : res;
+            }
+            // recover port & host from url
+            proxies.http.hostname = cutHostPort(proxies.http.url, 0);
+            proxies.https.hostname = cutHostPort(proxies.https.url, 0);
+            proxies.http.port = cutHostPort(proxies.http.url, 1);
+            proxies.https.port = cutHostPort(proxies.https.url, 1);
+            proxies.http.active = proxies.https.active;
+            // store, delete, post and restore url
+            var temp = proxies.http.url;
+            var temps = proxies.https.url;
+            proxies.http.url = undefined;
+            proxies.https.url = undefined;
+            // P O S T
+            proxies.$save();
+            proxies.https.url = temps;
+            proxies.http.url = temp;
+        }
     });
+    

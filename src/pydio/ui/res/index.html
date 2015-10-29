@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html ng-app="project">
 <head>
     <title>Sync</title>
@@ -37,11 +37,15 @@
 </head>
 <body style="padding: 50px 20px;">
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-    <a class="navbar-brand" href="#">
-        <!--<img src="images/logo.png" width="80">-->
-    </a>
+    <div class="container-fluid">
+        <div>
+            <a class="navbar-brand" href="#"></a>
+        </div>
+        <div class="navbar-right">
+            <a href="#/settings" id="settings_panel" style="display:none;"><span class="glyphicon glyphicon-cog" style="margin-top: 17px; color:white;" aria-hidden="true"></span></a>
+        </div>
+    </div>
 </nav>
-
 <div ng-view></div>
 </body>
 </html>

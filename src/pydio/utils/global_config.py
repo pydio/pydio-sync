@@ -74,6 +74,7 @@ class ConfigManager:
         if not self.proxies_loaded:
             # Try to load data from self.configs_path/proxies.json
             proxies_file = self.configs_path + '/proxies.json'
+            data = ""
             if os.path.exists(proxies_file):
                 try:
                     with open(proxies_file, 'r') as handle:
@@ -93,30 +94,25 @@ class ConfigManager:
                         logging.error('The proxy data is not the form of dict obj')
                 except Exception as e:
                     logging.error('Error while trying to load proxies.json file')
+
+            if data != "":
+                for k in data.keys():
+                    if "active" in data[k]:
+                        if data[k]["active"] == True or data[k]["active"] == "true":
+                            self.check_proxy(data)
+                        else: # if proxies aren't marked active forget about them
+                            data = "" # !! dangerous mutation
+                            self.proxies = {}
+                            break
             self.proxies_loaded = True
-            pass
+            #logging.info("[Proxy info] " + str(self.proxies))
         return self.proxies
 
-    def set_user_proxy(self, data, check_proxy_flag=True, file_name=None):
-        """
-        Set the proxy by writing the contents to a file (usually proxies.json)
-
-        :param data: list with 4 entries [username,password,proxyIP,proxyPort]
-        :param file_name: filename to be written with proxy details
-        :return: response
-        """
-
-        def write_json_file(filename, msg):
-            try:
-                with open(filename, 'w') as f:
-                    json.dump(msg, f)
-            except Exception as ex:
-                logging.exception(ex)
-
-        def check_proxy(data):
+    def check_proxy(self, data):
             """
             Check if the proxy is up by trying to open a well known url via proxy
             """
+            #logging.info(data)
             try:
                 proxies = {}
                 for protocol in data.keys():
@@ -127,18 +123,24 @@ class ConfigManager:
                     else:
                         proxy = protocol + '://' + data[protocol]["username"] + ':' + data[protocol]["password"] + '@' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
                     proxies[protocol] = proxy
-
                 import urllib
-                urllib.urlopen("http://google.com", proxies = proxies)
+                urllib.urlopen("http://www.google.com", proxies=proxies)
+                logging.info("[Proxy info] Server is reachable via proxy from client")
             except IOError:
-                logging.error("Connection error! (Check proxy)")
-            else:
-                logging.info("Server is reachable via proxy from client")
+                logging.error("[Proxy info] Connection error! (Check proxy)")
+            return True # what else?
 
-        if file_name is None:
-            file_name = os.path.join(self.configs_path, 'proxies.json')
+    def set_user_proxy(self, data):
+        """
+        Set the proxy by writing the contents to a file (usually proxies.json)
 
-        if check_proxy_flag:
-            check_proxy(data)
-        write_json_file(file_name, data)
+        :param data: list with 4 entries [username,password,proxyIP,proxyPort]
+        :return: response
+        """
+        file_name = os.path.join(self.configs_path, 'proxies.json')
+        try:
+            with open(file_name, 'w') as f:
+                json.dump(data, f)
+        except Exception as ex:
+            logging.exception(ex)
         return "write to Proxies.json file is successful"
