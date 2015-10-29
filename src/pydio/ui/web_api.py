@@ -106,6 +106,7 @@ class PydioApi(Api):
         self.add_resource(LogManager, '/jobs/<string:job_id>/logs')
         self.add_resource(ConflictsManager, '/jobs/<string:job_id>/conflicts', '/jobs/conflicts')
         self.add_resource(CmdManager, '/cmd/<string:cmd>/<string:job_id>', '/cmd/<string:cmd>')
+        self.add_resource(UrlManager, '/url/<path:complete_url>')
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
@@ -596,3 +597,10 @@ class ProxyManager(Resource):
         response = ConfigManager.Instance().set_user_proxy(json_req) # write proxies.json
         logging.info(ConfigManager.Instance().get_defined_proxies())
         return json_req # echoes incoming json for cute REST behavior
+
+class UrlManager(Resource):
+    @authDB.requires_auth
+    @pydio_profile
+    def get(self, complete_url):
+        resp = requests.get(complete_url, stream=False, proxies=ConfigManager.Instance().get_defined_proxies())
+        return json.loads(resp.content)
