@@ -106,12 +106,10 @@ class PydioApi(Api):
         self.add_resource(LogManager, '/jobs/<string:job_id>/logs')
         self.add_resource(ConflictsManager, '/jobs/<string:job_id>/conflicts', '/jobs/conflicts')
         self.add_resource(CmdManager, '/cmd/<string:cmd>/<string:job_id>', '/cmd/<string:cmd>')
-        self.add_resource(ProxyManager, '/proxy')
         self.add_resource(UrlManager, '/url/<path:complete_url>')
         self.add_resource(TaskInfoManager, '/stat', '/stat/<string:job_id>', '/stat/<string:job_id>/<path:relative_path>')
         self.add_resource(ShareManager, '/share/<string:job_id>')
         #self.add_resource(ShareManager, '/share/<string:file_name>/<string:link_handle>/<string:password>/<string:expireIn>/<string:allowed_downloads>/<string:preview>/<string:download>/<path:relative_path>')
-        self.add_resource(UrlManager, '/url/<path:complete_url>')
 
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
