@@ -762,7 +762,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             }
         };
     })
-<<<<<<< HEAD
 
      .controller('ShareCtrl', function($scope, $window, $route, $location, Share, shareFile) {
         $scope._ = window.translate;
@@ -865,8 +864,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         $scope.copyToClipBoard = function(value){
             $scope.QtObject.copyToClipBoard(value);
         };
-    });
-=======
+    })
+
     .controller('SettingsCtrl', function($scope, $routeParams, $timeout, Jobs, Logs, Conflicts, Proxy){
         $scope._ = window.translate;
         if (window.ui_config){
@@ -911,5 +910,3 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             proxies.http.url = temp;
         }
     });
-    
->>>>>>> refs/remotes/origin/master

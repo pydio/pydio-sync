@@ -866,7 +866,6 @@ msgstr "[laden...]"
 #: res/i18n/html_strings.py:163 res/i18n/html_strings.py:165
 msgid "Get Started"
 msgstr "Begin"
-<<<<<<< HEAD
 
 #: ui/web_api.py:300
 msgid "Couldn't load your workspaces, check your server !"
@@ -874,31 +873,7 @@ msgstr ""
 
 #: ui/web_api.py:302
 msgid "Server not found (404), is it up and has it Pydio installed ?"
-=======
-#: sdk/exceptions.py:41
-msgid "Http-Basic authentication failed, wrong credentials?"
-msgstr "HTTP-basic autorisatie mislukt, kloppen de naam en het wachtwoord?"
-#: sdk/exceptions.py:45
-msgid "Token-based authentication failed, reload credentials?"
-msgstr "Fout tijdens token authenticatie, naam en wachtwoord opnieuw laden?"
-#: sdk/exceptions.py:56
-#, python-format
-msgid ""
-"[Quota limit reached] - You are using %(usage)s iMB of %(total)s iMB, you cannot "
-"upload %(filename)s (%(filesize)s iMB)"
-msgstr ""
-"[Quotum limiet] U gebruikt %(usage)s iMB van %(total)s iMB, u kunt "
-"%(filename)s (%(filesize)s iMB) niet uploaden"
-#: sdk/exceptions.py:61
-#, python-format
-msgid "[File permission] %s"
-msgstr "[Permissie] %s"
-#: sdk/exceptions.py:66
-msgid "Stopping tasks"
-msgstr "Stoppen van taken"
-#: sdk/local.py:104
-msgid "Cannot remove local folder"
->>>>>>> refs/remotes/origin/master
+
 msgstr ""
 
 #: ui/web_api.py:304

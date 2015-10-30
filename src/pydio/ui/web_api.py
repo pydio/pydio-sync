@@ -106,15 +106,13 @@ class PydioApi(Api):
         self.add_resource(LogManager, '/jobs/<string:job_id>/logs')
         self.add_resource(ConflictsManager, '/jobs/<string:job_id>/conflicts', '/jobs/conflicts')
         self.add_resource(CmdManager, '/cmd/<string:cmd>/<string:job_id>', '/cmd/<string:cmd>')
-<<<<<<< HEAD
         self.add_resource(ProxyManager, '/proxy')
         self.add_resource(UrlManager, '/url/<path:complete_url>')
         self.add_resource(TaskInfoManager, '/stat', '/stat/<string:job_id>', '/stat/<string:job_id>/<path:relative_path>')
         self.add_resource(ShareManager, '/share/<string:job_id>')
         #self.add_resource(ShareManager, '/share/<string:file_name>/<string:link_handle>/<string:password>/<string:expireIn>/<string:allowed_downloads>/<string:preview>/<string:download>/<path:relative_path>')
-=======
         self.add_resource(UrlManager, '/url/<path:complete_url>')
->>>>>>> refs/remotes/origin/master
+
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
@@ -191,7 +189,6 @@ class PydioApi(Api):
                         status=200,
                         mimetype="text/html")
 
-<<<<<<< HEAD
     def serve_share_content(self):
         content = ''
         if EndpointResolver:
@@ -199,21 +196,22 @@ class PydioApi(Api):
         else:
             share_file = str(self.real_static_folder / 'share.html')
             with open(share_file, 'r') as handle:
-=======
+                content = handle.read()
+        return Response(response=content,
+                        status=200,
+                        mimetype="text/html")
+
     def serve_settings(self):
         content = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0; ' \
                   'url=#" /></head><body></body></html>'
         if EndpointResolver:
             with open(self.real_static_folder + '/settings.html', 'r') as handle:
->>>>>>> refs/remotes/origin/master
+
                 content = handle.read()
         return Response(response=content,
                         status=200,
                         mimetype="text/html")
-<<<<<<< HEAD
 
-=======
->>>>>>> refs/remotes/origin/master
     @pydio_profile
     def start_server(self):
         try:
@@ -621,11 +619,6 @@ class ProxyManager(Resource):
         else:
             proxy_flag = True
         ConfigManager.Instance().proxies_loaded = False
-        response = ConfigManager.Instance().set_user_proxy(json_req) # write proxies.json
-        logging.info(ConfigManager.Instance().get_defined_proxies())
-        return json_req # echoes incoming json for cute REST behavior
-
-<<<<<<< HEAD
         # write the content into local proxy.json file
         response = ConfigManager.Instance().set_user_proxy(json_req, check_proxy_flag=proxy_flag)
         return response
@@ -672,23 +665,17 @@ class UrlManager(Resource):
         performs a url request via proxy if present
         :returns a json response
     """
-=======
-class UrlManager(Resource):
->>>>>>> refs/remotes/origin/master
     @authDB.requires_auth
     @pydio_profile
     def get(self, complete_url):
         resp = requests.get(complete_url, stream=False, proxies=ConfigManager.Instance().get_defined_proxies())
         return json.loads(resp.content)
-<<<<<<< HEAD
-
 
 class ShareManager(Resource):
     """
         performs a url request via proxy if present
         :returns a json response
     """
-
     @authDB.requires_auth
     @pydio_profile
     def get(self, job_id):
@@ -742,5 +729,3 @@ class ShareManager(Resource):
             else:
                 res = remote_instance.unshare("/" + args["path"])
                 return {"response": res, "existingLinkFlag": "false"}
-=======
->>>>>>> refs/remotes/origin/master
