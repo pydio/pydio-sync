@@ -124,3 +124,25 @@ class SystemSdk(object):
         if os.path.exists(output_path) and os.path.getsize(output_path):
             os.unlink(file_path)
             os.rename(output_path, file_path)
+
+    def duplicateWith(self, file_path, custom='mine'):
+        """
+        Copies the file from file_path, keeps the extension and optionally add a custom path modifier to the filename
+        :param file_path: file that will be duplicated
+        :param custom: custom path modifier used to identify the copied file
+        """
+        f = os.path.splitext(file_path)
+        ext = f[1]
+        new_path = f[0]
+        dot_index = new_path.rfind('.')
+        if dot_index > -1:  # if file was already conflict created
+            if new_path[dot_index:] == '.' + custom:
+                new_path = new_path[:dot_index]
+        new_path += '.' + custom
+        i, version = 1, "1"
+        while os.path.exists(self.basepath + new_path + version + ext):  # generate new name
+            i += 1
+            version = str(i)
+        new_path += version + ext
+        # logging.info(self.basepath + file_path + " - cp -> " + self.basepath + new_path)
+        shutil.copy2(self.basepath + file_path, self.basepath + new_path)

@@ -1,3 +1,8 @@
+function debug(){
+    // adds a cute random color to the pydio brand header
+    document.querySelector("a.navbar-brand").style.backgroundColor = '#'+Math.random().toString(16).slice(-6);
+}
+
 window.translate = function(string){
     var lang;
     if(window.PydioLangs){
@@ -17,6 +22,7 @@ window.translate = function(string){
         string = string.replace('%'+i, arguments[i]);
         i++;
     }
+    //debug(); // TODO:, FIXME: REMOVE FOR PRODUCTION
     return string;
 }
 
@@ -57,7 +63,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 query: {method:'GET', params:{client_id:''}, isArray:false}
             });
         }])
-
+    .factory('Proxy', ['$resource',
+        function($resource){return $resource('/proxy', {}, {query:{method:'GET'}, isArray: false});}])
     .filter('bytes', function() {
         return function(bytes, precision) {
             if (bytes == 0) return bytes;
@@ -235,23 +242,26 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 controller:'ListLogsCtrl',
                 templateUrl:'logs.html'
             })
+            .when('/settings',{
+                controller:'SettingsCtrl',
+                templateUrl:'settings.html'
+            })
             .otherwise({
                 redirectTo:'/'
             });
     })
 
     .controller('ListCtrl', function($scope, $window, $location, $timeout, Jobs, Logs, Conflicts, currentJob, Commands) {
-
-        $scope.conflict_solver = {current:false,applyToAll:false};
         $scope._ = window.translate;
+        if (window.ui_config){
+            $scope.ui_config = window.ui_config;
+        }
+        $scope.conflict_solver = {current:false,applyToAll:false};
         $scope.progressCircleData = {
             value: 0
         };
         $scope.Math = window.Math;
         $scope.QtObject = window.PydioQtFileDialog;
-        if (window.ui_config){
-            $scope.ui_config = window.ui_config;
-        }
 
         $scope.openLogs = function(){
           $scope.QtObject.openLogs();
@@ -367,6 +377,9 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
     .controller('ListLogsCtrl', function($scope, $routeParams, $timeout, Jobs, Logs, Conflicts){
         $scope._ = window.translate;
+        if (window.ui_config){
+            $scope.ui_config = window.ui_config;
+        }
         var tO;
         var t1;
         (function tickLog() {
@@ -406,18 +419,15 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
     })
 
     .controller('CreateCtrl', function($scope, $location, $timeout, Jobs, Ws, currentJob, Endpoints) {
-
+        $scope._ = window.translate;
         if (window.ui_config){
             $scope.ui_config = window.ui_config;
         }
-
-        $scope._ = window.translate;
         $scope.loading = false;
         $scope.error = null;
 
         $scope.parseURL = function(){
             if(!$scope.inline_host) return;
-
             if ($scope.inline_host.indexOf('http://') === 0){
                 $scope.inline_protocol = 'http://';
                 $scope.inline_host = $scope.inline_host.substr(7)
@@ -433,23 +443,27 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             job = new Jobs();
             $scope.inline_protocol='https://';
             $scope.inline_host  = '';
-            job.server          = 'https://'
+            job.server          = 'https://';
             job.id              = 'new';
             job.remote_folder   = '';
             job.directory       = '';
             job.workspace       = '';
-            job.direction       = 'bi';
-            job.frequency       = 'auto';
-            job.solve           = 'manual';
+            job.frequency       = 'auto'; // auto, manual, time
+            job.solve           = 'both'; // both, manual, local, remote
+            job.direction       = 'bi'; // up, bi, down
             job.label           = 'New Job';
-            job.__type__        = 'JobConfig'
+            job.hide_up_dir     = 'false'; // to hide buttons in gui
+            job.hide_bi_dir     = 'false';  // to hide buttons in gui
+            job.hide_down_dir   = 'false';  // to hide buttons in gui
+            job.__type__        = 'JobConfig';
+
             $scope.job          = job;
             currentJob.setJob($scope.job);
-        }else if ($scope.job && $scope.job.server){
+        } else if ($scope.job && $scope.job.server){
             job = $scope.job = currentJob.getJob();
             $scope.inline_host = $scope.job.server;
             $scope.parseURL();
-        }else if(currentJob.getJob() && !$scope.job){
+        } else if(currentJob.getJob() && !$scope.job){
             job = $scope.job = currentJob.getJob();
             $scope.inline_host = $scope.job.server;
             $scope.parseURL();
@@ -533,7 +547,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
     })
 
     .controller('EditCtrl', function($scope, $location, $routeParams, $window, $timeout, Jobs, currentJob, Ws, Folders, Commands) {
-
         $scope._ = window.translate;
         if (window.ui_config){
             $scope.ui_config = window.ui_config;
@@ -686,7 +699,16 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     }, 600);
                     $scope.job.test_path = false;
                 }
-
+                if($scope.job.repoObject['@acl'] === 'r'){ // custom GUI for ACL
+                    $scope.job.direction = 'down';
+                    $scope.job.hide_up_dir = 'true';
+                    $scope.job.hide_bi_dir = 'true';
+                } else if ($scope.job.repoObject['@acl'] === 'w'){
+                    $scope.job.direction = 'up';
+                    $scope.job.hide_down_dir = 'true';
+                    $scope.job.hide_bi_dir = 'true';
+                }
+                $scope.job.$save();
                 $location.path('/edit/new/step3');
 
             }else if(stepName == 'step3'){
@@ -740,6 +762,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             }
         };
     })
+<<<<<<< HEAD
 
      .controller('ShareCtrl', function($scope, $window, $route, $location, Share, shareFile) {
         $scope._ = window.translate;
@@ -843,3 +866,50 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             $scope.QtObject.copyToClipBoard(value);
         };
     });
+=======
+    .controller('SettingsCtrl', function($scope, $routeParams, $timeout, Jobs, Logs, Conflicts, Proxy){
+        $scope._ = window.translate;
+        if (window.ui_config){
+            $scope.ui_config = window.ui_config;
+        }
+        var proxies = Proxy.query(function(){
+            proxies.http.password = "";
+            proxies.https.password = "";
+            proxies.https.url = proxies.https.hostname + ":" + proxies.https.port;
+            proxies.http.url = proxies.http.hostname + ":" + proxies.http.port;
+            // check for a nice gui, in the model?!
+            if (proxies.https.url === ":") proxies.https.url = "";
+            if (proxies.http.url === ":") proxies.http.url = "";
+            $scope.proxies = proxies;
+        });
+
+        $scope.save = function(param){
+            console.log("Am I called?");
+        };
+        $scope.updateProxy = function (){
+            function cutHostPort(url, hostOrPort){
+                // removes https:// from url if present, @hostOrPort: 0 for host, 1 for port
+                url = url.replace("http://", "");
+                url = url.replace("https://", "");
+                var res = url.split(':')[hostOrPort];
+                return res == undefined ? "" : res;
+            }
+            // recover port & host from url
+            proxies.http.hostname = cutHostPort(proxies.http.url, 0);
+            proxies.https.hostname = cutHostPort(proxies.https.url, 0);
+            proxies.http.port = cutHostPort(proxies.http.url, 1);
+            proxies.https.port = cutHostPort(proxies.https.url, 1);
+            proxies.http.active = proxies.https.active;
+            // store, delete, post and restore url
+            var temp = proxies.http.url;
+            var temps = proxies.https.url;
+            proxies.http.url = undefined;
+            proxies.https.url = undefined;
+            // P O S T
+            proxies.$save();
+            proxies.https.url = temps;
+            proxies.http.url = temp;
+        }
+    });
+    
+>>>>>>> refs/remotes/origin/master

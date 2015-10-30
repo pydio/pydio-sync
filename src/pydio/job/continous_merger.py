@@ -296,6 +296,7 @@ class ContinuousDiffMerger(threading.Thread):
         :return:
         """
         self.job_status_running = True
+        self.sdk.proxies = ConfigManager.Instance().get_defined_proxies()
         self.sdk.remove_interrupt()
         self.info(_('Job Started'), toUser='START', channel='status')
 
@@ -492,7 +493,13 @@ class ContinuousDiffMerger(threading.Thread):
                 self.update_min_seqs_from_store()
 
                 logging.debug('Store conflicts')
-                store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
+                store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler, self.job_config)
+                if store_conflicts:
+                    if self.job_config.solve == 'both':
+                        logging.info('Marking nodes SOLVED:KEEPBOTH')
+                        for row in self.db_handler.list_conflict_nodes():
+                            self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPBOTH')
+                        store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler, self.job_config)
                 if store_conflicts:
                     logging.info('Conflicts detected, cannot continue!')
                     logger.log_state(_('Conflicts detected, cannot continue!'), 'error')
