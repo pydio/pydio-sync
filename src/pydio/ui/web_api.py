@@ -107,16 +107,20 @@ class PydioApi(Api):
         self.add_resource(ConflictsManager, '/jobs/<string:job_id>/conflicts', '/jobs/conflicts')
         self.add_resource(CmdManager, '/cmd/<string:cmd>/<string:job_id>', '/cmd/<string:cmd>')
         self.add_resource(UrlManager, '/url/<path:complete_url>')
+        self.add_resource(TaskInfoManager, '/stat', '/stat/<string:job_id>', '/stat/<string:job_id>/<path:relative_path>')
+        self.add_resource(ShareManager, '/share/<string:job_id>')
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
         self.app.add_url_rule('/res/about.html', 'dynamic_about', self.serve_about_content)
+
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
             self.app.add_url_rule('/res/dynamic.png', 'dynamic_png', self.serve_dynamic_image)
         else:
             self.app.add_url_rule('/res/settings.html', 'dynamic_settings', self.serve_settings)
+
 
     @pydio_profile
     def serve_i18n_file(self):
@@ -185,10 +189,12 @@ class PydioApi(Api):
                   'url=#" /></head><body></body></html>'
         if EndpointResolver:
             with open(self.real_static_folder + '/settings.html', 'r') as handle:
+
                 content = handle.read()
         return Response(response=content,
                         status=200,
                         mimetype="text/html")
+
     @pydio_profile
     def start_server(self):
         try:
@@ -398,7 +404,8 @@ class JobManager(Resource):
                            auth=(json_req['user'], json_req['password']),
                            device_id=ConfigManager.Instance().get_device_id(),
                            skip_ssl_verify=trust_ssl,
-                           proxies=ConfigManager.Instance().get_defined_proxies())
+                           proxies=ConfigManager.Instance().get_defined_proxies(),
+                           timeout=json_req["timeout"])
             up = [0.0]
             def callback(location, change, info):
                 if change and "bytesize" in change and change["md5"] != "directory":
@@ -444,6 +451,7 @@ class JobManager(Resource):
                 response = {'is_connected_to_internet': connection_helper.internet_ok, 'jobs': json_jobs}
                 return response
             return json_jobs
+        logging.info("Requiring job %s" % job_id)
         data = JobConfig.encoder(jobs[job_id])
         self.enrich_job(data, job_id)
         return data
@@ -594,13 +602,112 @@ class ProxyManager(Resource):
         else:
             proxy_flag = True
         ConfigManager.Instance().proxies_loaded = False
-        response = ConfigManager.Instance().set_user_proxy(json_req) # write proxies.json
-        logging.info(ConfigManager.Instance().get_defined_proxies())
-        return json_req # echoes incoming json for cute REST behavior
+        # write the content into local proxy.json file
+        response = ConfigManager.Instance().set_user_proxy(json_req, check_proxy_flag=proxy_flag)
+        return response
+
+
+class TaskInfoManager(Resource):
+
+    @authDB.requires_auth
+    @pydio_profile
+    def get(self, job_id='', relative_path=''):
+        """
+        retrieves the stat info for a given file / list the active job details
+        :param job_id: (optional) Job Id of the file/ folder
+        :param relative_path: (optional) relative path of the file/folder with respect
+               to the corresponding repository(job_id)
+        :returns a json response
+        """
+        if request.path == '/stat':
+            jobs = JobsLoader.Instance().get_jobs()
+            json_jobs = {}
+            for job in jobs:
+                json_jobs.update({jobs[job].id: [jobs[job].directory, jobs[job].server, jobs[job].workspace]})
+            return json_jobs
+        else:
+
+            directory_path = JobsLoader.Instance().get_job(job_id).directory
+            base_path = JobsLoader.Instance().build_job_data_path(job_id)
+            path = os.path.join(directory_path, relative_path)
+
+            #r = os.stat(path)
+
+            # Get the status of the file idle/busy... by join of ajxp_index and ajxp_node_status tables
+            db_handler = LocalDbHandler(base_path, directory_path)
+            if Path(str(path)).is_dir():
+                node_status = db_handler.get_directory_node_status("/" + relative_path)
+            else:
+                node_status = db_handler.get_node_status("/" + relative_path)
+
+            return {"node_status": node_status }
 
 class UrlManager(Resource):
+    """
+        performs a url request via proxy if present
+        :returns a json response
+    """
     @authDB.requires_auth
     @pydio_profile
     def get(self, complete_url):
         resp = requests.get(complete_url, stream=False, proxies=ConfigManager.Instance().get_defined_proxies())
         return json.loads(resp.content)
+
+class ShareManager(Resource):
+    """
+        performs a url request via proxy if present
+        :returns a json response
+    """
+    @authDB.requires_auth
+    @pydio_profile
+    def get(self, job_id):
+            """
+            retrieves the stat info for a given file / list the active job details
+            :param job_id: (optional) Job Id of the file/ folder that needs to be shared
+            :returns a json response
+                        on success: returns a shared link
+            """
+            args = request.args
+            jobs = JobsLoader.Instance().get_jobs()
+            if not job_id in jobs:
+                return {"error": "Cannot find job"}
+            job = jobs[job_id]
+
+            from pydio.sdk.remote import PydioSdk
+            remote_instance = PydioSdk(job.server, job.workspace, job.remote_folder, job.user_id,
+                           auth="",
+                           device_id=ConfigManager.Instance().get_device_id(),
+                           skip_ssl_verify=job.trust_ssl,
+                           proxies=ConfigManager.Instance().get_defined_proxies(),
+                           timeout=job.timeout)
+
+            if args['action'] == 'share':
+                relative_path = os.path.normpath("/" + args["relative_path"]).replace('\\', '/')
+                # Check if the shared link is already present
+                check_res = remote_instance.check_share_link(
+                    relative_path
+                )
+
+                if len(check_res) > 2:  # when share link doesn't exists content length will be zero for file and 2 for folder
+                    res = json.loads(check_res)
+                    if res["minisite"]["public"]:
+                        return {"link": res["minisite"]["public_link"], "existingLinkFlag": "true"}
+                elif args["checkExistingLinkFlag"]:
+                    return {"existingLinkFlag": "false"}
+
+                res = remote_instance.share(
+                    args["ws_label"],
+                    args["ws_description"] if "ws_description" in args else "",
+                    args["password"] if "password" in args else "",
+                    args["expiration"] if "expiration" in args else 0,
+                    args["downloads"] if "downloads" in args else 0,
+                    args["can_read"] if "can_read" in args else "true",
+                    args["can_download"] if "can_download" in args else "true",
+                    relative_path,
+                    args["link_handler"] if "link_handler" in args else "",
+                    args["can_write"] if "can_write" in args else "false"
+                )
+                return {"link": res}
+            else:
+                res = remote_instance.unshare("/" + args["path"])
+                return {"response": res, "existingLinkFlag": "false"}

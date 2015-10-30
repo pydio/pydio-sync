@@ -57,7 +57,7 @@ class PydioSdkQuotaException(PydioSdkDefaultException):
         def to_mo(value):
             return format(float(value)/(1024*1024))
         super(PydioSdkQuotaException, self).__init__(
-            _('[Quota limit reached] - You are using %(usage)s iMB of %(total)s iMB, you cannot upload %(filename)s - %(filesize)s iMB')
+            _('[Quota limit reached] - You are using %(usage)s iMB of %(total)s iMB, you cannot upload %(filename)s %(filesize)s iMB')
             % {'usage':to_mo(usage), 'total':to_mo(total), 'filename':file_name, 'filesize':to_mo(file_size)})
         self.code = 507
 class PydioSdkPermissionException(PydioSdkDefaultException):

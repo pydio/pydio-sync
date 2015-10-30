@@ -50,7 +50,7 @@ PYDIO_SDK_MAX_UPLOAD_PIECES = 40 * 1024 * 1024
 class PydioSdk():
 
     def __init__(self, url='', ws_id='', remote_folder='', user_id='', auth=(), device_id='python_client',
-                 skip_ssl_verify=False, proxies=None):
+                 skip_ssl_verify=False, proxies=None, timeout = 20):
         self.ws_id = ws_id
         self.device_id = device_id
         self.verify_ssl = not skip_ssl_verify
@@ -74,6 +74,7 @@ class PydioSdk():
         self.tokens = None
         self.rsync_supported = False
         self.proxies = proxies
+        self.timeout = timeout
 
     def set_server_configs(self, configs):
         """
@@ -184,7 +185,7 @@ class PydioSdk():
         """
         if request_type == 'get':
             try:
-                resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl, headers=headers,
+                resp = requests.get(url=url, stream=stream, timeout=self.timeout, verify=self.verify_ssl, headers=headers,
                                     auth=self.auth, proxies=self.proxies)
             except ConnectionError as e:
                 raise
@@ -200,7 +201,7 @@ class PydioSdk():
                     url=url,
                     data=data,
                     stream=stream,
-                    timeout=20,
+                    timeout=self.timeout,
                     verify=self.verify_ssl,
                     headers=headers,
                     auth=self.auth,
@@ -241,7 +242,7 @@ class PydioSdk():
             else:
                 url += '?' + auth_string
             try:
-                resp = requests.get(url=url, stream=stream, timeout=20, verify=self.verify_ssl,
+                resp = requests.get(url=url, stream=stream, timeout=self.timeout, verify=self.verify_ssl,
                                     headers=headers, proxies=self.proxies)
             except ConnectionError as e:
                 raise
@@ -259,7 +260,7 @@ class PydioSdk():
                     url=url,
                     data=data,
                     stream=stream,
-                    timeout=20,
+                    timeout=self.timeout,
                     verify=self.verify_ssl,
                     headers=headers,
                     proxies=self.proxies)
@@ -992,7 +993,7 @@ class PydioSdk():
                 data=body,
                 headers={'Content-Type': content_type},
                 stream=True,
-                timeout=20,
+                timeout=self.timeout,
                 verify=self.verify_ssl,
                 auth=auth,
                 proxies=self.proxies
@@ -1032,3 +1033,67 @@ class PydioSdk():
                 logging.info('Uploaded '+str(max_size)+' bytes of data in about %'+str(duration)+' s')
 
         return resp
+
+    def check_share_link(self, file_name):
+        data = dict()
+        #data["action"] = "load_shared_element_data"
+        #data["file"] = file_name
+        #data["element_type"] = 'file'
+
+        resp = requests.post(
+                    url=self.url + "/load_shared_element_data" + file_name,
+                    data=data,
+                    timeout=self.timeout,
+                    verify=self.verify_ssl,
+                    auth=self.auth,
+                    proxies=self.proxies)
+
+        return resp.content
+
+    def share(self, ws_label, ws_description, password, expiration, downloads, can_read, can_download, paths,
+                    link_handler, can_write):
+        data = dict()
+        #data["get_action"] = "share"
+        data["sub_action"] = "create_minisite"
+        data["guest_user_pass"] = password
+        data["create_guest_user"] = "true"
+        data["share_type"] = "on"
+        data["expiration"] = expiration
+        data["downloadlimit"] = downloads
+        data["repo_description"] = ws_description
+        data["repo_label"] = ws_label
+        #data["nodes[]"] = paths
+        data["custom_handle"] = link_handler
+        #data["file"] = paths
+        #data["dir"] = os.path.dirname(paths)
+
+        if can_download == "true":
+            data["simple_right_download"] = "on"
+        if can_read == "true":
+            data["simple_right_read"] = "on"
+        if can_write == "true":
+            data["simple_right_write"] = "on"
+
+        resp = requests.post(
+                    url=self.url+'/share/public' + self.urlencode_normalized(paths),
+                    data=data,
+                    timeout=self.timeout,
+                    verify=self.verify_ssl,
+                    auth=self.auth,
+                    proxies=self.proxies)
+        return resp.content
+
+
+    def unshare(self, path):
+        data = dict()
+        #data["file"] = path
+
+        resp = requests.post(
+                    url=self.url+'/unshare' + path,
+                    data=data,
+                    timeout=self.timeout,
+                    verify=self.verify_ssl,
+                    auth=self.auth,
+                    proxies=self.proxies)
+
+        return resp.content

@@ -134,6 +134,18 @@ div.loader_image{
     font-size: 28px;
 }
 
+.shareHeader{
+    position: fixed;
+    background-color: #77b8e2;
+    color: white;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    top: 34px;
+    z-index: 1000;
+    font-size: 28px;
+}
+
 .settingsHeader{
     position: fixed;
     background-color: #77b8e2;

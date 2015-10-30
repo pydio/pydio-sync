@@ -93,10 +93,10 @@ class JobsLoader():
 
     def clear_job_data(self, job_id, parent=False):
         job_data_path = self.build_job_data_path(job_id)
-        if os.path.exists(job_data_path + "/sequences"):
-            os.remove(job_data_path + "/sequences")
-        if os.path.exists(job_data_path + "/pydio.sqlite"):
-            os.remove(job_data_path + "/pydio.sqlite")
+        if os.path.exists(os.path.join(job_data_path, "sequences")):
+            os.unlink(os.path.join(job_data_path, "sequences"))
+        if os.path.exists(os.path.join(job_data_path, "pydio.sqlite")):
+            os.unlink(os.path.join(job_data_path, "pydio.sqlite"))
         if parent and os.path.exists(job_data_path):
             import shutil
             shutil.rmtree(job_data_path)
@@ -124,6 +124,9 @@ class JobConfig:
             includes=['*'],
             excludes=['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store', '.~lock.*']
         )
+
+        self.timeout = 20
+
         self.hide_up_dir = 'false'
         self.hide_bi_dir = 'false'
         self.hide_down_dir = 'false'
@@ -155,10 +158,12 @@ class JobConfig:
                     "trust_ssl":obj.trust_ssl,
                     "active": obj.active,
                     "filter": obj.filters,
+                    "timeout": obj.timeout,
                     "hide_up_dir": obj.hide_up_dir,
                     "hide_bi_dir": obj.hide_bi_dir,
                     "hide_down_dir": obj.hide_down_dir
                     }
+
         raise TypeError(repr(JobConfig) + " can't be encoded")
 
     def load_from_cliargs(self, args):
@@ -221,6 +226,8 @@ class JobConfig:
                 job_config.make_id()
             else:
                 job_config.id = obj['id']
+            if 'timeout' in obj:
+                job_config.timeout = obj['timeout']
 
             if job_config.frequency == 'auto' or job_config.frequency == 'time':
                 job_config.monitor = True
