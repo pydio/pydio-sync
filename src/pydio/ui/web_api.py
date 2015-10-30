@@ -109,13 +109,10 @@ class PydioApi(Api):
         self.add_resource(UrlManager, '/url/<path:complete_url>')
         self.add_resource(TaskInfoManager, '/stat', '/stat/<string:job_id>', '/stat/<string:job_id>/<path:relative_path>')
         self.add_resource(ShareManager, '/share/<string:job_id>')
-        #self.add_resource(ShareManager, '/share/<string:file_name>/<string:link_handle>/<string:password>/<string:expireIn>/<string:allowed_downloads>/<string:preview>/<string:download>/<path:relative_path>')
-
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
         self.app.add_url_rule('/res/about.html', 'dynamic_about', self.serve_about_content)
-        self.app.add_url_rule('/res/share.html', 'dynamic_share', self.serve_share_content)
 
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
@@ -182,18 +179,6 @@ class PydioApi(Api):
         else:
             about_file = str(self.real_static_folder / 'about.html')
             with open(about_file, 'r') as handle:
-                content = handle.read()
-        return Response(response=content,
-                        status=200,
-                        mimetype="text/html")
-
-    def serve_share_content(self):
-        content = ''
-        if EndpointResolver:
-            content = EndpointResolver.Instance().load_share_content()
-        else:
-            share_file = str(self.real_static_folder / 'share.html')
-            with open(share_file, 'r') as handle:
                 content = handle.read()
         return Response(response=content,
                         status=200,
@@ -646,17 +631,16 @@ class TaskInfoManager(Resource):
             base_path = JobsLoader.Instance().build_job_data_path(job_id)
             path = os.path.join(directory_path, relative_path)
 
-            r = os.stat(path)
+            #r = os.stat(path)
 
             # Get the status of the file idle/busy... by join of ajxp_index and ajxp_node_status tables
             db_handler = LocalDbHandler(base_path, directory_path)
             if Path(str(path)).is_dir():
-                node_status = db_handler.get_directory_node_status("\\" + relative_path)
+                node_status = db_handler.get_directory_node_status("/" + relative_path)
             else:
-                node_status = db_handler.get_node_status("\\" + relative_path)
+                node_status = db_handler.get_node_status("/" + relative_path)
 
-            return {"file_size": r.st_size,
-                    "node_status": node_status}
+            return {"node_status": node_status }
 
 class UrlManager(Resource):
     """
@@ -701,7 +685,7 @@ class ShareManager(Resource):
                 relative_path = os.path.normpath("/" + args["relative_path"]).replace('\\', '/')
                 # Check if the shared link is already present
                 check_res = remote_instance.check_share_link(
-                    relative_path, timeout=job.timeout
+                    relative_path
                 )
 
                 if len(check_res) > 2:  # when share link doesn't exists content length will be zero for file and 2 for folder

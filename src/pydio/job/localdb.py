@@ -221,7 +221,7 @@ class LocalDbHandler():
                      LEFT JOIN ajxp_node_status \
                      ON ajxp_node_status.node_id = ajxp_index.node_id\
                      WHERE ajxp_node_status.status<>'IDLE' \
-                     AND ajxp_index.node_path LIKE ?",(node_path + "\\" + "%",))][0] > 0:
+                     AND ajxp_index.node_path LIKE ?", (self.normpath(node_path + '/%'),))][0] > 0:
             status = "PENDING"
         c.close()
         return status
