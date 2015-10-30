@@ -18,7 +18,7 @@
             <input type="text" name="s_proxy_url" ng-model="proxies.https.url" class="form-control" placeholder="{{ proxies.https.url === '' ? 'pydio.com:8083' : proxies.https.url }}" autofocus required/>
             </div>
         <div class="form-group">
-                <input type="text" name="https_user" ng-model="proxies.https.username" class="form-control" placeholder="{{ proxies.https.username ==''?'username' : proxies.https.username}}">
+                <input type="text" name="https_user" ng-model="proxies.https.username" class="form-control" placeholder="{{ proxies.https.username ==''? 'Username' : proxies.https.username}}">
             </div>
         <div class="form-group">
                 <input type="password" name="https_password" ng-model="proxies.https.password" class="form-control" placeholder="P*ssw*rd">
@@ -38,7 +38,7 @@
                 <input type="text" name="proxy_url" ng-model="proxies.http.url" class="form-control" placeholder="{{ proxies.http.url === '' ? 'pydio.com:8080' : proxies.http.url }}" required/>
             </div>
             <div class="form-group">
-                <input type="text" name="http_user" ng-model="proxies.http.username" class="form-control" placeholder="{{ proxies.http.username === '' ? 'username' : proxies.http.username}}">
+                <input type="text" name="http_user" ng-model="proxies.http.username" class="form-control" placeholder="{{ proxies.http.username === '' ? 'Username' : proxies.http.username}}">
             </div>
             <div class="form-group">
                 <input type="password" name="http_password" ng-model="proxies.http.password" class="form-control" placeholder="P*ssw*rd">

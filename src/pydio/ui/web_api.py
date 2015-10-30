@@ -567,7 +567,7 @@ class ProxyManager(Resource):
             res = json.load(f)
             f.close()
         except IOError: # no proxy file exists
-            res = json.loads('{"http": {"username": "", "password": "","hostname": "","port": "","active":false},"https": {"username": "", "password": "", "hostname": "","port": "","active":false}}')
+            res = json.loads('{"http": {"username": "", "password": "","hostname": "","port": "","active":"false"},"https": {"username": "", "password": "", "hostname": "","port": "","active":"false"}}')
         # parse the content and only return some fields
         for protocol in res.keys():
             response[protocol] = {}
