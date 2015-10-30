@@ -124,6 +124,22 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         }
     })
 
+    .service('shareFile', function() {
+        var objectValue = {
+            'fileName':'',
+            'shareLink':'',
+            'shareJobId':'',
+            'existingLinkFlag':''};
+        return {
+            get: function() {
+                return objectValue;
+            },
+            set: function(key, value) {
+                objectValue[key] = value;
+            }
+        }
+    })
+
     .factory('Ws', ['$resource',
         function($resource){
             return $resource('/ws/:job_id/', {}, {
@@ -146,6 +162,32 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             });
         }])
 
+    .factory('Share', ['$resource',
+        function($resource){
+            return $resource('/share/:job_id/', {}, {
+                query: {method:'GET', params:{
+                    action:'',
+                    job_id:'',
+                    ws_label:'',
+                    ws_description:'',
+                    password:'',
+                    expiration:'',
+                    downloads:'',
+                    can_read:'',
+                    can_download:'',
+                    relative_path:'',
+                    link_handler: '',
+                    can_write: '',
+                    checkExistingLinkFlag:''
+                }, isArray:false},
+                unshare: {method:'GET', params:{
+                    job_id:'',
+                    action:'unshare',
+                    path:''
+                }, isArray:false}
+            });
+        }])
+
     .config(function($routeProvider) {
         $routeProvider
             .when('/', {
@@ -155,6 +197,14 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             .when('/about', {
                 controller:'ListCtrl',
                 templateUrl:'about.html'
+            })
+            .when('/share', {
+                controller:'ShareCtrl',
+                templateUrl:'share.html'
+            })
+            .when('/share/response', {
+                controller:'ShareCtrl',
+                templateUrl:'share_response.html'
             })
             .when('/edit/:jobId/full', {
                 controller:'EditCtrl',
@@ -245,11 +295,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         $scope.$on('$destroy', function(){
             $timeout.cancel(t2);
         });
-        /*
-        $scope.jobs = Jobs.query(function(resp){
-            if(!resp.length) $location.path('/new');
-        });
-        */
+
         currentJob.setJob(null);
         $scope.applyCmd = function(cmd, jobId){
             Commands.query({cmd:cmd, job_id:jobId}, function(){
@@ -716,6 +762,110 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             }
         };
     })
+
+     .controller('ShareCtrl', function($scope, $window, $route, $location, Share, shareFile) {
+        $scope._ = window.translate;
+        $scope.share_preview = true;
+        $scope.share_download_checkbox = true;
+        $scope.share_allowed_downloads = 0;
+        $scope.can_write = false;
+        $scope.share_expire_in = 0;
+
+        if (window.ui_config){
+            $scope.ui_config = window.ui_config;
+        }
+
+        $scope.QtObject = window.PydioQtFileDialog;
+
+        $scope.share_filename = window.PydioQtFileDialog.getShareName();
+        $scope.can_write = window.PydioQtFileDialog.getItemType();
+        shareFile.set('can_write',$scope.can_write)
+
+        checkExistingLink = function(){
+            var res;
+            shareFile.set('fileName',$scope.share_filename)
+            shareFile.set('shareJobId',window.PydioQtFileDialog.getShareJobId())
+
+            res = Share.query({
+                action:'share',
+                job_id:window.PydioQtFileDialog.getShareJobId(),
+                relative_path: $scope.share_filename,
+                checkExistingLinkFlag:'true'
+            }, function(){
+                if(res.existingLinkFlag == 'true') {
+                shareFile.set('shareLink',res.link)
+                $location.path('/share/response');
+                }
+                }
+            );
+        };
+
+        checkExistingLink();
+
+        $scope.generateLink = function(){
+            var res;
+            shareFile.set('fileName',$scope.share_filename)
+            shareFile.set('shareJobId',window.PydioQtFileDialog.getShareJobId())
+
+            res = Share.query({
+                action:'share',
+                job_id:window.PydioQtFileDialog.getShareJobId(),
+                ws_label:$scope.share_filename.replace(/^.*[\\\/]/, ''),
+                ws_description:$scope.share_description,
+                password:$scope.share_password,
+                expiration:$scope.share_expire_in,
+                downloads:$scope.share_allowed_downloads,
+                can_read:$scope.share_preview,
+                can_download:$scope.share_download_checkbox,
+                relative_path: $scope.share_filename,
+                link_handler: $scope.share_link_handler,
+                can_write: $scope.share_upload_checkbox
+            }, function(){
+                shareFile.set('shareLink',res.link)
+                shareFile.set('existingLinkFlag',res.existingLinkFlag)
+                $location.path('/share/response');
+                }
+            );
+        };
+
+        $scope.GetShareLink = function(){
+            share_details = shareFile.get();
+            $scope.share_link = share_details['shareLink'];
+            $scope.existingLinkFlag = share_details['existingLinkFlag'];
+            $scope.share_filename = share_details['fileName'];
+        };
+
+        $scope.openFile = function(){
+
+            var res;
+            if(!window.PydioQtFileDialog) {
+                res = window.prompt(window.translate('Full path to the local folder'));
+            }else{
+                res = window.PydioQtFileDialog.getFilePath();
+            }
+            if(res){
+                $scope.share_filename = res;
+            }
+
+        };
+
+        $scope.unShareLink = function(){
+            share_details = shareFile.get();
+            res = Share.unshare({
+                job_id:share_details['shareJobId'],
+                action:'unshare',
+                path: share_details['fileName']
+            }, function(){
+                $location.path('/');
+                }
+            );
+        };
+
+        $scope.copyToClipBoard = function(value){
+            $scope.QtObject.copyToClipBoard(value);
+        };
+    })
+
     .controller('SettingsCtrl', function($scope, $routeParams, $timeout, Jobs, Logs, Conflicts, Proxy){
         $scope._ = window.translate;
         if (window.ui_config){
@@ -760,4 +910,3 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             proxies.http.url = temp;
         }
     });
-    

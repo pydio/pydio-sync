@@ -67,13 +67,14 @@ class ContinuousDiffMerger(threading.Thread):
         from pydio.utils.check_sqlite import check_sqlite_file
         for sqlite_file in sqlite_files:
             try:
-                exists_and_correct = check_sqlite_file(self.configs_path + "/" + sqlite_file)
+                exists_and_correct = check_sqlite_file(os.path.join(self.configs_path, sqlite_file))
                 if exists_and_correct:
-                    logging.info("Structure and Integrity of SQLite file %s is intact " % str(self.configs_path + "/" + sqlite_file))
+                    logging.info("Structure and Integrity of SQLite file %s is intact " % str(
+                        os.path.join(self.configs_path, sqlite_file)))
             except DBCorruptedException as e:
                 logging.debug("SQLite file %s is corrupted (Reason: %s), Deleting file and Reinitialising sync"
-                              % (str(self.configs_path + "/" + sqlite_file),e.message))
-                os.unlink(self.configs_path + "/" + sqlite_file)
+                              % (str(os.path.join(self.configs_path, sqlite_file)), e.message))
+                os.unlink(os.path.join(self.configs_path, sqlite_file))
                 self.update_sequences_file(0, 0)
 
         self.init_global_progress()
@@ -87,7 +88,8 @@ class ContinuousDiffMerger(threading.Thread):
             user_id=job_config.user_id,
             device_id=ConfigManager.Instance().get_device_id(),
             skip_ssl_verify=job_config.trust_ssl,
-            proxies=ConfigManager.Instance().get_defined_proxies()
+            proxies=ConfigManager.Instance().get_defined_proxies(),
+            timeout=job_config.timeout
         )
         self.system = SystemSdk(job_config.directory)
         self.remote_seq = 0
@@ -126,9 +128,9 @@ class ContinuousDiffMerger(threading.Thread):
                                         event_handler=self.event_handler)
             self.db_handler.check_lock_on_event_handler(self.event_handler)
 
-        if os.path.exists(self.configs_path + "/sequences"):
+        if os.path.exists(os.path.join(self.configs_path, "sequences")):
             try:
-                with open(self.configs_path + "/sequences", "rb") as f:
+                with open(os.path.join(self.configs_path, "sequences"), "rb") as f:
                     sequences = pickle.load(f)
                 self.remote_seq = sequences['remote']
                 self.local_seq = sequences['local']
@@ -137,7 +139,7 @@ class ContinuousDiffMerger(threading.Thread):
 
             except Exception:
                 # Wrong content, remove sequences file.
-                os.unlink(self.configs_path + "/sequences")
+                os.unlink(os.path.join(self.configs_path, "sequences"))
 
         dispatcher.connect(self.handle_transfer_rate_event, signal=TRANSFER_RATE_SIGNAL, sender=self.sdk)
         dispatcher.connect(self.handle_transfer_callback_event, signal=TRANSFER_CALLBACK_SIGNAL, sender=self.sdk)
@@ -146,7 +148,7 @@ class ContinuousDiffMerger(threading.Thread):
             self.job_status_running = False
 
     def update_sequences_file(self, local_seq, remote_seq):
-        with open(self.configs_path + "/sequences", "wb") as f:
+        with open(os.path.join(self.configs_path, "sequences"), "wb") as f:
             pickle.dump(dict(
                 local=local_seq,
                 remote=remote_seq
@@ -511,6 +513,8 @@ class ContinuousDiffMerger(threading.Thread):
                     self.exit_loop_clean(logger)
                     very_first = False
                     continue
+
+                self.current_store.update_pending_status(self.db_handler,self.local_seq)
 
                 self.global_progress['status_indexing'] = 0
                 import change_processor
