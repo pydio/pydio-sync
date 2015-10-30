@@ -93,10 +93,10 @@ class JobsLoader():
 
     def clear_job_data(self, job_id, parent=False):
         job_data_path = self.build_job_data_path(job_id)
-        if os.path.exists(job_data_path + "/sequences"):
-            os.unlink(job_data_path + "/sequences")
-        if os.path.exists(job_data_path + "/pydio.sqlite"):
-            os.unlink(job_data_path + "/pydio.sqlite")
+        if os.path.exists(os.path.join(job_data_path, "sequences")):
+            os.unlink(os.path.join(job_data_path, "sequences"))
+        if os.path.exists(os.path.join(job_data_path, "pydio.sqlite")):
+            os.unlink(os.path.join(job_data_path, "pydio.sqlite"))
         if parent and os.path.exists(job_data_path):
             import shutil
             shutil.rmtree(job_data_path)
