@@ -123,12 +123,18 @@ class ConfigManager:
                     else:
                         proxy = protocol + '://' + data[protocol]["username"] + ':' + data[protocol]["password"] + '@' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
                     proxies[protocol] = proxy
-                import urllib
-                urllib.urlopen("http://www.google.com", proxies=proxies)
+
+                import urllib2
+                #urllib.urlopen("http://www.google.com", proxies=proxies)
+                proxy = urllib2.ProxyHandler(proxies)
+                opener = urllib2.build_opener(proxy)
+                urllib2.install_opener(opener)
+                resp = urllib2.urlopen('http://www.google.com')
                 logging.info("[Proxy info] Server is reachable via proxy from client")
+                return resp.code == 200
             except IOError:
                 logging.error("[Proxy info] Connection error! (Check proxy)")
-            return True # what else?
+            return False
 
     def set_user_proxy(self, data):
         """
