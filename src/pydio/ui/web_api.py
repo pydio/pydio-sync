@@ -623,7 +623,7 @@ class TaskInfoManager(Resource):
             jobs = JobsLoader.Instance().get_jobs()
             json_jobs = {}
             for job in jobs:
-                json_jobs.update({jobs[job].id: [jobs[job].directory, jobs[job].server, jobs[job].workspace]})
+                json_jobs.update({jobs[job].id: [jobs[job].directory, jobs[job].server, jobs[job].label]})
             return json_jobs
         else:
 
