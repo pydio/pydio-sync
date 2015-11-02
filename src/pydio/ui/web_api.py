@@ -635,12 +635,12 @@ class TaskInfoManager(Resource):
 
             # Get the status of the file idle/busy... by join of ajxp_index and ajxp_node_status tables
             db_handler = LocalDbHandler(base_path, directory_path)
-            if Path(str(path)).is_dir():
+            if Path(str(path.encode("utf-8"))).is_dir():
                 node_status = db_handler.get_directory_node_status("/" + relative_path)
             else:
                 node_status = db_handler.get_node_status("/" + relative_path)
 
-            return {"node_status": node_status }
+            return {"node_status": node_status}
 
 class UrlManager(Resource):
     """
