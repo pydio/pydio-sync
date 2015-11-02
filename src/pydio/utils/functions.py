@@ -55,9 +55,11 @@ class ConnectionHelper:
     def __init__(self):
         self.internet_ok = True
 
-    def is_connected_to_internet(self):
+    def is_connected_to_internet(self, proxies):
         try:
-            resp = urllib2.urlopen('http://www.google.com', timeout=1)
+            #resp = urllib2.urlopen('http://www.google.com', timeout=1)
+            import urllib
+            resp = urllib.urlopen('http://www.google.com', proxies=proxies)
             self.internet_ok = True
             return True
         except Exception as e:

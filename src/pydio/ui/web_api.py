@@ -596,14 +596,10 @@ class ProxyManager(Resource):
                     json_req[protocol]["password"] = "__pydio_proxy_pwd__"
         except keyring.errors.PasswordSetError as e:
             logging.error("Error while storing password in keychain, should we store it cyphered in the config?")
-        if "test_proxy_flag" in json_req.keys():
-            proxy_flag = json_req["test_proxy_flag"]
-            del json_req["test_proxy_flag"]
-        else:
-            proxy_flag = True
+
         ConfigManager.Instance().proxies_loaded = False
         # write the content into local proxy.json file
-        response = ConfigManager.Instance().set_user_proxy(json_req, check_proxy_flag=proxy_flag)
+        response = ConfigManager.Instance().set_user_proxy(json_req)
         return response
 
 

@@ -435,7 +435,7 @@ class ContinuousDiffMerger(threading.Thread):
                         self.remote_target_seq = 1
                         self.ping_remote()
                 except RequestException as ce:
-                    if not connection_helper.is_connected_to_internet():
+                    if not connection_helper.is_connected_to_internet(self.sdk.proxies):
                         error = _('No Internet connection detected! Waiting for %s seconds to retry') % self.offline_timer
                     else:
                         error = _('Connection to server failed, server is probably down. Waiting %s seconds to retry') % self.offline_timer
@@ -463,7 +463,7 @@ class ContinuousDiffMerger(threading.Thread):
                 else:
                     self.local_target_seq = 1
                 if not connection_helper.internet_ok:
-                    connection_helper.is_connected_to_internet()
+                    connection_helper.is_connected_to_internet(self.sdk.proxies)
 
                 changes_length = len(self.current_store)
                 if not changes_length:
