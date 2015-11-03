@@ -388,7 +388,6 @@ class JobManager(Resource):
         JobsLoader.Instance().get_jobs()
         json_req = request.get_json()
         new_job = JobConfig.object_decoder(json_req)
-
         if 'test_path' in json_req:
             json_req['directory'] = os.path.join(ConfigManager.Instance().get_data_path(), json_req['repoObject']['label'])
             return json_req
@@ -400,12 +399,16 @@ class JobManager(Resource):
             trust_ssl = False
             if 'trust_ssl' in json_req:
                 trust_ssl = json_req['trust_ssl']
+            try:
+                _timeout = int(json_req["timeout"])
+            except ValueError:
+                _timeout = 20 # default to 20
             sdk = PydioSdk(json_req['server'], json_req['workspace'], json_req['remote_folder'], '',
                            auth=(json_req['user'], json_req['password']),
                            device_id=ConfigManager.Instance().get_device_id(),
                            skip_ssl_verify=trust_ssl,
                            proxies=ConfigManager.Instance().get_defined_proxies(),
-                           timeout=json_req["timeout"])
+                           timeout=_timeout)
             up = [0.0]
             def callback(location, change, info):
                 if change and "bytesize" in change and change["md5"] != "directory":

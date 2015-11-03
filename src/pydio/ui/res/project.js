@@ -455,6 +455,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             job.hide_up_dir     = 'false'; // to hide buttons in gui
             job.hide_bi_dir     = 'false';  // to hide buttons in gui
             job.hide_down_dir   = 'false';  // to hide buttons in gui
+            job.timeout         = '';
             job.__type__        = 'JobConfig';
 
             $scope.job          = job;
