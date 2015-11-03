@@ -50,7 +50,7 @@ PYDIO_SDK_MAX_UPLOAD_PIECES = 40 * 1024 * 1024
 class PydioSdk():
 
     def __init__(self, url='', ws_id='', remote_folder='', user_id='', auth=(), device_id='python_client',
-                 skip_ssl_verify=False, proxies=None, timeout = 20):
+                 skip_ssl_verify=False, proxies=None, timeout=20):
         self.ws_id = ws_id
         self.device_id = device_id
         self.verify_ssl = not skip_ssl_verify
