@@ -468,6 +468,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             $scope.inline_host = $scope.job.server;
             $scope.parseURL();
         }
+        $scope.nextWithEnter = function(ev){
+            if (ev.keyCode == 13)
+                $scope.next();
+        }
         $scope.next = function(){
             $scope.loading = true;
             $scope.loadWorkspaces();
