@@ -591,16 +591,17 @@ class ProxyManager(Resource):
         #logging.info(json_req)
         try:
             for protocol in json_req.keys():
-                if json_req[protocol]['password'] != "":
-                    keyring.set_password(json_req[protocol]["hostname"], json_req[protocol]["username"], json_req[protocol]["password"])
-                    json_req[protocol]["password"] = "__pydio_proxy_pwd__"
+                if "password" in json_req:
+                    if [protocol]['password'] != "":
+                        keyring.set_password(json_req[protocol]["hostname"], json_req[protocol]["username"], json_req[protocol]["password"])
+                        json_req[protocol]["password"] = "__pydio_proxy_pwd__"
         except keyring.errors.PasswordSetError as e:
             logging.error("Error while storing password in keychain, should we store it cyphered in the config?")
 
         ConfigManager.Instance().proxies_loaded = False
         # write the content into local proxy.json file
-        response = ConfigManager.Instance().set_user_proxy(json_req)
-        return response
+        ConfigManager.Instance().set_user_proxy(json_req)
+        return self.get()
 
 
 class TaskInfoManager(Resource):
