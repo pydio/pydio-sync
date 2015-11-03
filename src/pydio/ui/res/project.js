@@ -455,7 +455,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             job.hide_up_dir     = 'false'; // to hide buttons in gui
             job.hide_bi_dir     = 'false';  // to hide buttons in gui
             job.hide_down_dir   = 'false';  // to hide buttons in gui
-            job.timeout         = '';
+            job.timeout         = '20';
             job.__type__        = 'JobConfig';
 
             $scope.job          = job;
@@ -678,7 +678,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 if($scope.job.workspace) $scope.loadFolders()
             }
         }
-
+        $scope.doneWithEnter = function(ev){
+            if (ev.keyCode == 13)
+                $scope.save('step2');
+        }
         $scope.save = function(stepName) {
             if($scope.job.repoObject){
                 $scope.job.workspace = $scope.job.repoObject['@repositorySlug'];

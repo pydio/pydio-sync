@@ -175,7 +175,8 @@ def main(argv=sys.argv[1:]):
         for i in range(len(args.proxy.split('::'))/5):
             msg[data[i*5]] = {"username": data[i*5+1], "password": data[i*5+2], "hostname": data[i*5+3], "port": data[i*5+4]}
         proxy_flag = data[-1] if len(args.proxy.split('::'))%5 == 1 else True  # default true
-        config_manager.set_user_proxy(msg, check_proxy_flag=proxy_flag)
+        # setting != testing, please
+        config_manager.set_user_proxy(msg)
         return 0
 
     if args.server and args.directory and args.workspace:
