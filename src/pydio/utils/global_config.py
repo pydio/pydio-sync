@@ -106,6 +106,8 @@ class ConfigManager:
                             break
             self.proxies_loaded = True
             #logging.info("[Proxy info] " + str(self.proxies))
+        if not self.proxies:
+            self.proxies = {}
         return self.proxies
 
     def check_proxy(self, data):

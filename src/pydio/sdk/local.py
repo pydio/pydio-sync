@@ -21,6 +21,7 @@ import subprocess
 import os
 import hashlib
 import stat
+import netifaces
 from exceptions import SystemSdkException
 from pydio.utils.functions import hashfile
 from pydio.utils.global_config import ConfigManager
@@ -146,3 +147,22 @@ class SystemSdk(object):
         new_path += version + ext
         # logging.info(self.basepath + file_path + " - cp -> " + self.basepath + new_path)
         shutil.copy2(self.basepath + file_path, self.basepath + new_path)
+
+    def isinternetavailable(self):
+        """
+        :return: True when an interface is configured ~= computer is online
+        """
+        ifaces = netifaces.interfaces()
+        for iface in ifaces:
+            addrs = netifaces.ifaddresses(iface)
+            for addr in addrs.get(netifaces.AF_INET, []):
+                if addr['addr'].startswith('127'):
+                    continue
+                return True
+            for addr in addrs.get(netifaces.AF_INET6, []):
+                if addr['addr'] == '::1':
+                    continue
+                if addr['addr'].lower().startswith('fe80'):
+                    continue
+                return True
+        return False

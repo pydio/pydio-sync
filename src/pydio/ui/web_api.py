@@ -388,7 +388,6 @@ class JobManager(Resource):
         JobsLoader.Instance().get_jobs()
         json_req = request.get_json()
         new_job = JobConfig.object_decoder(json_req)
-
         if 'test_path' in json_req:
             json_req['directory'] = os.path.join(ConfigManager.Instance().get_data_path(), json_req['repoObject']['label'])
             return json_req
@@ -400,12 +399,16 @@ class JobManager(Resource):
             trust_ssl = False
             if 'trust_ssl' in json_req:
                 trust_ssl = json_req['trust_ssl']
+            try:
+                _timeout = int(json_req["timeout"])
+            except ValueError:
+                _timeout = 20 # default to 20
             sdk = PydioSdk(json_req['server'], json_req['workspace'], json_req['remote_folder'], '',
                            auth=(json_req['user'], json_req['password']),
                            device_id=ConfigManager.Instance().get_device_id(),
                            skip_ssl_verify=trust_ssl,
                            proxies=ConfigManager.Instance().get_defined_proxies(),
-                           timeout=json_req["timeout"])
+                           timeout=_timeout)
             up = [0.0]
             def callback(location, change, info):
                 if change and "bytesize" in change and change["md5"] != "directory":
@@ -591,16 +594,17 @@ class ProxyManager(Resource):
         #logging.info(json_req)
         try:
             for protocol in json_req.keys():
-                if json_req[protocol]['password'] != "":
-                    keyring.set_password(json_req[protocol]["hostname"], json_req[protocol]["username"], json_req[protocol]["password"])
-                    json_req[protocol]["password"] = "__pydio_proxy_pwd__"
+                if "password" in json_req:
+                    if [protocol]['password'] != "":
+                        keyring.set_password(json_req[protocol]["hostname"], json_req[protocol]["username"], json_req[protocol]["password"])
+                        json_req[protocol]["password"] = "__pydio_proxy_pwd__"
         except keyring.errors.PasswordSetError as e:
             logging.error("Error while storing password in keychain, should we store it cyphered in the config?")
 
         ConfigManager.Instance().proxies_loaded = False
         # write the content into local proxy.json file
-        response = ConfigManager.Instance().set_user_proxy(json_req)
-        return response
+        ConfigManager.Instance().set_user_proxy(json_req)
+        return self.get()
 
 
 class TaskInfoManager(Resource):

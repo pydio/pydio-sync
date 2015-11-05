@@ -227,8 +227,12 @@ class JobConfig:
             else:
                 job_config.id = obj['id']
             if 'timeout' in obj:
-                job_config.timeout = obj['timeout']
-
+                try:
+                    job_config.timeout = int(obj['timeout'])
+                except ValueError:
+                    job_config.timeout = 20
+            else:
+                job_config.timeout = 20
             if job_config.frequency == 'auto' or job_config.frequency == 'time':
                 job_config.monitor = True
             else:
@@ -239,6 +243,5 @@ class JobConfig:
                 job_config.hide_bi_dir = obj['hide_bi_dir']
             if 'hide_down_dir' in obj:
                 job_config.hide_down_dir = obj['hide_down_dir']
-
             return job_config
         return obj

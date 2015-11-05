@@ -45,7 +45,7 @@
             <span ng-show="myForm.user.$error.required && !myForm.user.$pristine" class="help-inline">{{_('Required')}}</span>
         </div>
         <div class="form-group">
-            <input type="password" name="pwd" ng-model="job.password" class="form-control" placeholder="Password" required>
+            <input type="password" name="pwd" ng-model="job.password" ng-keyup="nextWithEnter($event)" class="form-control" placeholder="Password" required>
             <span ng-show="myForm.pwd.$error.required && !myForm.pwd.$pristine" class="help-inline">{{_('Required')}}</span>
         </div>
     </form>
