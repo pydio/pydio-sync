@@ -499,8 +499,6 @@ class LocalDbHandler():
 
 
 class SqlEventHandler(FileSystemEventHandler):
-
-
     """reading = False
     last_write_time = 0
     db_wait_duration = 1"""
