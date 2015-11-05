@@ -16,9 +16,9 @@
                         <!--{{_('Status')}}: {{_('syncing')}}-->
                     </div>
                     <div class="" ng-if="(!job.state.tasks || !job.state.tasks.total) && job.last_event">
-                        <span ng-if="job.state.global.status_indexing" style="font-size: 1.2em;">{{_('Status')}}: {{_('syncing')}}<br></span>
-                        <span ng-if="!job.state.global.status_indexing" style="font-size:1.2em;" ng-if="job.last_event.type != 'error'">{{_('Last sync')}} {{job.last_event.date | moment }}<br></span>
-                        <span ng-if="job.last_event.type == 'error'">{{_('ERROR')}}: </span>{{job.last_event.message}}
+                        <span ng-if="job.state.global.status_indexing" style="font-size: 1em;">{{_('Status')}}: {{_('syncing')}}<br></span>
+                        <span ng-if="!job.state.global.status_indexing" style="font-size: 1em;" ng-if="job.last_event.type != 'error'">{{_('Last sync')}} {{job.last_event.date | moment }}<br></span>
+                        <span ng-if="job.last_event.type == 'error'" style="font-size: 0.525em;">{{_('ERROR')}}: </span>{{job.last_event.message}}
                         <!--<br>{{_('Status')}}: {{_('idle')}}-->
                     </div>
                 </td>
@@ -50,7 +50,7 @@
                 </tr>
             </table>
         </div>
-        <h4 ng-if="(logs | filter: {action:'!loop'} ).length">{{_('Last files synced')}}</h4>
+        <h4 ng-if="(logs | filter: {action:'!loop'} ).length">{{_('Last files synced')}}<span ng-show="job['state'].tasks.current[0].node.mtime" style="float:right;">{{ job["state"].tasks.current[0].node.mtime*1000 | date:'yyyy-MM-dd HH:mm:ss' | moment }}</span></h4>
         <table style="width: 100%;">
             <tr ng-repeat="log in logs | filter: {action:'!loop'} | orderBy:'id':true  | limitTo: 4">
                 <td style="padding: 2px 0; width: 20px;">
