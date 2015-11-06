@@ -831,7 +831,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 can_write: $scope.share_upload_checkbox
             }, function(){
                 shareFile.set('shareLink',res.link)
-                shareFile.set('existingLinkFlag',res.existingLinkFlag)
                 $location.path('/share/response');
                 }
             );
