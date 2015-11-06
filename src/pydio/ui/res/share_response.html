@@ -1,4 +1,4 @@
-<h1 class="shareHeader" ng-value="GetShareLink()">{{_('Share %1 via Pydio', share_filename.split("/").pop())}}</h1>
+<h1 class="shareHeader" ng-value="GetShareLink()">{{_('Share %1 via Pydio', share_filename.split('\\').pop().split('/').pop())}}</h1>
 
 <div class="well" style="margin-top: 60px;">
     <form name="myForm" class="form-inline">

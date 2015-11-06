@@ -144,6 +144,9 @@ div.loader_image{
     top: 34px;
     z-index: 1000;
     font-size: 28px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .settingsHeader{
