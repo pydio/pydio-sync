@@ -1041,7 +1041,7 @@ class PydioSdk():
         #data["element_type"] = 'file'
 
         resp = requests.post(
-                    url=self.url + "/load_shared_element_data" + file_name,
+                    url=self.url + "/load_shared_element_data" + self.urlencode_normalized(file_name),
                     data=data,
                     timeout=self.timeout,
                     verify=self.verify_ssl,

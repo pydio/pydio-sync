@@ -802,6 +802,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             }, function(){
                 if(res.existingLinkFlag == 'true') {
                 shareFile.set('shareLink',res.link)
+                shareFile.set('existingLinkFlag','true')
                 $location.path('/share/response');
                 }
                 }
@@ -841,6 +842,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             $scope.share_link = share_details['shareLink'];
             $scope.existingLinkFlag = share_details['existingLinkFlag'];
             $scope.share_filename = share_details['fileName'];
+            $scope.checkResponseFlag = (share_details['shareLink'].substring(0, 4)=='http')
         };
 
         $scope.openFile = function(){

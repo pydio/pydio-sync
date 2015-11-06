@@ -6,8 +6,9 @@
             <h4>{{_('Shared Link')}}</h4>
             <div class="form-group">
                 <div />
-                    <p ng-show="existingLinkFlag" class="small">{{_('Shared link to the selected item already exists. Below is the link to the selected item')}}</p>
-                    <p ng-show="!existingLinkFlag" class="small">{{_('New shared link to the selected item has been generated')}}</p>
+                    <p ng-show="existingLinkFlag && checkResponseFlag" class="small">{{_('Shared link to the selected item already exists. Below is the link to the selected item')}}</p>
+                    <p ng-show="!existingLinkFlag && checkResponseFlag" class="small">{{_('New shared link to the selected item has been generated')}}</p>
+                    <p ng-show="!checkResponseFlag" class="small">{{_('Shared Link to the selected item has not been generated')}}</p>
                     <div class="input-group" align="centre">
                         <input type="text" size="60" ng-model="share_link" readonly class="form-control">
                     </div>
@@ -19,7 +20,7 @@
 
 <div  style="text-align: center; margin-top: 20px;">
     <button type="button" ng-click="copyToClipBoard(share_link); copyToClipBoardFlag=true;" class="btn btn-primary" style="width: 40%;margin:0 1%;">{{_('Copy to Clipboard')}}</button>
-    <button type="button"  class="btn btn-danger" ng-click="unShareLink()" style="width: 40%;margin:0 1%;" href>{{_('UnShare Link')}}</button>
+    <button type="button" ng-show="checkResponseFlag" class="btn btn-danger" ng-click="unShareLink()" style="width: 40%;margin:0 1%;" href>{{_('UnShare Link')}}</button>
 </div>
 
 <div  style="text-align: center; margin-top: 20px;">
