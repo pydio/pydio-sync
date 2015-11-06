@@ -8,9 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-
-"POT-Creation-Date: 2015-10-27 13:58+0100\n"
-
+"POT-Creation-Date: 2015-11-06 18:28+0100\n"
 "PO-Revision-Date: 2014-10-01 16:43+0200\n"
 "Last-Translator: Charles du Jeu <charles@pydio.com>\n"
 "Language-Team: French\n"
@@ -22,66 +20,65 @@ msgstr ""
 "X-Language: fr_FR\n"
 "X-Source-Language: en_US\n"
 
-#: sdk/remote.py:139
+#: sdk/remote.py:140
 #, fuzzy
 msgid "Cannot store tokens in keychain, there might be an OS permission issue!"
 msgstr "Impossible de sauver le mot de passe dans le trousseau."
 
-#: sdk/remote.py:158
+#: sdk/remote.py:159
 msgid "Authentication Error"
 msgstr "Erreur d'authentification, avez vous bien entré vos identifiants?"
 
-#: sdk/remote.py:209 sdk/remote.py:267
+#: sdk/remote.py:210 sdk/remote.py:268
 msgid "Unsupported HTTP method"
 msgstr "Méthode HTTP non supportée"
 
-#: sdk/remote.py:212 sdk/remote.py:270
+#: sdk/remote.py:213 sdk/remote.py:271
 msgid "Authentication Exception"
 msgstr "Erreur d'authentification"
 
-#: sdk/remote.py:349
+#: sdk/remote.py:350
 msgid ""
 "Invalid JSON value received while getting remote changes. Is the server "
 "correctly configured?"
 msgstr ""
 "Le JSON reçu est invalide, est-ce que le serveur est correctement configuré?"
 
-#: sdk/remote.py:386
+#: sdk/remote.py:387
 #, fuzzy
 msgid "Invalid JSON value received while getting remote changes"
 msgstr ""
 "Le JSON reçu est invalide, est-ce que le serveur est correctement configuré?"
 
-#: sdk/remote.py:413 sdk/remote.py:456 sdk/remote.py:749 sdk/remote.py:1013
+#: sdk/remote.py:414 sdk/remote.py:457 sdk/remote.py:750 sdk/remote.py:1014
 msgid "Task interrupted by user"
 msgstr "Tâche interrompue par l'utilisateur"
 
-#: sdk/remote.py:652
+#: sdk/remote.py:653
 msgid "Local file to upload not found!"
 msgstr "Fichier à envoyer introuvable!"
 
-#: sdk/remote.py:657
+#: sdk/remote.py:658
 msgid "File not correct after upload (expected size was 0 bytes)"
 msgstr "Fichier incorrect après l'upload (la taille attendue était 0)"
 
-#: sdk/remote.py:696
+#: sdk/remote.py:697
 msgid "File is incorrect after upload"
 msgstr "Fichier incorrect après l'upload"
 
-#: sdk/remote.py:709
+#: sdk/remote.py:710
 msgid "Original file was not found on server"
 msgstr "Le fichier original est introuvable sur le serveur"
 
-#: sdk/remote.py:766
+#: sdk/remote.py:767
 msgid "File not found after download"
 msgstr "Fichier introuvable après son téléchargement."
 
-#: sdk/remote.py:771
+#: sdk/remote.py:772
 msgid "File is not correct after download"
 msgstr "Le fichier est incorrect après son téléchargement."
 
-#: sdk/remote.py:790
-
+#: sdk/remote.py:791
 #, python-format
 msgid "Error while downloading file: %s"
 msgstr "Erreur lors du téléchargement du fichier: %s"
@@ -109,7 +106,6 @@ msgstr ""
 "pouvez uploader %(filename)s (%(filesize)s iMo)"
 
 #: sdk/exceptions.py:65
-
 #, python-format
 msgid "[File permission] %s"
 msgstr "[Permission] %s"
@@ -118,7 +114,7 @@ msgstr "[Permission] %s"
 msgid "Stopping tasks"
 msgstr "Arrêt des taches"
 
-#: sdk/local.py:106
+#: sdk/local.py:107
 msgid "Cannot remove local folder"
 msgstr ""
 "Impossible de supprimer le dossier local, il est peut-être utilisé par une "
@@ -129,45 +125,44 @@ msgid "Walking through your local folder, please wait..."
 msgstr "Parcours de votre dossier local, patientez s'il vous plaît..."
 
 #: job/local_watcher.py:130
-
 #, python-format
 msgid "Detected %i local changes..."
 msgstr ""
 
-#: job/continous_merger.py:288
+#: job/continous_merger.py:290
 msgid "Job Paused"
 msgstr "Tache en pause"
 
-#: job/continous_merger.py:298
+#: job/continous_merger.py:301
 msgid "Job Started"
 msgstr "Tache démarrée"
 
-#: job/continous_merger.py:308
+#: job/continous_merger.py:311
 msgid "Job stopping"
 msgstr "Tache en cours d'arrêt"
 
-#: job/continous_merger.py:334
+#: job/continous_merger.py:337
 msgid "Synchronized"
 msgstr "Synchronisé"
 
-#: job/continous_merger.py:358
+#: job/continous_merger.py:361
 msgid "Checking changes since last launch..."
 msgstr "Recherche des changements depuis le dernier démarrage..."
 
-#: job/continous_merger.py:368
+#: job/continous_merger.py:371
 msgid "Oops, error while indexing the local folder. Pausing the task."
 msgstr "Oops, erreur lors de la l'indexation du dossier local. Tâche mise en pause."
 
-#: job/continous_merger.py:390
+#: job/continous_merger.py:393
 msgid "Status: Paused"
 msgstr "Statut: en pause"
 
-#: job/continous_merger.py:399
+#: job/continous_merger.py:402
 #, python-format
 msgid "Status: scheduled for %s"
 msgstr "Satut: programmé pour %s"
 
-#: job/continous_merger.py:406
+#: job/continous_merger.py:409
 #, python-format
 msgid ""
 "Cannot find local folder! Did you disconnect a volume? Waiting %s seconds "
@@ -176,25 +171,25 @@ msgstr ""
 "Impossible de trouver le dossier local, avez-vous déconnecté un volume "
 "externe? Attente de %s secondes"
 
-#: job/continous_merger.py:408
+#: job/continous_merger.py:411
 msgid "Cannot find local folder, did you disconnect a volume?"
 msgstr ""
 "Impossible de trouver le dossier local, avez-vous déconnecté un volume "
 "externe?"
 
-#: job/continous_merger.py:427
+#: job/continous_merger.py:430
 msgid "Gathering data from remote workspace, this can take a while..."
 msgstr ""
 "Récupération d'informations du workspace, ceci peut durer un certain temps..."
 
-#: job/continous_merger.py:436
+#: job/continous_merger.py:439
 #, python-format
 msgid "No Internet connection detected! Waiting for %s seconds to retry"
 msgstr ""
 "Pas de connexion Internet détectée, en attente de %s secondes avant de "
 "réessayer"
 
-#: job/continous_merger.py:438
+#: job/continous_merger.py:441
 #, python-format
 msgid ""
 "Connection to server failed, server is probably down. Waiting %s seconds to "
@@ -203,72 +198,67 @@ msgstr ""
 "La connexion au serveur a échoué, en attente de %s secondes avant de "
 "réessayer"
 
-#: job/continous_merger.py:447
+#: job/continous_merger.py:450
 #, python-format
 msgid "Error while connecting to remote server (%s)"
 msgstr "Erreur lors de la connexion au serveur (%s)"
 
-#: job/continous_merger.py:475
+#: job/continous_merger.py:478
 msgid "Merging changes between remote and local, please wait..."
 msgstr "Fusion des modifications distantes et locales..."
 
-
-#: job/continous_merger.py:496
+#: job/continous_merger.py:505
 msgid "Conflicts detected, cannot continue!"
 msgstr "Conflits détectés, impossible de continuer!"
 
-#: job/continous_merger.py:514
-
+#: job/continous_merger.py:523
 #, python-format
 msgid "Processing %i changes"
 msgstr "Traitement de %i changements"
 
-#: job/continous_merger.py:553 job/continous_merger.py:555
-
+#: job/continous_merger.py:562 job/continous_merger.py:564
 #, python-format
 msgid "%i files modified"
 msgstr "%i fichiers modifiés"
 
-#: job/continous_merger.py:564
+#: job/continous_merger.py:573
 msgid "An SSL error happened, please check the logs"
 msgstr "Erreur SSL, veuillez vérifier les journaux d'erreur"
 
-#: job/continous_merger.py:567 ui/web_api.py:316
+#: job/continous_merger.py:576 ui/web_api.py:316
 msgid "A proxy error happened, please check the logs"
 msgstr "Erreur de proxy, veuillez vérifier les journaux d'érreurs"
 
-#: job/continous_merger.py:570 ui/web_api.py:319
+#: job/continous_merger.py:579 ui/web_api.py:319
 msgid "Connection error: too many redirects"
 msgstr "Erreur de connexion: trop de redirections."
 
-#: job/continous_merger.py:573 ui/web_api.py:322
+#: job/continous_merger.py:582 ui/web_api.py:322
 msgid "Chunked encoding error, please check the logs"
 msgstr "Erreur de chunk encoding, veuillez vérifier les journaux d'erreur."
 
-#: job/continous_merger.py:576 ui/web_api.py:325
-
+#: job/continous_merger.py:585 ui/web_api.py:325
 msgid "Content Decoding error, please check the logs"
 msgstr ""
 "Erreur de décodage du contenu, veuillez vérifier les journaux d'erreurs"
 
-#: job/continous_merger.py:579 ui/web_api.py:328
+#: job/continous_merger.py:588 ui/web_api.py:328
 msgid "Http connection error: invalid schema."
 msgstr "Erreur de connexion http: schéma invalide"
 
-#: job/continous_merger.py:582 ui/web_api.py:331
+#: job/continous_merger.py:591 ui/web_api.py:331
 msgid "Http connection error: invalid URL."
 msgstr "Erreur de connexion http: URL invalide."
 
-#: job/continous_merger.py:585
+#: job/continous_merger.py:594
 msgid "Connection timeout, will retry later."
 msgstr "La connexion au serveur a expiré, elle sera retentée plus tard."
 
-#: job/continous_merger.py:588 ui/web_api.py:341
+#: job/continous_merger.py:597 ui/web_api.py:341
 msgid "Cannot resolve domain!"
 msgstr "Impossible de résoudre le domaine! Problème de DNS?"
 
-#: job/continous_merger.py:592
-
+#: job/continous_merger.py:601
 #, python-format
 msgid "Unexpected Error: %s"
 msgstr "Erreur: %s"
@@ -373,7 +363,7 @@ msgstr ""
 "pydio"
 
 #: res/i18n/html_strings.py:12 res/i18n/html_strings.py:13
-#: res/i18n/html_strings.py:14 res/i18n/html_strings.py:164
+#: res/i18n/html_strings.py:14 res/i18n/html_strings.py:174
 msgid "Required"
 msgstr "Requis"
 
@@ -395,248 +385,270 @@ msgstr "Faire confiance au certificat SSL"
 
 #: res/i18n/html_strings.py:19
 msgid ""
+"To activate the new settings pause and resume a synchronization, or restart "
+"the client."
+msgstr ""
+
+#: res/i18n/html_strings.py:20 res/i18n/html_strings.py:46
+msgid "Save Parameters"
+msgstr "Sauver les paramètres"
+
+#: res/i18n/html_strings.py:21
+msgid ""
 "Ooops, cannot contact agent! Make sure it is running correctly, process will "
 "try to reconnect in 20s"
 msgstr ""
 "Oooups, impossible de contacter l'agent! Veuillez vous assurer qu'il est "
 "correctement démarrer, le process se reconnectera dans 20s."
 
-#: res/i18n/html_strings.py:20
+#: res/i18n/html_strings.py:22
 msgid "Select a workspace"
 msgstr "Sélectionner un workspace"
 
-#: res/i18n/html_strings.py:21
+#: res/i18n/html_strings.py:23
 msgid "Full path to the local folder"
 msgstr "Chemin complet vers le répertoire local"
 
-#: res/i18n/html_strings.py:22
+#: res/i18n/html_strings.py:24
 msgid "Are you sure you want to delete this synchro? No data will be deleted"
 msgstr ""
 "Etes-vous sûr que vous voulez supprimer cette synchro? Aucune données ne "
 "seront effacées."
 
-#: res/i18n/html_strings.py:23
+#: res/i18n/html_strings.py:25
 msgid "computing..."
 msgstr "calcul..."
 
-#: res/i18n/html_strings.py:24
+#: res/i18n/html_strings.py:26
 msgid "SYNC %1 parameters"
 msgstr "Paramètres de la SYNC %1"
 
-#: res/i18n/html_strings.py:25 res/i18n/html_strings.py:120
+#: res/i18n/html_strings.py:27 res/i18n/html_strings.py:130
 msgid "Server"
 msgstr "Serveur"
 
-#: res/i18n/html_strings.py:26 res/i18n/html_strings.py:35
-#: res/i18n/html_strings.py:77 res/i18n/html_strings.py:121
+#: res/i18n/html_strings.py:28 res/i18n/html_strings.py:37
+#: res/i18n/html_strings.py:81 res/i18n/html_strings.py:131
 msgid "Workspace"
 msgstr "Workspace"
 
-#: res/i18n/html_strings.py:27 res/i18n/html_strings.py:36
-#: res/i18n/html_strings.py:78 res/i18n/html_strings.py:122
+#: res/i18n/html_strings.py:29 res/i18n/html_strings.py:38
+#: res/i18n/html_strings.py:82 res/i18n/html_strings.py:132
 msgid "Folder"
 msgstr "Répertoire"
 
-#: res/i18n/html_strings.py:28
+#: res/i18n/html_strings.py:30
 msgid "Label"
 msgstr "Libellé"
 
-#: res/i18n/html_strings.py:29
+#: res/i18n/html_strings.py:31
 msgid "Server Connexion"
 msgstr "Serveur"
 
-#: res/i18n/html_strings.py:30
+#: res/i18n/html_strings.py:32
 msgid "Login"
 msgstr "Identifiant"
 
-#: res/i18n/html_strings.py:31 res/i18n/html_strings.py:49
+#: res/i18n/html_strings.py:33 res/i18n/html_strings.py:52
 msgid "Password"
 msgstr "Mot de passe"
 
-#: res/i18n/html_strings.py:32
+#: res/i18n/html_strings.py:34
 msgid "Local Folder"
 msgstr "Répertoire local"
 
-#: res/i18n/html_strings.py:33
+#: res/i18n/html_strings.py:35
 msgid "Choose"
 msgstr "Choisir"
 
-#: res/i18n/html_strings.py:34 res/i18n/html_strings.py:72
+#: res/i18n/html_strings.py:36 res/i18n/html_strings.py:75
 msgid "Remote workspace"
 msgstr "Workspace"
 
-#: res/i18n/html_strings.py:37 res/i18n/html_strings.py:79
-#: res/i18n/html_strings.py:118
+#: res/i18n/html_strings.py:39 res/i18n/html_strings.py:83
+#: res/i18n/html_strings.py:128
 msgid "Change"
 msgstr "Changer"
 
-#: res/i18n/html_strings.py:38 res/i18n/html_strings.py:73
+#: res/i18n/html_strings.py:40 res/i18n/html_strings.py:76
+msgid "This workspace is read only!"
+msgstr ""
+
+#: res/i18n/html_strings.py:41 res/i18n/html_strings.py:77
 msgid "Synchronise only a subfolder of this workspace"
 msgstr "Synchroniser seulement un sous-répertoire de ce workspace"
 
-#: res/i18n/html_strings.py:39 res/i18n/html_strings.py:75
-#: res/i18n/html_strings.py:123
+#: res/i18n/html_strings.py:42 res/i18n/html_strings.py:79
+#: res/i18n/html_strings.py:133
 msgid "Whole workspace"
 msgstr "Tout le workspace"
 
-#: res/i18n/html_strings.py:40
+#: res/i18n/html_strings.py:43
 msgid "[loading...]"
 msgstr "[chargement...]"
 
-#: res/i18n/html_strings.py:41 res/i18n/html_strings.py:53
+#: res/i18n/html_strings.py:44 res/i18n/html_strings.py:56
 msgid "Advanced parameters"
 msgstr "Paramètres avancés"
 
-#: res/i18n/html_strings.py:42
+#: res/i18n/html_strings.py:45
 msgid "Delete Sync"
 msgstr "Supprimer la synchro"
 
-#: res/i18n/html_strings.py:43
-msgid "Save Parameters"
-msgstr "Sauver les paramètres"
-
-#: res/i18n/html_strings.py:44 res/i18n/html_strings.py:45
-#: res/i18n/html_strings.py:81
+#: res/i18n/html_strings.py:47 res/i18n/html_strings.py:48
+#: res/i18n/html_strings.py:85
 msgid "Share %1 via Pydio"
 msgstr "Partager %1 avec Pydio"
 
-#: res/i18n/html_strings.py:46 res/i18n/html_strings.py:107
+#: res/i18n/html_strings.py:49 res/i18n/html_strings.py:117
 msgid "Description"
-msgstr ""
+msgstr "Description"
 
-#: res/i18n/html_strings.py:47
+#: res/i18n/html_strings.py:50
 msgid "Path"
-msgstr ""
+msgstr "Chemin"
 
-#: res/i18n/html_strings.py:48
+#: res/i18n/html_strings.py:51
 msgid "Security"
 msgstr "Sécurité"
 
-#: res/i18n/html_strings.py:50
+#: res/i18n/html_strings.py:53
 msgid "Expires after"
 msgstr "Expire après"
 
-#: res/i18n/html_strings.py:51
+#: res/i18n/html_strings.py:54
 msgid "Days"
 msgstr "Jours"
 
-#: res/i18n/html_strings.py:52
+#: res/i18n/html_strings.py:55
 #, fuzzy
 msgid "Downloads"
 msgstr "Download seulement"
 
-#: res/i18n/html_strings.py:54
+#: res/i18n/html_strings.py:57
 msgid "Generate Link"
 msgstr "Générer URL"
 
-#: res/i18n/html_strings.py:55
+#: res/i18n/html_strings.py:58
 msgid "SYNC NAME"
 msgstr "SYNC"
 
-#: res/i18n/html_strings.py:56
+#: res/i18n/html_strings.py:59
 msgid "DATA SIZE"
 msgstr "TAILLE DES DONNEES"
 
-#: res/i18n/html_strings.py:57
+#: res/i18n/html_strings.py:60
 msgid "ESTIMATED TIME"
 msgstr "TEMPS ESTIME"
 
-#: res/i18n/html_strings.py:58
+#: res/i18n/html_strings.py:61
 msgid "Ready for ignition!"
 msgstr "Prêt pour le décollage!"
 
-#: res/i18n/html_strings.py:59
+#: res/i18n/html_strings.py:62
 msgid "Are you ready to launch the synchronization?"
 msgstr "Etes-vous prêt à lancer la synchro?"
 
-#: res/i18n/html_strings.py:60
+#: res/i18n/html_strings.py:63
 msgid "Your data will be in orbit in no time!"
 msgstr "Orbite stationnaire prévue dans quelques instants!"
 
-#: res/i18n/html_strings.py:61
+#: res/i18n/html_strings.py:64
 msgid "FIRE THE ROCKET!"
 msgstr "Lancer la fusée!"
 
-#: res/i18n/html_strings.py:62
+#: res/i18n/html_strings.py:65
 msgid "change parameters"
 msgstr "changer les paramètres"
 
-#: res/i18n/html_strings.py:63
+#: res/i18n/html_strings.py:66
 msgid "Synchronization running..."
 msgstr "Synchronisation en cours..."
 
-#: res/i18n/html_strings.py:64
+#: res/i18n/html_strings.py:67
 msgid "Liftoff! First sync can take some time..."
 msgstr "Décollage! La première synchronisation peut prendre un peu de temps..."
 
-#: res/i18n/html_strings.py:65
+#: res/i18n/html_strings.py:68
 msgid "CREATE NEW SYNCHRO"
 msgstr "CREER UNE NOUVELLE SYNCHRO"
 
-#: res/i18n/html_strings.py:66
+#: res/i18n/html_strings.py:69
 msgid "DONE"
 msgstr "OK"
 
-#: res/i18n/html_strings.py:67
+#: res/i18n/html_strings.py:70
 msgid "1/3 Select a workspace"
 msgstr "1/3 Sélectionner un workspace"
 
-#: res/i18n/html_strings.py:68
+#: res/i18n/html_strings.py:71
 #, fuzzy
 msgid "Welcome %1!"
 msgstr "Bienvenue!"
 
-#: res/i18n/html_strings.py:69
+#: res/i18n/html_strings.py:72
 msgid "You are connecting to %1"
 msgstr "Vous êtes connecté à %1"
 
-#: res/i18n/html_strings.py:70 res/i18n/html_strings.py:71
-#: res/i18n/html_strings.py:124 res/i18n/html_strings.py:126
+#: res/i18n/html_strings.py:73 res/i18n/html_strings.py:74
+#: res/i18n/html_strings.py:134 res/i18n/html_strings.py:136
 msgid "change"
 msgstr "changer"
 
-#: res/i18n/html_strings.py:74 res/i18n/html_strings.py:76
+#: res/i18n/html_strings.py:78 res/i18n/html_strings.py:80
 msgid "loading"
 msgstr "chargement"
 
-#: res/i18n/html_strings.py:80 res/i18n/html_strings.py:130
-#: res/i18n/html_strings.py:132
+#: res/i18n/html_strings.py:84 res/i18n/html_strings.py:140
+#: res/i18n/html_strings.py:142
 msgid "Next"
 msgstr "Suivant"
 
-#: res/i18n/html_strings.py:82
+#: res/i18n/html_strings.py:86
 msgid "Shared Link"
 msgstr "partagé Lien"
 
-#: res/i18n/html_strings.py:83
+#: res/i18n/html_strings.py:87
 msgid ""
 "Shared link to the selected item already exists. Below is the link to the "
 "selected item"
-msgstr "Lien partagé pour l'élément sélectionné existe déjà. Ci-dessous le lien pour l'élément sélectionné"
+msgstr ""
+"Lien partagé pour l'élément sélectionné existe déjà. Ci-dessous le lien pour "
+"l'élément sélectionné"
 
-#: res/i18n/html_strings.py:84
+#: res/i18n/html_strings.py:88
 msgid "New shared link to the selected item has been generated"
 msgstr "Nouveau lien partagé pour l'élément sélectionné a été générée"
 
-#: res/i18n/html_strings.py:85
+#: res/i18n/html_strings.py:89
+#, fuzzy
+msgid "Shared Link to the selected item has not been generated"
+msgstr "Nouveau lien partagé pour l'élément sélectionné a été générée"
+
+#: res/i18n/html_strings.py:90
 msgid "Copy to Clipboard"
 msgstr "Copier dans le presse-papier"
 
-#: res/i18n/html_strings.py:86
+#: res/i18n/html_strings.py:91
 msgid "UnShare Link"
 msgstr "Départager Lien"
 
-#: res/i18n/html_strings.py:87
+#: res/i18n/html_strings.py:92
+msgid "Text has been copied to clipboard."
+msgstr ""
+
+#: res/i18n/html_strings.py:93
 msgid "Sync Direction"
 msgstr "Direction de la synchro"
 
-#: res/i18n/html_strings.py:88
+#: res/i18n/html_strings.py:94
 msgid ""
 "Modifications are sent to the server but the client does not download "
 "anything."
-msgstr "Les modifications sont envoyées au serveur mais le client ne télécharge rien"
+msgstr ""
+"Les modifications sont envoyées au serveur mais le client ne télécharge rien"
 
-#: res/i18n/html_strings.py:67
+#: res/i18n/html_strings.py:95
 #, fuzzy
 msgid ""
 "Modifications from both sides (local/remote) are automatically reflected on "
@@ -645,56 +657,65 @@ msgstr ""
 "Par défaut les modifications des deux côtés (local/distant) sont "
 "automatiquement réfléchies sur le côté opposé."
 
-#: res/i18n/html_strings.py:89
+#: res/i18n/html_strings.py:96
+msgid ""
+"Modifications from the server are downloaded buth nothing is sent to the "
+"server."
+msgstr ""
+
+#: res/i18n/html_strings.py:97
 msgid "Upload Only"
 msgstr "Upload Seulement"
 
-#: res/i18n/html_strings.py:90
+#: res/i18n/html_strings.py:98
 msgid "computer to server"
 msgstr "ordinateur vers serveur"
 
-#: res/i18n/html_strings.py:91
+#: res/i18n/html_strings.py:99
 msgid "Bi-directional"
 msgstr "Bi-directionnel"
 
-#: res/i18n/html_strings.py:92
+#: res/i18n/html_strings.py:100
+msgid "default when possible"
+msgstr ""
+
+#: res/i18n/html_strings.py:101
 msgid "Download Only"
 msgstr "Download seulement"
 
-#: res/i18n/html_strings.py:93
+#: res/i18n/html_strings.py:102
 msgid "server to computer"
 msgstr "serveur vers ordinateur"
 
-#: res/i18n/html_strings.py:94
+#: res/i18n/html_strings.py:103
 msgid "Sync Frequency"
 msgstr "Fréquence de synchro"
 
-#: res/i18n/html_strings.py:95
+#: res/i18n/html_strings.py:104
 msgid "By default, the application will synchronize automatically"
 msgstr "Par défault, l'application synchronise en temps réel"
 
-#: res/i18n/html_strings.py:96
+#: res/i18n/html_strings.py:105
 msgid "Automatically"
 msgstr "Automatiquement"
 
-#: res/i18n/html_strings.py:97
+#: res/i18n/html_strings.py:106
 msgid "Manually"
 msgstr "Manuellement"
 
-#: res/i18n/html_strings.py:98
+#: res/i18n/html_strings.py:107
 msgid "Given Time"
 msgstr "Une heure précise"
 
-#: res/i18n/html_strings.py:99
+#: res/i18n/html_strings.py:108
 msgid "Run the sync every day at"
 msgstr "Executer tout les jours à "
 
-#: res/i18n/html_strings.py:100
-msgid "Versionning"
-msgstr "Versions et conflits"
+#: res/i18n/html_strings.py:109 res/i18n/html_strings.py:156
+msgid "Conflicts"
+msgstr "Conflits"
 
-#: res/i18n/html_strings.py:101
-
+#: res/i18n/html_strings.py:110
 msgid ""
 "When files were modified on both the server and your computer at the same "
 "time, synchronization is stopped."
@@ -702,147 +723,148 @@ msgstr ""
 "Quand les fichiers sont modifiés en même temps sur le serveur et sur votre "
 "ordinateur, la synchronisation s'arrête."
 
-#: res/i18n/html_strings.py:102
+#: res/i18n/html_strings.py:111
+msgid "Auto solve, keep both"
+msgstr ""
+
+#: res/i18n/html_strings.py:112
 msgid "Solve conflicts manually"
 msgstr "Résoudre le conflit manuellement"
 
-#: res/i18n/html_strings.py:103
+#: res/i18n/html_strings.py:113
 msgid "Always prefer local version"
 msgstr "Toujours favoriser la version locale"
 
-#: res/i18n/html_strings.py:104
+#: res/i18n/html_strings.py:114
 msgid "Always prefer remote version"
 msgstr "Toujours favoriser la version distante"
 
-#: res/i18n/html_strings.py:105
+#: res/i18n/html_strings.py:115
 msgid "Link Handle"
 msgstr "Poignée de lien"
 
-#: res/i18n/html_strings.py:106
+#: res/i18n/html_strings.py:116
 msgid ""
 "If you want a durable and pretty link (like https://.../my-share-link), you "
 "can use this field. Link handle will be generated if left empty."
 msgstr ""
+"Si vous voulez créer un lien durable, vous pouvez utiliser ce champ pour fixer la dernière partie du"
+" lien (e.g. https://.../mon-joli-lien). Laisser vide pour générer automatiquement."
 
-#: res/i18n/html_strings.py:108
+#: res/i18n/html_strings.py:118
 msgid "This will be displayed to the shared users."
 msgstr "Il sera affiché pour les utilisateurs partagés"
 
-#: res/i18n/html_strings.py:109
+#: res/i18n/html_strings.py:119
 msgid "Access Rights"
 msgstr "Des droits d'accès"
 
-#: res/i18n/html_strings.py:110
+#: res/i18n/html_strings.py:120
 msgid "By default, the item will be previewed and downloadable"
 msgstr "Par défaut, l'élément sera prévisualisé et téléchargeable"
 
-#: res/i18n/html_strings.py:111
+#: res/i18n/html_strings.py:121
 #, fuzzy
 msgid "Preview"
-msgstr "Précédent"
+msgstr "Aperçu"
 
-#: res/i18n/html_strings.py:112
+#: res/i18n/html_strings.py:122
 #, fuzzy
 msgid "Download"
 msgstr "Download seulement"
 
-#: res/i18n/html_strings.py:113
+#: res/i18n/html_strings.py:123
 #, fuzzy
 msgid "Upload"
 msgstr "Upload Seulement"
 
-#: res/i18n/html_strings.py:114 res/i18n/html_strings.py:128
+#: res/i18n/html_strings.py:124 res/i18n/html_strings.py:138
 msgid "Advanced Parameters"
 msgstr "Paramètres avancés"
 
-#: res/i18n/html_strings.py:115
+#: res/i18n/html_strings.py:125
 msgid "Save changes"
 msgstr "Sauver"
 
-#: res/i18n/html_strings.py:116
+#: res/i18n/html_strings.py:126
 msgid "2/3 Select a destination"
 msgstr "2/3 Sélectionner une destination"
 
-#: res/i18n/html_strings.py:117
+#: res/i18n/html_strings.py:127
 msgid "By default a local folder will be created on your computer"
 msgstr "Par défaut, un répertoire local sera créé sur votre ordinateur"
 
-#: res/i18n/html_strings.py:119
+#: res/i18n/html_strings.py:129
 msgid "3/3 Optional Parameters"
 msgstr "3/3 Paramètres optionnels"
 
-#: res/i18n/html_strings.py:125
+#: res/i18n/html_strings.py:135
 msgid "Local folder"
 msgstr "Répertoire local"
 
-#: res/i18n/html_strings.py:127
+#: res/i18n/html_strings.py:137
 msgid "Name this synchro"
 msgstr "Nommez cette synchro"
 
-#: res/i18n/html_strings.py:129 res/i18n/html_strings.py:131
+#: res/i18n/html_strings.py:139 res/i18n/html_strings.py:141
 msgid "Previous"
 msgstr "Précédent"
 
-#: res/i18n/html_strings.py:133 res/i18n/html_strings.py:137
-#: res/i18n/html_strings.py:139 res/i18n/html_strings.py:143
+#: res/i18n/html_strings.py:143 res/i18n/html_strings.py:147
+#: res/i18n/html_strings.py:149 res/i18n/html_strings.py:153
 msgid "Status"
 msgstr "Statut"
 
-#: res/i18n/html_strings.py:134 res/i18n/html_strings.py:138
-#: res/i18n/html_strings.py:140
+#: res/i18n/html_strings.py:144 res/i18n/html_strings.py:148
+#: res/i18n/html_strings.py:150
 msgid "syncing"
 msgstr "en cours"
 
-#: res/i18n/html_strings.py:135
+#: res/i18n/html_strings.py:145
 msgid "Size"
 msgstr "Taille"
 
-#: res/i18n/html_strings.py:136
+#: res/i18n/html_strings.py:146
 msgid "Estimated time"
 msgstr "Temps restant"
 
-#: res/i18n/html_strings.py:141
+#: res/i18n/html_strings.py:151
 msgid "Last sync"
 msgstr "Dernière sync."
 
-#: res/i18n/html_strings.py:142
+#: res/i18n/html_strings.py:152
 msgid "ERROR"
 msgstr "ERREUR"
 
-#: res/i18n/html_strings.py:144
+#: res/i18n/html_strings.py:154
 msgid "idle"
 msgstr "au repos"
 
-#: res/i18n/html_strings.py:145
+#: res/i18n/html_strings.py:155
 msgid "[DISABLED]"
 msgstr "[DESACTIVE]"
 
-#: res/i18n/html_strings.py:146
-msgid "Conflicts"
-msgstr "Conflits"
-
-#: res/i18n/html_strings.py:147
+#: res/i18n/html_strings.py:157
 msgid "Solve Conflict"
 msgstr "Résoudre le conflit"
 
-#: res/i18n/html_strings.py:148
+#: res/i18n/html_strings.py:158
 msgid "Solved"
 msgstr "Résolu"
 
-#: res/i18n/html_strings.py:149
+#: res/i18n/html_strings.py:159
 msgid "Last files synced"
 msgstr "Derniers fichiers synchronisés"
 
-#: res/i18n/html_strings.py:150
+#: res/i18n/html_strings.py:160
 msgid "Open File"
 msgstr "Ouvrir"
 
-#: res/i18n/html_strings.py:151
+#: res/i18n/html_strings.py:161
 msgid "Transfers in progress"
 msgstr "Transferts en cours"
 
-#: res/i18n/html_strings.py:152
-
+#: res/i18n/html_strings.py:162
 msgid ""
 "An element named %1 was modified on both the server and on your local "
 "computer. Select how you want to solve this conflicting case:"
@@ -850,47 +872,50 @@ msgstr ""
 "Un élément nommé %1 a été modifié sur le serveur et en local. Sélectionnez "
 "la ou les versions que vous souhaitez garder."
 
-#: res/i18n/html_strings.py:153
+#: res/i18n/html_strings.py:163
 msgid "Apply to all conflicts"
 msgstr "Appliquer à tous"
 
-#: res/i18n/html_strings.py:154
+#: res/i18n/html_strings.py:164
 msgid "Mine"
 msgstr "La mienne"
 
-#: res/i18n/html_strings.py:155
+#: res/i18n/html_strings.py:165
 msgid "Both Versions"
 msgstr "Les deux"
 
-#: res/i18n/html_strings.py:156
+#: res/i18n/html_strings.py:166
 msgid "Theirs"
 msgstr "L'autre"
 
-#: res/i18n/html_strings.py:157 res/i18n/html_strings.py:158
+#: res/i18n/html_strings.py:167 res/i18n/html_strings.py:168
 msgid "Create a new synchronization"
 msgstr "Créer une nouvelle synchronisation"
 
-#: res/i18n/html_strings.py:159
+#: res/i18n/html_strings.py:169
 msgid "Please wait ..."
 msgstr "S'il vous plaît, attendez ..."
 
-#: res/i18n/html_strings.py:160
+#: res/i18n/html_strings.py:170
 msgid "Welcome to the Pydio Sync"
 msgstr "Bienvenue sur Pydio Sync"
 
-#: res/i18n/html_strings.py:161
+#: res/i18n/html_strings.py:171
 msgid "The easiest way to keep your data in control"
 msgstr "La manière la plus simple de garder le contrôle de vos données"
 
-#: res/i18n/html_strings.py:162
-
+#: res/i18n/html_strings.py:172
 #, fuzzy
 msgid "Loading..."
 msgstr "[chargement...]"
 
-#: res/i18n/html_strings.py:163 res/i18n/html_strings.py:165
+#: res/i18n/html_strings.py:173 res/i18n/html_strings.py:176
 msgid "Get Started"
 msgstr "Démarrer"
+
+#: res/i18n/html_strings.py:175
+msgid "Proxy settings"
+msgstr "Les paramètres de proxy"
 
 #: ui/web_api.py:300
 msgid "Couldn't load your workspaces, check your server !"
@@ -902,7 +927,6 @@ msgstr ""
 
 #: ui/web_api.py:304
 msgid "Authentication failed: please verify your login and password"
-
 msgstr ""
 
 #: ui/web_api.py:306
@@ -914,7 +938,6 @@ msgid "Server seems to be encountering problems (500)"
 msgstr ""
 
 #: ui/web_api.py:313
-
 msgid ""
 "An SSL error happened! Is your server using a self-signed certificate? In "
 "that case please check 'Trust SSL certificate'"
@@ -925,6 +948,9 @@ msgstr ""
 #: ui/web_api.py:338
 msgid "Connection timeout!"
 msgstr "Connexion trop longue!"
+
+#~ msgid "Versionning"
+#~ msgstr "Versions et conflits"
 
 #~ msgid "SYNC"
 #~ msgstr "SYNCHRO"
