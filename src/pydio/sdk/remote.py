@@ -1089,7 +1089,7 @@ class PydioSdk():
         #data["file"] = path
 
         resp = requests.post(
-                    url=self.url+'/unshare' + path,
+                    url=self.url+'/unshare' + self.urlencode_normalized(path),
                     data=data,
                     timeout=self.timeout,
                     verify=self.verify_ssl,
