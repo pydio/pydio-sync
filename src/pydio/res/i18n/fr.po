@@ -627,7 +627,7 @@ msgstr "Nouveau lien partagé pour l'élément sélectionné a été générée"
 
 #: res/i18n/html_strings.py:90
 msgid "Copy to Clipboard"
-msgstr "Copier à clipboard"
+msgstr "Copier"
 
 #: res/i18n/html_strings.py:91
 msgid "UnShare Link"
