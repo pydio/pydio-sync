@@ -127,7 +127,7 @@ msgstr "Parcours de votre dossier local, patientez s'il vous plaît..."
 #: job/local_watcher.py:130
 #, python-format
 msgid "Detected %i local changes..."
-msgstr ""
+msgstr "%i Changements détectés"
 
 #: job/continous_merger.py:290
 msgid "Job Paused"
@@ -606,24 +606,23 @@ msgstr "Suivant"
 
 #: res/i18n/html_strings.py:86
 msgid "Shared Link"
-msgstr "partagé Lien"
+msgstr "Lien de partage"
 
 #: res/i18n/html_strings.py:87
 msgid ""
 "Shared link to the selected item already exists. Below is the link to the "
 "selected item"
 msgstr ""
-"Lien partagé pour l'élément sélectionné existe déjà. Ci-dessous le lien pour "
-"l'élément sélectionné"
+"Le lien partagé pour l'élément sélectionné existe déjà:"
 
 #: res/i18n/html_strings.py:88
 msgid "New shared link to the selected item has been generated"
-msgstr "Nouveau lien partagé pour l'élément sélectionné a été générée"
+msgstr "Le lien de partage a été généré"
 
 #: res/i18n/html_strings.py:89
 #, fuzzy
 msgid "Shared Link to the selected item has not been generated"
-msgstr "Nouveau lien partagé pour l'élément sélectionné a été générée"
+msgstr "Le lien de partage a été généré"
 
 #: res/i18n/html_strings.py:90
 msgid "Copy to Clipboard"
@@ -631,11 +630,11 @@ msgstr "Copier"
 
 #: res/i18n/html_strings.py:91
 msgid "UnShare Link"
-msgstr "Départager Lien"
+msgstr "Arrêter le partage"
 
 #: res/i18n/html_strings.py:92
 msgid "Text has been copied to clipboard."
-msgstr ""
+msgstr "Le texte a été copié dans votre presse-papiers"
 
 #: res/i18n/html_strings.py:93
 msgid "Sync Direction"
@@ -661,11 +660,11 @@ msgstr ""
 msgid ""
 "Modifications from the server are downloaded buth nothing is sent to the "
 "server."
-msgstr ""
+msgstr "Les modifications sont chargées du serveur mais rien ne lui est envoyé"
 
 #: res/i18n/html_strings.py:97
 msgid "Upload Only"
-msgstr "Upload Seulement"
+msgstr "Envoi Seulement"
 
 #: res/i18n/html_strings.py:98
 msgid "computer to server"
@@ -677,7 +676,7 @@ msgstr "Bi-directionnel"
 
 #: res/i18n/html_strings.py:100
 msgid "default when possible"
-msgstr ""
+msgstr "Par défaut"
 
 #: res/i18n/html_strings.py:101
 msgid "Download Only"
@@ -725,7 +724,7 @@ msgstr ""
 
 #: res/i18n/html_strings.py:111
 msgid "Auto solve, keep both"
-msgstr ""
+msgstr "Automatique, garder les deux versions"
 
 #: res/i18n/html_strings.py:112
 msgid "Solve conflicts manually"
@@ -741,7 +740,7 @@ msgstr "Toujours favoriser la version distante"
 
 #: res/i18n/html_strings.py:115
 msgid "Link Handle"
-msgstr "Poignée de lien"
+msgstr "Lien"
 
 #: res/i18n/html_strings.py:116
 msgid ""
@@ -753,11 +752,11 @@ msgstr ""
 
 #: res/i18n/html_strings.py:118
 msgid "This will be displayed to the shared users."
-msgstr "Il sera affiché pour les utilisateurs partagés"
+msgstr "Affiché aux utilisateurs accédant au lien"
 
 #: res/i18n/html_strings.py:119
 msgid "Access Rights"
-msgstr "Des droits d'accès"
+msgstr "Droits d'accès"
 
 #: res/i18n/html_strings.py:120
 msgid "By default, the item will be previewed and downloadable"
@@ -771,12 +770,12 @@ msgstr "Aperçu"
 #: res/i18n/html_strings.py:122
 #, fuzzy
 msgid "Download"
-msgstr "Download seulement"
+msgstr "Téléchargement seulement"
 
 #: res/i18n/html_strings.py:123
 #, fuzzy
 msgid "Upload"
-msgstr "Upload Seulement"
+msgstr "Envoi seulement"
 
 #: res/i18n/html_strings.py:124 res/i18n/html_strings.py:138
 msgid "Advanced Parameters"
@@ -919,23 +918,23 @@ msgstr "Les paramètres de proxy"
 
 #: ui/web_api.py:300
 msgid "Couldn't load your workspaces, check your server !"
-msgstr ""
+msgstr "Impossible de charger les dépôts, veuillez vérifier sur le serveur!"
 
 #: ui/web_api.py:302
 msgid "Server not found (404), is it up and has it Pydio installed ?"
-msgstr ""
+msgstr "Impossible de trouver le serveur, est-ce qu'il est bien en route, avec Pydio installé?"
 
 #: ui/web_api.py:304
 msgid "Authentication failed: please verify your login and password"
-msgstr ""
+msgstr "L'authentification a échoué: veuillez vérifier vos identifiants."
 
 #: ui/web_api.py:306
 msgid "Access to the server is forbidden"
-msgstr ""
+msgstr "Accès interdit à ce serveur."
 
 #: ui/web_api.py:308
 msgid "Server seems to be encountering problems (500)"
-msgstr ""
+msgstr "Le serveur rencontre une erreur interne (500)"
 
 #: ui/web_api.py:313
 msgid ""
