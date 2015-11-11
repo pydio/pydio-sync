@@ -201,6 +201,7 @@ class ChangeProcessor:
     @pydio_profile
     def process_remote_move(self, source, target):
         message = 'MOVE ============> ' + source + ' to ' + target
+        self.update_node_status(target, 'IDLE')
         self.log(type='remote', action='move', status='success', target=target,
                  source=source, console_message=message,
                  message=(_('Moved %(source)s to %(target)s') % ({'source': source, 'target': target})))

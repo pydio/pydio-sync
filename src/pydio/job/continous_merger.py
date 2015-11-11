@@ -477,6 +477,8 @@ class ContinuousDiffMerger(threading.Thread):
                 logging.info('Reducing changes')
                 logger.log_state(_('Merging changes between remote and local, please wait...'), 'sync')
 
+                self.db_handler.update_bulk_node_status_as_idle()
+
                 logging.debug('Delete Copies')
                 self.current_store.delete_copies()
                 self.update_min_seqs_from_store()
