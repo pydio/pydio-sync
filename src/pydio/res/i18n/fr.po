@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-11-06 18:28+0100\n"
+"POT-Creation-Date: 2015-11-11 18:17+0100\n"
 "PO-Revision-Date: 2014-10-01 16:43+0200\n"
 "Last-Translator: Charles du Jeu <charles@pydio.com>\n"
 "Language-Team: French\n"
@@ -151,7 +151,8 @@ msgstr "Recherche des changements depuis le dernier démarrage..."
 
 #: job/continous_merger.py:371
 msgid "Oops, error while indexing the local folder. Pausing the task."
-msgstr "Oops, erreur lors de la l'indexation du dossier local. Tâche mise en pause."
+msgstr ""
+"Oops, erreur lors de la l'indexation du dossier local. Tâche mise en pause."
 
 #: job/continous_merger.py:393
 msgid "Status: Paused"
@@ -612,8 +613,7 @@ msgstr "Lien de partage"
 msgid ""
 "Shared link to the selected item already exists. Below is the link to the "
 "selected item"
-msgstr ""
-"Le lien partagé pour l'élément sélectionné existe déjà:"
+msgstr "Le lien partagé pour l'élément sélectionné existe déjà:"
 
 #: res/i18n/html_strings.py:88
 msgid "New shared link to the selected item has been generated"
@@ -622,7 +622,7 @@ msgstr "Le lien de partage a été généré"
 #: res/i18n/html_strings.py:89
 #, fuzzy
 msgid "Shared Link to the selected item has not been generated"
-msgstr "Le lien de partage a été généré"
+msgstr "Le lien de partage n'a pas été généré"
 
 #: res/i18n/html_strings.py:90
 msgid "Copy to Clipboard"
@@ -747,8 +747,9 @@ msgid ""
 "If you want a durable and pretty link (like https://.../my-share-link), you "
 "can use this field. Link handle will be generated if left empty."
 msgstr ""
-"Si vous voulez créer un lien durable, vous pouvez utiliser ce champ pour fixer la dernière partie du"
-" lien (e.g. https://.../mon-joli-lien). Laisser vide pour générer automatiquement."
+"Si vous voulez créer un lien durable, vous pouvez utiliser ce champ pour "
+"fixer la dernière partie du lien (e.g. https://.../mon-joli-lien). Laisser "
+"vide pour générer automatiquement."
 
 #: res/i18n/html_strings.py:118
 msgid "This will be displayed to the shared users."
@@ -922,7 +923,9 @@ msgstr "Impossible de charger les dépôts, veuillez vérifier sur le serveur!"
 
 #: ui/web_api.py:302
 msgid "Server not found (404), is it up and has it Pydio installed ?"
-msgstr "Impossible de trouver le serveur, est-ce qu'il est bien en route, avec Pydio installé?"
+msgstr ""
+"Impossible de trouver le serveur, est-ce qu'il est bien en route, avec Pydio "
+"installé?"
 
 #: ui/web_api.py:304
 msgid "Authentication failed: please verify your login and password"
@@ -947,6 +950,10 @@ msgstr ""
 #: ui/web_api.py:338
 msgid "Connection timeout!"
 msgstr "Connexion trop longue!"
+
+#: ui/web_api.py:696
+msgid "The folder is already shared as a workspace!"
+msgstr "Le dossier est déjà partagé comme un workspace!"
 
 #~ msgid "Versionning"
 #~ msgstr "Versions et conflits"

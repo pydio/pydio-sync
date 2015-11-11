@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-11-06 18:28+0100\n"
+"POT-Creation-Date: 2015-11-11 18:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -893,4 +893,8 @@ msgstr ""
 
 #: ui/web_api.py:338
 msgid "Connection timeout!"
+msgstr ""
+
+#: ui/web_api.py:696
+msgid "The folder is already shared as a workspace!"
 msgstr ""
