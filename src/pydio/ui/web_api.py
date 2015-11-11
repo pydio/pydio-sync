@@ -690,8 +690,11 @@ class ShareManager(Resource):
 
                 if len(check_res) > 2:  # when share link doesn't exists content length will be zero for file and 2 for folder
                     res = json.loads(check_res)
-                    if res["minisite"]["public"]:
+                    if "minisite" in res and res["minisite"]["public"]:
                         return {"link": res["minisite"]["public_link"], "existingLinkFlag": "true"}
+                    elif "repositoryId" in res:
+                        return {"link": _("The folder is already shared as a workspace!"), "existingLinkFlag": "true"}
+
                 elif args["checkExistingLinkFlag"]:
                     return {"existingLinkFlag": "false"}
 
