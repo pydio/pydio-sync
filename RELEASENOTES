@@ -1,0 +1,16 @@
+# PydioSync - Release Notes - 10.11.2015
+## v1.0.3 stable (Windows, MacOS, Linux)
+----
+- Added a "Share with Pydio" button on right click in Windows explorer
+- Folder and file custom icons as status indicator (synced, syncing, offline)
+- new Windows installer
+- Added auto-resolution of conflicts, conflicting files are renamed to <file>.<username><number>.<ext>
+- Write only workspaces can no longer be synced with PydioSync (was causing issues)
+- Users are warned when configuring a read only Workspace, sync direction is Download only
+- Added the last modification time of files in the UI (dropdown list)
+- Added some missing translations
+- Better handling of quota limits
+- Improvements on Database state
+- Updated SSL certificates
+- Timeout functionality for each task, to allow to lower load on weak servers
+
