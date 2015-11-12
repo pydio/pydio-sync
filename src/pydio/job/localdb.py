@@ -293,31 +293,28 @@ class LocalDbHandler():
         conn.close()
 
     @pydio_profile
-    def update_bulk_node_status_as_pending(self, list_seq_ids):
-        if(len(list_seq_ids)) > 0:
-            conn = sqlite3.connect(self.db)
+    def update_bulk_node_status_as_pending(self, local_seq):
 
-            try:
-                seq_ids = str(",".join(list_seq_ids))
+        conn = sqlite3.connect(self.db)
+        try:
+            # Only update status for files, for directories we handle them separately
+            conn.execute('UPDATE ajxp_node_status \
+                          SET status="PENDING" \
+                          WHERE ajxp_node_status.status<>"CONFLICT" \
+                          AND node_id IN \
+                         (SELECT ajxp_changes.node_id  \
+                          FROM ajxp_changes, ajxp_index \
+                          WHERE ajxp_changes.seq > (' + str(local_seq) + ') \
+                          AND ajxp_changes.node_id = ajxp_index.node_id \
+                          AND ajxp_index.md5<>"directory" \
+                          AND ajxp_index.bytesize>0)')
 
-                # Only update status for files, for directories we handle them separately
-                conn.execute('UPDATE ajxp_node_status \
-                              SET status="PENDING" \
-                              WHERE ajxp_node_status.status<>"CONFLICT" \
-                              AND node_id IN \
-                             (SELECT ajxp_changes.node_id  \
-                              FROM ajxp_changes, ajxp_index \
-                              WHERE ajxp_changes.seq IN (' + seq_ids + ') \
-                              AND ajxp_changes.node_id = ajxp_index.node_id \
-                              AND ajxp_index.md5<>"directory" \
-                              AND ajxp_index.bytesize>0)')
+        except Exception as ex:
+            logging.exception(ex)
+            pass
 
-            except Exception as ex:
-                logging.exception(ex)
-                pass
-
-            conn.commit()
-            conn.close()
+        conn.commit()
+        conn.close()
 
     @pydio_profile
     def compare_raw_pathes(self, row1, row2):

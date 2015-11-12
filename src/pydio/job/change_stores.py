@@ -655,12 +655,6 @@ class SqliteChangeStore():
             return {'location': 'local', 'node_id': node_id, 'source':  source, 'target': 'NULL', 'type': 'delete', 'seq':seq, 'stat_result':stat_result, 'node':None},\
                    {'location': 'local', 'node_id': node_id, 'source':  'NULL', 'target': target, 'type': 'create', 'seq':seq, 'stat_result':stat_result, 'node': change['node']}
 
-    @pydio_profile
-    def update_pending_status(self, status_handler, local_seq):
-        res = self.conn.execute('SELECT seq_id FROM ajxp_changes WHERE seq_id >' + str(local_seq) + ' ORDER BY seq_id')
-        list_seq_ids = [str(row[0]) for row in res]
-        status_handler.update_bulk_node_status_as_pending(list_seq_ids)
-
 class PathOperation(object):
     @staticmethod
     def path_add(path, delta):

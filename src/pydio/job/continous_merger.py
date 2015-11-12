@@ -516,7 +516,7 @@ class ContinuousDiffMerger(threading.Thread):
                     very_first = False
                     continue
 
-                self.current_store.update_pending_status(self.db_handler,self.local_seq)
+                self.db_handler.update_bulk_node_status_as_pending(self.local_seq)
 
                 self.global_progress['status_indexing'] = 0
                 import change_processor
