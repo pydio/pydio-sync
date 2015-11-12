@@ -17,9 +17,9 @@
     <h4> {{_('Expires after')}} </h4>
     <div class="input-group">
         <span class="input-group-addon">{{_('Days')}}</span>
-        <input type="number" ng-model="share_expire_in"  class="form-control" >
+        <input type="number" min="0" ng-model="share_expire_in"  class="form-control" >
         <span class="input-group-addon">{{_('Downloads')}}</span>
-        <input type="number" ng-model="share_allowed_downloads" class="form-control" >
+        <input type="number" min="0" ng-model="share_allowed_downloads" class="form-control" >
     </div>
 
         <h3 style="margin-top: 50px; cursor:pointer;" ng-click="share_show_advanced=!share_show_advanced">
