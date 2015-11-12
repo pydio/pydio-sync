@@ -308,13 +308,12 @@ class LocalDbHandler():
                           AND ajxp_changes.node_id = ajxp_index.node_id \
                           AND ajxp_index.md5<>"directory" \
                           AND ajxp_index.bytesize>0)')
+            conn.commit()
+            conn.close()
 
         except Exception as ex:
             logging.exception(ex)
             pass
-
-        conn.commit()
-        conn.close()
 
     @pydio_profile
     def compare_raw_pathes(self, row1, row2):
