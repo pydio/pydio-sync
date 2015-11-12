@@ -211,7 +211,7 @@ class LocalDbHandler():
 
     @pydio_profile
     def get_directory_node_status(self, node_path):
-        node_path = self.normpath(node_path)
+        node_path = "" if self.normpath('/') == self.normpath(node_path) else self.normpath(node_path)
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
