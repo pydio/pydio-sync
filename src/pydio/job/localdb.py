@@ -289,6 +289,8 @@ class LocalDbHandler():
     def update_bulk_node_status_as_idle(self):
         conn = sqlite3.connect(self.db)
         conn.execute('UPDATE ajxp_node_status SET status="IDLE" WHERE ajxp_node_status.status="NEW"')
+        conn.commit()
+        conn.close()
 
     @pydio_profile
     def update_bulk_node_status_as_pending(self, list_seq_ids):
