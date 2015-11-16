@@ -360,6 +360,7 @@ class ContinuousDiffMerger(threading.Thread):
                     self.global_progress['status_indexing'] = 1
                     logger.log_state(_('Checking changes since last launch...'), "sync")
                     very_first = True
+                    self.db_handler.update_bulk_node_status_as_idle()
                     self.watcher.check_from_snapshot(state_callback=status_callback)
                 except DBCorruptedException as e:
                     self.stop()
@@ -516,7 +517,7 @@ class ContinuousDiffMerger(threading.Thread):
                     very_first = False
                     continue
 
-                self.db_handler.update_bulk_node_status_as_pending(self.local_seq)
+                self.current_store.update_pending_status(self.db_handler, self.local_seq)
 
                 self.global_progress['status_indexing'] = 0
                 import change_processor
