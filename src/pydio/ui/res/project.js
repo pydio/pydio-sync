@@ -801,7 +801,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 relative_path: $scope.share_filename,
                 checkExistingLinkFlag:'true'
             }, function(){
-                if(res.existingLinkFlag == 'true' && shareFile.get()['newLinkFlag'] != 'true') {
+                if(res.existingLinkFlag == 'true') {
                 shareFile.set('shareLink',res.link)
                 shareFile.set('existingLinkFlag','true')
                 $location.path('/share/response');
@@ -810,7 +810,9 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             );
         };
 
-        checkExistingLink();
+        if(shareFile.get()['newLinkFlag'] != 'true') {
+            checkExistingLink();
+        }
 
         $scope.generateLink = function(){
             var res;
