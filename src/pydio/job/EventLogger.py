@@ -170,3 +170,14 @@ class EventLogger():
             return events
         else:
             return "No status of this kind", 404
+
+    @pydio_profile
+    def get_last_action(self):
+        """
+        :return: [last row from events]
+        """
+        res = []
+        c = sqlite3.connect(self.db).cursor()
+        res = c.execute("SELECT * FROM events ORDER BY id DESC LIMIT 1").fetchall()
+        c.close()
+        return res

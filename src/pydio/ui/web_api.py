@@ -473,6 +473,11 @@ class JobManager(Resource):
             job_data['last_event'] = last_events.pop()
         if running:
             job_data['state'] = PydioScheduler.Instance().get_job_progress(job_id)
+        try:
+            job_data['last_action'] = EventLogger(JobsLoader.Instance().build_job_data_path(job_id)).get_last_action()[-1][-1]
+        except IndexError:
+            pass
+
 
     @authDB.requires_auth
     @pydio_profile
