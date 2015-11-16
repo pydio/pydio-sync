@@ -129,7 +129,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             'fileName':'',
             'shareLink':'',
             'shareJobId':'',
-            'existingLinkFlag':''};
+            'existingLinkFlag':'',
+            'newLinkFlag':''};
         return {
             get: function() {
                 return objectValue;
@@ -800,7 +801,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 relative_path: $scope.share_filename,
                 checkExistingLinkFlag:'true'
             }, function(){
-                if(res.existingLinkFlag == 'true') {
+                if(res.existingLinkFlag == 'true' && shareFile.get()['newLinkFlag'] != 'true') {
                 shareFile.set('shareLink',res.link)
                 shareFile.set('existingLinkFlag','true')
                 $location.path('/share/response');
@@ -831,6 +832,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 can_write: $scope.share_upload_checkbox
             }, function(){
                 shareFile.set('shareLink',res.link)
+                shareFile.set('newLinkFlag','true')
                 $location.path('/share/response');
                 }
             );
