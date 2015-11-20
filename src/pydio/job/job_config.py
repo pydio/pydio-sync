@@ -157,7 +157,7 @@ class JobConfig:
                     "start_time": obj.start_time,
                     "trust_ssl":obj.trust_ssl,
                     "active": obj.active,
-                    "filter": obj.filters,
+                    "filters": obj.filters,
                     "timeout": obj.timeout,
                     "hide_up_dir": obj.hide_up_dir,
                     "hide_bi_dir": obj.hide_bi_dir,
