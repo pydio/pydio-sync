@@ -109,6 +109,7 @@ class PydioApi(Api):
         self.add_resource(UrlManager, '/url/<path:complete_url>')
         self.add_resource(TaskInfoManager, '/stat', '/stat/<string:job_id>', '/stat/<string:job_id>/<path:relative_path>')
         self.add_resource(ShareManager, '/share/<string:job_id>')
+        self.add_resource(ShareLinkManager, '/share_link/<string:job_id>/<string:folder_flag>/<path:relative_path>')
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
@@ -660,7 +661,7 @@ class UrlManager(Resource):
 
 class ShareManager(Resource):
     """
-        performs a url request via proxy if present
+        provides share/un-share functionality for the desired item.
         :returns a json response
     """
     @authDB.requires_auth
@@ -719,3 +720,24 @@ class ShareManager(Resource):
             else:
                 res = remote_instance.unshare("/" + args["path"])
                 return {"response": res, "existingLinkFlag": "false"}
+
+class ShareLinkManager(Resource):
+    """
+        Gets the share content from the explorer and passes it to JS.
+        :returns a json response
+    """
+    @authDB.requires_auth
+    @pydio_profile
+    def get(self, job_id, folder_flag, relative_path):
+        """
+        writes the necessary information required for share feature to LocalSocket/NamedPipe
+        """
+        import win32file
+        try:
+            fileHandle = win32file.CreateFile("//./pipe/pydioLocalServer", win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None, win32file.OPEN_EXISTING, 0, None)
+            data = {"RelativePath": relative_path, "JobId": job_id, "FolderFlag": folder_flag}
+            win32file.WriteFile(fileHandle,"%s"%json.dumps(data), None)
+            win32file.FlushFileBuffers(fileHandle)
+            return {"Success": "Write to the Name pipe is successful!"}
+        except Exception as e:
+            return {'message': e.message, 'code': e.error_id}
