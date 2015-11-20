@@ -732,12 +732,10 @@ class ShareLinkManager(Resource):
         """
         writes the necessary information required for share feature to LocalSocket/NamedPipe
         """
-        import win32file
         try:
-            fileHandle = win32file.CreateFile("//./pipe/pydioLocalServer", win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None, win32file.OPEN_EXISTING, 0, None)
             data = {"RelativePath": relative_path, "JobId": job_id, "FolderFlag": folder_flag}
-            win32file.WriteFile(fileHandle,"%s"%json.dumps(data), None)
-            win32file.FlushFileBuffers(fileHandle)
+            with open("//./pipe/pydioLocalServer", 'w+') as f:
+                json.dump(data, f)
             return {"Success": "Write to the Name pipe is successful!"}
         except Exception as e:
-            return {'message': e.message, 'code': e.error_id}
+            return {'status': 'error', 'message': e.message}
