@@ -8,7 +8,7 @@
     <p>{{_('The easiest way to keep your data in control')}}</p>
 
     <div class="form-group" style="width:300px; margin:100px auto;" ng-if="ui_config.login_mode == 'alias'">
-        <input style="width: 195px; float:left; margin-right: 5px;" type="text" name="client_id" ng-model="job.client_id" class="form-control" placeholder="Client Id" required>
+        <input style="width: 185px; float:left; margin-right: 5px;" type="text" name="client_id" ng-model="job.client_id" class="form-control" placeholder="Client Id" required/>
         <input type="button" style="float:left;" class="btn btn-primary" ng-click="resolveClientId();" value="{{loading?_('Loading...'):_('Get Started')}}"/>
         <span ng-show="myForm.user.$error.required && !myForm.user.$pristine" class="help-inline">{{_('Required')}}</span>
     </div>
