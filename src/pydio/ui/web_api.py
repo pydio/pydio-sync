@@ -734,7 +734,7 @@ class ShareLinkManager(Resource):
         """
         try:
             data = {"RelativePath": relative_path, "JobId": job_id, "FolderFlag": folder_flag}
-            with open("//./pipe/pydioLocalServer", 'w+') as f:
+            with open("/tmp/pipe/pydioLocalServer", 'w+') as f:
                 json.dump(data, f)
             return {"Success": "Write to the Name pipe is successful!"}
         except Exception as e:
