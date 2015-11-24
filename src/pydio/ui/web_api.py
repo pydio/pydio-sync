@@ -734,7 +734,7 @@ class ShareLinkManager(Resource):
         """
         try:
             import platform
-            is_system_windows = platform.system().lower().startswith('win')
+            is_system_windows = platform.system().lower().startswith("win")
             if is_system_windows:
                 name_pipe_path = "//./pipe/pydioLocalServer"
             else:
@@ -742,6 +742,6 @@ class ShareLinkManager(Resource):
             data = {"RelativePath": relative_path, "JobId": job_id, "FolderFlag": folder_flag}
             with open(name_pipe_path, 'w+') as f:
                 json.dump(data, f)
-            return {"Success": "Write to the Name pipe is successful!"}
+            return {"status": "Write to the Name pipe is successful!"}
         except Exception as e:
-            return {'status': 'error', 'message': e.message}
+            return {"status": "error", "message": e.message}
