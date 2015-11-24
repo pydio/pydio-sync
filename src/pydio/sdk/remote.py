@@ -330,6 +330,13 @@ class PydioSdk():
                     logging.error('Second Auth Error, what is wrong?')
                     raise secTok
 
+    def check_basepath(self):
+        if self.remote_folder:
+            stat = self.stat('')
+            return True if stat else False
+        else:
+            return True
+
     def changes(self, last_seq):
         """
         Get the list of changes detected on server since a given sequence number
