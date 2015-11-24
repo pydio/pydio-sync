@@ -11,7 +11,7 @@
             <button type="button" ng-click="proxies.https.active = 'false'" class="btn" ng-class="{'btn-danger':proxies.https.active == 'false','btn-default':proxies.https.active =='false'}">Off</button>
         </div></div></h2>
 <h3 style="margin-top:3em;">Proxy URL</h3>
-<p>If you need to set up a proxy to connect to the Internet, use the form below and hit save parameters.</p>
+<p>{{_('If you need to set up a proxy to connect to the Internet, use the form below and hit save parameters.')}}</p>
 <div class="well">
     <form name="settingsHTTPS" class="form-inline">
         <div class="form-group">
@@ -30,7 +30,7 @@
 <h4 ng-click="showBlock=!showBlock; scroll(0,10);" ng-init="showBlock = false" style="cursor:pointer;"><span style="font-size: 75%;" class="glyphicon" ng-class="{'glyphicon-chevron-right': !showBlock, 'glyphicon-chevron-down': showBlock}"></span>&nbsp;Advanced Options...</h4>
     <div class="well" ng-show="showBlock">
         <p>
-        If you need to set up a different proxy for http and https, please use the form below. The main configuration will be used for https, this one will be used for http.
+        {{_('If you need to set up a different proxy for http and https, please use the form below. The main configuration will be used for https, this one will be used for http.')}}
         </p>
     <form name="settingsHTTP" class="form-inline">
         <div class="form-group">
