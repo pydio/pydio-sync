@@ -732,16 +732,29 @@ class ShareLinkManager(Resource):
         """
         writes the necessary information required for share feature to LocalSocket/NamedPipe
         """
+        #logging.info("[SHARE] " + job_id + " " + folder_flag + " " + relative_path)
         try:
             import platform
             is_system_windows = platform.system().lower().startswith("win")
             if is_system_windows:
                 name_pipe_path = "//./pipe/pydioLocalServer"
             else:
-                name_pipe_path = "/tmp/pipe/pydioLocalServer"
+                name_pipe_path = "/tmp/pydioLocalServer"
             data = {"RelativePath": relative_path, "JobId": job_id, "FolderFlag": folder_flag}
-            with open(name_pipe_path, 'w+') as f:
-                json.dump(data, f)
+            txt = json.dumps(data)
+            try:
+                f = open(name_pipe_path, "w")
+                f.write(txt)
+                f.close()
+            except IOError:
+                from socket import *
+                try:
+                    s = socket(AF_UNIX, SOCK_STREAM)
+                    s.connect(name_pipe_path)
+                    s.send(txt)
+                    s.close()
+                except Exception as e:
+                    raise e
             return {"status": "Write to the Name pipe is successful!"}
         except Exception as e:
-            return {"status": "error", "message": e.message}
+            return {"status": "error", "message": str(e)}
