@@ -1,6 +1,5 @@
 <div>
     <h4>{{_('Sync Direction')}}</h4>
-
     <div class="well">
         <p class="small" ng-show=" job.direction=='up' ">{{_('Modifications are sent to the server but the client does not download anything.')}}</p>
         <p class="small" ng-show=" job.direction=='bi' ">{{_('Modifications from both sides (local/remote) are automatically reflected on the other side.')}}</p>
@@ -46,21 +45,32 @@
 <div style="clear: left;">
     <h4>{{_('Conflicts')}}</h4>
     <div class="well">
-        <p class="small">{{_('When files were modified on both the server and your computer at the same time, synchronization is stopped.')}}</p>
+        <p class="small">{{_('When files were modified on both the server and your computer at the same time, a conflict is detected.')}}</p>
         <div style="text-align: center;">
-            <div class="advanced_radio_box conflict" ng-class="{'label-radio-selected':job.solve=='both'}" ng-click="job.solve='both'">
-                <label>{{_('Auto solve, keep both')}}</label>
+            <div class="advanced_radio_box conflict"
+                        ng-class="{'label-radio-selected':job.solve=='both' || job.solve=='local' || job.solve=='remote'}"
+                        ng-click="job.solve='both'"
+            >
+                {{_('Automatic')}}
             </div>
             <div class="advanced_radio_box conflict" ng-class="{'label-radio-selected':job.solve=='manual'}" ng-click="job.solve='manual'">
                 <label>{{_('Solve conflicts manually')}}</label>
             </div>
-            <div class="advanced_radio_box conflict" ng-class="{'label-radio-selected':job.solve=='local'}" ng-click="job.solve='local'">
-                <label>{{_('Always prefer local version')}}</label>
-            </div>
-            <div class="advanced_radio_box conflict" ng-class="{'label-radio-selected':job.solve=='remote'}" ng-click="job.solve='remote'">
-                <label>{{_('Always prefer remote version')}}</label>
-            </div>
         </div>
+        <div style="margin-top:1%; font-size:1em;">
+            <div style="" ng-hide="job.solve=='manual'">
+                <p class="small">{{_('With the default keep-both behavior conflicting files will be copied on your local sync. Which version is to be kept?')}}</p>
+                <div class="advanced_radio_box conflict_small" ng-class="{'label-radio-selected':job.solve=='both'}" ng-click="job.solve='both'">
+                    <label hover="Blabla">{{_('Keep both')}}</label>
+                </div>
+                <div class="advanced_radio_box conflict_small" ng-class="{'label-radio-selected':job.solve=='local'}" ng-click="job.solve='local'">
+                    <label>{{_('Prefer local')}}</label>
+                </div>
+                <div class="advanced_radio_box conflict_small" ng-class="{'label-radio-selected':job.solve=='remote'}" ng-click="job.solve='remote'">
+                    <label>{{_('Prefer remote')}}</label>
+                </div>
+         </div>
+    </div>
     </div>
 </div>
 

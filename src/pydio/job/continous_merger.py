@@ -413,6 +413,14 @@ class ContinuousDiffMerger(threading.Thread):
                     self.sleep_offline()
                     continue
 
+                # Before starting infinite loop, small check that remote folder still exists
+                if not self.sdk.check_basepath():
+                    log = _('Cannot find remote folder, maybe it was renamed? Sync cannot start, please check the configuration.')
+                    logging.error(log)
+                    logger.log_state(log, 'error')
+                    self.sleep_offline()
+                    continue
+
                 if self.watcher:
                     for snap_path in self.marked_for_snapshot_pathes:
                         logging.info('LOCAL SNAPSHOT : loading snapshot for directory %s' % snap_path)

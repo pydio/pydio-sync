@@ -74,8 +74,8 @@ class EventLogger():
                 conn.execute("INSERT INTO events('type', 'message', 'source', 'action', 'target', 'status', 'date') "
                              "VALUES (?, ?, ?, ?, ?, ?, ?)", (event_type, message, source, action, target, status, date_time))
             else:
-                conn.execute("UPDATE events SET type=?, message=?, source=?, action=?, target=?, status=?, date=? "
-                             " WHERE type=?", (event_type, message, source, action, target, status, date_time, event_type))
+                conn.execute("UPDATE events SET message=?, source=?, action=?, target=?, status=?, date=? "
+                             " WHERE type=?", (message, source, action, target, status, date_time, event_type))
 
             conn.commit()
         except sqlite3.Error as e:

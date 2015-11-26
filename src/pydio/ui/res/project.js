@@ -474,6 +474,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             if (ev.keyCode == 13)
                 $scope.next();
         }
+        $scope.resolveWithEnter = function(ev){
+            if(ev.keyCode == 13)
+                $scope.resolveClientId();
+        }
         $scope.next = function(){
             $scope.loading = true;
             $scope.loadWorkspaces();
