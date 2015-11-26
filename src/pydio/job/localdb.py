@@ -201,7 +201,7 @@ class LocalDbHandler():
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        status = False
+        status = "False"
         for row in c.execute("SELECT ajxp_node_status.status FROM ajxp_index,ajxp_node_status "
                              "WHERE ajxp_index.node_path = ? AND ajxp_node_status.node_id = ajxp_index.node_id", (node_path,)):
             status = row['status']
