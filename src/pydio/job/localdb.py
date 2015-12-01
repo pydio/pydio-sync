@@ -276,6 +276,15 @@ class LocalDbHandler():
             detail = pickle.dumps(detail)
         node_id = self.find_node_by_id(node_path, with_status=True)
         conn = sqlite3.connect(self.db)
+
+        if not isinstance(status, str):
+            logging.info("The status type is not string by default, explicitly assigning it a string value")
+            status = "False"
+
+        if not isinstance(detail, str):
+            logging.info("The detail type is not string by default, explicitly assigning it a string value")
+            detail = ""
+
         if not node_id:
             node_id = self.find_node_by_id(node_path, with_status=False)
             if node_id:
