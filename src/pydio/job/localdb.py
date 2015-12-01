@@ -201,7 +201,7 @@ class LocalDbHandler():
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        status = False
+        status = "False"
         for row in c.execute("SELECT ajxp_node_status.status FROM ajxp_index,ajxp_node_status "
                              "WHERE ajxp_index.node_path = ? AND ajxp_node_status.node_id = ajxp_index.node_id", (node_path,)):
             status = row['status']
@@ -231,7 +231,6 @@ class LocalDbHandler():
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        status = False
         rows = []
         for row in c.execute("SELECT * FROM ajxp_index,ajxp_node_status "
                              "WHERE (ajxp_node_status.status='CONFLICT' OR ajxp_node_status.status LIKE 'SOLVED%' ) AND ajxp_node_status.node_id = ajxp_index.node_id"):
@@ -258,7 +257,6 @@ class LocalDbHandler():
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        status = False
         for row in c.execute("SELECT * FROM ajxp_index,ajxp_node_status "
                              "WHERE ajxp_node_status.status LIKE 'SOLVED%' AND ajxp_node_status.node_id = ajxp_index.node_id"):
             d = {}
@@ -346,7 +344,7 @@ class LocalDbHandler():
         operations = []
         for row in c.execute("SELECT type,location,source,target FROM ajxp_last_buffer"):
             dRow = dict()
-            location = row['location']
+            #location = row['location']
             dRow['location'] = row['location']
             dRow['type'] = row['type']
             dRow['source'] = row['source']
@@ -850,3 +848,4 @@ class SqlEventHandler(FileSystemEventHandler):
     @pydio_profile
     def unlock_db(self):
         self.last_write_time = int(round(time.time() * 1000))
+
