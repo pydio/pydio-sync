@@ -331,7 +331,7 @@ class ContinuousDiffMerger(threading.Thread):
         time.sleep(self.event_timer)
 
     def exit_loop_clean(self, logger):
-        self.marked_for_snapshot_pathes = []
+        #self.marked_for_snapshot_pathes = []
         self.current_store.close()
         self.init_global_progress()
         logger.log_state(_('Synchronized'), 'success')
@@ -427,6 +427,7 @@ class ContinuousDiffMerger(threading.Thread):
                         if self.interrupt or not self.job_status_running:
                                                         raise InterruptException()
                         self.watcher.check_from_snapshot(snap_path)
+                    self.marked_for_snapshot_pathes = []
 
                 # Load local and/or remote changes, depending on the direction
                 from pydio.job.change_stores import SqliteChangeStore
