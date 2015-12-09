@@ -109,6 +109,7 @@ class PydioApi(Api):
         self.add_resource(UrlManager, '/url/<path:complete_url>')
         self.add_resource(TaskInfoManager, '/stat', '/stat/<string:job_id>', '/stat/<string:job_id>/<path:relative_path>')
         self.add_resource(ShareManager, '/share/<string:job_id>')
+        self.add_resource(ShareLinkManager, '/share_link/<string:job_id>/<string:folder_flag>/<path:relative_path>')
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
@@ -660,7 +661,7 @@ class UrlManager(Resource):
 
 class ShareManager(Resource):
     """
-        performs a url request via proxy if present
+        provides share/un-share functionality for the desired item.
         :returns a json response
     """
     @authDB.requires_auth
@@ -719,3 +720,41 @@ class ShareManager(Resource):
             else:
                 res = remote_instance.unshare("/" + args["path"])
                 return {"response": res, "existingLinkFlag": "false"}
+
+class ShareLinkManager(Resource):
+    """
+        Gets the share content from the explorer and passes it to JS.
+        :returns a json response
+    """
+    @authDB.requires_auth
+    @pydio_profile
+    def get(self, job_id, folder_flag, relative_path):
+        """
+        writes the necessary information required for share feature to LocalSocket/NamedPipe
+        """
+        #logging.info("[SHARE] " + job_id + " " + folder_flag + " " + relative_path)
+        try:
+            import platform
+            is_system_windows = platform.system().lower().startswith("win")
+            if is_system_windows:
+                name_pipe_path = "//./pipe/pydioLocalServer"
+            else:
+                name_pipe_path = "/tmp/pydioLocalServer"
+            data = {"RelativePath": relative_path, "JobId": job_id, "FolderFlag": folder_flag}
+            txt = json.dumps(data)
+            try:
+                f = open(name_pipe_path, "w")
+                f.write(txt)
+                f.close()
+            except IOError:
+                from socket import *
+                try:
+                    s = socket(AF_UNIX, SOCK_STREAM)
+                    s.connect(name_pipe_path)
+                    s.send(txt)
+                    s.close()
+                except Exception as e:
+                    raise e
+            return {"status": "Write to the Name pipe is successful!"}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
