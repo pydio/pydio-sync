@@ -200,3 +200,25 @@ div.loader_image{
     transform: scale(0.96);
   }
 }
+
+/* Share page for macos */
+.miniview .navbar, .miniview h1 {
+   display: none;
+}
+.miniview .shareHeader {
+   top: 0;
+   margin-top: 0;
+}
+.miniview h3 {
+   font-size: 16px;
+}
+body > div.ng-scope > div.well.ng-scope {
+   margin-top: 0px !important;
+   box-shadow: 0 0 0 !important;
+   border:0;
+   border-radius:0 !important;
+}
+.miniview {
+   padding: 0 !important;
+}
+
