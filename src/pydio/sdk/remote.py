@@ -319,7 +319,7 @@ class PydioSdk():
                 except PydioSdkTokenAuthNotSupportedException:
                     self.stick_to_basic = True
                     logging.info('Switching to permanent basic auth, as tokens were not correctly received. This is not '
-                                 'good for performances, but might be necessary for session credential based setups.')
+                        'good for performances, but might be necessary for session credential based setups.')
                     return self.perform_basic(url, request_type=type, data=data, files=files, headers=headers, stream=stream,
                                               with_progress=with_progress)
 
@@ -956,7 +956,6 @@ class PydioSdk():
                     raise PydioSdkDefaultException(unicode(http_response.text))
 
 
-
         filesize = os.stat(files['userfile_0']).st_size
         if max_size:
             # Reduce max size to leave some room for data header
@@ -1042,25 +1041,39 @@ class PydioSdk():
         return resp
 
     def check_share_link(self, file_name):
-        data = dict()
-        #data["action"] = "load_shared_element_data"
-        #data["file"] = file_name
-        #data["element_type"] = 'file'
+        """ Check if a share link exists for a given item (filename)
 
+        :param file_name: the item name
+        :return: response string from the server, it'll return the a link if share link already exists for the given item
+        """
+        data = dict()
         resp = requests.post(
-                    url=self.url + "/load_shared_element_data" + self.urlencode_normalized(file_name),
-                    data=data,
-                    timeout=self.timeout,
-                    verify=self.verify_ssl,
-                    auth=self.auth,
-                    proxies=self.proxies)
+            url=self.url + "/load_shared_element_data" + self.urlencode_normalized(file_name),
+            data=data,
+            timeout=self.timeout,
+            verify=self.verify_ssl,
+            auth=self.auth,
+            proxies=self.proxies)
 
         return resp.content
 
     def share(self, ws_label, ws_description, password, expiration, downloads, can_read, can_download, paths,
-                    link_handler, can_write):
+              link_handler, can_write):
+        """ Send the share request for an item (file or folder) to the server and gets the response from the server
+
+        :param ws_label: alias of the workspace/ workspace id
+        :param ws_description: The description of the workspace
+        :param password: if the share has to be protected by password, should be mentioned
+        :param expiration: The share link expires after how many days
+        :param downloads: Number of downloads allowed on the shared link
+        :param can_read: boolean value - person with link can read?
+        :param can_download: boolean value - person with link can download?
+        :param paths: the relative path of the file to be shared
+        :param link_handler: Can create a custom link by specifying the custom name in this field
+        :param can_write: boolean value - person with link can modify?
+        :return: response string from the server, it'll return the a share link if all the parameters are correct
+        """
         data = dict()
-        #data["get_action"] = "share"
         data["sub_action"] = "create_minisite"
         data["guest_user_pass"] = password
         data["create_guest_user"] = "true"
@@ -1069,10 +1082,7 @@ class PydioSdk():
         data["downloadlimit"] = downloads
         data["repo_description"] = ws_description
         data["repo_label"] = ws_label
-        #data["nodes[]"] = paths
         data["custom_handle"] = link_handler
-        #data["file"] = paths
-        #data["dir"] = os.path.dirname(paths)
 
         if can_download == "true":
             data["simple_right_download"] = "on"
@@ -1082,25 +1092,28 @@ class PydioSdk():
             data["simple_right_write"] = "on"
 
         resp = requests.post(
-                    url=self.url+'/share/public' + self.urlencode_normalized(paths),
-                    data=data,
-                    timeout=self.timeout,
-                    verify=self.verify_ssl,
-                    auth=self.auth,
-                    proxies=self.proxies)
+            url=self.url + '/share/public' + self.urlencode_normalized(paths),
+            data=data,
+            timeout=self.timeout,
+            verify=self.verify_ssl,
+            auth=self.auth,
+            proxies=self.proxies)
         return resp.content
 
 
     def unshare(self, path):
-        data = dict()
-        #data["file"] = path
+        """ Sends un-share request for the specified item and returns the server response
 
+        :param path: The path of the item to be shared
+        :return: On success returns empty string, when the response status is not 200 returns the corresponding error message
+        """
+        data = dict()
         resp = requests.post(
-                    url=self.url+'/unshare' + self.urlencode_normalized(path),
-                    data=data,
-                    timeout=self.timeout,
-                    verify=self.verify_ssl,
-                    auth=self.auth,
-                    proxies=self.proxies)
+            url=self.url + '/unshare' + self.urlencode_normalized(path),
+            data=data,
+            timeout=self.timeout,
+            verify=self.verify_ssl,
+            auth=self.auth,
+            proxies=self.proxies)
 
         return resp.content

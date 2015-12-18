@@ -129,8 +129,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             'fileName':'',
             'shareLink':'',
             'shareJobId':'',
-            'existingLinkFlag':'',
-            'newLinkFlag':''};
+            'existingLinkFlag':''
+            };
         return {
             get: function() {
                 return objectValue;
@@ -199,11 +199,13 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 controller:'ListCtrl',
                 templateUrl:'about.html'
             })
-            .when('/share', {
+            .when('/share/:layout/:jobId/:itemType/:itemPath', {
+                //:example sample get request would be like
+                //http://localhost:5556/res/index.html#/share/standard/54.254.418.47-my-files/file/abc%5Chello.txt
                 controller:'ShareCtrl',
                 templateUrl:'share.html'
             })
-            .when('/share/response', {
+            .when('/share/response/:layout', {
                 controller:'ShareCtrl',
                 templateUrl:'share_response.html'
             })
@@ -776,7 +778,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         };
     })
 
-     .controller('ShareCtrl', function($scope, $window, $route, $location, Share, shareFile) {
+     .controller('ShareCtrl', function($scope, $window, $route, $location, $routeParams, Share, shareFile) {
         $scope._ = window.translate;
         $scope.share_preview = true;
         $scope.share_download_checkbox = true;
@@ -788,62 +790,71 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             $scope.ui_config = window.ui_config;
         }
 
+        // Display the view based on the type of layout
+        if($routeParams.layout == "miniview") {
+            document.addEventListener('DOMContentLoaded',
+            function(event) { document.getElementsByTagName('body')[0].className += 'miniview'; });
+        }
+
         $scope.QtObject = window.PydioQtFileDialog;
 
-        $scope.share_filename = window.PydioQtFileDialog.getShareName();
-        $scope.can_write = window.PydioQtFileDialog.getItemType();
-        shareFile.set('can_write',$scope.can_write)
+        // Enable write flag if the item is a folder
+        if($routeParams.itemType == "folder"){
+            $scope.can_write = true;
+        }
 
+        // Check if a shared link already exists for the selected item.
         checkExistingLink = function(){
             var res;
-            shareFile.set('fileName',$scope.share_filename)
-            shareFile.set('shareJobId',window.PydioQtFileDialog.getShareJobId())
+            shareFile.set('fileName',$routeParams.itemPath)
+            shareFile.set('shareJobId',$routeParams.jobId)
 
             res = Share.query({
                 action:'share',
-                job_id:window.PydioQtFileDialog.getShareJobId(),
-                relative_path: $scope.share_filename,
+                job_id: $routeParams.jobId,
+                relative_path: $routeParams.itemPath,
                 checkExistingLinkFlag:'true'
             }, function(){
                 if(res.existingLinkFlag == 'true') {
                 shareFile.set('shareLink',res.link)
                 shareFile.set('existingLinkFlag','true')
-                $location.path('/share/response');
+                $location.path('/share/response/' + $routeParams.layout);
                 }
                 }
             );
         };
 
-        if(shareFile.get()['newLinkFlag'] != 'true') {
+        // This condition to avoid checkExistingLink to be called from response page as it uses same
+        if($routeParams.jobId){
+            $scope.share_filename = $routeParams.itemPath;
             checkExistingLink();
         }
 
+        // Generate the share link for the selected item.
         $scope.generateLink = function(){
             var res;
-            shareFile.set('fileName',$scope.share_filename)
-            shareFile.set('shareJobId',window.PydioQtFileDialog.getShareJobId())
 
             res = Share.query({
                 action:'share',
-                job_id:window.PydioQtFileDialog.getShareJobId(),
-                ws_label:$scope.share_filename.replace(/^.*[\\\/]/, ''),
+                job_id:$routeParams.jobId,
+                ws_label:$routeParams.itemPath.replace(/^.*[\\\/]/, ''),
                 ws_description:$scope.share_description,
                 password:$scope.share_password,
                 expiration:$scope.share_expire_in,
                 downloads:$scope.share_allowed_downloads,
                 can_read:$scope.share_preview,
                 can_download:$scope.share_download_checkbox,
-                relative_path: $scope.share_filename,
+                relative_path: $routeParams.itemPath,
                 link_handler: $scope.share_link_handler,
                 can_write: $scope.share_upload_checkbox
             }, function(){
                 shareFile.set('shareLink',res.link)
-                shareFile.set('newLinkFlag','true')
-                $location.path('/share/response');
+                $location.path('/share/response/' + $routeParams.layout);
                 }
             );
         };
 
+        // GetShareLink shares the details with share response page
         $scope.GetShareLink = function(){
             share_details = shareFile.get();
             $scope.share_link = share_details['shareLink'];
@@ -852,20 +863,20 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             $scope.checkResponseFlag = (share_details['shareLink'].substring(0, 4)=='http')
         };
 
+        // File browser
         $scope.openFile = function(){
-
             var res;
             if(!window.PydioQtFileDialog) {
                 res = window.prompt(window.translate('Full path to the local folder'));
             }else{
-                res = window.PydioQtFileDialog.getFilePath();
+                res = $routeParams.itemPath;
             }
             if(res){
                 $scope.share_filename = res;
             }
-
         };
 
+        //Un-share the selected item.
         $scope.unShareLink = function(){
             share_details = shareFile.get();
             res = Share.unshare({
@@ -879,7 +890,13 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         };
 
         $scope.copyToClipBoard = function(value){
-            $scope.QtObject.copyToClipBoard(value);
+            // check if the text can be copied from QT's copy to clip board else show error message
+            try {
+                $scope.QtObject.copyToClipBoard(value);
+            }
+            catch(err) {
+                console.log("Copy to clipboard is not possible while using web browser");
+            }
         };
     })
 
