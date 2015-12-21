@@ -792,8 +792,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
         // Display the view based on the type of layout
         if($routeParams.layout == "miniview") {
-            document.addEventListener('DOMContentLoaded',
-            function(event) { document.getElementsByTagName('body')[0].className += 'miniview'; });
+            document.getElementsByTagName('body')[0].className += 'miniview';
         }
 
         $scope.QtObject = window.PydioQtFileDialog;
