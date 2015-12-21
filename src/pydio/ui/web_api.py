@@ -600,8 +600,8 @@ class ProxyManager(Resource):
         #logging.info(json_req)
         try:
             for protocol in json_req.keys():
-                if "password" in json_req:
-                    if [protocol]['password'] != "":
+                if "password" in json_req[protocol]:
+                    if json_req[protocol]['password'] != "":
                         keyring.set_password(json_req[protocol]["hostname"], json_req[protocol]["username"], json_req[protocol]["password"])
                         json_req[protocol]["password"] = "__pydio_proxy_pwd__"
         except keyring.errors.PasswordSetError as e:
