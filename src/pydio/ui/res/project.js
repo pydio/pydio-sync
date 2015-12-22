@@ -792,7 +792,9 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
         // Display the view based on the type of layout
         if($routeParams.layout == "miniview") {
-            document.getElementsByTagName('body')[0].className += 'miniview';
+            document.getElementsByTagName("body")[0].className += "miniview";
+        } else {
+            document.getElementById("shareDiv").setAttribute("style", "margin-top:80px !important;")
         }
 
         $scope.QtObject = window.PydioQtFileDialog;
@@ -825,7 +827,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
         // This condition to avoid checkExistingLink to be called from response page as it uses same
         if($routeParams.jobId){
-            $scope.share_filename = $routeParams.itemPath;
+            if ($routeParams.filepath != "")
+                $scope.share_filename = $routeParams.filepath;
+            else
+                $scope.share_filename = $routeParams.itemPath;
             checkExistingLink();
         }
 
@@ -938,6 +943,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             proxies.http.url = undefined;
             proxies.https.url = undefined;
             // P O S T
+            console.log("POSTING");
             proxies.$save();
             proxies.https.url = temps;
             proxies.http.url = temp;
