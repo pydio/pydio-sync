@@ -597,7 +597,7 @@ class ProxyManager(Resource):
     @pydio_profile
     def post(self):
         json_req = request.get_json()
-        #logging.info(json_req)
+        logging.info("Writing into proxies.json file")
         try:
             for protocol in json_req.keys():
                 if "password" in json_req[protocol]:
@@ -606,6 +606,8 @@ class ProxyManager(Resource):
                         json_req[protocol]["password"] = "__pydio_proxy_pwd__"
         except keyring.errors.PasswordSetError as e:
             logging.error("Error while storing password in keychain, should we store it cyphered in the config?")
+        except Exception as e:
+            logging.error("Error while storing password in keychain, error message:" + e.message)
 
         ConfigManager.Instance().proxies_loaded = False
         # write the content into local proxy.json file
