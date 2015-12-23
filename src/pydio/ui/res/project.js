@@ -790,8 +790,9 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             $scope.ui_config = window.ui_config;
         }
         // Display the view based on the type of layout
-        if($routeParams.layout == "miniview" || document.URL.contains("minivew")) {
+        if($routeParams.layout == "miniview" || document.URL.indexOf("minivew") > -1) {
             document.getElementsByTagName("body")[0].className += "miniview";
+            miniview = true;
         } else {
             document.getElementById("shareDiv").setAttribute("style", "margin-top:80px !important;")
         }
