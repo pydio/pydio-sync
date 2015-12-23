@@ -792,9 +792,11 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         // Display the view based on the type of layout
         if($routeParams.layout == "miniview" || document.URL.indexOf("minivew") > -1) {
             document.getElementsByTagName("body")[0].className += "miniview";
-            miniview = true;
+           $scope.miniview = true;
         } else {
-            document.getElementById("shareDiv").setAttribute("style", "margin-top:80px !important;")
+            var sharediv = document.getElementById("shareDiv");
+            if (sharediv)
+                sharediv.setAttribute("style", "margin-top:80px !important;");
         }
 
         $scope.QtObject = window.PydioQtFileDialog;
@@ -899,6 +901,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 console.log("Copy to clipboard is not possible while using web browser");
             }
         };
+
+
     })
 
     .controller('SettingsCtrl', function($scope, $routeParams, $timeout, Jobs, Logs, Conflicts, Proxy){
