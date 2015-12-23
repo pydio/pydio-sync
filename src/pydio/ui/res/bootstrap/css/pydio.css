@@ -213,13 +213,17 @@ div.loader_image{
    /*font-size: 16px;*/
 }
 body > div.ng-scope > div.well.ng-scope {
-   margin-top: 0px !important;
+   margin: 0px !important;
    box-shadow: 0 0 0 !important;
    border:0;
    border-radius:0 !important;
+   padding-bottom: 50% !important;
+}
+.miniview > btn btn-primary {
+   padding-bottom: 20px;
 }
 .miniview {
-   padding: 20px !important;
+   padding: 0px !important;
    padding-top: 0 !important;
 }
 

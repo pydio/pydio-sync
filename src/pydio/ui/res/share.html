@@ -2,7 +2,7 @@
 <!--h1 class="shareHeader" ng-value="checkExistingLink()">{{_('Share %1 via Pydio', share_filename.split("/").pop())}}</h1-->
 
 <div id="shareDiv" class="well">
-    <h3> {{_('Path to file')}} </h3>
+    <h3> {{_('Description')}} </h3>
     <div class="input-group">
         <span class="input-group-addon">{{_('Path')}}</span>
         <input type="text" ng-model="share_filename" class="form-control" placeholder="path" readonly required >
@@ -26,7 +26,19 @@
             <input type="number" min="0" ng-model="share_allowed_downloads" class="form-control" >
         </div>
     </div> -->
+    <h3> {{_('Security')}} </h3>
+    <div class="input-group">
+        <span class="input-group-addon">{{_('Password')}}</span>
+        <input ng-model="share_password" type="password" class="form-control">
+    </div>
 
+    <h4> {{_('Expires after')}} </h4>
+    <div class="input-group">
+        <span class="input-group-addon">{{_('Days')}}</span>
+        <input type="number" min="0" ng-model="share_expire_in"  class="form-control" >
+        <span class="input-group-addon">{{_('Downloads')}}</span>
+        <input type="number" min="0" ng-model="share_allowed_downloads" class="form-control" >
+    </div>
     <h3 style="margin-top: 50px; cursor:pointer;" ng-click="share_show_advanced=!share_show_advanced">
         <span ng-class="{'glyphicon-chevron-right':!share_show_advanced,'glyphicon-chevron-down':share_show_advanced}" class="small glyphicon"></span> {{_('Advanced parameters')}}<span ng-if="!share_show_advanced">...</span>
     </h3>
