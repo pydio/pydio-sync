@@ -789,10 +789,11 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         if (window.ui_config){
             $scope.ui_config = window.ui_config;
         }
-
         // Display the view based on the type of layout
-        if($routeParams.layout == "miniview") {
-            document.getElementsByTagName('body')[0].className += 'miniview';
+        if($routeParams.layout == "miniview" || document.URL.contains("minivew")) {
+            document.getElementsByTagName("body")[0].className += "miniview";
+        } else {
+            document.getElementById("shareDiv").setAttribute("style", "margin-top:80px !important;")
         }
 
         $scope.QtObject = window.PydioQtFileDialog;
