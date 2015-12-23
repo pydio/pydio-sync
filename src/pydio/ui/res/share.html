@@ -31,7 +31,44 @@
         <span ng-class="{'glyphicon-chevron-right':!share_show_advanced,'glyphicon-chevron-down':share_show_advanced}" class="small glyphicon"></span> {{_('Advanced parameters')}}<span ng-if="!share_show_advanced">...</span>
     </h3>
     <div ng-show="share_show_advanced">
-        <ng-include src="'advanced_share.html'"></ng-include>
+        <div>
+            <h4>{{_('Link Handle')}}</h4>
+            <div class="well">
+                <p class="small">{{_('If you want a durable and pretty link (like https://.../my-share-link), you can use this field. Link handle will be generated if left empty.')}}</p>
+                <div style="text-align: center;">
+                    <input ng-model="share_link_handler" type="text" class="form-control" placeholder="my-share-link">
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h4>{{_('Description')}}</h4>
+            <div class="well">
+                <p class="small">{{_('This will be displayed to the shared users.')}}</p>
+                <div style="text-align: left;">
+                    <input ng-model="share_description" type="text" class="form-control" placeholder="description (optional) ">
+                </div>
+            </div>
+        </div>
+
+        <div style="">
+            <h4>{{_('Access Rights')}}</h4>
+            <div class="well">
+                <p class="small" style="text-align: center;">{{_('By default, the item will be previewed and downloadable')}}</p>
+                <div style="text-align: center;">
+                    <div>
+                        <label>{{_('Preview')}}</label>
+                        <input ng-model="share_preview" type="checkbox">
+                        <label>{{_('Download')}}</label>
+                        <input ng-model="share_download_checkbox" type="checkbox">
+                        <span ng-show="can_write">
+                            <label>{{_('Upload')}}</label>
+                            <input ng-model="share_upload_checkbox" type="checkbox" >
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div>
