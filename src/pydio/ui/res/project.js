@@ -789,9 +789,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         if (window.ui_config){
             $scope.ui_config = window.ui_config;
         }
-
         // Display the view based on the type of layout
-        if($routeParams.layout == "miniview") {
+        if($routeParams.layout == "miniview" || document.URL.contains("minivew")) {
             document.getElementsByTagName("body")[0].className += "miniview";
         } else {
             document.getElementById("shareDiv").setAttribute("style", "margin-top:80px !important;")
@@ -827,10 +826,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
         // This condition to avoid checkExistingLink to be called from response page as it uses same
         if($routeParams.jobId){
-            if ($routeParams.filepath != "")
-                $scope.share_filename = $routeParams.filepath;
-            else
-                $scope.share_filename = $routeParams.itemPath;
+            $scope.share_filename = $routeParams.itemPath;
             checkExistingLink();
         }
 
@@ -943,7 +939,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             proxies.http.url = undefined;
             proxies.https.url = undefined;
             // P O S T
-            console.log("POSTING");
             proxies.$save();
             proxies.https.url = temps;
             proxies.http.url = temp;
