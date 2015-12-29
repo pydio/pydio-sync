@@ -772,6 +772,14 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
 
             }else{
+                // Check if the type of include and excludes are in the form of string(
+                // usually the case when we save the configuration), change it to array type
+                if(typeof($scope.job.filters.includes) == "string") {
+                    $scope.job.filters.includes = $scope.job.filters.includes.split(',');
+                }
+                if(typeof($scope.job.filters.excludes) == "string") {
+                    $scope.job.filters.excludes = $scope.job.filters.excludes.split(',');
+                }
                 $scope.job.$save();
                 $location.path('/');
             }
