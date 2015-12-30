@@ -37,11 +37,13 @@ class SqliteChangeStore():
         self.includes = includes
         self.excludes = excludes
         self.create = False
+        # Increasing the timeout (default 5 seconds), to avoid database is locked error
+        self.timeout = 30
         if not os.path.exists(self.db):
             self.create = True
 
     def open(self):
-        self.conn = sqlite3.connect(self.db)
+        self.conn = sqlite3.connect(self.db, timeout=self.timeout)
         self.conn.row_factory = sqlite3.Row
         if self.create:
             self.conn.execute(

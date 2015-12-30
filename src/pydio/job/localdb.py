@@ -51,6 +51,8 @@ class SqlSnapshot(object):
         self._inode_to_path = {}
         self.is_recursive = True
         self.sub_folder = sub_folder
+        # Increasing the timeout (default 5 seconds), to avoid database is locked error
+        self.timeout = 30
         try:
             self.load_from_db()
         except OperationalError as oe:
@@ -59,7 +61,7 @@ class SqlSnapshot(object):
     @pydio_profile
     def load_from_db(self):
 
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         if self.sub_folder:
@@ -140,6 +142,8 @@ class LocalDbHandler():
         self.db = job_data_path + '/pydio.sqlite'
         self.job_data_path = job_data_path
         self.event_handler = None
+        # Increasing the timeout (default 5 seconds), to avoid database is locked error
+        self.timeout = 30
         if not os.path.exists(self.db):
             self.init_db()
 
@@ -154,7 +158,7 @@ class LocalDbHandler():
         self.event_handler = event_handler
 
     def init_db(self):
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         cursor = conn.cursor()
         if getattr(sys, 'frozen', False):
             respath = (Path(sys._MEIPASS)) / 'res' / 'create.sql'
@@ -169,7 +173,7 @@ class LocalDbHandler():
     @pydio_profile
     def find_node_by_id(self, node_path, with_status=False):
         node_path = self.normpath(node_path)
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         id = False
@@ -185,7 +189,7 @@ class LocalDbHandler():
     @pydio_profile
     def get_node_md5(self, node_path):
         node_path = self.normpath(node_path)
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         for row in c.execute("SELECT md5 FROM ajxp_index WHERE node_path LIKE ?", (node_path,)):
@@ -198,7 +202,7 @@ class LocalDbHandler():
     @pydio_profile
     def get_node_status(self, node_path):
         node_path = self.normpath(node_path)
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         status = "False"
@@ -212,7 +216,7 @@ class LocalDbHandler():
     @pydio_profile
     def get_directory_node_status(self, node_path):
         node_path = "" if self.normpath('/') == self.normpath(node_path) else self.normpath(node_path)
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         status = "IDLE"
@@ -228,7 +232,7 @@ class LocalDbHandler():
 
     @pydio_profile
     def list_conflict_nodes(self):
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         rows = []
@@ -245,7 +249,7 @@ class LocalDbHandler():
 
     @pydio_profile
     def count_conflicts(self):
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         c = 0
         for row in conn.execute("SELECT count(node_id) FROM ajxp_node_status WHERE status='CONFLICT'"):
             c = int(row[0])
@@ -254,7 +258,7 @@ class LocalDbHandler():
 
     @pydio_profile
     def list_solved_nodes_w_callback(self, cb):
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         for row in c.execute("SELECT * FROM ajxp_index,ajxp_node_status "
@@ -273,7 +277,7 @@ class LocalDbHandler():
         if detail:
             detail = pickle.dumps(detail)
         node_id = self.find_node_by_id(node_path, with_status=True)
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
 
         if not isinstance(status, str):
             logging.info("The status type is not string by default, explicitly assigning it a string value")
@@ -294,7 +298,7 @@ class LocalDbHandler():
 
     @pydio_profile
     def update_bulk_node_status_as_idle(self):
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.execute('UPDATE ajxp_node_status SET status="IDLE" WHERE ajxp_node_status.status="NEW"')
         conn.commit()
         conn.close()
@@ -302,7 +306,7 @@ class LocalDbHandler():
     @pydio_profile
     def update_bulk_node_status_as_pending(self, list_seq_ids):
         if(len(list_seq_ids)) > 0:
-            conn = sqlite3.connect(self.db)
+            conn = sqlite3.connect(self.db, timeout=self.timeout)
             try:
                 seq_ids = str(",".join(list_seq_ids))
 
@@ -338,7 +342,7 @@ class LocalDbHandler():
 
     @pydio_profile
     def get_last_operations(self):
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         operations = []
@@ -355,7 +359,7 @@ class LocalDbHandler():
 
     @pydio_profile
     def is_last_operation(self, location, type, source, target):
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         for row in c.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (type,location,source.replace("\\", "/"),target.replace("\\", "/"))):
@@ -367,14 +371,14 @@ class LocalDbHandler():
     @pydio_profile
     def buffer_real_operation(self, location, type, source, target):
         location = 'remote' if location == 'local' else 'local'
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (type, location, source.replace("\\", "/"), target.replace("\\", "/")))
         conn.commit()
         conn.close()
 
     @pydio_profile
     def clear_operations_buffer(self):
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.execute("DELETE FROM ajxp_last_buffer")
         conn.commit()
         conn.close()
@@ -392,7 +396,7 @@ class LocalDbHandler():
             self.event_handler.reading = True
         try:
             logging.debug("Local sequence " + str(seq_id))
-            conn = sqlite3.connect(self.db)
+            conn = sqlite3.connect(self.db, timeout=self.timeout)
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
             info = dict()
@@ -425,7 +429,7 @@ class LocalDbHandler():
     def get_local_changes(self, seq_id, accumulator=dict()):
         logging.debug("Local sequence " + str(seq_id))
         last = seq_id
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         previous_node_id = -1
@@ -523,6 +527,8 @@ class SqlEventHandler(FileSystemEventHandler):
         db_handler = LocalDbHandler(job_data_path, basepath)
         self.unique_id = hashlib.md5(job_data_path.encode(guess_filesystemencoding())).hexdigest()
         self.db = db_handler.db
+        # Increasing the timeout (default 5 seconds), to avoid database is locked error
+        self.timeout = db_handler.timeout
         self.reading = False
         self.last_write_time = 0
         self.db_wait_duration = 1
@@ -579,7 +585,7 @@ class SqlEventHandler(FileSystemEventHandler):
             if self.prevent_atomic_commit:
                 conn = self.transaction_conn
             else:
-                conn = sqlite3.connect(self.db)
+                conn = sqlite3.connect(self.db, timeout=self.timeout)
 
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
@@ -638,7 +644,7 @@ class SqlEventHandler(FileSystemEventHandler):
             if self.prevent_atomic_commit:
                 conn = self.transaction_conn
             else:
-                conn = sqlite3.connect(self.db)
+                conn = sqlite3.connect(self.db, timeout=self.timeout)
 
             conn.execute("DELETE FROM ajxp_index WHERE node_path LIKE ?", (self.remove_prefix(src_path) + '%',))
 
@@ -698,7 +704,7 @@ class SqlEventHandler(FileSystemEventHandler):
         if self.prevent_atomic_commit:
             conn = self.transaction_conn
         else:
-            conn = sqlite3.connect(self.db)
+            conn = sqlite3.connect(self.db, timeout=self.timeout)
         if not force_insert:
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
@@ -828,7 +834,7 @@ class SqlEventHandler(FileSystemEventHandler):
 
     @pydio_profile
     def begin_transaction(self):
-        self.transaction_conn = sqlite3.connect(self.db)
+        self.transaction_conn = sqlite3.connect(self.db, timeout=self.timeout)
         self.prevent_atomic_commit = True
 
     @pydio_profile
