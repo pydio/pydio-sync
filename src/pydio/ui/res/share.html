@@ -1,14 +1,20 @@
 <h1 class="shareHeader">{{_('Share %1 via Pydio', share_filename.split('\\').pop().split('/').pop())}}</h1>
 <!--h1 class="shareHeader" ng-value="checkExistingLink()">{{_('Share %1 via Pydio', share_filename.split("/").pop())}}</h1-->
+<div ng-show="showprogbar">
+        <div class="progress" style="height:.7em">
+            <div class="progress-bar progress-bar-info progress-bar-striped active" id="progbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 5%;">
+            </div>
+        </div>
+</div>
 
-<div id="shareDiv" class="well">
+<div id="shareDiv" ng-hide="showprogbar" class="well">
     <h3> {{_('Description')}} </h3>
     <div class="input-group">
         <span class="input-group-addon">{{_('Path')}}</span>
         <input type="text" ng-model="share_filename" class="form-control" placeholder="path" readonly required >
     </div>
-
-    <!-- <h3 style="margin-top: 50px; cursor:pointer;" ng-click="share_show_accessibility=!share_show_accessibility">
+    <div ng-show="miniview">
+    <h3 style="margin-top: 50px; cursor:pointer;" ng-click="share_show_accessibility=!share_show_accessibility">
         <span ng-class="{'glyphicon-chevron-right':!share_show_accessibility,'glyphicon-chevron-down':share_show_accessibility}" class="small glyphicon"></span>
         {{_('Accessibility')}}<span ng-if="!share_show_accessibility">...</span>
     </h3>
@@ -25,13 +31,14 @@
             <span class="input-group-addon">{{_('Downloads')}}</span>
             <input type="number" min="0" ng-model="share_allowed_downloads" class="form-control" >
         </div>
-    </div> -->
+    </div>
+    </div>
+    <div ng-hide="miniview">
     <h3> {{_('Security')}} </h3>
     <div class="input-group">
         <span class="input-group-addon">{{_('Password')}}</span>
         <input ng-model="share_password" type="password" class="form-control">
     </div>
-
     <h4> {{_('Expires after')}} </h4>
     <div class="input-group">
         <span class="input-group-addon">{{_('Days')}}</span>
@@ -39,6 +46,8 @@
         <span class="input-group-addon">{{_('Downloads')}}</span>
         <input type="number" min="0" ng-model="share_allowed_downloads" class="form-control" >
     </div>
+    </div>
+
     <h3 style="margin-top: 50px; cursor:pointer;" ng-click="share_show_advanced=!share_show_advanced">
         <span ng-class="{'glyphicon-chevron-right':!share_show_advanced,'glyphicon-chevron-down':share_show_advanced}" class="small glyphicon"></span> {{_('Advanced parameters')}}<span ng-if="!share_show_advanced">...</span>
     </h3>
@@ -86,8 +95,8 @@
     <div>
         <br style="clear: both">
     </div>
+    <div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: center; background-color: #77b8e2;">
+        <button type="button" ng-click="generateLink()" class="btn btn-primary" style="width: 40%;margin:0 1%;">{{_('Generate Link')}}</button>
+    </div>
 </div>
 
-<div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: center; background-color: #77b8e2;">
-    <button type="button" ng-click="generateLink()" class="btn btn-primary" style="width: 40%;margin:0 1%;">{{_('Generate Link')}}</button>
-</div>

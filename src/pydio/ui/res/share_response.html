@@ -1,11 +1,11 @@
+<div ng-hide="miniview_done">
 <h1 class="shareHeader" ng-value="GetShareLink()">{{_('Share %1 via Pydio', share_filename.split('\\').pop().split('/').pop())}}</h1>
 
 <div style="margin-top: 80px;">
     <form name="myForm" class="form-inline">
         <div>
             <h4>{{_('Shared Link')}}</h4>
-            <div class="form-group">
-                <div />
+            <div class="form-group"></div>
                     <p ng-show="existingLinkFlag && checkResponseFlag" class="small">{{_('Shared link to the selected item already exists. Below is the link to the selected item')}}</p>
                     <p ng-show="!existingLinkFlag && checkResponseFlag" class="small">{{_('New shared link to the selected item has been generated')}}</p>
                     <p ng-show="!checkResponseFlag" class="small">{{_('Shared Link to the selected item has not been generated')}}</p>
@@ -26,4 +26,11 @@
 <div  style="text-align: center; margin-top: 20px;">
     <p class="small" ng-show="copyToClipBoardFlag">{{_('Text has been copied to clipboard.')}}</p>
 </div>
+</div>
 
+<div ng-show="miniview_done">
+    <div style="text-align: center; margin-top: 40px">
+        <p>{{ share_details.fileName }}</p>
+        <p>Successfully unshared.</p>
+    </div>
+</div>

@@ -791,12 +791,33 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         }
         // Display the view based on the type of layout
         if($routeParams.layout == "miniview" || document.URL.indexOf("minivew") > -1) {
-            document.getElementsByTagName("body")[0].className += "miniview";
-           $scope.miniview = true;
+            if (document.getElementsByTagName("body")[0].className.indexOf("miniview") == -1)
+                document.getElementsByTagName("body")[0].className += "miniview";
+                // disable right click reload
+                document.getElementsByTagName("body")[0].setAttribute("oncontextmenu", "return false");
+                $scope.miniview = true;
         } else {
             var sharediv = document.getElementById("shareDiv");
             if (sharediv)
                 sharediv.setAttribute("style", "margin-top:80px !important;");
+        }
+
+        $scope.updateProgBar = function (){
+            try {
+                $scope.showprogbar = true;
+                document.getElementById("shareDiv").style = "display:none !important;";
+                var progbar = document.getElementById("progbar");
+                progbar.style = "width:"+ parseInt(progbar.style.width)*1.3 + "%";
+            } catch (error){
+             //
+            }
+        }
+        $scope.startProgBar = function () {
+            $scope.updateProgBar();
+            $scope.timer = window.setInterval($scope.updateProgBar, 200);
+        }
+        $scope.stopProgBar = function (){
+            clearInterval($scope.timer);
         }
 
         $scope.QtObject = window.PydioQtFileDialog;
@@ -819,11 +840,11 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 checkExistingLinkFlag:'true'
             }, function(){
                 if(res.existingLinkFlag == 'true') {
-                shareFile.set('shareLink',res.link)
-                shareFile.set('existingLinkFlag','true')
-                $location.path('/share/response/' + $routeParams.layout);
+                    shareFile.set('shareLink',res.link)
+                    shareFile.set('existingLinkFlag','true')
+                    $location.path('/share/response/' + $routeParams.layout);
                 }
-                }
+               }
             );
         };
 
@@ -835,6 +856,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
         // Generate the share link for the selected item.
         $scope.generateLink = function(){
+            $scope.startProgBar();
             var res;
 
             res = Share.query({
@@ -853,6 +875,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             }, function(){
                 shareFile.set('shareLink',res.link)
                 $location.path('/share/response/' + $routeParams.layout);
+                $scope.stopProgBar();
                 }
             );
         };
@@ -887,8 +910,12 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 action:'unshare',
                 path: share_details['fileName']
             }, function(){
-                $location.path('/');
-                }
+                 if($routeParams.layout == "miniview" || document.URL.indexOf("minivew") > -1) {
+                    $scope.miniview_done = true;
+                 } else {
+                    $location.path('/');
+                 }
+               }
             );
         };
 
@@ -896,16 +923,20 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             // check if the text can be copied from QT's copy to clip board else show error message
             try {
                 $scope.QtObject.copyToClipBoard(value);
-            }
-            catch(err) {
-                console.log("Copy to clipboard is not possible while using web browser");
+            } catch (err) {
+                try {
+                    interOp.callSwift(value);
+                    window.webkit.messageHandlers.swift.postMessage({body: value});
+                } catch (err) {
+                    console.log("Copy to clipboard is not possible while using web browser");
+                }
             }
         };
 
 
     })
 
-    .controller('SettingsCtrl', function($scope, $routeParams, $timeout, Jobs, Logs, Conflicts, Proxy){
+    .controller('SettingsCtrl', function($scope, $routeParams, $timeout, $location, Jobs, Logs, Conflicts, Proxy){
         $scope._ = window.translate;
         if (window.ui_config){
             $scope.ui_config = window.ui_config;
@@ -947,5 +978,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             proxies.$save();
             proxies.https.url = temps;
             proxies.http.url = temp;
+            $location.path('/');
         }
     });
