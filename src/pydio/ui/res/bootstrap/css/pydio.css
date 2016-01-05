@@ -230,4 +230,19 @@ body > div.ng-scope > div.well.ng-scope {
     padding-left: 20px;
     padding-right: 20px;
 }
-
+.minititle {
+    color: rgb(0,105,251) !important;
+    font-size: 1em;
+    margin-top: 0px !important;
+}
+.miniview_margin {
+    margin-left: 2%;
+}
+.miniview_button {
+    padding: 20px 20px 20px 20px;
+}
+.miniview_h4 {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 1em;
+}
