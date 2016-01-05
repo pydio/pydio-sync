@@ -16,7 +16,7 @@
         </div>
     </div>
     <div ng-show="miniview">
-        <p style="margin-bottom: 2%;">{{ _('Share item') }}
+        <p style="margin-bottom: 5%;">{{ _('Share item') }}
             <strong> {{ share_filename.split('\\').pop().split('/').pop() }} </strong>
             {{ _('by creating a public link that can easily be sent to your contacts.') }}
             <br />{{ _('You can customize the link parameters using the forms below.') }}</p>
@@ -28,7 +28,7 @@
     <div ng-show="share_show_accessibility" ng-class="{'miniview_margin': miniview}">
         <h4 ng-class="{'miniview_h4': miniview}"> {{_('Optional Password')}} </h4>
         <div class="input-group">
-            <span class="input-group-addon">{{_('Password')}}</span>
+            <span class="input-group-addon" style="padding:3px;">{{_('Password')}}</span>
             <input ng-model="share_password" type="password" class="form-control">
         </div>
         <h4 ng-class="{'miniview_h4': miniview}"> {{_('Expires After')}} </h4>

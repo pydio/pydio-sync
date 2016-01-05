@@ -205,13 +205,19 @@ div.loader_image{
 .miniview .navbar, .miniview h1 {
    display: none;
 }
+
 .miniview .shareHeader {
    top: 0;
    margin-top: 0;
 }
+
 .miniview h3 {
-   /*font-size: 16px;*/
+   color: rgb(21, 140, 186) !important;
+   font-size: 1em;
+   margin-top: 20px !important;
+   margin-bottom: 20px;
 }
+
 body > div.ng-scope > div.well.ng-scope {
    margin: 0px !important;
    box-shadow: 0 0 0 !important;
@@ -219,30 +225,37 @@ body > div.ng-scope > div.well.ng-scope {
    border-radius:0 !important;
    padding-bottom: 50% !important;
 }
+
 .miniview > btn btn-primary {
    padding-bottom: 20px;
 }
+
 .miniview {
    padding: 0px !important;
    padding-top: 0 !important;
 }
+
 .miniview form {
     padding-left: 20px;
     padding-right: 20px;
 }
-.minititle {
-    color: rgb(0,105,251) !important;
-    font-size: 1em;
-    margin-top: 0px !important;
-}
+
 .miniview_margin {
-    margin-left: 2%;
+    margin-left: 16px;
 }
+
 .miniview_button {
     padding: 20px 20px 20px 20px;
 }
-.miniview_h4 {
-    margin-top: 0;
-    margin-bottom: 0;
-    font-size: 1em;
+
+.miniview body {
+    background-color: rgb(250,250,250);
+}
+
+.miniview h4 {
+    margin-top: 20px;
+    margin-bottom: 5px;
+    font-size: 13px;
+    color: #888;
+    font-weight: 400;
 }
