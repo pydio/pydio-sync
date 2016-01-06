@@ -233,6 +233,7 @@ body > div.ng-scope > div.well.ng-scope {
 .miniview {
    padding: 0px !important;
    padding-top: 0 !important;
+   background-color: rgb(250,250,250);
 }
 
 .miniview form {
