@@ -690,7 +690,7 @@ class ShareManager(Resource):
                            timeout=job.timeout)
 
             if args['action'] == 'share':
-                relative_path = os.path.normpath("/" + args["relative_path"]).replace('\\', '/')
+                relative_path = os.path.normpath(job.remote_folder + "/" + args["relative_path"]).replace('\\', '/')
                 # Check if the shared link is already present
                 check_res = remote_instance.check_share_link(
                     relative_path
@@ -720,7 +720,7 @@ class ShareManager(Resource):
                 )
                 return {"link": res}
             else:
-                res = remote_instance.unshare("/" + args["path"])
+                res = remote_instance.unshare(job.remote_folder + "/" + args["path"])
                 return {"response": res, "existingLinkFlag": "false"}
 
 class ShareLinkManager(Resource):
