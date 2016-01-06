@@ -218,7 +218,7 @@ div.loader_image{
    margin-bottom: 20px;
 }
 
-body > div.ng-scope > div.well.ng-scope {
+body.miniview > div.ng-scope > div.well.ng-scope {
    margin: 0px !important;
    box-shadow: 0 0 0 !important;
    border:0;
