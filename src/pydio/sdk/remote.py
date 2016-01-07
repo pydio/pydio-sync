@@ -135,13 +135,13 @@ class PydioSdk():
     def set_tokens(self, tokens):
         self.tokens = tokens
         try:
-            keyring.set_password(self.url, self.user_id + '-token', tokens['t'] + ':' + tokens['p'])
+            keyring.set_password(self.base_url, self.user_id + '-token', tokens['t'] + ':' + tokens['p'])
         except PasswordSetError:
             logging.error(_("Cannot store tokens in keychain, there might be an OS permission issue!"))
 
     def get_tokens(self):
         if not self.tokens:
-            k_tok = keyring.get_password(self.url, self.user_id + '-token')
+            k_tok = keyring.get_password(self.base_url, self.user_id + '-token')
             if k_tok:
                 parts = k_tok.split(':')
                 self.tokens = {'t': parts[0], 'p': parts[1]}
