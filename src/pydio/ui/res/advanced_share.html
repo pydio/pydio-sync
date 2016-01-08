@@ -28,7 +28,7 @@
                 <input ng-model="$parent.share_preview" type="checkbox">
                 <label>{{_('Download')}}</label>
                 <input ng-model="$parent.share_download_checkbox" type="checkbox">
-                <span ng-show="$parent.can_write=='true'">
+                <span ng-show="$parent.can_write">
                     <label>{{_('Upload')}}</label>
                     <input ng-model="$parent.share_upload_checkbox" type="checkbox" >
                 </span>

@@ -1,39 +1,114 @@
 <h1 class="shareHeader">{{_('Share %1 via Pydio', share_filename.split('\\').pop().split('/').pop())}}</h1>
 <!--h1 class="shareHeader" ng-value="checkExistingLink()">{{_('Share %1 via Pydio', share_filename.split("/").pop())}}</h1-->
+<div ng-show="showprogbar">
+        <div class="progress" style="height:.7em; margin-top: 0;">
+            <div class="progress-bar" id="progbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 5%;">
+            </div>
+        </div>
+</div>
 
-<div style="margin-top: 60px;" class="well">  <!-- try with class="well" -->
-    <h3> {{_('Description')}} </h3>
-    <div class="input-group">
-        <span class="input-group-addon">{{_('Path')}}</span>
-        <input type="text" ng-model="share_filename" class="form-control" placeholder="path" readonly required >
+<div id="shareDiv" ng-hide="showprogbar" class="well">
+    <div ng-hide="miniview">
+        <h3> {{_('Description')}} </h3>
+        <div class="input-group">
+            <span class="input-group-addon">{{_('Path')}}</span>
+            <input type="text" ng-model="share_filename" class="form-control" placeholder="path" readonly required >
+        </div>
     </div>
-
+    <div ng-show="miniview">
+        <p style="margin-bottom: 5%;">{{ _('Share item') }}
+            <strong> {{ share_filename.split('\\').pop().split('/').pop() }} </strong>
+            {{ _('by creating a public link that can easily be sent to your contacts.') }}
+            <br />{{ _('You can customize the link parameters using the forms below.') }}</p>
+        <h3 style="margin-top: 50px; cursor:pointer;" ng-class="{'minititle': miniview}" ng-click="share_show_accessibility=!share_show_accessibility">
+            <span ng-hide="miniview" ng-class="{'glyphicon-chevron-right':!share_show_accessibility,'glyphicon-chevron-down':share_show_accessibility}"
+                  class="small glyphicon"></span>
+        {{_('Secure Link Access')}}<span ng-if="!share_show_accessibility">...</span>
+    </h3>
+    <div ng-show="share_show_accessibility" ng-class="{'miniview_margin': miniview}">
+        <h4 ng-class="{'miniview_h4': miniview}"> {{_('Optional Password')}} </h4>
+        <div class="input-group">
+            <span class="input-group-addon" style="padding:3px;">{{_('Password')}}</span>
+            <input ng-model="share_password" type="password" class="form-control">
+        </div>
+        <h4 ng-class="{'miniview_h4': miniview}"> {{_('Expires After')}} </h4>
+        <div class="input-group">
+            <span class="input-group-addon">{{_('Days')}}</span>
+            <input type="number" min="0" ng-model="share_expire_in"  class="form-control" >
+            <span class="input-group-addon">{{_('Downloads')}}</span>
+            <input type="number" min="0" ng-model="share_allowed_downloads" class="form-control" >
+        </div>
+    </div>
+    </div>
+    <div ng-hide="miniview">
     <h3> {{_('Security')}} </h3>
     <div class="input-group">
         <span class="input-group-addon">{{_('Password')}}</span>
         <input ng-model="share_password" type="password" class="form-control">
     </div>
-
-    <h4> {{_('Expires after')}} </h4>
+    <h4 ng-class="{'miniview_h4': miniview}"> {{_('Expires after')}} </h4>
     <div class="input-group">
         <span class="input-group-addon">{{_('Days')}}</span>
         <input type="number" min="0" ng-model="share_expire_in"  class="form-control" >
         <span class="input-group-addon">{{_('Downloads')}}</span>
         <input type="number" min="0" ng-model="share_allowed_downloads" class="form-control" >
     </div>
+    </div>
 
-        <h3 style="margin-top: 50px; cursor:pointer;" ng-click="share_show_advanced=!share_show_advanced">
-        <span ng-class="{'glyphicon-chevron-right':!share_show_advanced,'glyphicon-chevron-down':share_show_advanced}" class="small glyphicon"></span> {{_('Advanced parameters')}}<span ng-if="!share_show_advanced">...</span>
+    <h3 style="margin-top: 50px; cursor:pointer;" ng-class="{'minititle': miniview}" ng-click="share_show_advanced=!share_show_advanced">
+        <span ng-hide="miniview" ng-class="{'glyphicon-chevron-right':!share_show_advanced,'glyphicon-chevron-down':share_show_advanced}"
+              class="small glyphicon"></span>
+        {{_('Advanced parameters')}}<span ng-if="!share_show_advanced">...</span>
     </h3>
-    <div ng-show="share_show_advanced">
-        <ng-include src="'advanced_share.html'"></ng-include>
+    <div ng-show="share_show_advanced" ng-class="{'miniview_margin': miniview}">
+        <div>
+            <h4 ng-class="{'miniview_h4': miniview}">{{_('Link Handle')}}</h4>
+            <div class="well">
+                <p class="small">{{_('If you want a durable and pretty link (like https://.../my-share-link), you can use this field. Link handle will be generated if left empty.')}}</p>
+                <div style="text-align: center;">
+                    <input ng-model="share_link_handler" type="text" class="form-control" placeholder="my-share-link">
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h4 ng-class="{'miniview_h4': miniview}">{{_('Description')}}</h4>
+            <div class="well">
+                <p class="small">{{_('This will be displayed to the shared users.')}}</p>
+                <div style="text-align: left;">
+                    <input ng-model="share_description" type="text" class="form-control" placeholder="description (optional) ">
+                </div>
+            </div>
+        </div>
+
+        <div style="">
+            <h4 ng-class="{'miniview_h4': miniview}">{{_('Access Rights')}}</h4>
+            <div class="well">
+                <p class="small" style="text-align: center;">{{_('By default, the item will be previewed and downloadable')}}</p>
+                <div style="text-align: center;">
+                    <div>
+                        <label>{{_('Preview')}}</label>
+                        <input ng-model="share_preview" type="checkbox">
+                        <label>{{_('Download')}}</label>
+                        <input ng-model="share_download_checkbox" type="checkbox">
+                        <span ng-show="can_write">
+                            <label>{{_('Upload')}}</label>
+                            <input ng-model="share_upload_checkbox" type="checkbox" >
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div>
         <br style="clear: both">
     </div>
+    <div ng-hide="miniview" ng-class="{'navbar-inverse navbar-fixed-bottom': !miniview}" style="padding: 10px; text-align: center; background-color: #77b8e2;">
+        <button type="button" ng-click="generateLink()" class="btn btn-primary" style="width: 40%;margin:0 1%;">{{_('Generate Link')}}</button>
+    </div>
+    <div ng-show="miniview" style="text-align:center">
+        <button type="button" ng-click="generateLink()" class="btn btn-primary" style="width: 40%;margin:0 1%;">{{_('Generate Link')}}</button>
+    </div>
 </div>
 
-<div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: center; background-color: #77b8e2;">
-    <button type="button" ng-click="generateLink()" class="btn btn-primary" style="width: 40%;margin:0 1%;">{{_('Generate Link')}}</button>
-</div>
