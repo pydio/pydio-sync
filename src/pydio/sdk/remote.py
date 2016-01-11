@@ -800,8 +800,8 @@ class PydioSdk():
     def list(self, dir=None, nodes=list(), options='al', recursive=False, max_depth=1, remote_order='', order_column='', order_direction='', max_nodes=0, call_back=None):
         url = self.url + '/ls' + self.urlencode_normalized(self.remote_folder)
         data = dict()
-        if dir:
-            data['dir'] = dir
+        if dir and dir is not '/':
+            url += self.urlencode_normalized(dir)
         if nodes:
             data['nodes'] = nodes
         data['options'] = options
@@ -824,10 +824,10 @@ class PydioSdk():
         snapshot = dict()
         while len(queue):
             tree = queue.pop(0)
-            if tree.get('ajxp_mime') == 'ajxp_folder':
+            if tree.get('ajxp_mime') == 'ajxp_folder' or tree.get('ajxp_mime') == 'ajxp_browsable_archive':
                 for subtree in tree.findall('tree'):
                     queue.append(subtree)
-            path = tree.get('filename')
+            path = self.normalize(unicode(tree.get('filename')))
             bytesize = tree.get('bytesize')
             dict_tree = dict(tree.items())
             if path:
