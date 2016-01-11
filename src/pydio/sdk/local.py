@@ -146,7 +146,7 @@ class SystemSdk(object):
             version = str(i)
         new_path += version + ext
         # logging.info(self.basepath + file_path + " - cp -> " + self.basepath + new_path)
-        if os.path.getsize(file_path) != 0: # don't copy empty files
+        if os.path.getsize(self.basepath + file_path) != 0: # don't copy empty files
             shutil.copy2(self.basepath + file_path, self.basepath + new_path)
 
     def isinternetavailable(self):
