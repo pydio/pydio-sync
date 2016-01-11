@@ -435,7 +435,9 @@ class ContinuousDiffMerger(threading.Thread):
                 self.current_store.open()
                 try:
                     if self.job_config.direction != 'up':
-                        logging.info('Loading remote changes with sequence %s' % str(self.remote_seq))
+                        logging.info(
+                            'Loading remote changes with sequence {0:s} to {1:s} workspace'.format(str(self.remote_seq),
+                                                                                                   str(self.ws_id)))
                         if self.remote_seq == 0:
                             logger.log_state(_('Gathering data from remote workspace, this can take a while...'), 'sync')
                             very_first = True
@@ -467,7 +469,9 @@ class ContinuousDiffMerger(threading.Thread):
                 self.sdk.set_server_configs(self.job_config.server_configs)
 
                 if self.job_config.direction != 'down':
-                    logging.info('Loading local changes with sequence ' + str(self.local_seq))
+                    logging.info(
+                        'Loading local changes with sequence {0:s} to {1:s} workspace'.format(str(self.local_seq),
+                                                                                              str(self.ws_id)))
                     self.local_target_seq = self.db_handler.get_local_changes_as_stream(self.local_seq, self.current_store.flatten_and_store)
                     self.current_store.sync()
                 else:
