@@ -19,7 +19,7 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask
-from flask_restful import Api
+from flask_restful import Api, reqparse
 
 from flask import request, redirect, Response
 from flask.ext.restful import Resource
@@ -110,6 +110,7 @@ class PydioApi(Api):
         self.add_resource(TaskInfoManager, '/stat', '/stat/<string:job_id>', '/stat/<string:job_id>/<path:relative_path>')
         self.add_resource(ShareManager, '/share/<string:job_id>')
         self.add_resource(ShareLinkManager, '/share_link/<string:job_id>/<string:folder_flag>/<path:relative_path>')
+        self.add_resource(ShareCopyManager, '/share_cp')
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
@@ -760,3 +761,39 @@ class ShareLinkManager(Resource):
             return {"status": "Write to the Name pipe is successful!"}
         except Exception as e:
             return {"status": "error", "message": str(e)}
+
+class ShareCopyManager(Resource):
+    """
+        Copy the file to the folder passed in parameter
+        Used to add a file to a Pydio folder before doing a share
+        :returns
+    """
+    @authDB.requires_auth
+    @pydio_profile
+    def get(self):
+        """
+        do the copy
+        """
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('folder')
+            parser.add_argument('filepath')
+            args = parser.parse_args()
+            logging.info("[ShareCopyManager] copy " + args['filepath'] + " to " + args['folder'])
+            # check if destination file exists
+            new_path = args['folder']
+            if new_path[-1] != "/":
+                new_path += "/"
+            path_components = args['filepath'].split('/')
+            if path_components[-1] == '/':
+                new_path += path_components[-2]
+            else:
+                new_path += path_components[-1]
+            if os.path.exists(new_path):
+                return {"status": "error", "message": "File already exists with that name in this Pydio folder"}
+            else:
+                import shutil
+                shutil.copy2(args['filepath'], args['folder'])
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+        return {"status": "Copy was succesful"}
