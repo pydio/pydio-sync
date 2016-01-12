@@ -797,4 +797,4 @@ class ShareCopyManager(Resource):
                 thread.start_new_thread(shutil.copy2, tuple((args['filepath'], args['folder'])))
         except Exception as e:
             return {"status": "error", "message": str(e)}
-        return {"status": "Copy was succesful"}
+        return {"status": "success", "message": "Copy was succesful"}
