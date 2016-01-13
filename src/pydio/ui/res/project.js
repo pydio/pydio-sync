@@ -815,7 +815,9 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 $scope.showprogbar = true;
                 document.getElementById("shareDiv").style = "display:none !important;";
                 var progbar = document.getElementById("progbar");
-                progbar.style = "width:"+ parseInt(progbar.style.width)*1.3 + "%";
+                var newval = parseInt(progbar.style.width)*1.3;
+                progbar.style = "width:" + newval + "%";
+                progbar.setAttribute('aria-valuenow', newval);
             } catch (error){
              //
             }
