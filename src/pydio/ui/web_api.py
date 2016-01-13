@@ -773,13 +773,13 @@ class ShareCopyManager(Resource):
     def get(self):
         """
         do the copy
+        On a long term goal, it would be nice if a monitored upload was triggered instead
         """
         try:
             parser = reqparse.RequestParser()
             parser.add_argument('folder')
             parser.add_argument('filepath')
             args = parser.parse_args()
-            logging.info("[ShareCopyManager] copy " + args['filepath'] + " to " + args['folder'])
             # check if destination file exists
             new_path = args['folder']
             if new_path[-1] != "/":
@@ -792,8 +792,9 @@ class ShareCopyManager(Resource):
             if os.path.exists(new_path):
                 return {"status": "error", "message": "File already exists with that name in this Pydio folder"}
             else:
-                import shutil
-                shutil.copy2(args['filepath'], args['folder'])
+                import shutil, thread
+                logging.info("[ShareCopyManager] copy " + args['filepath'] + " to " + args['folder'])
+                thread.start_new_thread(shutil.copy2, tuple((args['filepath'], args['folder'])))
         except Exception as e:
             return {"status": "error", "message": str(e)}
-        return {"status": "Copy was succesful"}
+        return {"status": "success", "message": "Copy was succesful"}

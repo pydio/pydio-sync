@@ -22,7 +22,9 @@
 import os, sys
 import locale
 import gettext
+import logging
 from pathlib import *
+
 
 # Change this variable to your app name!
 #  The translation files will be under
@@ -53,6 +55,7 @@ def get_languages():
     # Concat all languages (env + default locale),
     #  and here we have the languages and location of the translations
     languages += DEFAULT_LANGUAGES
+    logging.info("LANGUAGE guessed: " + str(languages))
     return languages
 
 
