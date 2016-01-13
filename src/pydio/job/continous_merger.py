@@ -491,6 +491,20 @@ class ContinuousDiffMerger(threading.Thread):
                 logging.info('Reducing changes')
                 logger.log_state(_('Merging changes between remote and local, please wait...'), 'sync')
 
+                # We are updating the status to IDLE here for the nodes which has status as NEW
+                # The reason is when we create a new sync on the existing folder, some of the files might
+                # already be synchronized and we ignore those files while we Dedup changes and those files
+                # remain untouched later.
+                # So the flow of node status change will occur as follows
+                # NEW (as soon as we create a new sync task)
+                #  |
+                # IDLE (here, just before we reduce changes)
+                #  |
+                # PENDING (those files/folders which remain after reducing changes and to be actually processed)
+                #  |
+                # UP / DOWN / CONFLICT (corresponding the operation which occurs)
+                #  |
+                # IDLE (The final state once upload/ download happens or once when the conflict is resolved)
                 self.db_handler.update_bulk_node_status_as_idle()
 
                 logging.debug('Delete Copies')
