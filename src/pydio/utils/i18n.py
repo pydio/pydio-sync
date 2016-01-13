@@ -25,7 +25,6 @@ import gettext
 import logging
 from pathlib import *
 
-
 # Change this variable to your app name!
 #  The translation files will be under
 #  @LOCALE_DIR@/@LANGUAGE@/LC_MESSAGES/@APP_NAME@.mo
@@ -48,6 +47,8 @@ def get_languages():
     DEFAULT_LANGUAGES += ['en_US']
 
     languages = []
+    if sys.platform == "darwin":
+        languages += [os.popen("defaults read .GlobalPreferences AppleLanguages | tr -d [:space:] | cut -c2-3").read()[:-1]]
     lc, encoding = locale.getdefaultlocale()
     if lc:
         languages = [lc]
@@ -63,7 +64,7 @@ languages = get_languages()
 mo_location = LOCALE_DIR
 gettext.install(True, localedir=None, unicode=1)
 gettext.find(APP_NAME, mo_location)
-gettext.textdomain (APP_NAME)
+gettext.textdomain(APP_NAME)
 gettext.bind_textdomain_codeset(APP_NAME, "UTF-8")
 language = gettext.translation(APP_NAME, mo_location, languages=languages, fallback=True)
 
