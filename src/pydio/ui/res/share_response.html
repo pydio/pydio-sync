@@ -18,9 +18,9 @@
     </form>
 </div>
 
-<div  style="text-align: center; margin-top: 20px;">
-    <button type="button" ng-click="copyToClipBoard(share_link); copyToClipBoardFlag=true;" ng-class="miniview_button" class="btn btn-primary" style="padding: 10px; width: 40%;margin:0 1%;">{{_('Copy to Clipboard')}}</button>
-    <button type="button" ng-show="checkResponseFlag" class="btn btn-danger" ng-class="miniview_button" ng-click="unShareLink()" style="padding: 10px; width: 40%;margin:0 1%;" href>{{_('UnShare Link')}}</button>
+<div  style="text-align: center; margin-top: 20px; font-size: 1.3em;">
+    <button type="button" ng-click="copyToClipBoard(share_link); copyToClipBoardFlag=true;" ng-class="miniview_button" class="btn btn-primary" style="padding: 10px; width: 40%;margin:0 1% 0 0;">{{_('Copy to Clipboard')}}</button>
+    <button type="button" ng-show="checkResponseFlag" class="btn btn-danger" ng-class="miniview_button" ng-click="unShareLink()" style="padding: 10px; width: 40%;margin:0 1% 0 0;" href>{{_('UnShare Link')}}</button>
 </div>
 
 <div  style="text-align: center; margin-top: 20px;">
@@ -31,6 +31,6 @@
 <div ng-show="miniview_done" class="well" style="margin-bottom: 100%;">
     <div style="text-align: center;">
         <p>{{ share_details.fileName }}</p>
-        <p>Successfully unshared.</p>
+        <p>{{_('Successfully unshared.')}}</p>
     </div>
 </div>

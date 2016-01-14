@@ -37,6 +37,7 @@ import types
 import logging
 import sys
 import os
+from urllib2 import unquote
 from pathlib import *
 from pydio.utils.global_config import ConfigManager
 from pydio.utils.functions import connection_helper
@@ -750,7 +751,7 @@ class ShareLinkManager(Resource):
                 f.write(txt)
                 f.close()
             except IOError:
-                from socket import *
+                from socket import socket, AF_UNIX, SOCK_STREAM
                 try:
                     s = socket(AF_UNIX, SOCK_STREAM)
                     s.connect(name_pipe_path)
@@ -780,8 +781,9 @@ class ShareCopyManager(Resource):
             parser.add_argument('folder')
             parser.add_argument('filepath')
             args = parser.parse_args()
-            # check if destination file exists
-            new_path = args['folder']
+            dest_folder = unquote(args['folder'])
+            org_path = unquote(args['filepath'])
+            new_path = unquote(args['folder'])  # check if dest path exists
             if new_path[-1] != "/":
                 new_path += "/"
             path_components = args['filepath'].split('/')
@@ -789,12 +791,19 @@ class ShareCopyManager(Resource):
                 new_path += path_components[-2]
             else:
                 new_path += path_components[-1]
+            new_path = unquote(new_path)
             if os.path.exists(new_path):
+                logging.info("[ShareCopyManager] file " + new_path + " exists in " + dest_folder)
                 return {"status": "error", "message": "File already exists with that name in this Pydio folder"}
             else:
-                import shutil, thread
-                logging.info("[ShareCopyManager] copy " + args['filepath'] + " to " + args['folder'])
-                thread.start_new_thread(shutil.copy2, tuple((args['filepath'], args['folder'])))
+                from shutil import copy2, copytree
+                from thread import start_new_thread
+                logging.info("[ShareCopyManager] copy " + org_path + " to " + dest_folder)
+                if os.path.isdir(org_path):
+                    start_new_thread(copytree, tuple((org_path, new_path)))
+                else:
+                    start_new_thread(copy2, tuple((org_path, dest_folder)))
         except Exception as e:
-            return {"status": "error", "message": str(e)}
+            logging.error("[ShareCopyManager] " + str(e.message))
+            return {"status": "error", "message": str(e.message)}
         return {"status": "success", "message": "Copy was succesful"}
