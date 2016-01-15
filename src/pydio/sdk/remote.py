@@ -701,6 +701,9 @@ class PydioSdk():
 
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
+            beginning_filename = path.rfind('/')
+            if beginning_filename > -1 and path[beginning_filename+1] == " ":
+                raise PydioSdkException('upload', path, _("File beginning with a 'space' shouldn't be uploaded"))
             raise PydioSdkException('upload', path, _('File is incorrect after upload'))
         return True
 

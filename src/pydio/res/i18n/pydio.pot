@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-01-14 10:31+0100\n"
+"POT-Creation-Date: 2016-01-15 15:05+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -938,7 +938,7 @@ msgstr ""
 msgid "Invalid JSON value received while getting remote changes"
 msgstr ""
 
-#: sdk/remote.py:421 sdk/remote.py:464 sdk/remote.py:757 sdk/remote.py:1020
+#: sdk/remote.py:421 sdk/remote.py:464 sdk/remote.py:760 sdk/remote.py:1023
 msgid "Task interrupted by user"
 msgstr ""
 
@@ -950,23 +950,27 @@ msgstr ""
 msgid "File not correct after upload (expected size was 0 bytes)"
 msgstr ""
 
-#: sdk/remote.py:704
+#: sdk/remote.py:706
+msgid "File beginning with a 'space' shouldn't be uploaded"
+msgstr ""
+
+#: sdk/remote.py:707
 msgid "File is incorrect after upload"
 msgstr ""
 
-#: sdk/remote.py:717
+#: sdk/remote.py:720
 msgid "Original file was not found on server"
 msgstr ""
 
-#: sdk/remote.py:774
+#: sdk/remote.py:777
 msgid "File not found after download"
 msgstr ""
 
-#: sdk/remote.py:779
+#: sdk/remote.py:782
 msgid "File is not correct after download"
 msgstr ""
 
-#: sdk/remote.py:798
+#: sdk/remote.py:801
 #, python-format
 msgid "Error while downloading file: %s"
 msgstr ""

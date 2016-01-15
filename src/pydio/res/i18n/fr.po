@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-01-14 10:31+0100\n"
+"POT-Creation-Date: 2016-01-15 15:05+0100\n"
 "PO-Revision-Date: 2014-10-01 16:43+0200\n"
 "Last-Translator: Charles du Jeu <charles@pydio.com>\n"
 "Language-Team: French\n"
@@ -621,7 +621,7 @@ msgstr "Description"
 
 #: res/i18n/html_strings.py:123 res/i18n/html_strings.py:207
 msgid "This will be displayed to the shared users."
-msgstr "Affiché aux utilisateurs accédant au lien"
+msgstr "Affichée aux utilisateurs accédant au lien"
 
 #: res/i18n/html_strings.py:124 res/i18n/html_strings.py:208
 msgid "Access Rights"
@@ -804,8 +804,8 @@ msgid ""
 "If you need to set up a proxy to connect to the Internet, use the form below "
 "and hit save parameters."
 msgstr ""
-"Si vous voulez configurer un proxy pour vous connecter à Internet, utilisez le formulaire qui suit "
-"et sauvegardez les paramètres"
+"Si vous voulez configurer un proxy pour vous connecter à Internet, utilisez "
+"le formulaire qui suit et sauvegardez les paramètres"
 
 #: res/i18n/html_strings.py:182
 msgid ""
@@ -813,9 +813,9 @@ msgid ""
 "form below. The main configuration will be used for https, this one will be "
 "used for http."
 msgstr ""
-"Si vous avez besoin d'un proxy différent entre HTTP et HTTPS utilisez "
-"le formulaire suivant. La configuration ci-dessus sera utilisée pour HTTPS et la suivante "
-"pour HTTP."
+"Si vous avez besoin d'un proxy différent entre HTTP et HTTPS utilisez le "
+"formulaire suivant. La configuration ci-dessus sera utilisée pour HTTPS et "
+"la suivante pour HTTP."
 
 #: res/i18n/html_strings.py:183
 msgid ""
@@ -837,12 +837,12 @@ msgstr "Chemin"
 #: res/i18n/html_strings.py:189
 #, fuzzy
 msgid "Share item"
-msgstr "Lien de partage"
+msgstr "Partager l'élément"
 
 #: res/i18n/html_strings.py:190
 msgid "by creating a public link that can easily be sent to your contacts."
 msgstr ""
-"En créant un lien public qui peut-être envoyé facilement à vos contacts."
+"en créant un lien public qui peut-être envoyé facilement à vos contacts."
 
 #: res/i18n/html_strings.py:191
 msgid "You can customize the link parameters using the forms below."
@@ -869,7 +869,7 @@ msgstr "Jours"
 #: res/i18n/html_strings.py:197 res/i18n/html_strings.py:202
 #, fuzzy
 msgid "Downloads"
-msgstr "Download seulement"
+msgstr "Téléchargements"
 
 #: res/i18n/html_strings.py:198
 msgid "Security"
@@ -1016,7 +1016,7 @@ msgid "Invalid JSON value received while getting remote changes"
 msgstr ""
 "Le JSON reçu est invalide, est-ce que le serveur est correctement configuré ?"
 
-#: sdk/remote.py:421 sdk/remote.py:464 sdk/remote.py:757 sdk/remote.py:1020
+#: sdk/remote.py:421 sdk/remote.py:464 sdk/remote.py:760 sdk/remote.py:1023
 msgid "Task interrupted by user"
 msgstr "Tâche interrompue par l'utilisateur"
 
@@ -1028,23 +1028,27 @@ msgstr "Fichier à envoyer introuvable !"
 msgid "File not correct after upload (expected size was 0 bytes)"
 msgstr "Fichier incorrect après l'upload (la taille attendue était 0)"
 
-#: sdk/remote.py:704
+#: sdk/remote.py:706
+msgid "File beginning with a 'space' shouldn't be uploaded"
+msgstr ""
+
+#: sdk/remote.py:707
 msgid "File is incorrect after upload"
 msgstr "Fichier incorrect après l'upload"
 
-#: sdk/remote.py:717
+#: sdk/remote.py:720
 msgid "Original file was not found on server"
 msgstr "Le fichier original est introuvable sur le serveur"
 
-#: sdk/remote.py:774
+#: sdk/remote.py:777
 msgid "File not found after download"
 msgstr "Fichier introuvable après son téléchargement."
 
-#: sdk/remote.py:779
+#: sdk/remote.py:782
 msgid "File is not correct after download"
 msgstr "Le fichier est incorrect après son téléchargement."
 
-#: sdk/remote.py:798
+#: sdk/remote.py:801
 #, python-format
 msgid "Error while downloading file: %s"
 msgstr "Erreur lors du téléchargement du fichier: %s"
