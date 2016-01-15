@@ -201,6 +201,14 @@ class GlobalConfigManager:
         }
 
     def set_general_config(self, data):
+        global_config_file = os.path.join(self.configs_path, 'general_config.json')
+
+        # Set the global config only if no prior settings exists
+        if not os.path.exists(global_config_file) or os.stat(global_config_file).st_size == 0:
+            with open(global_config_file, 'w') as conf_file:
+                json.dump(data, conf_file)
+
+    def update_general_config(self, data):
         with open(os.path.join(self.configs_path, 'general_config.json'), 'w') as conf_file:
             json.dump(data, conf_file)
 
