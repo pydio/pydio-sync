@@ -78,6 +78,7 @@ from pydio.job.job_config import JobConfig, JobsLoader
 from pydio.test.diagnostics import PydioDiagnostics
 from pydio.utils.config_ports import PortsDetector
 from pydio.utils.global_config import ConfigManager
+from pydio.utils.global_config import GlobalConfigManager
 from pydio.ui.web_api import PydioApi
 from pydio.job.scheduler import PydioScheduler
 
@@ -99,6 +100,9 @@ elif sys.platform == 'linux2':
         logging.info('Linux CONFIG DIR EXPANDED: ' + CONFIGDIR)
     DEFAULT_DATA_PATH = os.path.join(CONFIGDIR, APP_NAME)
     logging.info('Linux DEFAULT_DATA_PATH: ' + DEFAULT_DATA_PATH)
+
+global_config_manager = GlobalConfigManager.Instance(configs_path=DEFAULT_DATA_PATH)
+global_config_manager.set_general_config(global_config_manager.default_settings)
 
 DEFAULT_PARENT_PATH = get_user_home(APP_NAME)
 
@@ -263,54 +267,27 @@ def setup_logging(verbosity=None, application_path=None):
         if not application_path.exists():
             application_path.mkdir(parents=True)
 
-    log_file = str(application_path / "pydio.log")
+    general_config = global_config_manager.get_general_config()
 
-    levels = {
-        0: logging.WARNING,
-        1: logging.INFO,
-        2: logging.DEBUG,
-    }
+    log_file = os.path.join(DEFAULT_DATA_PATH, str(general_config['log_file_name']))
+
+    log_level_mapping ={'WARNING'  : logging.WARNING,
+                        'INFO'     : logging.INFO,
+                        'DEBUG'    : logging.DEBUG
+                       }
+
+    levels = dict((int(k), log_level_mapping[v]) for k, v in general_config['log_levels'].items())
     level = levels.get(verbosity, logging.NOTSET)
 
-    configuration = {
-        'version': 1,
-        'disable_existing_loggers': True,
-        'formatters': {
-            'short': {
-                'format': '%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(message)s',
-                'datefmt': '%H:%M:%S',
-            },
-            # this will slow down the app a little, due to
-            'verbose': {
-                'format': '%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(filename)s:%(lineno)s | %(funcName)s | %(message)s',
-                'datefmt': '%Y-%m-%d %H:%M:%S',
-            },
-        },
-        'handlers': {
-            'file': {
-                'level': 'INFO',
-                'class': 'logging.handlers.RotatingFileHandler',
-                'formatter': 'verbose',
-                'backupCount': 8,
-                'maxBytes': 4194304,  # 4MB
-                'filename': log_file
-            },
-            'console': {
-                'level': level,
-                'class': 'logging.StreamHandler',
-                'formatter': 'short',
-            },
-        },
-        'root': {
-            'level': 'DEBUG',
-            'handlers': ['console', 'file'],
-        }
+    general_config['log_configuration']['disable_existing_loggers'] = bool(general_config['log_configuration']['disable_existing_loggers'])
+    general_config['log_configuration']['handlers']['file']['filename'] = log_file
+    general_config['log_configuration']['handlers']['console']['level'] = level
 
-    }
+    configuration = general_config['log_configuration']
+
     from logging.config import dictConfig
 
     dictConfig(configuration)
-    #logging.info("Logging setup changed")
     logging.debug("verbosity: %s" % verbosity)
 
 
