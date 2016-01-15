@@ -37,8 +37,10 @@ class SqliteChangeStore():
         self.includes = includes
         self.excludes = excludes
         self.create = False
+        from pydio.utils.global_config import GlobalConfigManager
+        global_config_manager = GlobalConfigManager.Instance(configs_path=os.path.dirname(os.path.dirname(filename)))
         # Increasing the timeout (default 5 seconds), to avoid database is locked error
-        self.timeout = 30
+        self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
         if not os.path.exists(self.db):
             self.create = True
 

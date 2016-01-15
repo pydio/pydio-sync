@@ -197,7 +197,8 @@ class GlobalConfigManager:
                 "0": "WARNING",
                 "1": "INFO",
                 "2": "DEBUG"
-            }
+            },
+            "max_wait_time_for_local_db_access": 30
         }
 
     def set_general_config(self, data):
