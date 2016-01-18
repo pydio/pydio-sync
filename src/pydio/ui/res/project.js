@@ -83,7 +83,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             if (isNaN(parseFloat(sec)) || !isFinite(sec)) return sec;
             var d=new Date(0,0,0, 0, 0, Math.round(sec));
             if(d.getHours() || d.getMinutes()){
-                return (d.getHours() ? d.getHours()+'h ' : '')+ (d.getMinutes() ? d.getMinutes()+'mn ':'');
+                return (d.getHours() ? d.getHours()+'h ' : '')+ (d.getMinutes() ? d.getMinutes()+'min ':'');
             }else{
                 return d.getSeconds() + 's';
             }
