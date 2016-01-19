@@ -1089,11 +1089,12 @@ class PydioSdk():
 
         if can_download == "true":
             data["simple_right_download"] = "on"
+            data["minisite_layout"] = "ajxp_unique_dl"
         if can_read == "true":
             data["simple_right_read"] = "on"
         if can_write == "true":
             data["simple_right_write"] = "on"
-
+        #logging.info("URL : " + self.url + '/share/public' + self.urlencode_normalized(paths) + "\nDATA " + str(data))
         resp = requests.post(
             url=self.url + '/share/public' + self.urlencode_normalized(paths),
             data=data,
