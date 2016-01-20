@@ -173,6 +173,10 @@ def main(argv=sys.argv[1:]):
     jobs_loader = JobsLoader.Instance(data_path=u_jobs_root_path)
     config_manager.set_rdiff_path(args.rdiff)
 
+    logging.info(
+        "Product Version Number {0:s} and Version Date {1:s}".format(str(config_manager.get_version_data()['version']),
+                                                                str(config_manager.get_version_data()['date'])))
+
     if args.proxy is not None:
         data = args.proxy.split('::') if len(args.proxy.split('::'))%5 in range(0, 2) else logging.error("Wrong number of parameters pased for proxy")
         msg = {}
