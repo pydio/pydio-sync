@@ -1,4 +1,4 @@
-#
+# -*- coding: utf-8 -*-
 # Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 # This file is part of Pydio.
 #
@@ -16,7 +16,6 @@
 #  along with Pydio.  If not, see <http://www.gnu.org/licenses/>.
 #
 #  The latest code can be found at <http://pyd.io/>.
-# -*- coding: utf-8 -*-
 
 from flask import Flask
 from flask_restful import Api, reqparse
@@ -37,7 +36,8 @@ import types
 import logging
 import sys
 import os
-from urllib2 import unquote
+import urllib2
+import unicodedata
 from pathlib import *
 from pydio.utils.global_config import ConfigManager
 from pydio.utils.functions import connection_helper
@@ -781,17 +781,17 @@ class ShareCopyManager(Resource):
             parser.add_argument('folder')
             parser.add_argument('filepath')
             args = parser.parse_args()
-            dest_folder = unquote(args['folder'])
-            org_path = unquote(args['filepath'])
-            new_path = unquote(args['folder'])  # check if dest path exists
-            if new_path[-1] != "/":
-                new_path += "/"
-            path_components = args['filepath'].split('/')
+            dest_folder = urllib2.unquote(args['folder'].encode('utf-8'))
+            org_path = urllib2.unquote(args['filepath'].encode('utf-8'))
+            new_path = args['folder'].encode('utf-8')  # check if dest path exists
+            org_path = unicodedata.normalize('NFC', org_path.decode("utf-8"))
+            path_components = args['filepath'].encode('utf8').split('/')
             if path_components[-1] == '/':
                 new_path += path_components[-2]
             else:
                 new_path += path_components[-1]
-            new_path = unquote(new_path)
+            new_path = urllib2.unquote(os.path.join(dest_folder, new_path).encode('utf-8'))
+            logging.info("Does " + new_path + " exists?")
             if os.path.exists(new_path):
                 logging.info("[ShareCopyManager] file " + new_path + " exists in " + dest_folder)
                 return {"status": "error", "message": "File already exists with that name in this Pydio folder"}
@@ -800,10 +800,10 @@ class ShareCopyManager(Resource):
                 from thread import start_new_thread
                 logging.info("[ShareCopyManager] copy " + org_path + " to " + dest_folder)
                 if os.path.isdir(org_path):
-                    start_new_thread(copytree, tuple((org_path, new_path)))
+                    start_new_thread(copytree, tuple((org_path, new_path.decode('utf-8'))))
                 else:
                     start_new_thread(copy2, tuple((org_path, dest_folder)))
         except Exception as e:
-            logging.error("[ShareCopyManager] " + str(e.message))
+            logging.error("[ShareCopyManager] " + str(e.args) + " _ " + str(e.message))
             return {"status": "error", "message": str(e.message)}
         return {"status": "success", "message": "Copy was succesful"}
