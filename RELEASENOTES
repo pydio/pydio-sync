@@ -1,4 +1,4 @@
-# PydioSync - Release Notes - 10.11.2015
+# PydioSync - Release Notes - 19.01.2016
 ## v1.0.4 stable (Windows, MacOS, Linux)
 ----
 - Fixed some language detection issues
@@ -8,10 +8,16 @@
 - Logs are more informative and easier to read
 - Added some mixing French translations
 - Fixed most "database locked" errors
-- Fixed token use for multiple syncs
+- Fixed token based authentication for multiple syncs
 - Fixed handling of exclude lists, added GUI configuration options
+- Can set Server Timeout option in UI for client requests
+- Fixed upgrade issue on running app for windows
+    * Replace the old agent with the latest
+    * Fixed the registry entries for shell extension if we upgrade while app is running
+- Removed the dependency of Qt's File dialog for share
 
-# PydioSync - Release Notes - 10.11.2015
+
+# PydioSync - Release Notes - 04.12.2015
 ## v1.0.3 stable (Windows, MacOS, Linux)
 ----
 - Added a "Share with Pydio" button on right click in Windows explorer
