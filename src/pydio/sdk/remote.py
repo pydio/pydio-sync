@@ -1,4 +1,4 @@
-#
+# -*- coding: utf-8 -*-
 #  Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 #  This file is part of Pydio.
 #
@@ -697,7 +697,7 @@ class PydioSdk():
             else:
                 raise e
         except RequestException as ce:
-            raise PydioSdkException("upload", path, 'RequestException: ' + ce.message)
+            raise PydioSdkException("upload", str(path), 'RequestException: ' + str(ce.message))
 
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
