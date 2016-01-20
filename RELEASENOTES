@@ -1,4 +1,4 @@
-# PydioSync - Release Notes - 19.01.2016
+# PydioSync - Release Notes - 20.01.2016
 ## v1.0.4 stable (Windows, MacOS, Linux)
 ----
 - Fixed some language detection issues
@@ -15,7 +15,9 @@
     * Replace the old agent with the latest
     * Fixed the registry entries for shell extension if we upgrade while app is running
 - Removed the dependency of Qt's File dialog for share
-
+- Fixed Preview while sharing via sync-client
+- Fixed handling of utf-8 during share
+- Fixed last workspace can be selected when there are 10+ to choose from share
 
 # PydioSync - Release Notes - 04.12.2015
 ## v1.0.3 stable (Windows, MacOS, Linux)
