@@ -260,3 +260,7 @@ body.miniview > div.ng-scope > div.well.ng-scope {
     color: #888;
     font-weight: 400;
 }
+
+.padding4em {
+    padding-bottom: 4em;
+}
