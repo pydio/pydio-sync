@@ -38,7 +38,7 @@ import logging
 import sys
 import os
 from pathlib import *
-from pydio.utils.global_config import ConfigManager
+from pydio.utils.global_config import ConfigManager, GlobalConfigManager
 from pydio.utils.functions import connection_helper
 from pydio.utils import i18n
 _ = i18n.language.ugettext
@@ -659,8 +659,14 @@ class UrlManager(Resource):
     @authDB.requires_auth
     @pydio_profile
     def get(self, complete_url):
-        resp = requests.get(complete_url, stream=False, proxies=ConfigManager.Instance().get_defined_proxies())
-        return json.loads(resp.content)
+        global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
+        general_config = global_config_manager.get_general_config()
+        if bool(general_config['enable_update_check']):
+            resp = requests.get(complete_url, stream=False, proxies=ConfigManager.Instance().get_defined_proxies())
+            #return json.loads(resp.content)
+            return ""
+        else:
+            return ""
 
 class ShareManager(Resource):
     """
