@@ -106,7 +106,7 @@ class PydioApi(Api):
         self.add_resource(LogManager, '/jobs/<string:job_id>/logs')
         self.add_resource(ConflictsManager, '/jobs/<string:job_id>/conflicts', '/jobs/conflicts')
         self.add_resource(CmdManager, '/cmd/<string:cmd>/<string:job_id>', '/cmd/<string:cmd>')
-        self.add_resource(UrlManager, '/url/<path:complete_url>')
+        self.add_resource(UpdateManager, '/url/<path:complete_url>')
         self.add_resource(TaskInfoManager, '/stat', '/stat/<string:job_id>', '/stat/<string:job_id>/<path:relative_path>')
         self.add_resource(ShareManager, '/share/<string:job_id>')
         self.add_resource(ShareLinkManager, '/share_link/<string:job_id>/<string:folder_flag>/<path:relative_path>')
@@ -651,20 +651,27 @@ class TaskInfoManager(Resource):
 
             return {"node_status": node_status}
 
-class UrlManager(Resource):
+class UpdateManager(Resource):
     """
-        performs a url request via proxy if present
-        :returns a json response
+        fetches the response for the update url, does some basic checks for update and returns the json response
+        :param complete_url: update request url
+        :returns a json response or ""
     """
     @authDB.requires_auth
     @pydio_profile
     def get(self, complete_url):
         global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
         general_config = global_config_manager.get_general_config()
-        if bool(general_config['enable_update_check']):
+        if bool(general_config['update_info']['enable_update_check']):
+            if general_config['update_info']['update_check_frequency_days'] > 0:
+                import time
+                if (int(time.strftime("%Y%m%d")) - general_config['update_info']['last_update_date']) > general_config['update_info']['update_check_frequency_days']:
+                    general_config['update_info']['last_update_date'] = int(time.strftime("%Y%m%d"))
+                    global_config_manager.update_general_config(general_config)
+                else:
+                    return ""
             resp = requests.get(complete_url, stream=False, proxies=ConfigManager.Instance().get_defined_proxies())
-            #return json.loads(resp.content)
-            return ""
+            return json.loads(resp.content)
         else:
             return ""
 
