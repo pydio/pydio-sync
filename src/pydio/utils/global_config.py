@@ -159,8 +159,8 @@ class GlobalConfigManager:
     def __init__(self, configs_path):
         self.configs_path = configs_path
         self.default_settings = {
-            "log_file_name": "pydio.log",
             "log_configuration": {
+                "log_file_name": "pydio.log",
                 "version": 1,
                 "disable_existing_loggers": "True",
                 "formatters": {
@@ -191,12 +191,12 @@ class GlobalConfigManager:
                 "root": {
                     "level": "DEBUG",
                     "handlers": [ "console", "file" ]
+                },
+                "log_levels": {
+                    "0": "WARNING",
+                    "1": "INFO",
+                    "2": "DEBUG"
                 }
-            },
-            "log_levels": {
-                "0": "WARNING",
-                "1": "INFO",
-                "2": "DEBUG"
             },
             "update_info": {
                 "enable_update_check": "True",

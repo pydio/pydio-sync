@@ -273,14 +273,14 @@ def setup_logging(verbosity=None, application_path=None):
 
     general_config = global_config_manager.get_general_config()
 
-    log_file = os.path.join(DEFAULT_DATA_PATH, str(general_config['log_file_name']))
+    log_file = os.path.join(DEFAULT_DATA_PATH, str(general_config['log_configuration']['log_file_name']))
 
     log_level_mapping ={'WARNING'  : logging.WARNING,
                         'INFO'     : logging.INFO,
                         'DEBUG'    : logging.DEBUG
                        }
 
-    levels = dict((int(k), log_level_mapping[v]) for k, v in general_config['log_levels'].items())
+    levels = dict((int(k), log_level_mapping[v]) for k, v in general_config['log_configuration']['log_levels'].items())
     level = levels.get(verbosity, logging.NOTSET)
 
     general_config['log_configuration']['disable_existing_loggers'] = bool(general_config['log_configuration']['disable_existing_loggers'])
