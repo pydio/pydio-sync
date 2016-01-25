@@ -163,6 +163,13 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             });
         }])
 
+    .factory('GeneralConfigs', ['$resource',
+        function($resource){
+            return $resource('/general_configs', {}, {
+                query: {method:'GET', params:{}, isArray:false}
+            });
+        }])
+
     .factory('Share', ['$resource',
         function($resource){
             return $resource('/share/:job_id/', {}, {
@@ -248,6 +255,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             .when('/settings',{
                 controller:'SettingsCtrl',
                 templateUrl:'settings.html'
+            })
+            .when('/general_configs', {
+                controller:'GeneralConfigCtrl',
+                templateUrl:'general_configs.html'
             })
             .otherwise({
                 redirectTo:'/'
@@ -942,8 +953,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 }
             }
         };
-
-
     })
 
     .controller('SettingsCtrl', function($scope, $routeParams, $timeout, $location, Jobs, Logs, Conflicts, Proxy){
@@ -989,5 +998,25 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             proxies.https.url = temps;
             proxies.http.url = temp;
             $location.path('/');
+        }
+    })
+
+    .controller('GeneralConfigCtrl', function($scope, $routeParams, $location, GeneralConfigs, GeneralConfigsDetails){
+        $scope._ = window.translate;
+
+        if (window.ui_config){
+            $scope.ui_config = window.ui_config;
+        }
+
+        // Load the general config from agent (http://localhost:5556/general_configs)
+        general_configs_data = GeneralConfigs.query({},
+            function (){
+            $scope.general_configs_data=general_configs_data;
+            });
+
+        // Post the modified general config to agent
+        $scope.SaveGeneralConfig = function() {
+        general_configs_data.$save();
+        $location.path('/');
         }
     });

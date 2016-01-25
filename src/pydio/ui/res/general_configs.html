@@ -1,0 +1,98 @@
+<h1 class="generalConfigHeader" ng-value="GetGeneralConfigsDetails()">{{_('General configurations page')}}</h1>
+
+<div class="well"  style="margin: 5% 1%;">
+
+    <h3 style="margin-top: 40px; cursor:pointer;" ng-click="general_configs_show_log_settings=!general_configs_show_log_settings">
+        <span ng-class="{'glyphicon-chevron-right':!general_configs_show_log_settings,'glyphicon-chevron-down':general_configs_show_log_settings}"
+              class="small glyphicon"></span>
+        {{_('Log settings')}}<span ng-if="!general_configs_show_log_settings">...</span>
+    </h3>
+
+    <div ng-show="general_configs_show_log_settings">
+        <div>
+            <div class="well">
+                <p  class="small">{{_('You can change the name of log file here.')}}</p>
+                <div class="input-group">
+                    <span class="input-group-addon">{{_('File Name')}}</span>
+                    <input type="text" ng-model="general_configs_data.log_configuration.log_file_name" class="form-control" >
+                </div>
+
+                <p class="small" style="margin-top:1%;">{{_('Set restrictions on the file size and their number.')}}</p>
+                <div class="input-group">
+                    <span class="input-group-addon">{{_('Back up count')}}</span>
+                    <input type="number" ng-model="general_configs_data.log_configuration.handlers.file.backupCount" class="form-control" >
+                    <span class="input-group-addon">{{_('File size in bytes')}}</span>
+                    <input type="number" ng-model="general_configs_data.log_configuration.handlers.file.maxBytes" class="form-control" >
+                </div>
+
+                <p class="small" style="margin-top:1%;">{{_('Enhance the log details as you need them.')}}</p>
+                <div>
+                    <div class="advanced_radio_box"
+                         ng-class="{'label-radio-selected':general_configs_data.log_configuration.root.level=='INFO'}"
+                         ng-click="general_configs_data.log_configuration.root.level='INFO'">
+                    <label>{{_('Info')}}</label>
+                    </div>
+                    <div class="advanced_radio_box"
+                    ng-class="{'label-radio-selected':general_configs_data.log_configuration.root.level=='DEBUG'}"
+                    ng-click="general_configs_data.log_configuration.root.level='DEBUG'">
+                        <label>{{_('Debug')}}</label>
+                    </div>
+                    <div class="advanced_radio_box"
+                         ng-class="{'label-radio-selected':general_configs_data.log_configuration.root.level=='WARNING'}"
+                         ng-click="general_configs_data.log_configuration.root.level='WARNING'">
+                        <label>{{_('Warning')}}</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 style="margin-top: 50px; cursor:pointer;" ng-click="general_configs_show_update_info=!general_configs_show_update_info">
+        <span ng-class="{'glyphicon-chevron-right':!general_configs_show_update_info,'glyphicon-chevron-down':general_configs_show_update_info}"
+              class="small glyphicon"></span>
+        {{_('Update settings')}}<span ng-if="!general_configs_show_update_info">...</span>
+    </h3>
+
+    <div ng-show="general_configs_show_update_info">
+        <div>
+            <div class="well">
+                <p class="small" style="margin-top:1%;">{{_('Enable / Disable update here.')}}</p>
+                <div class="input-group">
+                    <span class="input-group-addon">{{_('Enable or disable update')}}</span>
+                    <div class="pull-right">
+                        <button type="button" class="btn" ng-click="general_configs_data.update_info.enable_update_check='true'" ng-class="{'btn-success':general_configs_data.update_info.enable_update_check,'btn-default':general_configs_data.update_info.enable_update_check}">On</button>
+                        <button type="button" class="btn" ng-click="general_configs_data.update_info.enable_update_check='false'" ng-class="{'btn-danger':!general_configs_data.update_info.enable_update_check,'btn-default':!general_configs_data.update_info.enable_update_check}">Off</button>
+                    </div>
+                </div>
+
+                <p class="small" style="margin-top:1%;">{{_('Set the update check frequency, set 1 if you want the update check only once a day, by default the value will be zero which means it check for update each time agent establishes a new connection with UI ')}}</p>
+                <div class="input-group">
+                    <span class="input-group-addon">{{_('Update check frequency in days')}}</span>
+                    <input type="number" min="0" ng-model="general_configs_data.update_info.update_check_frequency_days" class="form-control" >
+                </div>
+
+                <p class="small" style="margin-top:1%;">{{_('Date on which last update check happened')}}</p>
+                <div class="input-group">
+                    <span class="input-group-addon">{{_('Date(YYYYMMDD)')}}</span>
+                    <input type="number" min="0" ng-model="general_configs_data.update_info.last_update_date" class="form-control" >
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <h4 style="margin-top:50px;">{{_('Max wait time for local db access')}}</h4>
+    <div class="well">
+        <p>{{_('If you encounter database locked error try increasing this value')}}</p>
+        <div class="input-group">
+            <span class="input-group-addon">{{_('Timeout in seconds')}}</span>
+            <input type="number" min="5" ng-model="general_configs_data.max_wait_time_for_local_db_access" class="form-control" >
+        </div>
+    </div>
+
+</div>
+
+<div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: center; background-color: #77b8e2;">
+    <a href="#" title="Cancel"><span class="glyphicon glyphicon-arrow-left" style="color: white;font-size: 27px;position: absolute;left: 10px;top: 13px;"></span></a>
+    <button type="button" ng-click="SaveGeneralConfig()" class="btn btn-info" style="width: 40%;margin:0 1%;">{{_('Update Settings')}}</button>
+</div>

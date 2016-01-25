@@ -111,7 +111,7 @@ class PydioApi(Api):
         self.add_resource(ShareManager, '/share/<string:job_id>')
         self.add_resource(ShareLinkManager, '/share_link/<string:job_id>/<string:folder_flag>/<path:relative_path>')
         self.add_resource(ShareCopyManager, '/share_cp')
-        self.add_resource(GeneralConfigManager, '/general_config')
+        self.add_resource(GeneralConfigManager, '/general_configs')
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
@@ -823,3 +823,14 @@ class GeneralConfigManager(Resource):
         """
         global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
         return global_config_manager.get_general_config()
+
+    @authDB.requires_auth
+    @pydio_profile
+    def post(self):
+        """
+        writes the general config into the general config file
+        :returns a json response
+        """
+        data = request.get_json()
+        global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
+        return global_config_manager.update_general_config(data=data)
