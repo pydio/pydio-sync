@@ -1001,7 +1001,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         }
     })
 
-    .controller('GeneralConfigCtrl', function($scope, $routeParams, $location, GeneralConfigs){
+    .controller('GeneralConfigCtrl', function($scope, $routeParams, $location, GeneralConfigs, Proxy){
         $scope._ = window.translate;
 
         if (window.ui_config){
@@ -1016,7 +1016,36 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
         // Post the modified general config to agent
         $scope.SaveGeneralConfig = function() {
-        general_configs_data.$save();
-        $location.path('/');
+
+            general_configs_data.$save();
+
+            function cutHostPort(url, hostOrPort){
+                // removes https:// from url if present, @hostOrPort: 0 for host, 1 for port
+                url = url.replace("http://", "");
+                url = url.replace("https://", "");
+                var res = url.split(':')[hostOrPort];
+                return res == undefined ? "" : res;
+            }
+            // recover port & host from url
+            proxies.http.hostname = cutHostPort(proxies.http.url, 0);
+            proxies.https.hostname = cutHostPort(proxies.https.url, 0);
+            proxies.http.port = cutHostPort(proxies.http.url, 1);
+            proxies.https.port = cutHostPort(proxies.https.url, 1);
+            proxies.http.active = proxies.https.active;
+
+            // Now save the parameters
+            proxies.$save();
+            $location.path('/');
         }
+
+        var proxies = Proxy.query(function(){
+            proxies.http.password = "";
+            proxies.https.password = "";
+            proxies.https.url = proxies.https.hostname + ":" + proxies.https.port;
+            proxies.http.url = proxies.http.hostname + ":" + proxies.http.port;
+            // check for a nice gui, in the model?!
+            if (proxies.https.url === ":") proxies.https.url = "";
+            if (proxies.http.url === ":") proxies.http.url = "";
+            $scope.proxies = proxies;
+        });
     });
