@@ -1,4 +1,9 @@
-<h1 class="generalConfigHeader" ng-value="GetGeneralConfigsDetails()">{{_('General configurations page')}}</h1>
+<h1 class="generalConfigHeader" ng-value="GetGeneralConfigsDetails()">
+    <div class="pull-right">
+        <button type="button" ng-click="about_page()" class="btn" ng-class="{'btn-info':'true','btn-default':'true'}">About</button>
+    </div>
+
+    {{_('General configurations page')}}</h1>
 
 <div  style="margin: 20% 1%;">
 
@@ -56,7 +61,7 @@
         </div>
     </div>
 
-    <h3 style="margin-top: 40px; cursor:pointer;" ng-click="general_configs_show_log_settings=!general_configs_show_log_settings">
+    <h3 style="margin-top: 10px; cursor:pointer;" ng-click="general_configs_show_log_settings=!general_configs_show_log_settings">
         <span ng-class="{'glyphicon-chevron-right':!general_configs_show_log_settings,'glyphicon-chevron-down':general_configs_show_log_settings}"
               class="small glyphicon"></span>
         {{_('Log settings')}}<span ng-if="!general_configs_show_log_settings">...</span>
@@ -105,7 +110,7 @@
         </div>
     </div>
 
-    <h3 style="margin-top: 50px; cursor:pointer;" ng-click="general_configs_show_update_info=!general_configs_show_update_info">
+    <h3 style="margin-top: 10px; cursor:pointer;" ng-click="general_configs_show_update_info=!general_configs_show_update_info">
         <span ng-class="{'glyphicon-chevron-right':!general_configs_show_update_info,'glyphicon-chevron-down':general_configs_show_update_info}"
               class="small glyphicon"></span>
         {{_('Update settings')}}<span ng-if="!general_configs_show_update_info">...</span>
@@ -142,8 +147,14 @@
     </div>
 
 
-    <h4 style="margin-top:50px;">{{_('Max wait time for local db access')}}</h4>
-    <div class="well">
+    <h3 style="margin-top: 10px; cursor:pointer;" ng-click="general_configs_show_misc_settings=!general_configs_show_misc_settings">
+        <span ng-class="{'glyphicon-chevron-right':!general_configs_show_misc_settings,'glyphicon-chevron-down':general_configs_show_misc_settings}"
+              class="small glyphicon"></span>
+        {{_('Other settings')}}<span ng-if="!general_configs_show_misc_settings">...</span>
+    </h3>
+
+    <div class="well" ng-show="general_configs_show_misc_settings">
+        <h4 style="margin-top:10px;">{{_('Max wait time for local db access')}}</h4>
         <p>{{_('If you encounter database locked error try increasing this value')}}</p>
         <div class="input-group">
             <span class="input-group-addon">{{_('Timeout in seconds')}}</span>

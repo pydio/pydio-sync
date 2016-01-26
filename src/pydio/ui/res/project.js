@@ -1047,5 +1047,9 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             if (proxies.https.url === ":") proxies.https.url = "";
             if (proxies.http.url === ":") proxies.http.url = "";
             $scope.proxies = proxies;
-        });
+        })
+
+        $scope.about_page = function() {
+            $location.path('/about');
+        };
     });
