@@ -441,13 +441,13 @@ class PydioSdk():
                 return data
             else:
                 return False
-        except requests.exceptions.ConnectionError:
-            raise
+        except requests.exceptions.ConnectionError as ce:
+            logging.error("Connection Error " + str(ce))
         except requests.exceptions.Timeout:
-            raise
+            logging.error("Timeout Error " + str(ce))
         except Exception, ex:
             logging.warning("Stat failed", exc_info=ex)
-            return False
+        return False
 
     def bulk_stat(self, pathes, result=None, with_hash=False):
         """
