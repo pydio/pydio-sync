@@ -42,7 +42,20 @@ setup_kwargs = {
     'install_requires': install_reqs,
 
     "package_data": {
-        'pydio': ['res/*.sql']
+        'pydio': ['res/*.sql',
+                  'ui/res/*.html',
+                  'ui/res/images/*.png',
+                  'ui/res/angularjs/*.js',
+                  'ui/res/*.js',
+                  'ui/res/bootstrap/css/*.css',
+                  'ui/res/bootstrap/css/*.css.map',
+                  'ui/res/bootstrap/fonts/*.svg',
+                  'ui/res/bootstrap/fonts/roboto-font/*.woff',
+                  'ui/res/bootstrap/fonts/roboto-font/*.woff2',
+                  'ui/res/bootstrap/fonts/*.eot',
+                  'ui/res/bootstrap/fonts/*.woff',
+                  'ui/res/bootstrap/fonts/*.ttf',
+                  'ui/res/bootstrap/js/*.js']
     },
 
     # metadata for upload to PyPI
