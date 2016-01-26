@@ -1001,7 +1001,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         }
     })
 
-    .controller('GeneralConfigCtrl', function($scope, $routeParams, $location, GeneralConfigs, GeneralConfigsDetails){
+    .controller('GeneralConfigCtrl', function($scope, $routeParams, $location, GeneralConfigs){
         $scope._ = window.translate;
 
         if (window.ui_config){
