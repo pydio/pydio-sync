@@ -1,6 +1,6 @@
 <h1 class="generalConfigHeader" ng-value="GetGeneralConfigsDetails()">{{_('General configurations page')}}</h1>
 
-<div class="well"  style="margin: 5% 1%;">
+<div  style="margin: 20% 1%;">
 
     <h3 style="margin-top: 40px; cursor:pointer;" ng-click="general_configs_show_log_settings=!general_configs_show_log_settings">
         <span ng-class="{'glyphicon-chevron-right':!general_configs_show_log_settings,'glyphicon-chevron-down':general_configs_show_log_settings}"
@@ -17,15 +17,19 @@
                     <input type="text" ng-model="general_configs_data.log_configuration.log_file_name" class="form-control" >
                 </div>
 
-                <p class="small" style="margin-top:1%;">{{_('Set restrictions on the file size and their number.')}}</p>
+                <p class="small" style="margin-top:2%;">{{_('Limit the number of backup files.')}}</p>
                 <div class="input-group">
                     <span class="input-group-addon">{{_('Back up count')}}</span>
                     <input type="number" ng-model="general_configs_data.log_configuration.handlers.file.backupCount" class="form-control" >
+                </div>
+
+                <p class="small" style="margin-top:2%;">{{_('Set restrictions on the file size.')}}</p>
+                <div class="input-group">
                     <span class="input-group-addon">{{_('File size in bytes')}}</span>
                     <input type="number" ng-model="general_configs_data.log_configuration.handlers.file.maxBytes" class="form-control" >
                 </div>
 
-                <p class="small" style="margin-top:1%;">{{_('Enhance the log details as you need them.')}}</p>
+                <p class="small" style="margin-top:2%;">{{_('Enhance the log details as you need them.')}}</p>
                 <div>
                     <div class="advanced_radio_box"
                          ng-class="{'label-radio-selected':general_configs_data.log_configuration.root.level=='INFO'}"
@@ -56,7 +60,7 @@
     <div ng-show="general_configs_show_update_info">
         <div>
             <div class="well">
-                <p class="small" style="margin-top:1%;">{{_('Enable / Disable update here.')}}</p>
+                <p class="small" style="margin-top:2%;">{{_('Enable / Disable update here.')}}</p>
                 <div class="input-group">
                     <span class="input-group-addon">{{_('Enable or disable update')}}</span>
                     <div class="pull-right">
@@ -65,13 +69,13 @@
                     </div>
                 </div>
 
-                <p class="small" style="margin-top:1%;">{{_('Set the update check frequency, set 1 if you want the update check only once a day, by default the value will be zero which means it check for update each time agent establishes a new connection with UI ')}}</p>
+                <p class="small" style="margin-top:2%;">{{_('Set the update check frequency (here 1 means update check only once a day, default value 0 means it check for update each time agent establishes a new connection with UI) ')}}</p>
                 <div class="input-group">
                     <span class="input-group-addon">{{_('Update check frequency in days')}}</span>
                     <input type="number" min="0" ng-model="general_configs_data.update_info.update_check_frequency_days" class="form-control" >
                 </div>
 
-                <p class="small" style="margin-top:1%;">{{_('Date on which last update check happened')}}</p>
+                <p class="small" style="margin-top:2%;">{{_('Date on which last update check happened')}}</p>
                 <div class="input-group">
                     <span class="input-group-addon">{{_('Date(YYYYMMDD)')}}</span>
                     <input type="number" min="0" ng-model="general_configs_data.update_info.last_update_date" class="form-control" >
