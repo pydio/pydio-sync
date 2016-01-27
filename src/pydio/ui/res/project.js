@@ -1020,22 +1020,33 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             general_configs_data.$save();
 
             if($scope.ui_config.login_mode == 'alias') {
-                function cutHostPort(url, hostOrPort){
-                    // removes https:// from url if present, @hostOrPort: 0 for host, 1 for port
-                    url = url.replace("http://", "");
-                    url = url.replace("https://", "");
-                    var res = url.split(':')[hostOrPort];
-                    return res == undefined ? "" : res;
+                // if proxy part is not really modified, then don't update the existing proxy settings
+                if((proxies.http.password == "" && proxies.http.hostname != "") || (proxies.https.password == "" && proxies.https.hostname != "")) {
+                    console.log('proxy password is empty')
+                    if(proxies.https.active == 'false') {
+                        proxies.http.active = proxies.https.active;
+                        // Now save the parameters
+                        proxies.$save();
+                    }
                 }
-                // recover port & host from url
-                proxies.http.hostname = cutHostPort(proxies.http.url, 0);
-                proxies.https.hostname = cutHostPort(proxies.https.url, 0);
-                proxies.http.port = cutHostPort(proxies.http.url, 1);
-                proxies.https.port = cutHostPort(proxies.https.url, 1);
-                proxies.http.active = proxies.https.active;
+                else {
+                    function cutHostPort(url, hostOrPort){
+                        // removes https:// from url if present, @hostOrPort: 0 for host, 1 for port
+                        url = url.replace("http://", "");
+                        url = url.replace("https://", "");
+                        var res = url.split(':')[hostOrPort];
+                        return res == undefined ? "" : res;
+                    }
+                    // recover port & host from url
+                    proxies.http.hostname = cutHostPort(proxies.http.url, 0);
+                    proxies.https.hostname = cutHostPort(proxies.https.url, 0);
+                    proxies.http.port = cutHostPort(proxies.http.url, 1);
+                    proxies.https.port = cutHostPort(proxies.https.url, 1);
+                    proxies.http.active = proxies.https.active;
 
-                // Now save the parameters
-                proxies.$save();
+                    // Now save the parameters
+                    proxies.$save();
+                }
             }
             $location.path('/');
         }
