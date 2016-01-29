@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pydio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-01-15 15:05+0100\n"
-"PO-Revision-Date: 2016-01-27 18:17+0100\n"
+"POT-Creation-Date: 2016-01-29 10:00+0100\n"
+"PO-Revision-Date: 2016-01-29 15:02+0100\n"
 "Last-Translator: Roland Stumpp <support@mediaoffice.de>\n"
 "Language-Team: mediaOffice GbR <support@mediaoffice.de>\n"
 "Language: de_DE\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.7.3\n"
+"X-Generator: Poedit 1.8.6\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 #: job/change_processor.py:155
@@ -118,6 +118,8 @@ msgid ""
 "Cannot find remote folder, maybe it was renamed? Sync cannot start, please "
 "check the configuration."
 msgstr ""
+"Ordner auf dem Server ist nicht auffindbar. Wurde er vielleicht umbenannt? "
+"Synchronisierung kann nicht starten. Bitte die Konfiguration prüfen."
 
 #: job/continous_merger.py:442
 msgid "Gathering data from remote workspace, this can take a while..."
@@ -385,7 +387,7 @@ msgstr "Ordner auf dem lokalen Computer"
 
 #: res/i18n/html_strings.py:47
 msgid "Name this synchro"
-msgstr "Bennen Sie diese Synchronisation"
+msgstr "Benennen Sie diese Synchronisation"
 
 #: res/i18n/html_strings.py:49 res/i18n/html_strings.py:51
 msgid "Previous"
@@ -458,8 +460,8 @@ msgid ""
 "Modifications from both sides (local/remote) are automatically reflected on "
 "the other side."
 msgstr ""
-"Änderungen von beiden Seiten (Lokaler Rechner/Server) werden automatisch auf "
-"der anderen Seite aktualisiert. "
+"Änderungen von beiden Seiten (Lokaler Rechner/Server) werden jeweils "
+"automatisch auf der anderen Seite aktualisiert. "
 
 #: res/i18n/html_strings.py:68 res/i18n/html_strings.py:98
 msgid ""
@@ -479,11 +481,11 @@ msgstr "Lokaler Computer zum Server"
 
 #: res/i18n/html_strings.py:71 res/i18n/html_strings.py:101
 msgid "Bi-directional"
-msgstr "Datenübertragung in beide Richtungen "
+msgstr "Daten in beide Richtungen "
 
 #: res/i18n/html_strings.py:72 res/i18n/html_strings.py:102
 msgid "default when possible"
-msgstr "Standardmäßig, wenn möglich,"
+msgstr "Standard, wenn möglich,"
 
 #: res/i18n/html_strings.py:73 res/i18n/html_strings.py:103
 msgid "Download Only"
@@ -491,7 +493,7 @@ msgstr "Nur herunterladen"
 
 #: res/i18n/html_strings.py:74 res/i18n/html_strings.py:104
 msgid "server to computer"
-msgstr "Serever zum lokalen Computer"
+msgstr "Server zum lokalen Computer"
 
 #: res/i18n/html_strings.py:75 res/i18n/html_strings.py:105
 msgid "Sync Frequency"
@@ -511,7 +513,7 @@ msgstr "Manuell"
 
 #: res/i18n/html_strings.py:79 res/i18n/html_strings.py:109
 msgid "Given Time"
-msgstr "Zeit die zur Verfügung steht"
+msgstr "Festgelegter Zeitpunkt"
 
 #: res/i18n/html_strings.py:80 res/i18n/html_strings.py:110
 msgid "Run the sync every day at"
@@ -523,16 +525,14 @@ msgid "Conflicts"
 msgstr "Konflikte."
 
 #: res/i18n/html_strings.py:82
-#, fuzzy
 msgid ""
 "When files were modified on both the server and your computer at the same "
 "time, a conflict is detected."
 msgstr ""
-"Eine Datei mit dem Namen %1 wurde sowohl auf dem Server als auch auf Ihrem "
-"lokalen Computer geändert. Wählen Sie aus wie Sie solche Konflikte lösen:"
+"Wenn Dateien auf dem Server und auf Ihrem Computer gleichzeitig geändert "
+"wurden, wird ein Konflikt erkannt."
 
 #: res/i18n/html_strings.py:83
-#, fuzzy
 msgid "Automatic"
 msgstr "Automatisch"
 
@@ -545,64 +545,69 @@ msgid ""
 "With the default keep-both behavior conflicting files will be copied on your "
 "local sync. Which version is to be kept?"
 msgstr ""
+"Mit der Standardeinstellung beide Versionen zu behalten, werden "
+"unterschiedliche Dateiversionen auf Ihren Computer kopiert. Welche Version "
+"soll behalten werden?"
 
 #: res/i18n/html_strings.py:86
 msgid "Keep both"
-msgstr "Beide Varianten behalten"
+msgstr "Beide Versionen behalten"
 
 #: res/i18n/html_strings.py:87
 msgid "Prefer local"
-msgstr "Die lokale Rechner Version übernehmen"
+msgstr "Rechner Version übernehmen"
 
 #: res/i18n/html_strings.py:88
 msgid "Prefer remote"
-msgstr "Die Server Version übernehmen"
+msgstr "Server Version übernehmen"
 
 #: res/i18n/html_strings.py:89 res/i18n/html_strings.py:117
-#, fuzzy
 msgid "Server Timeout"
-msgstr "Server Verbindung"
+msgstr "Server Zeitüberschreitung"
 
 #: res/i18n/html_strings.py:90 res/i18n/html_strings.py:118
 msgid "Increase the timeout in case of slow responsive server "
-msgstr ""
+msgstr "Zeitlimit vergrößern falls der antwortende Server zu langsam ist"
 
 #: res/i18n/html_strings.py:91 res/i18n/html_strings.py:119
 msgid "Timeout in seconds"
-msgstr ""
+msgstr "Zeitlimit in Sekunden"
 
 #: res/i18n/html_strings.py:92
 msgid "Include/Exclude from Sync"
-msgstr ""
+msgstr "Einbinden/Ausschließen von der Synchronisation"
 
 #: res/i18n/html_strings.py:93
 msgid "Syncronise, use a list of files or patterns to include in the sync"
 msgstr ""
+"Eine Liste von Dateien oder Zeichen die beim Synchronisieren eingebunden "
+"werden"
 
 #: res/i18n/html_strings.py:94
 msgid "Do not synchronise, list of files or patterns to exclude from sync"
 msgstr ""
+"Eine Liste von Dateien oder Zeichen die beim Synchronisieren ausgeschlossen "
+"werden"
 
 #: res/i18n/html_strings.py:112
-#, fuzzy
 msgid ""
 "When files were modified on both the server and your computer at the same "
 "time, synchronization is stopped."
 msgstr ""
-"Eine Datei mit dem Namen %1 wurde sowohl auf dem Server als auch auf Ihrem "
-"lokalen Computer geändert. Wählen Sie aus wie Sie solche Konflikte lösen:"
+"Wenn Dateien auf dem Server und Ihrem Computer gleichzeitig geändert wurden, "
+"wird die Synchronisierung angehalten."
 
 #: res/i18n/html_strings.py:113
 msgid "Auto solve, keep both"
-msgstr ""
+msgstr "Automatisch, beide behalten"
 
 #: res/i18n/html_strings.py:115
 msgid "Always prefer local version"
-msgstr ""
+msgstr "Immer lokale Version nutzen"
 
 #: res/i18n/html_strings.py:116
 msgid "Always prefer remote version"
-msgstr ""
+msgstr "Immer Server Version nutzen"
 
 #: res/i18n/html_strings.py:120 res/i18n/html_strings.py:204
 msgid "Link Handle"
@@ -685,11 +690,11 @@ msgstr "Erweiterte Einstellungen"
 
 #: res/i18n/html_strings.py:148
 msgid "Delete Sync"
-msgstr "Synchronisierung löschen"
+msgstr "Sync löschen"
 
 #: res/i18n/html_strings.py:149 res/i18n/html_strings.py:184
 msgid "Save Parameters"
-msgstr "Einstellungs-Parameter speichern"
+msgstr "Einstellungen speichern"
 
 #: res/i18n/html_strings.py:150
 msgid ""
@@ -805,6 +810,8 @@ msgid ""
 "If you need to set up a proxy to connect to the Internet, use the form below "
 "and hit save parameters."
 msgstr ""
+"Falls Sie einen Proxy Zugang zum Internet einrichten, nutzen Sie das "
+"Formular unten und klicken auf Einstellungen speichern"
 
 #: res/i18n/html_strings.py:182
 msgid ""
@@ -812,6 +819,9 @@ msgid ""
 "form below. The main configuration will be used for https, this one will be "
 "used for http."
 msgstr ""
+"Falls Sie unterschiedliche Proxy Zugänge für http und https einrichten, "
+"nutzen Sie das Formular unten. Die Hauptkonfiguration wird für https genutzt "
+"und dieser Zugang für http."
 
 #: res/i18n/html_strings.py:183
 msgid ""
@@ -831,29 +841,29 @@ msgid "Path"
 msgstr "Pfad"
 
 #: res/i18n/html_strings.py:189
-#, fuzzy
 msgid "Share item"
 msgstr "Freigegebener Link"
 
 #: res/i18n/html_strings.py:190
 msgid "by creating a public link that can easily be sent to your contacts."
 msgstr ""
+"durch die Erzeugung eines öffentlichen Links kann dies einfach an Ihre "
+"Kontakte geschickt werden.  "
 
 #: res/i18n/html_strings.py:191
 msgid "You can customize the link parameters using the forms below."
 msgstr ""
+"Sie können die Linkeinstellungen anpassen wenn Sie das Formular unten nutzen."
 
 #: res/i18n/html_strings.py:192
 msgid "Secure Link Access"
-msgstr ""
+msgstr "Sicherer Link Zugriff"
 
 #: res/i18n/html_strings.py:193
-#, fuzzy
 msgid "Optional Password"
-msgstr "Passwort"
+msgstr "Optionales Passwort"
 
 #: res/i18n/html_strings.py:195
-#, fuzzy
 msgid "Expires After"
 msgstr "Läuft ab nach"
 
@@ -879,7 +889,7 @@ msgstr "Einen Link erzeugen"
 
 #: res/i18n/html_strings.py:215
 msgid "Add to Pydio"
-msgstr ""
+msgstr "Zu Pydio hinzufügen"
 
 #: res/i18n/html_strings.py:217
 msgid "Shared Link"
@@ -915,7 +925,7 @@ msgstr "Text wurde in die Zwischenablage kopiert."
 
 #: res/i18n/html_strings.py:224
 msgid "Successfully unshared."
-msgstr ""
+msgstr "Teilung erfolgreich aufgehoben"
 
 #: res/i18n/html_strings.py:225
 msgid "Please wait ..."
@@ -1030,6 +1040,7 @@ msgstr ""
 #: sdk/remote.py:706
 msgid "File beginning with a 'space' shouldn't be uploaded"
 msgstr ""
+"Dateinamen die mit einem Leerzeichen beginnen, sollte man nicht hochladen! "
 
 #: sdk/remote.py:707
 msgid "File is incorrect after upload"
