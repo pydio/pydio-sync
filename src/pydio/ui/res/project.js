@@ -256,10 +256,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 controller:'ListLogsCtrl',
                 templateUrl:'logs.html'
             })
-            .when('/settings',{
-                controller:'SettingsCtrl',
-                templateUrl:'settings.html'
-            })
             .when('/general_configs', {
                 controller:'GeneralConfigCtrl',
                 templateUrl:'general_configs.html'
@@ -957,52 +953,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 }
             }
         };
-    })
-
-    .controller('SettingsCtrl', function($scope, $routeParams, $timeout, $location, Jobs, Logs, Conflicts, Proxy){
-        $scope._ = window.translate;
-        if (window.ui_config){
-            $scope.ui_config = window.ui_config;
-        }
-        var proxies = Proxy.query(function(){
-            proxies.http.password = "";
-            proxies.https.password = "";
-            proxies.https.url = proxies.https.hostname + ":" + proxies.https.port;
-            proxies.http.url = proxies.http.hostname + ":" + proxies.http.port;
-            // check for a nice gui, in the model?!
-            if (proxies.https.url === ":") proxies.https.url = "";
-            if (proxies.http.url === ":") proxies.http.url = "";
-            $scope.proxies = proxies;
-        });
-
-        $scope.save = function(param){
-            console.log("Am I called?");
-        };
-        $scope.updateProxy = function (){
-            function cutHostPort(url, hostOrPort){
-                // removes https:// from url if present, @hostOrPort: 0 for host, 1 for port
-                url = url.replace("http://", "");
-                url = url.replace("https://", "");
-                var res = url.split(':')[hostOrPort];
-                return res == undefined ? "" : res;
-            }
-            // recover port & host from url
-            proxies.http.hostname = cutHostPort(proxies.http.url, 0);
-            proxies.https.hostname = cutHostPort(proxies.https.url, 0);
-            proxies.http.port = cutHostPort(proxies.http.url, 1);
-            proxies.https.port = cutHostPort(proxies.https.url, 1);
-            proxies.http.active = proxies.https.active;
-            // store, delete, post and restore url
-            var temp = proxies.http.url;
-            var temps = proxies.https.url;
-            proxies.http.url = undefined;
-            proxies.https.url = undefined;
-            // P O S T
-            proxies.$save();
-            proxies.https.url = temps;
-            proxies.http.url = temp;
-            $location.path('/');
-        }
     })
 
     .controller('GeneralConfigCtrl', function($scope, $routeParams, $location, GeneralConfigs, Proxy){

@@ -121,8 +121,6 @@ class PydioApi(Api):
             self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
             self.app.add_url_rule('/res/dynamic.png', 'dynamic_png', self.serve_dynamic_image)
-        else:
-            self.app.add_url_rule('/res/settings.html', 'dynamic_settings', self.serve_settings)
 
 
     @pydio_profile
@@ -182,17 +180,6 @@ class PydioApi(Api):
         else:
             about_file = str(self.real_static_folder / 'about.html')
             with open(about_file, 'r') as handle:
-                content = handle.read()
-        return Response(response=content,
-                        status=200,
-                        mimetype="text/html")
-
-    def serve_settings(self):
-        content = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0; ' \
-                  'url=#" /></head><body></body></html>'
-        if EndpointResolver:
-            with open(self.real_static_folder + '/settings.html', 'r') as handle:
-
                 content = handle.read()
         return Response(response=content,
                         status=200,
