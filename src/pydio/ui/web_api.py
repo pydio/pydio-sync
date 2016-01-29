@@ -819,5 +819,6 @@ class GeneralConfigManager(Resource):
         :returns a json response
         """
         data = request.get_json()
-        global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
-        return global_config_manager.update_general_config(data=data)
+        if len(data) > 0:
+            global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
+            return global_config_manager.update_general_config(data=data)

@@ -989,14 +989,13 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
             if($scope.ui_config.login_mode == 'alias') {
                 // if proxy part is not really modified, then don't update the existing proxy settings
-                if((proxies.http.password == "" && proxies.http.hostname != "") || (proxies.https.password == "" && proxies.https.hostname != "")) {
-                    if(proxies.https.active == 'false') {
-                        proxies.http.active = proxies.https.active;
-                        // Now save the parameters
-                        proxies.$save();
-                    }
-                }
-                else {
+                if( ($scope.proxies.http.url != "" && $scope.proxies.https.url != "") && (
+                    ($scope.proxies.http.password == "" && $scope.proxies.http.username == "") ||
+                    ($scope.proxies.https.password == "" && $scope.proxies.https.username == "") ||
+                    ($scope.proxies.http.password != "" && $scope.proxies.http.username != "")    ||
+                    ($scope.proxies.https.password != "" && $scope.proxies.https.username != "")
+                    )
+                ) {
                     function cutHostPort(url, hostOrPort){
                         // removes https:// from url if present, @hostOrPort: 0 for host, 1 for port
                         url = url.replace("http://", "");
@@ -1005,14 +1004,21 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                         return res == undefined ? "" : res;
                     }
                     // recover port & host from url
-                    proxies.http.hostname = cutHostPort(proxies.http.url, 0);
-                    proxies.https.hostname = cutHostPort(proxies.https.url, 0);
-                    proxies.http.port = cutHostPort(proxies.http.url, 1);
-                    proxies.https.port = cutHostPort(proxies.https.url, 1);
-                    proxies.http.active = proxies.https.active;
+                    $scope.proxies.http.hostname = cutHostPort($scope.proxies.http.url, 0);
+                    $scope.proxies.https.hostname = cutHostPort($scope.proxies.https.url, 0);
+                    $scope.proxies.http.port = cutHostPort($scope.proxies.http.url, 1);
+                    $scope.proxies.https.port = cutHostPort($scope.proxies.https.url, 1);
+                    $scope.proxies.http.active = $scope.proxies.https.active;
 
                     // Now save the parameters
-                    proxies.$save();
+                    $scope.proxies.$save();
+                }
+                else {
+                    if($scope.proxies.https.active == 'false') {
+                        $scope.proxies.http.active = $scope.proxies.https.active;
+                        // Now save the parameters
+                        $scope.proxies.$save();
+                    }
                 }
             }
             $location.path('/');
