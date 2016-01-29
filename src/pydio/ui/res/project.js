@@ -64,7 +64,11 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             });
         }])
     .factory('Proxy', ['$resource',
-        function($resource){return $resource('/proxy', {}, {query:{method:'GET'}, isArray: false});}])
+        function($resource){
+            return $resource('/proxy', {}, {
+                query:{method:'GET'}, isArray: false}
+                );
+            }])
     .filter('bytes', function() {
         return function(bytes, precision) {
             if (bytes == 0) return bytes;
@@ -1008,6 +1012,20 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             $scope.ui_config = window.ui_config;
         }
 
+        // do the proxy query only for workspaces
+        if($scope.ui_config.login_mode === 'alias') {
+            var proxies_temp = Proxy.query(function(){
+                proxies_temp.http.password = "";
+                proxies_temp.https.password = "";
+                proxies_temp.https.url = proxies_temp.https.hostname + ":" + proxies_temp.https.port;
+                proxies_temp.http.url = proxies_temp.http.hostname + ":" + proxies_temp.http.port;
+                // check for a nice gui, in the model?!
+                if (proxies_temp.https.url === ":") proxies_temp.https.url = "";
+                if (proxies_temp.http.url === ":") proxies_temp.http.url = "";
+                $scope.proxies = proxies_temp;
+            });
+        }
+
         // Load the general config from agent (http://localhost:5556/general_configs)
         general_configs_data = GeneralConfigs.query({},
             function (){
@@ -1022,7 +1040,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             if($scope.ui_config.login_mode == 'alias') {
                 // if proxy part is not really modified, then don't update the existing proxy settings
                 if((proxies.http.password == "" && proxies.http.hostname != "") || (proxies.https.password == "" && proxies.https.hostname != "")) {
-                    console.log('proxy password is empty')
                     if(proxies.https.active == 'false') {
                         proxies.http.active = proxies.https.active;
                         // Now save the parameters
@@ -1049,20 +1066,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 }
             }
             $location.path('/');
-        }
-
-        // do the proxy query only for workspaces
-        if($scope.ui_config.login_mode == 'alias') {
-            proxies = Proxy.query(function(){
-                proxies.http.password = "";
-                proxies.https.password = "";
-                proxies.https.url = proxies.https.hostname + ":" + proxies.https.port;
-                proxies.http.url = proxies.http.hostname + ":" + proxies.http.port;
-                // check for a nice gui, in the model?!
-                if (proxies.https.url === ":") proxies.https.url = "";
-                if (proxies.http.url === ":") proxies.http.url = "";
-                $scope.proxies = proxies;
-            })
         }
 
         $scope.about_page = function() {

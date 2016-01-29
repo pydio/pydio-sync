@@ -7,7 +7,7 @@
 
 <div  style="margin: 20% 1%;">
 
-    <div ng-show="ui_config.login_mode == 'alias'" ng-value="proxies()">
+    <div ng-show="ui_config.login_mode === 'alias'" ng-value="proxies">
         <h3 style="margin-top: 40px; cursor:pointer;" ng-click="general_configs_show_proxy_settings=!general_configs_show_proxy_settings">
         <span ng-class="{'glyphicon-chevron-right':!general_configs_show_proxy_settings,'glyphicon-chevron-down':general_configs_show_proxy_settings}"
               class="small glyphicon"></span>
