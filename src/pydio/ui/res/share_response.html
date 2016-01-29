@@ -5,7 +5,7 @@
     <form name="myForm" class="form-inline">
         <div>
             <h4>{{_('Shared Link')}}</h4>
-            <div class="form-group"></div>
+            <div class="form-group">
                     <p ng-show="existingLinkFlag && checkResponseFlag" class="small">{{_('Shared link to the selected item already exists. Below is the link to the selected item')}}</p>
                     <p ng-show="!existingLinkFlag && checkResponseFlag" class="small">{{_('New shared link to the selected item has been generated')}}</p>
                     <p ng-show="!checkResponseFlag" class="small">{{_('Shared Link to the selected item has not been generated')}}</p>

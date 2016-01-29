@@ -39,7 +39,7 @@ import os
 import urllib2
 import unicodedata
 from pathlib import *
-from pydio.utils.global_config import ConfigManager
+from pydio.utils.global_config import ConfigManager, GlobalConfigManager
 from pydio.utils.functions import connection_helper
 from pydio.utils import i18n
 _ = i18n.language.ugettext
@@ -107,11 +107,12 @@ class PydioApi(Api):
         self.add_resource(LogManager, '/jobs/<string:job_id>/logs')
         self.add_resource(ConflictsManager, '/jobs/<string:job_id>/conflicts', '/jobs/conflicts')
         self.add_resource(CmdManager, '/cmd/<string:cmd>/<string:job_id>', '/cmd/<string:cmd>')
-        self.add_resource(UrlManager, '/url/<path:complete_url>')
+        self.add_resource(UpdateManager, '/url/<path:complete_url>')
         self.add_resource(TaskInfoManager, '/stat', '/stat/<string:job_id>', '/stat/<string:job_id>/<path:relative_path>')
         self.add_resource(ShareManager, '/share/<string:job_id>')
         self.add_resource(ShareLinkManager, '/share_link/<string:job_id>/<string:folder_flag>/<path:relative_path>')
         self.add_resource(ShareCopyManager, '/share_cp')
+        self.add_resource(GeneralConfigManager, '/general_configs')
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
@@ -121,8 +122,6 @@ class PydioApi(Api):
             self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
             self.app.add_url_rule('/res/dynamic.png', 'dynamic_png', self.serve_dynamic_image)
-        else:
-            self.app.add_url_rule('/res/settings.html', 'dynamic_settings', self.serve_settings)
 
 
     @pydio_profile
@@ -182,17 +181,6 @@ class PydioApi(Api):
         else:
             about_file = str(self.real_static_folder / 'about.html')
             with open(about_file, 'r') as handle:
-                content = handle.read()
-        return Response(response=content,
-                        status=200,
-                        mimetype="text/html")
-
-    def serve_settings(self):
-        content = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0; ' \
-                  'url=#" /></head><body></body></html>'
-        if EndpointResolver:
-            with open(self.real_static_folder + '/settings.html', 'r') as handle:
-
                 content = handle.read()
         return Response(response=content,
                         status=200,
@@ -652,16 +640,29 @@ class TaskInfoManager(Resource):
 
             return {"node_status": node_status}
 
-class UrlManager(Resource):
+class UpdateManager(Resource):
     """
-        performs a url request via proxy if present
-        :returns a json response
+        fetches the response for the update url, does some basic checks for update and returns the json response
+        :param complete_url: update request url
+        :returns a json response or ""
     """
     @authDB.requires_auth
     @pydio_profile
     def get(self, complete_url):
-        resp = requests.get(complete_url, stream=False, proxies=ConfigManager.Instance().get_defined_proxies())
-        return json.loads(resp.content)
+        global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
+        general_config = global_config_manager.get_general_config()
+        if bool(general_config['update_info']['enable_update_check']):
+            if general_config['update_info']['update_check_frequency_days'] > 0:
+                import time
+                if (int(time.strftime("%Y%m%d")) - general_config['update_info']['last_update_date']) > general_config['update_info']['update_check_frequency_days']:
+                    general_config['update_info']['last_update_date'] = int(time.strftime("%Y%m%d"))
+                    global_config_manager.update_general_config(general_config)
+                else:
+                    return ""
+            resp = requests.get(complete_url, stream=False, proxies=ConfigManager.Instance().get_defined_proxies())
+            return json.loads(resp.content)
+        else:
+            return ""
 
 class ShareManager(Resource):
     """
@@ -807,3 +808,26 @@ class ShareCopyManager(Resource):
             logging.error("[ShareCopyManager] " + str(e.args) + " _ " + str(e.message))
             return {"status": "error", "message": str(e.message)}
         return {"status": "success", "message": "Copy was succesful"}
+
+class GeneralConfigManager(Resource):
+    @authDB.requires_auth
+    @pydio_profile
+    def get(self):
+        """
+        retrieves the general config info from general config file
+        :returns a json response
+        """
+        global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
+        return global_config_manager.get_general_config()
+
+    @authDB.requires_auth
+    @pydio_profile
+    def post(self):
+        """
+        writes the general config into the general config file
+        :returns a json response
+        """
+        data = request.get_json()
+        if len(data) > 0:
+            global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
+            return global_config_manager.update_general_config(data=data)

@@ -64,7 +64,11 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             });
         }])
     .factory('Proxy', ['$resource',
-        function($resource){return $resource('/proxy', {}, {query:{method:'GET'}, isArray: false});}])
+        function($resource){
+            return $resource('/proxy', {}, {
+                query:{method:'GET'}, isArray: false}
+                );
+            }])
     .filter('bytes', function() {
         return function(bytes, precision) {
             if (bytes == 0) return bytes;
@@ -163,6 +167,13 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             });
         }])
 
+    .factory('GeneralConfigs', ['$resource',
+        function($resource){
+            return $resource('/general_configs', {}, {
+                query: {method:'GET', params:{}, isArray:false}
+            });
+        }])
+
     .factory('Share', ['$resource',
         function($resource){
             return $resource('/share/:job_id/', {}, {
@@ -245,9 +256,9 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 controller:'ListLogsCtrl',
                 templateUrl:'logs.html'
             })
-            .when('/settings',{
-                controller:'SettingsCtrl',
-                templateUrl:'settings.html'
+            .when('/general_configs', {
+                controller:'GeneralConfigCtrl',
+                templateUrl:'general_configs.html'
             })
             .otherwise({
                 redirectTo:'/'
@@ -942,52 +953,78 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 }
             }
         };
-
-
     })
 
-    .controller('SettingsCtrl', function($scope, $routeParams, $timeout, $location, Jobs, Logs, Conflicts, Proxy){
+    .controller('GeneralConfigCtrl', function($scope, $routeParams, $location, GeneralConfigs, Proxy){
         $scope._ = window.translate;
+
         if (window.ui_config){
             $scope.ui_config = window.ui_config;
         }
-        var proxies = Proxy.query(function(){
-            proxies.http.password = "";
-            proxies.https.password = "";
-            proxies.https.url = proxies.https.hostname + ":" + proxies.https.port;
-            proxies.http.url = proxies.http.hostname + ":" + proxies.http.port;
-            // check for a nice gui, in the model?!
-            if (proxies.https.url === ":") proxies.https.url = "";
-            if (proxies.http.url === ":") proxies.http.url = "";
-            $scope.proxies = proxies;
-        });
 
-        $scope.save = function(param){
-            console.log("Am I called?");
-        };
-        $scope.updateProxy = function (){
-            function cutHostPort(url, hostOrPort){
-                // removes https:// from url if present, @hostOrPort: 0 for host, 1 for port
-                url = url.replace("http://", "");
-                url = url.replace("https://", "");
-                var res = url.split(':')[hostOrPort];
-                return res == undefined ? "" : res;
+        // do the proxy query only for workspaces
+        if($scope.ui_config.login_mode === 'alias') {
+            var proxies_temp = Proxy.query(function(){
+                proxies_temp.http.password = "";
+                proxies_temp.https.password = "";
+                proxies_temp.https.url = proxies_temp.https.hostname + ":" + proxies_temp.https.port;
+                proxies_temp.http.url = proxies_temp.http.hostname + ":" + proxies_temp.http.port;
+                // check for a nice gui, in the model?!
+                if (proxies_temp.https.url === ":") proxies_temp.https.url = "";
+                if (proxies_temp.http.url === ":") proxies_temp.http.url = "";
+                $scope.proxies = proxies_temp;
+            });
+        }
+
+        // Load the general config from agent (http://localhost:5556/general_configs)
+        general_configs_data = GeneralConfigs.query({},
+            function (){
+            $scope.general_configs_data=general_configs_data;
+            });
+
+        // Post the modified general config to agent
+        $scope.SaveGeneralConfig = function() {
+
+            general_configs_data.$save();
+
+            if($scope.ui_config.login_mode == 'alias') {
+                // if proxy part is not really modified, then don't update the existing proxy settings
+                if( ($scope.proxies.http.url != "" && $scope.proxies.https.url != "") && (
+                    ($scope.proxies.http.password == "" && $scope.proxies.http.username == "") ||
+                    ($scope.proxies.https.password == "" && $scope.proxies.https.username == "") ||
+                    ($scope.proxies.http.password != "" && $scope.proxies.http.username != "")    ||
+                    ($scope.proxies.https.password != "" && $scope.proxies.https.username != "")
+                    )
+                ) {
+                    function cutHostPort(url, hostOrPort){
+                        // removes https:// from url if present, @hostOrPort: 0 for host, 1 for port
+                        url = url.replace("http://", "");
+                        url = url.replace("https://", "");
+                        var res = url.split(':')[hostOrPort];
+                        return res == undefined ? "" : res;
+                    }
+                    // recover port & host from url
+                    $scope.proxies.http.hostname = cutHostPort($scope.proxies.http.url, 0);
+                    $scope.proxies.https.hostname = cutHostPort($scope.proxies.https.url, 0);
+                    $scope.proxies.http.port = cutHostPort($scope.proxies.http.url, 1);
+                    $scope.proxies.https.port = cutHostPort($scope.proxies.https.url, 1);
+                    $scope.proxies.http.active = $scope.proxies.https.active;
+
+                    // Now save the parameters
+                    $scope.proxies.$save();
+                }
+                else {
+                    if($scope.proxies.https.active == 'false') {
+                        $scope.proxies.http.active = $scope.proxies.https.active;
+                        // Now save the parameters
+                        $scope.proxies.$save();
+                    }
+                }
             }
-            // recover port & host from url
-            proxies.http.hostname = cutHostPort(proxies.http.url, 0);
-            proxies.https.hostname = cutHostPort(proxies.https.url, 0);
-            proxies.http.port = cutHostPort(proxies.http.url, 1);
-            proxies.https.port = cutHostPort(proxies.https.url, 1);
-            proxies.http.active = proxies.https.active;
-            // store, delete, post and restore url
-            var temp = proxies.http.url;
-            var temps = proxies.https.url;
-            proxies.http.url = undefined;
-            proxies.https.url = undefined;
-            // P O S T
-            proxies.$save();
-            proxies.https.url = temps;
-            proxies.http.url = temp;
             $location.path('/');
         }
+
+        $scope.about_page = function() {
+            $location.path('/about');
+        };
     });

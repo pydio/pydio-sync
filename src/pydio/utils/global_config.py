@@ -152,3 +152,84 @@ class ConfigManager:
         except Exception as ex:
             logging.exception(ex)
         return "write to Proxies.json file is successful"
+
+@Singleton
+class GlobalConfigManager:
+
+    def __init__(self, configs_path):
+        self.configs_path = configs_path
+        self.default_settings = {
+            "log_configuration": {
+                "log_file_name": "pydio.log",
+                "version": 1,
+                "disable_existing_loggers": "True",
+                "formatters": {
+                    "short": {
+                        "format": "%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(message)s",
+                        "datefmt": "%H:%M:%S"
+                    },
+                    "verbose": {
+                        "format": "%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(filename)s : %(lineno)s | %(funcName)s | %(message)s",
+                        "datefmt": "%Y-%m-%d %H:%M:%S"
+                    }
+                },
+                "handlers": {
+                    "file": {
+                        "level": "INFO",
+                        "class": "logging.handlers.RotatingFileHandler",
+                        "formatter": "verbose",
+                        "backupCount": 8,
+                        "maxBytes": 4194304,
+                        "filename": "log_file"
+                    },
+                    "console": {
+                        "level": "level",
+                        "class": "logging.StreamHandler",
+                        "formatter": "short"
+                    }
+                },
+                "root": {
+                    "level": "DEBUG",
+                    "handlers": [ "console", "file" ]
+                },
+                "log_levels": {
+                    "0": "WARNING",
+                    "1": "INFO",
+                    "2": "DEBUG"
+                }
+            },
+            "update_info": {
+                "enable_update_check": "true",
+                "update_check_frequency_days": 1,
+                "last_update_date": 0
+            },
+            "max_wait_time_for_local_db_access": 30,
+        }
+
+    def set_general_config(self, data):
+        """
+        Put the global configurations into general_config.json if it doesn't exist
+        :param data: dict object with configuration data
+        """
+        global_config_file = os.path.join(self.configs_path, 'general_config.json')
+
+        # Set the global config only if no prior settings exists
+        if not os.path.exists(global_config_file) or os.stat(global_config_file).st_size == 0:
+            with open(global_config_file, 'w') as conf_file:
+                json.dump(data, conf_file)
+
+    def update_general_config(self, data):
+        """
+        Update the global configurations into general_config.json
+        :param data: dict object with configuration data
+        """
+        with open(os.path.join(self.configs_path, 'general_config.json'), 'w') as conf_file:
+            json.dump(data, conf_file)
+
+    def get_general_config(self):
+        """
+        Fetch the config details from general_config.json file
+        :return: dict object with configuration data
+        """
+        with open(os.path.join(self.configs_path, 'general_config.json')) as conf_file:
+            return json.load(conf_file)

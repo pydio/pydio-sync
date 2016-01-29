@@ -51,8 +51,10 @@ class SqlSnapshot(object):
         self._inode_to_path = {}
         self.is_recursive = True
         self.sub_folder = sub_folder
+        from pydio.utils.global_config import GlobalConfigManager
+        global_config_manager = GlobalConfigManager.Instance(configs_path=job_data_path)
         # Increasing the timeout (default 5 seconds), to avoid database is locked error
-        self.timeout = 30
+        self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
         try:
             self.load_from_db()
         except OperationalError as oe:
@@ -142,8 +144,10 @@ class LocalDbHandler():
         self.db = job_data_path + '/pydio.sqlite'
         self.job_data_path = job_data_path
         self.event_handler = None
+        from pydio.utils.global_config import GlobalConfigManager
+        global_config_manager = GlobalConfigManager.Instance(configs_path=job_data_path)
         # Increasing the timeout (default 5 seconds), to avoid database is locked error
-        self.timeout = 30
+        self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
         if not os.path.exists(self.db):
             self.init_db()
 
