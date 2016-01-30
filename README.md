@@ -89,6 +89,9 @@ or using python itself
 
 Run sandbox.py to create virtual environment and build the app
 
+## Reporting Issues
+
+If you have any questions, please consider finding or posting them on our <a href="https://pydio.com/en/community">dedicated forum</a> under "PydioSync Issues", once it is qualified as a bug, you can post them here.
 
 ## Contributing
 
