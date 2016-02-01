@@ -923,14 +923,14 @@ msgid ""
 "default value 0 means it check for update each time agent establishes a new "
 "connection with UI) "
 msgstr ""
-"Set the check for update frequency ~~ Configurer la fréquence de "
-"vérificationde mise à jour (1 signifie une vérification par jour, 0 signifie "
+"Configurer la fréquence de vérificationde "
+"mise à jour (1 signifie une vérification par jour, 0 signifie "
 "qu'une vérification est effectuée à chaque lancement de l'agent, à chaque "
 "nouvelle connection de l'UI avec l'agent.)"
 
 #: res/i18n/html_strings.py:158
 msgid "Update check frequency in days"
-msgstr "Mise à jour de la fréquence de vérification en jours"
+msgstr "Fréquence de nise à jour "
 
 #: res/i18n/html_strings.py:159
 msgid "Date on which last update check happened"
@@ -938,7 +938,7 @@ msgstr "Date à laquelle la dernière actualisation chèque est arrivé"
 
 #: res/i18n/html_strings.py:160
 msgid "Last update check was on: "
-msgstr "Dernière mise à jour de l'enregistrement était sur:"
+msgstr "Date :"
 
 #: res/i18n/html_strings.py:161
 msgid "Other settings"
@@ -956,7 +956,7 @@ msgstr ""
 
 #: res/i18n/html_strings.py:165
 msgid "Update Settings"
-msgstr "Mettre à jour les paramètres"
+msgstr "Mettre à jour"
 
 #: res/i18n/html_strings.py:166 res/i18n/html_strings.py:180
 msgid "Advanced Parameters"
