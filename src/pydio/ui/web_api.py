@@ -654,8 +654,8 @@ class UpdateManager(Resource):
         if bool(general_config['update_info']['enable_update_check']):
             if general_config['update_info']['update_check_frequency_days'] > 0:
                 import time
-                if (int(time.strftime("%Y%m%d")) - general_config['update_info']['last_update_date']) > general_config['update_info']['update_check_frequency_days']:
-                    general_config['update_info']['last_update_date'] = int(time.strftime("%Y%m%d"))
+                if (int(time.strftime("%Y%m%d")) - int(time.strftime('%Y%m%d', time.gmtime(general_config['update_info']['last_update_date']/1000)))) > general_config['update_info']['update_check_frequency_days']:
+                    general_config['update_info']['last_update_date'] = time.time() * 1000
                     global_config_manager.update_general_config(general_config)
                 else:
                     return ""

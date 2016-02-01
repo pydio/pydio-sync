@@ -81,9 +81,9 @@
                     <input type="number" ng-model="general_configs_data.log_configuration.handlers.file.backupCount" class="form-control" >
                 </div>
 
-                <p class="small" style="margin-top:2%;">{{_('Set restrictions on the file size.')}}</p>
+                <p class="small" style="margin-top:2%;">{{_('Set restrictions on log file size here.')}}</p>
                 <div class="input-group">
-                    <span class="input-group-addon">{{_('File size in bytes')}}</span>
+                    <span class="input-group-addon">{{general_configs_data.log_configuration.handlers.file.maxBytes | bytes}}</span>
                     <input type="number" ng-model="general_configs_data.log_configuration.handlers.file.maxBytes" class="form-control" >
                 </div>
 
@@ -136,8 +136,8 @@
 
                     <p class="small" style="margin-top:2%;">{{_('Date on which last update check happened')}}</p>
                     <div class="input-group">
-                        <span class="input-group-addon">{{_('Date(YYYYMMDD)')}}</span>
-                        <input type="number" min="0" ng-model="general_configs_data.update_info.last_update_date" class="form-control" readonly>
+                        <span class="input-group-addon">{{_('Last updated on: ')}}</span>
+                        <span class="input-group-addon">{{general_configs_data.update_info.last_update_date | date}}</span>
                     </div>
                 </div>
             </div>
