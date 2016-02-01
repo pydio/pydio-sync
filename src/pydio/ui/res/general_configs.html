@@ -16,15 +16,14 @@
 
         <div ng-show="general_configs_show_proxy_settings">
             <div class="well">
-                <p class="small" style="margin-top:2%;">{{_('Enable / Disable Proxy.')}}</p>
-                <div class="input-group">
-                    <div class="pull-right">
-                        <div class="btn-group">
-                            <button type="button" ng-click="proxies.https.active = 'true'" class="btn" ng-class="{'btn-success':proxies.https.active == 'true','btn-default':proxies.https.active =='true'}">On</button>
-                            <button type="button" ng-click="proxies.https.active = 'false'" class="btn" ng-class="{'btn-danger':proxies.https.active == 'false','btn-default':proxies.https.active =='false'}">Off</button>
-                        </div>
+                <p class="small" style="margin-top:2%;">
+                <div class="pull-right">
+                    <div class="btn-group">
+                        <button type="button" ng-click="proxies.https.active = 'true'" class="btn" ng-class="{'btn-success':proxies.https.active == 'true','btn-default':proxies.https.active =='true'}">On</button>
+                        <button type="button" ng-click="proxies.https.active = 'false'" class="btn" ng-class="{'btn-danger':proxies.https.active == 'false','btn-default':proxies.https.active =='false'}">Off</button>
                     </div>
                 </div>
+                {{_('Enable / Disable Proxy.')}}</p>
 
                 <div ng-show="proxies.https.active =='true'" style="margin-top:2%;">
                     <p>{{_('If you want the network connections to pass through proxy, fill the parameters below.')}}</p>
@@ -76,9 +75,9 @@
                     <input type="text" ng-model="general_configs_data.log_configuration.log_file_name" class="form-control" >
                 </div>
 
-                <p class="small" style="margin-top:2%;">{{_('Limit the number of backup files.')}}</p>
+                <p class="small" style="margin-top:2%;">{{_('Limit the number of log files to be stored locally.')}}</p>
                 <div class="input-group">
-                    <span class="input-group-addon">{{_('Back up count')}}</span>
+                    <span class="input-group-addon">{{_('Number of log files')}}</span>
                     <input type="number" ng-model="general_configs_data.log_configuration.handlers.file.backupCount" class="form-control" >
                 </div>
 
@@ -119,17 +118,16 @@
     <div ng-show="general_configs_show_update_info">
         <div>
             <div class="well">
-                <p class="small" style="margin-top:2%;">{{_('Enable / Disable update here.')}}</p>
-                <div class="input-group">
+                <p class="small" style="margin-top:2%;">
                     <div class="pull-right">
                         <div class="btn-group">
                             <button type="button" class="btn" ng-click="general_configs_data.update_info.enable_update_check='true'" ng-class="{'btn-success':general_configs_data.update_info.enable_update_check=='true','btn-default':general_configs_data.update_info.enable_update_check=='true'}">On</button>
                             <button type="button" class="btn" ng-click="general_configs_data.update_info.enable_update_check='false'" ng-class="{'btn-danger':general_configs_data.update_info.enable_update_check=='false','btn-default':general_configs_data.update_info.enable_update_check=='false'}">Off</button>
                         </div>
                     </div>
-                </div>
+                {{_('Enable / Disable update here.')}}</p>
 
-                <div ng-show="general_configs_data.update_info.enable_update_check=='true'">
+                <div ng-show="general_configs_data.update_info.enable_update_check=='true'" style="margin-top:5%;">
                     <p class="small" style="margin-top:2%;">{{_('Set the update check frequency (here 1 means update check only once a day, default value 0 means it check for update each time agent establishes a new connection with UI) ')}}</p>
                     <div class="input-group">
                         <span class="input-group-addon">{{_('Update check frequency in days')}}</span>
