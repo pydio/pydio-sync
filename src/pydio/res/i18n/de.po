@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Pydio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-02-01 17:51+0100\n"
-"PO-Revision-Date: 2016-01-29 15:02+0100\n"
+"PO-Revision-Date: 2016-02-01 21:16+0100\n"
 "Last-Translator: Roland Stumpp <support@mediaoffice.de>\n"
 "Language-Team: mediaOffice GbR <support@mediaoffice.de>\n"
 "Language: de_DE\n"
@@ -875,7 +875,7 @@ msgstr ""
 
 #: res/i18n/html_strings.py:141
 msgid "General configurations page"
-msgstr ""
+msgstr "Grundeinstellungen"
 
 #: res/i18n/html_strings.py:142 res/i18n/html_strings.py:217
 msgid "Proxy settings"
@@ -883,63 +883,63 @@ msgstr "Proxy-Einstellungen"
 
 #: res/i18n/html_strings.py:143
 msgid "Enable / Disable Proxy."
-msgstr ""
+msgstr "Proxy aktivieren / deaktivieren"
 
 #: res/i18n/html_strings.py:144
 msgid ""
 "If you want the network connections to pass through proxy, fill the "
 "parameters below."
 msgstr ""
+"Wenn die Netzwerk Verbindung über einen Proxy Server laufen soll, legen Sie "
+"bitte unten die Einstellungen fest.  "
 
 #: res/i18n/html_strings.py:145
-#, fuzzy
 msgid "Log settings"
-msgstr "Proxy-Einstellungen"
+msgstr "Einstellungen Logdateien"
 
 #: res/i18n/html_strings.py:146
 msgid "You can change the name of log file here."
-msgstr ""
+msgstr "Hier kann der Name der Logdatei festgelegt werden."
 
 #: res/i18n/html_strings.py:147
 msgid "File Name"
-msgstr ""
+msgstr "Dateiname"
 
 #: res/i18n/html_strings.py:148
 msgid "Limit the number of log files to be stored locally."
-msgstr ""
+msgstr "Die Anzahl der lokalen Logdateien begrenzen."
 
 #: res/i18n/html_strings.py:149
 msgid "Number of log files"
-msgstr ""
+msgstr "Anzahl der Log-Dateien"
 
 #: res/i18n/html_strings.py:150
 msgid "Set restrictions on log file size here."
-msgstr ""
+msgstr "Die Größe der Log-Dateien begrenzen"
 
 #: res/i18n/html_strings.py:151
 msgid "Enhance the log details as you need them."
-msgstr ""
+msgstr "Die Log Details benutzerdefiniert festlegen."
 
 #: res/i18n/html_strings.py:152
 msgid "Info"
-msgstr ""
+msgstr "Info"
 
 #: res/i18n/html_strings.py:153
 msgid "Debug"
-msgstr ""
+msgstr "Fehlerprotokoll"
 
 #: res/i18n/html_strings.py:154
 msgid "Warning"
-msgstr ""
+msgstr "Warnung"
 
 #: res/i18n/html_strings.py:155
-#, fuzzy
 msgid "Update settings"
-msgstr "Proxy-Einstellungen"
+msgstr "Einstellungen Updates"
 
 #: res/i18n/html_strings.py:156
 msgid "Enable / Disable update here."
-msgstr ""
+msgstr "Update aktivieren / deaktivieren"
 
 #: res/i18n/html_strings.py:157
 msgid ""
@@ -947,35 +947,39 @@ msgid ""
 "default value 0 means it check for update each time agent establishes a new "
 "connection with UI) "
 msgstr ""
+"Die Update Check Frequenz festlegen. (1 bedeutet, dass einmal täglich "
+"geprüft wird, ob Updates voehanden sind. Die Standard Einstellung 0 sucht "
+"Updates immer,  wenn eine neue Verbindung mit dem UI hergestellt wird) "
 
 #: res/i18n/html_strings.py:158
 msgid "Update check frequency in days"
-msgstr ""
+msgstr "Update Check Frequenz in Tagen"
 
 #: res/i18n/html_strings.py:159
 msgid "Date on which last update check happened"
-msgstr ""
+msgstr "Datum wann das letzte Update stattfand"
 
 #: res/i18n/html_strings.py:160
 msgid "Last update check was on: "
-msgstr ""
+msgstr "Der letzte Update Check war am: "
 
 #: res/i18n/html_strings.py:161
-#, fuzzy
 msgid "Other settings"
-msgstr "Proxy-Einstellungen"
+msgstr "Weitere Einstellungen"
 
 #: res/i18n/html_strings.py:162
 msgid "Max wait time for local db access"
-msgstr ""
+msgstr "Max. Zeitlimit der lokalen Datenbank"
 
 #: res/i18n/html_strings.py:163
 msgid "If you encounter database locked error try increasing this value"
 msgstr ""
+"Wenn Sie die Fehlermeldung Datenbank gesperrt bekommen, können Sie den "
+"Standardwert des max. Zeitlimit erhöhen"
 
 #: res/i18n/html_strings.py:165
 msgid "Update Settings"
-msgstr ""
+msgstr "Änderungen speichern"
 
 #: res/i18n/html_strings.py:166 res/i18n/html_strings.py:180
 msgid "Advanced Parameters"
