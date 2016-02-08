@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pydio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-02-01 11:34+0100\n"
-"PO-Revision-Date: 2016-01-29 15:02+0100\n"
+"POT-Creation-Date: 2016-02-01 17:51+0100\n"
+"PO-Revision-Date: 2016-02-01 21:16+0100\n"
 "Last-Translator: Roland Stumpp <support@mediaoffice.de>\n"
 "Language-Team: mediaOffice GbR <support@mediaoffice.de>\n"
 "Language: de_DE\n"
@@ -391,7 +391,7 @@ msgstr ""
 "domain.com/pydio "
 
 #: res/i18n/html_strings.py:12 res/i18n/html_strings.py:13
-#: res/i18n/html_strings.py:14 res/i18n/html_strings.py:217
+#: res/i18n/html_strings.py:14 res/i18n/html_strings.py:216
 msgid "Required"
 msgstr "Erforderlich"
 
@@ -442,17 +442,17 @@ msgstr "Das System arbeitet ..."
 msgid "SYNC %1 parameters"
 msgstr "SYNC %1 Parameter"
 
-#: res/i18n/html_strings.py:25 res/i18n/html_strings.py:173
+#: res/i18n/html_strings.py:25 res/i18n/html_strings.py:172
 msgid "Server"
 msgstr "Server"
 
 #: res/i18n/html_strings.py:26 res/i18n/html_strings.py:35
-#: res/i18n/html_strings.py:98 res/i18n/html_strings.py:174
+#: res/i18n/html_strings.py:98 res/i18n/html_strings.py:173
 msgid "Workspace"
 msgstr "Dateiverzeichnis"
 
 #: res/i18n/html_strings.py:27 res/i18n/html_strings.py:36
-#: res/i18n/html_strings.py:99 res/i18n/html_strings.py:175
+#: res/i18n/html_strings.py:99 res/i18n/html_strings.py:174
 msgid "Folder"
 msgstr "Ordner"
 
@@ -486,7 +486,7 @@ msgid "Remote workspace"
 msgstr "Server Dateiverzeichnis"
 
 #: res/i18n/html_strings.py:37 res/i18n/html_strings.py:100
-#: res/i18n/html_strings.py:171
+#: res/i18n/html_strings.py:170
 msgid "Change"
 msgstr "Ändern"
 
@@ -499,7 +499,7 @@ msgid "Synchronise only a subfolder of this workspace"
 msgstr "Nur ein Unterverzeichnis von diesem Dateiverzeichnis synchronisieren"
 
 #: res/i18n/html_strings.py:40 res/i18n/html_strings.py:96
-#: res/i18n/html_strings.py:176
+#: res/i18n/html_strings.py:175
 msgid "Whole workspace"
 msgstr "Gesamtes Dateiverzeichnis"
 
@@ -679,7 +679,7 @@ msgid "You are connecting to %1"
 msgstr "Sie haben eine Serververbindung mit %1 "
 
 #: res/i18n/html_strings.py:90 res/i18n/html_strings.py:91
-#: res/i18n/html_strings.py:177 res/i18n/html_strings.py:179
+#: res/i18n/html_strings.py:176 res/i18n/html_strings.py:178
 msgid "change"
 msgstr "Ändern"
 
@@ -687,8 +687,8 @@ msgstr "Ändern"
 msgid "loading"
 msgstr "Laden…"
 
-#: res/i18n/html_strings.py:101 res/i18n/html_strings.py:183
-#: res/i18n/html_strings.py:185
+#: res/i18n/html_strings.py:101 res/i18n/html_strings.py:182
+#: res/i18n/html_strings.py:184
 msgid "Next"
 msgstr "Weiter"
 
@@ -804,7 +804,7 @@ msgstr "Festgelegter Zeitpunkt"
 msgid "Run the sync every day at"
 msgstr "Die Synchronisation täglich starten um "
 
-#: res/i18n/html_strings.py:127 res/i18n/html_strings.py:199
+#: res/i18n/html_strings.py:127 res/i18n/html_strings.py:198
 msgid "Conflicts"
 msgstr "Konflikte."
 
@@ -853,7 +853,7 @@ msgstr "Server Zeitüberschreitung"
 msgid "Increase the timeout in case of slow responsive server "
 msgstr "Zeitlimit vergrößern falls der antwortende Server zu langsam ist"
 
-#: res/i18n/html_strings.py:137 res/i18n/html_strings.py:165
+#: res/i18n/html_strings.py:137 res/i18n/html_strings.py:164
 msgid "Timeout in seconds"
 msgstr "Zeitlimit in Sekunden"
 
@@ -875,199 +875,199 @@ msgstr ""
 
 #: res/i18n/html_strings.py:141
 msgid "General configurations page"
-msgstr ""
+msgstr "Grundeinstellungen"
 
-#: res/i18n/html_strings.py:142 res/i18n/html_strings.py:218
+#: res/i18n/html_strings.py:142 res/i18n/html_strings.py:217
 msgid "Proxy settings"
 msgstr "Proxy-Einstellungen"
 
 #: res/i18n/html_strings.py:143
 msgid "Enable / Disable Proxy."
-msgstr ""
+msgstr "Proxy aktivieren / deaktivieren"
 
 #: res/i18n/html_strings.py:144
 msgid ""
 "If you want the network connections to pass through proxy, fill the "
 "parameters below."
 msgstr ""
+"Wenn die Netzwerk Verbindung über einen Proxy Server laufen soll, legen Sie "
+"bitte unten die Einstellungen fest.  "
 
 #: res/i18n/html_strings.py:145
-#, fuzzy
 msgid "Log settings"
-msgstr "Proxy-Einstellungen"
+msgstr "Einstellungen Logdateien"
 
 #: res/i18n/html_strings.py:146
 msgid "You can change the name of log file here."
-msgstr ""
+msgstr "Hier kann der Name der Logdatei festgelegt werden."
 
 #: res/i18n/html_strings.py:147
 msgid "File Name"
-msgstr ""
+msgstr "Dateiname"
 
 #: res/i18n/html_strings.py:148
-msgid "Limit the number of backup files."
-msgstr ""
+msgid "Limit the number of log files to be stored locally."
+msgstr "Die Anzahl der lokalen Logdateien begrenzen."
 
 #: res/i18n/html_strings.py:149
-msgid "Back up count"
-msgstr ""
+msgid "Number of log files"
+msgstr "Anzahl der Log-Dateien"
 
 #: res/i18n/html_strings.py:150
-msgid "Set restrictions on the file size."
-msgstr ""
+msgid "Set restrictions on log file size here."
+msgstr "Die Größe der Log-Dateien begrenzen"
 
 #: res/i18n/html_strings.py:151
-msgid "File size in bytes"
-msgstr ""
+msgid "Enhance the log details as you need them."
+msgstr "Die Log Details benutzerdefiniert festlegen."
 
 #: res/i18n/html_strings.py:152
-msgid "Enhance the log details as you need them."
-msgstr ""
+msgid "Info"
+msgstr "Info"
 
 #: res/i18n/html_strings.py:153
-msgid "Info"
-msgstr ""
+msgid "Debug"
+msgstr "Fehlerprotokoll"
 
 #: res/i18n/html_strings.py:154
-msgid "Debug"
-msgstr ""
+msgid "Warning"
+msgstr "Warnung"
 
 #: res/i18n/html_strings.py:155
-msgid "Warning"
-msgstr ""
+msgid "Update settings"
+msgstr "Einstellungen Updates"
 
 #: res/i18n/html_strings.py:156
-#, fuzzy
-msgid "Update settings"
-msgstr "Proxy-Einstellungen"
+msgid "Enable / Disable update here."
+msgstr "Update aktivieren / deaktivieren"
 
 #: res/i18n/html_strings.py:157
-msgid "Enable / Disable update here."
-msgstr ""
-
-#: res/i18n/html_strings.py:158
 msgid ""
 "Set the update check frequency (here 1 means update check only once a day, "
 "default value 0 means it check for update each time agent establishes a new "
 "connection with UI) "
 msgstr ""
+"Die Update Check Frequenz festlegen. (1 bedeutet, dass einmal täglich "
+"geprüft wird, ob Updates voehanden sind. Die Standard Einstellung 0 sucht "
+"Updates immer,  wenn eine neue Verbindung mit dem UI hergestellt wird) "
+
+#: res/i18n/html_strings.py:158
+msgid "Update check frequency in days"
+msgstr "Update Check Frequenz in Tagen"
 
 #: res/i18n/html_strings.py:159
-msgid "Update check frequency in days"
-msgstr ""
+msgid "Date on which last update check happened"
+msgstr "Datum wann das letzte Update stattfand"
 
 #: res/i18n/html_strings.py:160
-msgid "Date on which last update check happened"
-msgstr ""
+msgid "Last update check was on: "
+msgstr "Der letzte Update Check war am: "
 
 #: res/i18n/html_strings.py:161
-msgid "Date(YYYYMMDD)"
-msgstr ""
+msgid "Other settings"
+msgstr "Weitere Einstellungen"
 
 #: res/i18n/html_strings.py:162
-#, fuzzy
-msgid "Other settings"
-msgstr "Proxy-Einstellungen"
+msgid "Max wait time for local db access"
+msgstr "Max. Zeitlimit der lokalen Datenbank"
 
 #: res/i18n/html_strings.py:163
-msgid "Max wait time for local db access"
-msgstr ""
-
-#: res/i18n/html_strings.py:164
 msgid "If you encounter database locked error try increasing this value"
 msgstr ""
+"Wenn Sie die Fehlermeldung Datenbank gesperrt bekommen, können Sie den "
+"Standardwert des max. Zeitlimit erhöhen"
 
-#: res/i18n/html_strings.py:166
+#: res/i18n/html_strings.py:165
 msgid "Update Settings"
-msgstr ""
+msgstr "Änderungen speichern"
 
-#: res/i18n/html_strings.py:167 res/i18n/html_strings.py:181
+#: res/i18n/html_strings.py:166 res/i18n/html_strings.py:180
 msgid "Advanced Parameters"
 msgstr "Erweiterte Einstellungen"
 
-#: res/i18n/html_strings.py:168
+#: res/i18n/html_strings.py:167
 msgid "Save changes"
 msgstr "Änderungen speichern"
 
-#: res/i18n/html_strings.py:169
+#: res/i18n/html_strings.py:168
 msgid "2/3 Select a destination"
 msgstr "2/3 Wählen Sie einen lokalen Zielordner"
 
-#: res/i18n/html_strings.py:170
+#: res/i18n/html_strings.py:169
 msgid "By default a local folder will be created on your computer"
 msgstr "Standardmäßig wird ein lokaler Ordner auf Ihrem Computer erzeugt"
 
-#: res/i18n/html_strings.py:172
+#: res/i18n/html_strings.py:171
 msgid "3/3 Optional Parameters"
 msgstr "3/3 Optionale Einstellungen"
 
-#: res/i18n/html_strings.py:178
+#: res/i18n/html_strings.py:177
 msgid "Local folder"
 msgstr "Ordner auf dem lokalen Computer"
 
-#: res/i18n/html_strings.py:180
+#: res/i18n/html_strings.py:179
 msgid "Name this synchro"
 msgstr "Benennen Sie diese Synchronisation"
 
-#: res/i18n/html_strings.py:182 res/i18n/html_strings.py:184
+#: res/i18n/html_strings.py:181 res/i18n/html_strings.py:183
 msgid "Previous"
 msgstr "Zurück"
 
-#: res/i18n/html_strings.py:186 res/i18n/html_strings.py:190
-#: res/i18n/html_strings.py:192 res/i18n/html_strings.py:196
+#: res/i18n/html_strings.py:185 res/i18n/html_strings.py:189
+#: res/i18n/html_strings.py:191 res/i18n/html_strings.py:195
 msgid "Status"
 msgstr "Status"
 
-#: res/i18n/html_strings.py:187 res/i18n/html_strings.py:191
-#: res/i18n/html_strings.py:193
+#: res/i18n/html_strings.py:186 res/i18n/html_strings.py:190
+#: res/i18n/html_strings.py:192
 msgid "syncing"
 msgstr "Synchronisierung"
 
-#: res/i18n/html_strings.py:188
+#: res/i18n/html_strings.py:187
 msgid "Size"
 msgstr "Grösse"
 
-#: res/i18n/html_strings.py:189
+#: res/i18n/html_strings.py:188
 msgid "Estimated time"
 msgstr "Geschätzte Zeit"
 
-#: res/i18n/html_strings.py:194
+#: res/i18n/html_strings.py:193
 msgid "Last sync"
 msgstr "Letzte Synchronisation"
 
-#: res/i18n/html_strings.py:195
+#: res/i18n/html_strings.py:194
 msgid "ERROR"
 msgstr "FEHLER"
 
-#: res/i18n/html_strings.py:197
+#: res/i18n/html_strings.py:196
 msgid "idle"
 msgstr "leer"
 
-#: res/i18n/html_strings.py:198
+#: res/i18n/html_strings.py:197
 msgid "[DISABLED]"
 msgstr "[Deaktiviert]"
 
-#: res/i18n/html_strings.py:200
+#: res/i18n/html_strings.py:199
 msgid "Solve Conflict"
 msgstr "Einen Konflikt lösen"
 
-#: res/i18n/html_strings.py:201
+#: res/i18n/html_strings.py:200
 msgid "Solved"
 msgstr "Gelöst!"
 
-#: res/i18n/html_strings.py:202
+#: res/i18n/html_strings.py:201
 msgid "Last files synced"
 msgstr "Zuletzt synchronisierte Dateien"
 
-#: res/i18n/html_strings.py:203
+#: res/i18n/html_strings.py:202
 msgid "Open File"
 msgstr "Datei öffnen"
 
-#: res/i18n/html_strings.py:204
+#: res/i18n/html_strings.py:203
 msgid "Transfers in progress"
 msgstr "Fortschritt des Datentransfers"
 
-#: res/i18n/html_strings.py:205
+#: res/i18n/html_strings.py:204
 msgid ""
 "An element named %1 was modified on both the server and on your local "
 "computer. Select how you want to solve this conflicting case:"
@@ -1075,43 +1075,43 @@ msgstr ""
 "Eine Datei mit dem Namen %1 wurde sowohl auf dem Server als auch auf Ihrem "
 "lokalen Computer geändert. Wählen Sie aus wie Sie solche Konflikte lösen:"
 
-#: res/i18n/html_strings.py:206
+#: res/i18n/html_strings.py:205
 msgid "Apply to all conflicts"
 msgstr "Gilt für alle Konflikte"
 
-#: res/i18n/html_strings.py:207
+#: res/i18n/html_strings.py:206
 msgid "Mine"
 msgstr "Meine"
 
-#: res/i18n/html_strings.py:208
+#: res/i18n/html_strings.py:207
 msgid "Both Versions"
 msgstr "Beide Versionen"
 
-#: res/i18n/html_strings.py:209
+#: res/i18n/html_strings.py:208
 msgid "Theirs"
 msgstr "Ihre"
 
-#: res/i18n/html_strings.py:210 res/i18n/html_strings.py:211
+#: res/i18n/html_strings.py:209 res/i18n/html_strings.py:210
 msgid "Create a new synchronization"
 msgstr "Erstellen Sie eine neue Synchronisation"
 
-#: res/i18n/html_strings.py:212
+#: res/i18n/html_strings.py:211
 msgid "Please wait ..."
 msgstr "Bitte warten ..."
 
-#: res/i18n/html_strings.py:213
+#: res/i18n/html_strings.py:212
 msgid "Welcome to the Pydio Sync"
 msgstr "Willkommen beim Pydio-Sync"
 
-#: res/i18n/html_strings.py:214
+#: res/i18n/html_strings.py:213
 msgid "The easiest way to keep your data in control"
 msgstr "Der einfachste Weg, Ihre Daten unter Kontrolle zu halten"
 
-#: res/i18n/html_strings.py:215
+#: res/i18n/html_strings.py:214
 msgid "Loading..."
 msgstr "Lade..."
 
-#: res/i18n/html_strings.py:216 res/i18n/html_strings.py:219
+#: res/i18n/html_strings.py:215 res/i18n/html_strings.py:218
 msgid "Get Started"
 msgstr "Los geht's"
 
