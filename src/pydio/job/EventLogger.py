@@ -26,6 +26,7 @@ import datetime
 import logging
 from pydio.job.localdb import DBCorruptedException
 from pydio.utils.pydio_profiler import pydio_profile
+from pydio.utils.global_config import GlobalConfigManager
 
 
 class EventLogger():
@@ -36,9 +37,11 @@ class EventLogger():
             os.mkdir(job_data_path)
         if not os.path.exists(self.db):
             self.init_db()
+        global_config_manager = GlobalConfigManager.Instance(configs_path=job_data_path)
+        self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
 
     def init_db(self):
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         cursor = conn.cursor()
         if getattr(sys, 'frozen', False):
             respath = (Path(sys._MEIPASS)) / 'res' / 'create.sql'
@@ -59,7 +62,7 @@ class EventLogger():
     @pydio_profile
     def log(self, event_type, message, action, status, source='', target='', uniq=False):
         insert = True
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         if uniq:
             try:
                 sel = conn.execute('SELECT id FROM events WHERE type=?', (event_type, ))
@@ -84,7 +87,7 @@ class EventLogger():
 
     @pydio_profile
     def get_all(self, limit=10, offset=0, filter_type=None, filter_action=None):
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         events = []
         try:
             c = conn.cursor()
@@ -116,7 +119,7 @@ class EventLogger():
     def consume_notification(self):
         events = self.get_all(1, 0, filter_type='notif')
         if len(events):
-            conn = sqlite3.connect(self.db)
+            conn = sqlite3.connect(self.db, timeout=self.timeout)
             conn.execute("DELETE FROM events WHERE type=?", ('notif',))
             conn.commit()
             conn.close()
@@ -139,7 +142,7 @@ class EventLogger():
         type_list = ['local', 'remote']
         if type in type_list:
             logging.debug("type ok")
-            conn = sqlite3.connect(self.db)
+            conn = sqlite3.connect(self.db, timeout=self.timeout)
             c = conn.cursor()
             events = c.execute("SELECT * FROM events WHERE type = '%s' ORDER BY date DESC" % type).fetchall()
             c.close()
@@ -151,7 +154,7 @@ class EventLogger():
     def get_all_from_action(self, action):
         action_list = ['download', 'upload', 'move', 'mkdir', 'delete_folder', 'delete_file', 'delete']
         if action in action_list:
-            conn = sqlite3.connect(self.db)
+            conn = sqlite3.connect(self.db, timeout=self.timeout)
             c = conn.cursor()
             events = c.execute("SELECT * FROM events WHERE action = '%s' ORDER BY date DESC" % action).fetchall()
             c.close()
@@ -163,7 +166,7 @@ class EventLogger():
     def get_all_from_status(self, status):
         status_list = ['in_progress', 'done', 'undefined']
         if status in status_list:
-            conn = sqlite3.connect(self.db)
+            conn = sqlite3.connect(self.db, timeout=self.timeout)
             c = conn.cursor()
             events = c.execute("SELECT * FROM events WHERE status = '%s' ORDER BY date DESC" % status).fetchall()
             c.close()
@@ -177,7 +180,7 @@ class EventLogger():
         :return: [last row from events]
         """
         res = []
-        c = sqlite3.connect(self.db).cursor()
+        c = sqlite3.connect(self.db, timeout=self.timeout).cursor()
         res = c.execute("SELECT * FROM events ORDER BY id DESC LIMIT 1").fetchall()
         c.close()
         return res
