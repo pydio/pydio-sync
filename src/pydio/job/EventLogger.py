@@ -35,10 +35,11 @@ class EventLogger():
         self.db = job_data_path + '/pydio.sqlite'
         if not os.path.exists(job_data_path):
             os.mkdir(job_data_path)
-        if not os.path.exists(self.db):
-            self.init_db()
+        # Fetch the local db access timeout
         global_config_manager = GlobalConfigManager.Instance(configs_path=job_data_path)
         self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
+        if not os.path.exists(self.db):
+            self.init_db()
 
     def init_db(self):
         conn = sqlite3.connect(self.db, timeout=self.timeout)
