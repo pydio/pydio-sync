@@ -545,6 +545,10 @@ class SqliteChangeStore():
     def remove(self, location, seq_id):
         self.conn.execute("DELETE FROM ajxp_changes WHERE location=? AND seq_id=?", (location, seq_id))
 
+    def remove_based_on_location(self, location):
+        self.conn.execute("DELETE FROM ajxp_changes WHERE location=?", (location,))
+        self.conn.commit()
+
     #showing the changes store state
     def debug(self, after=""):
         logging.info(2*"\n" + 15*"#")
