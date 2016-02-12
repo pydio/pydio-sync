@@ -443,7 +443,7 @@ class PydioSdk():
                 return False
         except requests.exceptions.ConnectionError as ce:
             logging.error("Connection Error " + str(ce))
-        except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout as ce:
             logging.error("Timeout Error " + str(ce))
         except Exception, ex:
             logging.warning("Stat failed", exc_info=ex)
