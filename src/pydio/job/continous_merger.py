@@ -118,7 +118,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.marked_for_snapshot_pathes = []
 
         dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel='status', message='START')
-        if job_config.direction != 'down':
+        if job_config.direction != 'down' or (self.job_config.direction == 'down' and self.job_config.solve != 'remote'):
             self.event_handler = SqlEventHandler(includes=job_config.filters['includes'],
                                                  excludes=job_config.filters['excludes'],
                                                  basepath=job_config.directory,
@@ -468,7 +468,7 @@ class ContinuousDiffMerger(threading.Thread):
                     self.job_config.server_configs = self.sdk.load_server_configs()
                 self.sdk.set_server_configs(self.job_config.server_configs)
 
-                if self.job_config.direction != 'down':
+                if self.job_config.direction != 'down' or (self.job_config.direction == 'down' and self.job_config.solve != 'remote'):
                     logging.info(
                         'Loading local changes with sequence {0:s} for job id {1:s}'.format(str(self.local_seq),
                                                                                               str(self.job_config.id)))
@@ -536,6 +536,10 @@ class ContinuousDiffMerger(threading.Thread):
                     self.current_store.close()
                     self.sleep_offline()
                     continue
+
+                if self.job_config.direction == 'down' and self.job_config.solve != 'remote':
+                    self.current_store.remove_based_on_location('local')
+                    self.update_min_seqs_from_store()
 
                 changes_length = len(self.current_store)
                 if not changes_length:

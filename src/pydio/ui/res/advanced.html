@@ -42,7 +42,7 @@
 </div>
 
 
-<div style="clear: left;">
+<div style="clear: left;" ng-hide="job.direction=='up'">
     <h4>{{_('Conflicts')}}</h4>
     <div class="well">
         <p class="small">{{_('When files were modified on both the server and your computer at the same time, a conflict is detected.')}}</p>
@@ -60,16 +60,18 @@
         <div style="margin-top:1%; font-size:1em;">
             <div style="" ng-hide="job.solve=='manual'">
                 <p class="small">{{_('With the default keep-both behavior conflicting files will be copied on your local sync. Which version is to be kept?')}}</p>
-                <div class="advanced_radio_box conflict_small" ng-class="{'label-radio-selected':job.solve=='both'}" ng-click="job.solve='both'">
-                    <label hover="Blabla">{{_('Keep both')}}</label>
+                <div style="text-align: center;">
+                    <div class="advanced_radio_box conflict_small" ng-class="{'label-radio-selected':job.solve=='both'}" ng-click="job.solve='both'">
+                        <label hover="Blabla">{{_('Keep both')}}</label>
+                    </div>
+                    <div class="advanced_radio_box conflict_small" ng-hide="job.direction=='down'" ng-class="{'label-radio-selected':job.solve=='local'}" ng-click="job.solve='local'">
+                        <label>{{_('Prefer local')}}</label>
+                    </div>
+                    <div class="advanced_radio_box conflict_small" ng-class="{'label-radio-selected':job.solve=='remote'}" ng-click="job.solve='remote'">
+                        <label>{{_('Prefer remote')}}</label>
+                    </div>
                 </div>
-                <div class="advanced_radio_box conflict_small" ng-class="{'label-radio-selected':job.solve=='local'}" ng-click="job.solve='local'">
-                    <label>{{_('Prefer local')}}</label>
-                </div>
-                <div class="advanced_radio_box conflict_small" ng-class="{'label-radio-selected':job.solve=='remote'}" ng-click="job.solve='remote'">
-                    <label>{{_('Prefer remote')}}</label>
-                </div>
-         </div>
+            </div>
     </div>
     </div>
 </div>
