@@ -129,7 +129,7 @@ class JobConfig:
             # '~*' --> temp doc files
             # '*.xlk' --> temp excel files
             # '*.tmp' --> windows temp files
-            # ~lock.* --> temp lock files metadata
+            # ~lock.* --> temp lock files
             # .DS_Store --> stores metadata information in mac
             excludes=['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store', '.~lock.*', '~*', '*.xlk', '*.tmp']
         )

@@ -494,7 +494,9 @@ class ConflictsManager(Resource):
             return "Can't find any job config with this ID.", 404
 
         dbHandler = LocalDbHandler(JobsLoader.Instance().build_job_data_path(job_id))
-        dbHandler.update_node_status(json_conflict['node_path'], json_conflict['status'])
+        dbHandler.update_node_status(json_conflict['node_path'], str(json_conflict['status']))
+
+        # only once all the conflicts are resolved, we do the conflict resolution
         if not dbHandler.count_conflicts() and job_config.active:
             t = PydioScheduler.Instance().get_thread(job_id)
             if t:

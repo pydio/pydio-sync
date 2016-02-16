@@ -766,11 +766,10 @@ class SqlEventHandler(FileSystemEventHandler):
                     os.path.getmtime(src_path),
                     pickle.dumps(os.stat(src_path)),
                     search_key,
-                    bytesize,
                     hash_key
                 )
                 logging.debug("Real update %s if not the same" % search_key)
-                conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND bytesize!=? AND md5!=?", t)
+                conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND md5!=?", t)
             else:
                 t = (
                     os.path.getsize(src_path),
