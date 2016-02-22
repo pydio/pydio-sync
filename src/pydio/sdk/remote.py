@@ -571,14 +571,29 @@ class PydioSdk():
         :return: response of the server
         """
         if os.path.dirname(source) == os.path.dirname(target):
+            # logging.debug("[sdk remote] /rename " + source + " to " + target)
             url = self.url + '/rename'
             data = dict(file=self.normalize(self.remote_folder + source).encode('utf-8'),
                         dest=self.normalize(self.remote_folder + target).encode('utf-8'))
-        else:
+        elif os.path.split(source)[-1] == os.path.split(target)[-1]:
+            # logging.debug("[sdk remote] /move " + source + " into " + target)
             url = self.url + '/move'
-            data = dict(
-                file=(self.normalize(self.remote_folder + source)).encode('utf-8'),
-                dest=os.path.dirname((self.normalize(self.remote_folder + target).encode('utf-8'))))
+            data = dict(file=(self.normalize(self.remote_folder + source)).encode('utf-8'),
+                        dest=os.path.dirname((self.normalize(self.remote_folder + target).encode('utf-8'))))
+        else:
+            # logging.debug("[remote sdk debug] MOVEANDRENAME " + source + " " + target)
+            url1 = self.url + '/rename'
+            url2 = self.url + '/move'
+            tmpname = os.path.join(self.remote_folder, os.path.join(*os.path.split(source)[:-1]), os.path.split(target)[-1])
+            data1 = dict(file=self.normalize(self.remote_folder + source).encode('utf-8'),
+                         dest=self.normalize(tmpname).encode('utf-8'))
+            data2 = dict(file=self.normalize(tmpname).encode('utf-8'),
+                         dest=os.path.dirname((self.normalize(self.remote_folder + target).encode('utf-8'))))
+            resp1 = self.perform_request(url=url1, type='post', data=data1)
+            resp2 = self.perform_request(url=url2, type='post', data=data2)
+            self.is_pydio_error_response(resp1)
+            self.is_pydio_error_response(resp2)
+            return resp1.content + resp2.content
         resp = self.perform_request(url=url, type='post', data=data)
         self.is_pydio_error_response(resp)
         return resp.content
