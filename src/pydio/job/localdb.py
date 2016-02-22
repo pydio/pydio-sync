@@ -23,7 +23,6 @@ from sqlite3 import OperationalError
 import sys
 import os
 import hashlib
-import threading
 import time
 import fnmatch
 import pickle
@@ -577,11 +576,11 @@ class SqlEventHandler(FileSystemEventHandler):
     def on_moved(self, event):
 
         if not self.included(event):
-            logging.debug('ignoring move event ' + event.src_path + event.dest_path)
+            logging.debug('ignoring move event ' + event.src_path.decode('ascii', 'ignore') + event.dest_path.decode('ascii', 'ignore'))
             return
 
         self.lock_db()
-        logging.debug("Event: move noticed: " + event.event_type + " on file " + event.dest_path + " at " + time.asctime())
+        logging.debug("Event: move noticed: " + event.event_type + " on file " + event.dest_path.decode('ascii', 'ignore') + " at " + time.asctime())
         target_key = self.remove_prefix(self.get_unicode_path(event.dest_path))
         source_key = self.remove_prefix(self.get_unicode_path(event.src_path))
 
@@ -623,10 +622,10 @@ class SqlEventHandler(FileSystemEventHandler):
     @pydio_profile
     def on_created(self, event):
         if not self.included(event):
-            logging.debug('ignoring create event %s ' % event.src_path)
+            logging.debug('ignoring create event %s ' % event.src_path.decode('ascii', 'ignore'))
             return
         logging.debug("Event: creation noticed: " + event.event_type +
-                         " on file " + event.src_path + " at " + time.asctime())
+                         " on file " + event.src_path.decode('ascii', 'ignore') + " at " + time.asctime())
         self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
@@ -641,7 +640,7 @@ class SqlEventHandler(FileSystemEventHandler):
     def on_deleted(self, event):
         if not self.included(event):
             return
-        logging.debug("Event: deletion noticed: " + event.event_type + " on file " + event.src_path + " at " + time.asctime())
+        logging.debug("Event: deletion noticed: " + event.event_type + " on file " + event.src_path.decode('ascii', 'ignore') + " at " + time.asctime())
         self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
@@ -664,7 +663,7 @@ class SqlEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
         super(SqlEventHandler, self).on_modified(event)
         if not self.included(event):
-            logging.debug('ignoring modified event ' + event.src_path)
+            logging.debug('ignoring modified event ' + event.src_path.decode('ascii', 'ignore'))
             return
         self.lock_db()
         try:
@@ -691,7 +690,7 @@ class SqlEventHandler(FileSystemEventHandler):
         self.unlock_db()
 
     @pydio_profile
-    def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert = False):
+    def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert=False):
         search_key = self.remove_prefix(src_path)
         hash_key = 'directory'
 
