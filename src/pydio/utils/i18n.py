@@ -52,6 +52,8 @@ def get_languages():
             languages += [os.popen("defaults read .GlobalPreferences AppleLanguages | tr -d [:space:] | cut -c2-3").read()[:-1]]
         except Exception as e:
             logging.debug("There was a problem getting the language. " + str(e.message))
+            logging.exception(e)
+
     lc, encoding = locale.getdefaultlocale()
     if lc:
         languages = [lc]

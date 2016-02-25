@@ -381,6 +381,7 @@ class LocalDbHandler():
 
     @pydio_profile
     def clear_operations_buffer(self):
+        #logging.info("CLEARING local db ajxp_last_buffer")
         conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.execute("DELETE FROM ajxp_last_buffer")
         conn.commit()
@@ -576,11 +577,11 @@ class SqlEventHandler(FileSystemEventHandler):
     def on_moved(self, event):
 
         if not self.included(event):
-            logging.debug('ignoring move event ' + event.src_path.decode('ascii', 'ignore') + event.dest_path.decode('ascii', 'ignore'))
+            logging.debug('ignoring move event ' + event.src_path + " " + event.dest_path)
             return
 
         self.lock_db()
-        logging.debug("Event: move noticed: " + event.event_type + " on file " + event.dest_path.decode('ascii', 'ignore') + " at " + time.asctime())
+        logging.debug("Event: move noticed: " + event.event_type + " on file " + event.dest_path + " at " + time.asctime())
         target_key = self.remove_prefix(self.get_unicode_path(event.dest_path))
         source_key = self.remove_prefix(self.get_unicode_path(event.src_path))
 
@@ -622,10 +623,10 @@ class SqlEventHandler(FileSystemEventHandler):
     @pydio_profile
     def on_created(self, event):
         if not self.included(event):
-            logging.debug('ignoring create event %s ' % event.src_path.decode('ascii', 'ignore'))
+            logging.debug('ignoring create event %s ' % event.src_path)
             return
         logging.debug("Event: creation noticed: " + event.event_type +
-                         " on file " + event.src_path.decode('ascii', 'ignore') + " at " + time.asctime())
+                         " on file " + event.src_path + " at " + time.asctime())
         self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
@@ -640,7 +641,7 @@ class SqlEventHandler(FileSystemEventHandler):
     def on_deleted(self, event):
         if not self.included(event):
             return
-        logging.debug("Event: deletion noticed: " + event.event_type + " on file " + event.src_path.decode('ascii', 'ignore') + " at " + time.asctime())
+        logging.debug("Event: deletion noticed: " + event.event_type + " on file " + event.src_path + " at " + time.asctime())
         self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
@@ -663,7 +664,7 @@ class SqlEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
         super(SqlEventHandler, self).on_modified(event)
         if not self.included(event):
-            logging.debug('ignoring modified event ' + event.src_path.decode('ascii', 'ignore'))
+            logging.debug('ignoring modified event ' + event.src_path)
             return
         self.lock_db()
         try:
@@ -701,6 +702,7 @@ class SqlEventHandler(FileSystemEventHandler):
                 try:
                     hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
                 except Exception as e:
+                    logging.exception(e)
                     return
 
         node_id = False
@@ -794,6 +796,7 @@ class SqlEventHandler(FileSystemEventHandler):
                     hidden.close()
                     set_file_hidden(path + "\\.pydio_id")
             except Exception as e:
+                logging.exception(e)
                 logging.error("Error while trying to save hidden file .pydio_id : %s" % e.message)
 
     @pydio_profile
@@ -826,8 +829,9 @@ class SqlEventHandler(FileSystemEventHandler):
         for row in res:
             try:
                 if (md5 and row['deleted_md5'] == md5) or (node_id and row['node_id'] == node_id):
-                    return {'source':row['source'], 'node_id':row['node_id']}
+                    return {'source': row['source'], 'node_id': row['node_id']}
             except Exception as e:
+                logging.exception(e)
                 pass
 
         return None

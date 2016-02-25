@@ -1,4 +1,4 @@
-#
+#  -*- coding: utf-8 -*-
 #  Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 #  This file is part of Pydio.
 #
@@ -26,7 +26,7 @@ import threading
 import pickle
 import logging
 
-from requests.exceptions import ConnectionError, RequestException, Timeout, SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, InvalidSchema, InvalidURL
+from requests.exceptions import RequestException, Timeout, SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, InvalidSchema, InvalidURL
 from pydio.job.change_processor import ChangeProcessor, StorageChangeProcessor
 from pydio.job.job_config import JobsLoader
 from pydio.job.localdb import LocalDbHandler, SqlEventHandler, DBCorruptedException
@@ -40,7 +40,6 @@ from pydio.utils.functions import connection_helper
 
 from pydispatch import dispatcher
 from pydio import PUBLISH_SIGNAL, TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
-# -*- coding: utf-8 -*-
 from pydio.utils.global_config import ConfigManager
 
 from pydio.utils import i18n
@@ -137,7 +136,8 @@ class ContinuousDiffMerger(threading.Thread):
                 if self.event_handler:
                     self.event_handler.last_seq_id = self.local_seq
 
-            except Exception:
+            except Exception as e:
+                logging.exception(e)
                 # Wrong content, remove sequences file.
                 os.unlink(os.path.join(self.configs_path, "sequences"))
 
@@ -368,6 +368,7 @@ class ContinuousDiffMerger(threading.Thread):
                     logging.error(e)
                     return
                 except Exception as e:
+                    logging.exception(e)
                     self.interrupt = True
                     logger.log_state(_('Oops, error while indexing the local folder. Pausing the task.'), 'error')
                     logging.error(e)
@@ -458,7 +459,7 @@ class ContinuousDiffMerger(threading.Thread):
                     continue
                 except Exception as e:
                     error = 'Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer)
-                    logging.error(error)
+                    logging.exception(e)
                     logger.log_state(_('Error while connecting to remote server (%s)') % e.message, "error")
                     self.marked_for_snapshot_pathes = []
                     self.sleep_offline()
@@ -583,7 +584,7 @@ class ContinuousDiffMerger(threading.Thread):
                     except PydioSdkDefaultException as p:
                         raise p
                     except Exception as ex:
-                        logging.exception(ex.message)
+                        logging.exception(ex)
                         return False
                     return True
 
@@ -633,7 +634,8 @@ class ContinuousDiffMerger(threading.Thread):
                 if not (e.message.lower().count('[quota limit reached]') or e.message.lower().count('[file permissions]')):
                     logging.exception('Unexpected Error: %s' % e.message)
                     logger.log_state(_('Unexpected Error: %s') % e.message, 'error')
-
+                else:
+                    logging.exception(e)
             logging.debug('Finished this cycle, waiting for %i seconds' % self.online_timer)
             very_first = False
 

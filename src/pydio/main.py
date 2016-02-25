@@ -153,7 +153,8 @@ def main(argv=sys.argv[1:]):
             if not os.path.exists(user_dir):
                 try:
                     os.mkdir(user_dir)
-                except Exception:
+                except Exception as e:
+                    logging.exception(e)
                     pass
             if os.path.exists(user_dir):
                 from pydio.utils.favorites_manager import add_to_favorites

@@ -449,6 +449,7 @@ class SqliteChangeStore():
 
 
     def clear_operations_buffer(self):
+        # logging.info("CLEARING ajxp_last_buffer")
         self.conn.execute("DELETE FROM ajxp_last_buffer")
         self.conn.commit()
 

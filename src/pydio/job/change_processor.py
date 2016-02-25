@@ -120,7 +120,8 @@ class ChangeProcessor:
 
                 if bulk:
                     self.change_store.bulk_buffer_real_operation(bulk)
-            except Exception as e :
+            except Exception as e:
+                logging.exception(e)
                 pass
         else:
             logging.debug('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
@@ -221,6 +222,7 @@ class ChangeProcessor:
                 self.local_sdk.rsync_patch(full_path, delta_path)
                 message = path + ' <====PATCH====== ' + path
             except Exception as e:
+                logging.exception(e)
                 self.remote_sdk.download(path, self.job_config.directory + path, callback_dict)
             if os.path.exists(sig_path):
                 os.remove(sig_path)
@@ -251,6 +253,7 @@ class ChangeProcessor:
                 self.remote_sdk.rsync_patch(path, delta_path)
                 message = path + ' =====PATCH=====> ' + path
             except Exception as e:
+                logging.exception(e)
                 self.remote_sdk.upload(full_path, self.local_sdk.stat(path), path, callback_dict,
                                max_upload_size=max_upload_size)
             finally:
@@ -327,7 +330,8 @@ class StorageChangeProcessor(ChangeProcessor):
 
                 if bulk:
                     self.change_store.bulk_buffer_real_operation(bulk)
-            except Exception as e :
+            except Exception as e:
+                logging.exception(e)
                 pass
         else:
             logging.debug('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])

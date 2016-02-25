@@ -93,6 +93,7 @@ class ConfigManager:
                     else:
                         logging.error('The proxy data is not the form of dict obj')
                 except Exception as e:
+                    logging.exception(e)
                     logging.error('Error while trying to load proxies.json file')
 
             if data != "":

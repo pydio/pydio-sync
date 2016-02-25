@@ -174,7 +174,8 @@ class LocalWatcher(threading.Thread):
             logging.debug("Stopping: %s" % self.observer)
             try:
                 self.observer.stop()
-            except Exception:
+            except Exception as e:
+                logging.exception(e)
                 logging.error("Error while stopping watchdog thread!")
 
     @pydio_profile

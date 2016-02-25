@@ -123,6 +123,7 @@ class BytesIOWithFile(BytesIO):
             try:
                 self.callback(self.full_length, self.cursor + (self.file_part)*self.chunk_size, len(chunk), transfer_rate)
             except Exception as e:
+                logging.exception(e)
                 logging.warning('Buffered reader callback error')
         dispatcher.send(signal=TRANSFER_RATE_SIGNAL, transfer_rate=transfer_rate, sender=self._signal_sender)
         #duration = time.time() - before

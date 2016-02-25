@@ -109,6 +109,7 @@ class PydioSdk():
                 test = unicodedata.normalize('NFC', unicode_path)
                 unicode_path = test
             except ValueError as e:
+                logging.exception(e)
                 pass
         return urllib.pathname2url(unicode_path.encode('utf-8'))
 
@@ -118,6 +119,7 @@ class PydioSdk():
                 test = unicodedata.normalize('NFC', unicode_path)
                 return test
             except ValueError as e:
+                logging.exception(e)
                 return unicode_path
         else:
             return unicode_path
@@ -128,6 +130,7 @@ class PydioSdk():
                 test = unicodedata.normalize('NFD', unicode_path)
                 return test
             except ValueError as e:
+                logging.exception(e)
                 return unicode_path
         else:
             return unicode_path
@@ -282,16 +285,16 @@ class PydioSdk():
         :param url: str url to query
         :param type: str http method, default is "get"
         :param data: dict query parameters
-        :param files: dict files, described as {'fieldname':'path/to/file'}
+        :param files: dict files, described as {'filename':'path/to/file'}
         :param stream: bool get response as a stream
         :param with_progress: dict an object that can be updated with various progress data
         :return:
         """
-        # We knwo that token auth is not supported anyway
+        # We know that token auth is not supported anyway
+        logging.debug(url)
         if self.stick_to_basic:
             return self.perform_basic(url, request_type=type, data=data, files=files, headers=headers, stream=stream,
                                           with_progress=with_progress)
-
         tokens = self.get_tokens()
         if not tokens:
             try:
@@ -352,8 +355,12 @@ class PydioSdk():
         except requests.exceptions.ConnectionError:
             raise
         try:
-            return json.loads(resp.content)
+            if platform.system() == "Darwin":
+                return json.loads(self.normalize_reverse(resp.content.decode('unicode_escape')))
+            else:
+                return json.loads(resp.content)
         except ValueError as v:
+            logging.exception(v)
             raise Exception(_("Invalid JSON value received while getting remote changes. Is the server correctly configured?"))
 
     def changes_stream(self, last_seq, callback):
@@ -384,6 +391,8 @@ class PydioSdk():
                     return int(line.split(':')[1])
                 else:
                     try:
+                        if platform.system() == "Darwin":
+                            line = self.normalize_reverse(line.decode('unicode_escape'))
                         one_change = json.loads(line)
                         node = one_change.pop('node')
                         one_change = dict(node.items() + one_change.items())
@@ -393,6 +402,7 @@ class PydioSdk():
                         logging.error('Invalid JSON Response, line was ' + line)
                         raise Exception(_('Invalid JSON value received while getting remote changes'))
                     except Exception as e:
+                        logging.exception(e)
                         raise e
 
     def stat(self, path, with_hash=False, partial_hash=None):
@@ -431,8 +441,12 @@ class PydioSdk():
                 resp = self.perform_request(url)
 
             try:
-                data = json.loads(resp.content)
+                content = resp.content
+                if platform.system() == "Darwin":
+                    content = self.normalize_reverse(content.decode('unicode_escape'))
+                data = json.loads(content)
             except ValueError as ve:
+                logging.exception(ve)
                 return False
             logging.debug("data: %s" % data)
             if not data:
@@ -446,6 +460,7 @@ class PydioSdk():
         except requests.exceptions.Timeout as ce:
             logging.error("Timeout Error " + str(ce))
         except Exception, ex:
+            logging.exception(ex)
             logging.warning("Stat failed", exc_info=ex)
         return False
 
@@ -484,6 +499,7 @@ class PydioSdk():
             return self.bulk_stat(pathes, result=result, with_hash=with_hash)
 
         try:
+            # Possible Composed, Decomposed utf-8 is handled later...
             data = json.loads(resp.content)
         except ValueError:
             logging.debug("url: %s" % url)
@@ -811,6 +827,7 @@ class PydioSdk():
                 raise pe
 
         except Exception as e:
+            logging.exception(e)
             if os.path.exists(local_tmp):
                 os.unlink(local_tmp)
             raise PydioSdkException('download', path, _('Error while downloading file: %s') % e.message)
@@ -898,6 +915,7 @@ class PydioSdk():
             error = str(element.get('type')).lower() == 'error'
             message = element[0].text
         except Exception as e:
+            logging.exception(e)
             pass
         if error:
             raise PydioSdkDefaultException(message)

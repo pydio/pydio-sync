@@ -191,7 +191,8 @@ class PydioApi(Api):
         try:
             self.running = True
             self.app.run(port=self.port, host=self.external_ip)
-        except Exception:
+        except Exception as e:
+            logging.exception(e)
             self.running = False
             logging.exception("Error while starting web server")
 
@@ -490,7 +491,8 @@ class ConflictsManager(Resource):
         job_id = json_conflict['job_id']
         try:
             job_config = JobsLoader.Instance().get_job(job_id)
-        except Exception:
+        except Exception as e:
+            logging.exception(e)
             return "Can't find any job config with this ID.", 404
 
         dbHandler = LocalDbHandler(JobsLoader.Instance().build_job_data_path(job_id))
@@ -600,6 +602,7 @@ class ProxyManager(Resource):
             logging.error("Error while storing password in keychain, should we store it cyphered in the config?")
         except Exception as e:
             logging.error("Error while storing password in keychain, error message:" + e.message)
+            logging.exception(e)
 
         ConfigManager.Instance().proxies_loaded = False
         # write the content into local proxy.json file
@@ -761,9 +764,11 @@ class ShareLinkManager(Resource):
                     s.send(txt)
                     s.close()
                 except Exception as e:
+                    logging.exception(e)
                     raise e
             return {"status": "Write to the Name pipe is successful!"}
         except Exception as e:
+            logging.exception(e)
             return {"status": "error", "message": str(e)}
 
 class ShareCopyManager(Resource):
@@ -807,6 +812,7 @@ class ShareCopyManager(Resource):
                 else:
                     start_new_thread(copy2, tuple((org_path, dest_folder)))
         except Exception as e:
+            logging.exception(e)
             logging.error("[ShareCopyManager] " + str(e.args) + " _ " + str(e.message))
             return {"status": "error", "message": str(e.message)}
         return {"status": "success", "message": "Copy was succesful"}
