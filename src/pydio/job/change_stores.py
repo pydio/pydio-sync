@@ -280,6 +280,7 @@ class SqliteChangeStore():
         self.remote_sdk = remote_sdk
         local = self.get_row_count('local')
         rem = self.get_row_count('remote')
+        logging.debug("[detect unecessary] LOCAL CHANGES: " + str(local) + " REMOTE CHANGES " + str(rem))
         bulk_size = 400
         ids_to_delete = []
         for i in range(0, int(math.ceil(float(local) / float(bulk_size)))):
@@ -288,7 +289,7 @@ class SqliteChangeStore():
             ids_to_delete = ids_to_delete + self.filter_w_stat('remote', self.remote_sdk, self.local_sdk, j*bulk_size, bulk_size)
 
         res = self.conn.execute('DELETE FROM ajxp_changes WHERE row_id IN (' + str(','.join(ids_to_delete)) + ')')
-        logging.info('[change store] Filtering unnecessary changes : pruned %i rows', res.rowcount)
+        logging.debug('[change store] Filtering unnecessary changes : pruned %i rows', res.rowcount)
         self.conn.commit()
         if(self.DEBUG):
             self.debug("Detecting unnecessary changes")
@@ -312,7 +313,6 @@ class SqliteChangeStore():
         if len(test_stats):
             local_stats = sdk.bulk_stat(test_stats, with_hash=True)
             opposite_stats = opposite_sdk.bulk_stat(test_stats, with_hash=True)
-
         to_remove = filter(lambda it: self.filter_change(it, local_stats, opposite_stats), changes)
         return map(lambda row: str(row['row_id']), to_remove)
 
@@ -449,7 +449,7 @@ class SqliteChangeStore():
 
 
     def clear_operations_buffer(self):
-        # logging.info("CLEARING ajxp_last_buffer")
+        logging.debug("CLEARING ajxp_last_buffer")
         self.conn.execute("DELETE FROM ajxp_last_buffer")
         self.conn.commit()
 
@@ -466,8 +466,14 @@ class SqliteChangeStore():
         try:
             if stats:
                 return stats[path]
-        except KeyError:
+        except KeyError as ke:
             pass
+        try:
+            import platform, unicodedata
+            if platform.system() == "Darwin" and stats:
+                return stats[unicodedata.normalize('NFC', unicode(path))]
+        except KeyError as ke:
+            logging.exception(ke)
 
         if location == 'remote':
             return self.remote_sdk.stat(path, with_hash)
