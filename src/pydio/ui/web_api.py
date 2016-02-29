@@ -50,7 +50,7 @@ import flask
 from pydio.utils.pydio_profiler import pydio_profile
 
 try:
-    raise ImportError
+    #raise ImportError
     from pydio.endpoint.resolver import EndpointResolver, RESOLVER_CONFIG, EndpointException
 except ImportError:
     EndpointResolver = False
