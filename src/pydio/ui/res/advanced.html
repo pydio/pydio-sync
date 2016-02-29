@@ -75,35 +75,3 @@
     </div>
     </div>
 </div>
-
-<div ng-hide="job==null">
-
-    <div style="">
-        <h4>{{_('Server Timeout')}}</h4>
-        <div class="well">
-            <p class="small">{{_('Increase the timeout in case of slow responsive server ')}}</p>
-            <div class="input-group">
-                <div class="input-group">
-                    <span class="input-group-addon">{{_('Timeout in seconds')}}</span>
-                    <input type="number" min="0" ng-model="job.timeout"  class="form-control">
-                </div>
-            </div>
-        </div>
-     </div>
-
-    <div style="">
-        <h4>{{_('Include/Exclude from Sync')}}</h4>
-        <div class="well">
-            <div style="">
-                    <p class="small">{{_('Syncronise, use a list of files or patterns to include in the sync')}}</p>
-                    <input type="text" ng-model="job.filters.includes"  class="form-control">
-             </div>
-
-            <div style="margin-top:1%;">
-                    <p class="small">{{_('Do not synchronise, list of files or patterns to exclude from sync')}}</p>
-                    <input type="text" ng-model="job.filters.excludes"  class="form-control">
-             </div>
-        </div>
-    </div>
-
-</div>
