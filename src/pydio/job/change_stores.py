@@ -27,6 +27,10 @@ import math
 
 from pydio.sdk.exceptions import InterruptException
 from pydio.utils.pydio_profiler import pydio_profile
+import time
+import random
+from threading import Thread
+import psutil
 
 class SqliteChangeStore():
     conn = None
@@ -43,9 +47,11 @@ class SqliteChangeStore():
         self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
         if not os.path.exists(self.db):
             self.create = True
+        self.last_commit = time.time()
 
     def open(self):
         self.conn = sqlite3.connect(self.db, timeout=self.timeout)
+        #self.conn = sqlite3.connect(':memory:', timeout=self.timeout, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         if self.create:
             self.conn.execute(
@@ -91,13 +97,14 @@ class SqliteChangeStore():
                         'AND type="create" ORDER BY source,target')
         mkdirs = []
         ids = []
+        logging.info(res)
         for row in res:
             r = self.sqlite_row_to_dict(row, load_node=False)
             ids.append(str(r['row_id']))
             mkdirs.append(r['target'])
         splitsize = 10
         for i in range(0, int(math.ceil(float(len(mkdirs)) / float(splitsize)))):
-            callback({'type':'bulk_mkdirs', 'location':'local', 'pathes':mkdirs[i*splitsize:(i+1)*splitsize]})
+            callback({'type': 'bulk_mkdirs', 'location': 'local', 'pathes': mkdirs[i*splitsize:(i+1)*splitsize]})
             ids_list = str(','.join(ids[i*splitsize:(i+1)*splitsize]))
             self.conn.execute('DELETE FROM ajxp_changes WHERE row_id IN (' + ids_list + ')')
         self.conn.commit()
@@ -115,18 +122,76 @@ class SqliteChangeStore():
         #now go to the rest
         res = c.execute('SELECT * FROM ajxp_changes ORDER BY seq_id ASC')
         rows_to_process = []
-        for row in res:
-            rows_to_process.append(self.sqlite_row_to_dict(row, load_node=True))
+        try:
+            for row in res:
+                rows_to_process.append(self.sqlite_row_to_dict(row, load_node=True))
+        except Exception as e:
+            logging.exception(e)
+            logging.info("Failed to decode " + str(row))
+            raise SystemExit
 
-        for r in rows_to_process:
+        import threading
+        class Processor_callback(Thread):
+                    def __init__(self, change):
+                        threading.Thread.__init__(self)
+                        self.change = change
+                        time.sleep(0.01)
+
+                    def run(self):
+                        #logging.info("Running change " + str(threading.current_thread()) + " " + str(self.change))
+                        time.sleep(1.0/random.randint(2, 20))
+                        ts = time.time()
+                        callback(self.change)
+                        time.sleep(1.0/random.randint(2, 20))
+                        #logging.info("DONE change " + str(threading.current_thread()) + " in " + str(time.time()-ts))
+
+        def lerunnable(change):
+            p = Processor_callback(change)
+            p.start()
+            return p
+        def processonechange(iter):
             try:
-                logging.debug('PROCESSING CHANGE WITH ROW ID %i' % r['row_id'])
-                output = callback(r)
-                if output:
-                    self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (r['row_id'],))
+                change = next(iter)
+                #logging.info('PROCESSING CHANGE WITH ROW ID %i' % change['row_id'])
+                proc = lerunnable(change)
+                self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (change['row_id'],))
+                return proc
+            except StopIteration:
+                return False
+
+        it = iter(rows_to_process)
+        logging.info("To be processed " + str(it.__length_hint__()))
+        pool = []
+        time.sleep(.1)
+        ts = time.time()
+        while True:
+            try:
+                for i in pool:
+                    if not i.isAlive():
+                        pool.remove(i)
+                        i.join()
+                        #logging.info("DONE " + str(i))
+                if len(pool) >= 2:
+                    time.sleep(.2)
+                    continue
+                else:
+                    import resource, humanize
+                    process = psutil.Process(os.getpid())
+                    logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s, %s' % (humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss), humanize.naturalsize(process.memory_info().rss)))
+                    output = processonechange(it)
+                    time.sleep(.1)
+                    if not output:
+                        logging.info("@@@ TOOK " + str(time.time()-ts) + " to process changes.")
+                        break
+                    if output.isAlive():
+                        pool.append(output)
+                    """if hasattr(output, "done"):
+                        pool.append(output)"""
             except InterruptException as e:
-                break
+                logging.info("@@@@@@@@@@@ Interrupted @@@@@@@@@@")
+                logging.exception(e)
         self.conn.commit()
+        return True
 
     @pydio_profile
     def list_changes(self, cursor=0, limit=5, where=''):
@@ -440,7 +505,7 @@ class SqliteChangeStore():
         self.conn.commit()
 
     def bulk_buffer_real_operation(self, bulk):
-        if bulk :
+        if bulk:
             for operation in bulk:
                 location = operation['location']
                 location = 'remote' if location == 'local' else 'local'
@@ -449,7 +514,7 @@ class SqliteChangeStore():
 
 
     def clear_operations_buffer(self):
-        logging.debug("CLEARING ajxp_last_buffer")
+        logging.info("CLEARING ajxp_last_buffer")
         self.conn.execute("DELETE FROM ajxp_last_buffer")
         self.conn.commit()
 
@@ -577,7 +642,7 @@ class SqliteChangeStore():
         target = change['target'].replace("\\", "/")
         action = change['type']
         for _ in self.conn.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (action, location, source, target)):
-            logging.debug('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
+            logging.info('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
             return True
         return False
 
