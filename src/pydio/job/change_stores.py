@@ -17,7 +17,7 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
-import inspect
+
 import sqlite3
 import json
 import os
@@ -30,7 +30,11 @@ from pydio.utils.pydio_profiler import pydio_profile
 import time
 import random
 from threading import Thread
-import psutil
+import resource
+try:
+    import humanize
+except ImportError:
+    pass
 
 class SqliteChangeStore():
     conn = None
@@ -177,15 +181,13 @@ class SqliteChangeStore():
                     time.sleep(.2)
                     continue
                 else:
-                    import resource, humanize
-                    process = psutil.Process(os.getpid())
-                    logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s, %s' % (humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss), humanize.naturalsize(process.memory_info().rss)))
+                    if humanize: logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s, %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
                     output = processonechange(it)
                     time.sleep(.1)
                     if not output:
                         for op in self.pendingoperations:
                             self.buffer_real_operation(op.location, op.type, op.source, op.target)
-                        #logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts)[:-4] + " to process changes.")
+                        if humanize: logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts)[:-4] + " to process changes.")
                         break
                     if output.isAlive():
                         pool.append(output)
