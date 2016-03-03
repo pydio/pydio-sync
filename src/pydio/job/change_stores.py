@@ -181,13 +181,21 @@ class SqliteChangeStore():
                     time.sleep(.2)
                     continue
                 else:
-                    if humanize: logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
+                    try:
+                        humanize
+                        logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
+                    except NameError:
+                        pass
                     output = processonechange(it)
                     time.sleep(.1)
                     if not output:
                         for op in self.pendingoperations:
                             self.buffer_real_operation(op.location, op.type, op.source, op.target)
-                        if humanize: logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts)[:-4] + " to process changes.")
+                        try:
+                            humanize
+                            logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts)[:-4] + " to process changes.")
+                        except NameError:
+                            pass
                         break
                     if output.isAlive():
                         pool.append(output)
