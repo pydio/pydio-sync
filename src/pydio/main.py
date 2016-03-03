@@ -21,7 +21,14 @@
 import logging
 import sys
 import os
-from pydio.utils.functions import get_user_home, guess_filesystemencoding
+try:
+    from pydio.utils.functions import get_user_home, guess_filesystemencoding
+    import pydio.monkeypatch
+    import pydio.utils.functions
+except ImportError:
+   from utils.functions import get_user_home, guess_filesystemencoding
+   import utils.functions
+   import monkeypatch
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-7s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logging.getLogger().setLevel(logging.DEBUG)
@@ -50,8 +57,6 @@ import argparse
 import json
 import thread
 import time
-import pydio.monkeypatch
-import pydio.utils.functions
 from pathlib import Path
 
 if __name__ == "__main__":

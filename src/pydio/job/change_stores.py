@@ -48,10 +48,12 @@ class SqliteChangeStore():
         if not os.path.exists(self.db):
             self.create = True
         self.last_commit = time.time()
+        self.pendingoperations = []
 
     def open(self):
         self.conn = sqlite3.connect(self.db, timeout=self.timeout)
         #self.conn = sqlite3.connect(':memory:', timeout=self.timeout, check_same_thread=False)
+        #self.create = True
         self.conn.row_factory = sqlite3.Row
         if self.create:
             self.conn.execute(
@@ -90,7 +92,7 @@ class SqliteChangeStore():
         return count[0]
 
     @pydio_profile
-    def process_changes_with_callback(self, callback):
+    def process_changes_with_callback(self, callback, callback2):
         c = self.conn.cursor()
 
         res = c.execute('SELECT * FROM ajxp_changes WHERE md5="directory" AND location="local" '
@@ -132,23 +134,24 @@ class SqliteChangeStore():
 
         import threading
         class Processor_callback(Thread):
-                    def __init__(self, change):
-                        threading.Thread.__init__(self)
-                        self.change = change
-                        time.sleep(0.01)
+            def __init__(self, change):
+                threading.Thread.__init__(self)
+                self.change = change
+                time.sleep(0.01)
 
-                    def run(self):
-                        #logging.info("Running change " + str(threading.current_thread()) + " " + str(self.change))
-                        time.sleep(1.0/random.randint(2, 20))
-                        ts = time.time()
-                        callback(self.change)
-                        time.sleep(1.0/random.randint(2, 20))
-                        #logging.info("DONE change " + str(threading.current_thread()) + " in " + str(time.time()-ts))
+            def run(self):
+                #logging.info("Running change " + str(threading.current_thread()) + " " + str(self.change))
+                time.sleep(10.0/random.randint(2, 20))
+                ts = time.time()
+                callback2(self.change)
+                time.sleep(5.0/random.randint(2, 10))
+                #logging.info("DONE change " + str(threading.current_thread()) + " in " + str(time.time()-ts))
 
         def lerunnable(change):
             p = Processor_callback(change)
             p.start()
             return p
+
         def processonechange(iter):
             try:
                 change = next(iter)
@@ -162,7 +165,6 @@ class SqliteChangeStore():
         it = iter(rows_to_process)
         logging.info("To be processed " + str(it.__length_hint__()))
         pool = []
-        time.sleep(.1)
         ts = time.time()
         while True:
             try:
@@ -170,8 +172,8 @@ class SqliteChangeStore():
                     if not i.isAlive():
                         pool.remove(i)
                         i.join()
-                        #logging.info("DONE " + str(i))
-                if len(pool) >= 2:
+                        #logging.info("Change done " + str(i))
+                if len(pool) >= 4:  # TODO this number is arbitrary is SHOULD be dynamically changed depending on a server's load and HW resources
                     time.sleep(.2)
                     continue
                 else:
@@ -181,7 +183,9 @@ class SqliteChangeStore():
                     output = processonechange(it)
                     time.sleep(.1)
                     if not output:
-                        logging.info("@@@ TOOK " + str(time.time()-ts) + " to process changes.")
+                        for op in self.pendingoperations:
+                            self.buffer_real_operation(op.location, op.type, op.source, op.target)
+                        #logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts)[:-4] + " to process changes.")
                         break
                     if output.isAlive():
                         pool.append(output)
@@ -500,9 +504,11 @@ class SqliteChangeStore():
 
     def buffer_real_operation(self, location, type, source, target):
         location = 'remote' if location == 'local' else 'local'
-        self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)",
-                          (type, location, source.replace("\\", "/"), target.replace("\\", "/")))
-        self.conn.commit()
+        try:
+            self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (type, location, source.replace("\\", "/"), target.replace("\\", "/")))
+            self.conn.commit()
+        except sqlite3.ProgrammingError:
+            self.threaded_buffer_real_operation(type, location, source, target)
 
     def bulk_buffer_real_operation(self, bulk):
         if bulk:
@@ -512,9 +518,19 @@ class SqliteChangeStore():
                 self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (operation['type'], location, operation['source'].replace("\\", "/"), operation['target'].replace("\\", "/")))
             self.conn.commit()
 
+    class operation():
+        pass
+
+    def threaded_buffer_real_operation(self, type, location, source, target):
+        op = self.operation()
+        op.type = type
+        op.location = location
+        op.source = source
+        op.target = target
+        self.pendingoperations.append(op)
 
     def clear_operations_buffer(self):
-        logging.info("CLEARING ajxp_last_buffer")
+        #logging.info("CLEARING ajxp_last_buffer")
         self.conn.execute("DELETE FROM ajxp_last_buffer")
         self.conn.commit()
 

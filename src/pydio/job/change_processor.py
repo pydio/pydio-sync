@@ -28,7 +28,6 @@ from pydio.utils.pydio_profiler import pydio_profile
 class ChangeProcessor:
     def __init__(self, change, change_store, job_config, local_sdk, remote_sdk, status_handler, event_logs_handler):
         """
-
         :param change: dict
         :param change_store: pydio.job.change_stores.SqliteChangeStore
         :param job_config: dict
@@ -146,7 +145,6 @@ class ChangeProcessor:
                     logging.debug('Cannot find source, switching to UPLOAD')
                     self.process_upload(item['target'], callback_dict=item, is_mod=False)
                     self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
-
 
     def process_local_mkdir(self, path):
         message = path + ' <============ MKDIR'

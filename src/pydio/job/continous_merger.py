@@ -25,7 +25,6 @@ import sys
 import threading
 import pickle
 import logging
-
 from requests.exceptions import RequestException, Timeout, SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, InvalidSchema, InvalidURL
 from pydio.job.change_processor import ChangeProcessor, StorageChangeProcessor
 from pydio.job.job_config import JobsLoader
@@ -41,7 +40,6 @@ from pydio.utils.functions import connection_helper
 from pydispatch import dispatcher
 from pydio import PUBLISH_SIGNAL, TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
 from pydio.utils.global_config import ConfigManager
-
 from pydio.utils import i18n
 _ = i18n.language.ugettext
 from pydio.utils.pydio_profiler import pydio_profile
@@ -115,6 +113,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.storage_watcher = job_config.label.startswith('LSYNC')
 
         self.marked_for_snapshot_pathes = []
+        self.processing = False  # indicates whether changes are being processed
 
         dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel='status', message='START')
         if job_config.direction != 'down' or (self.job_config.direction == 'down' and self.job_config.solve != 'remote'):
@@ -263,7 +262,6 @@ class ContinuousDiffMerger(threading.Thread):
             if 'remaining_bytes' in task:
                 total += float(task['remaining_bytes'])
                 exclude_pathes.append('"' + task['target'] + '"')
-        where = ''
         if len(exclude_pathes):
             where = "target IN (" + ','.join(exclude_pathes) + ")"
             return self.current_store.sum_sizes(where)
@@ -377,7 +375,6 @@ class ContinuousDiffMerger(threading.Thread):
             self.watcher.start()
 
         while not self.interrupt:
-
             try:
                 # logging.info('Starting cycle with cycles local %i and remote %is' % (self.local_seq, self.remote_seq))
                 self.processing_signals = {}
@@ -448,6 +445,7 @@ class ContinuousDiffMerger(threading.Thread):
                         self.remote_target_seq = 1
                         self.ping_remote()
                 except RequestException as ce:
+                    logging.exception(ce)
                     if not connection_helper.is_connected_to_internet(self.sdk.proxies):
                         error = _('No Internet connection detected! Waiting for %s seconds to retry') % self.offline_timer
                     else:
@@ -482,7 +480,8 @@ class ContinuousDiffMerger(threading.Thread):
 
                 changes_length = len(self.current_store)
                 if not changes_length:
-                    logging.info('No changes detected')
+                    self.processing = False
+                    logging.info('No changes detected in ' + self.ws_id)
                     self.update_min_seqs_from_store()
                     self.exit_loop_clean(logger)
                     very_first = False
@@ -508,15 +507,18 @@ class ContinuousDiffMerger(threading.Thread):
                 # IDLE (The final state once upload/ download happens or once when the conflict is resolved)
                 self.db_handler.update_bulk_node_status_as_idle()
 
-                logging.debug('Delete Copies')
+                logging.debug('[CMERGER] Delete Copies')
                 self.current_store.delete_copies()
                 self.update_min_seqs_from_store()
-                logging.debug('Dedup changes')
+                logging.debug('[CMERGER] Dedup changes')
                 self.current_store.dedup_changes()
                 self.update_min_seqs_from_store()
                 if not self.storage_watcher or very_first:
-                    logging.debug('Detect unnecessary changes')
+                    logging.debug('[CMERGER] Detect unnecessary changes')
+                    logger.log_state(_('Detecting unecessary changes...'), 'sync')
                     self.current_store.detect_unnecessary_changes(local_sdk=self.system, remote_sdk=self.sdk)
+                    logging.debug('[CMERGER] Done detecting unnecessary changes')
+                    logger.log_state(_('Done detecting unecessary changes...'), 'sync')
                 self.update_min_seqs_from_store()
                 logging.debug('Clearing op and pruning folders moves')
                 self.current_store.clear_operations_buffer()
@@ -544,7 +546,7 @@ class ContinuousDiffMerger(threading.Thread):
 
                 changes_length = len(self.current_store)
                 if not changes_length:
-                    logging.info('No changes detected')
+                    logging.info('No changes detected for ' + self.ws_id)
                     self.exit_loop_clean(logger)
                     very_first = False
                     continue
@@ -587,11 +589,36 @@ class ContinuousDiffMerger(threading.Thread):
                         logging.exception(ex)
                         return False
                     return True
+                def processor_callback2(change):
+                    try:
+                        if self.interrupt or not self.job_status_running:
+                            raise InterruptException()
+                        Processor = StorageChangeProcessor if self.storage_watcher else ChangeProcessor
+                        proc = Processor(change, self.current_store, self.job_config, self.system, self.sdk,
+                                               self.db_handler, self.event_logger)
+                        proc.process_change()
+                        if self.interrupt or not self.job_status_running:
+                            raise InterruptException()
+                    except ProcessException as pe:
+                        logging.error(pe.message)
+                        return False
+                    except InterruptException as i:
+                        raise i
+                    except PydioSdkDefaultException as p:
+                        raise p
+                    except Exception as ex:
+                        logging.exception(ex)
+                        return False
+                    return True
 
                 try:
                     if sys.platform.startswith('win'):
                         self.marked_for_snapshot_pathes = list(set(self.current_store.find_modified_parents()) - set(self.marked_for_snapshot_pathes))
-                    self.current_store.process_changes_with_callback(processor_callback)
+                    if not self.processing:
+                        self.processing = True
+                        self.current_store.process_changes_with_callback(processor_callback, processor_callback2)
+                        self.processing = False
+
                 except InterruptException as iexc:
                     pass
                 logger.log_state(_('%i files modified') % self.global_progress['queue_done'], 'success')
