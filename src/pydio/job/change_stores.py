@@ -181,7 +181,7 @@ class SqliteChangeStore():
                     time.sleep(.2)
                     continue
                 else:
-                    if humanize: logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s, %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
+                    if humanize: logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
                     output = processonechange(it)
                     time.sleep(.1)
                     if not output:
