@@ -30,8 +30,8 @@ from pydio.utils.pydio_profiler import pydio_profile
 import time
 import random
 from threading import Thread
-import resource
 try:
+    import resource
     import humanize
 except ImportError:
     pass
