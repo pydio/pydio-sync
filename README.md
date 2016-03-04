@@ -110,7 +110,7 @@ python main.py
 python -m pydio.main -mp True
 ```
 
-    or
+or
 
 Profiling requires:
 - graphviz (packet manager: port, brew, apt, pact, yum...)
