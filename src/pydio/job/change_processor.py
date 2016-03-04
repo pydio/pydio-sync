@@ -20,10 +20,16 @@
 import os
 import logging
 import shutil
-from pydio.utils.global_config import ConfigManager
-from pydio.utils import i18n
-_ = i18n.language.ugettext
-from pydio.utils.pydio_profiler import pydio_profile
+try:
+    from pydio.utils.global_config import ConfigManager
+    from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils import i18n
+    _ = i18n.language.ugettext
+except ImportError:
+    from utils.global_config import ConfigManager
+    from utils.pydio_profiler import pydio_profile
+    from utils import i18n
+    _ = i18n.language.ugettext
 
 class ChangeProcessor:
     def __init__(self, change, change_store, job_config, local_sdk, remote_sdk, status_handler, event_logs_handler):
@@ -221,13 +227,13 @@ class ChangeProcessor:
                 message = path + ' <====PATCH====== ' + path
             except Exception as e:
                 logging.exception(e)
-                self.remote_sdk.download(path, self.job_config.directory + path, callback_dict)
+                self.remote_sdk.stat_and_download(path, self.job_config.directory + path, callback_dict)
             if os.path.exists(sig_path):
                 os.remove(sig_path)
             if os.path.exists(delta_path):
                 os.remove(delta_path)
         else:
-            self.remote_sdk.download(path, self.job_config.directory + path, callback_dict)
+            self.remote_sdk.stat_and_download(path, self.job_config.directory + path, callback_dict)
 
         self.update_node_status(path, 'IDLE')
         self.log(type='local', action='download', status='success',
@@ -252,7 +258,7 @@ class ChangeProcessor:
                 message = path + ' =====PATCH=====> ' + path
             except Exception as e:
                 logging.exception(e)
-                self.remote_sdk.upload(full_path, self.local_sdk.stat(path), path, callback_dict,
+                self.remote_sdk.upload_and_hashstat(full_path, self.local_sdk.stat(path), path, callback_dict,
                                max_upload_size=max_upload_size)
             finally:
                 if os.path.exists(sig_path):
@@ -260,7 +266,7 @@ class ChangeProcessor:
                 if os.path.exists(delta_path):
                     os.remove(delta_path)
         else:
-            self.remote_sdk.upload(full_path, self.local_sdk.stat(path), path, callback_dict,
+            self.remote_sdk.upload_and_hashstat(full_path, self.local_sdk.stat(path), path, callback_dict,
                                max_upload_size=max_upload_size)
 
         self.update_node_status(path, 'IDLE')

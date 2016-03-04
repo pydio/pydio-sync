@@ -25,24 +25,47 @@ import sys
 import threading
 import pickle
 import logging
-from requests.exceptions import RequestException, Timeout, SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, InvalidSchema, InvalidURL
-from pydio.job.change_processor import ChangeProcessor, StorageChangeProcessor
-from pydio.job.job_config import JobsLoader
-from pydio.job.localdb import LocalDbHandler, SqlEventHandler, DBCorruptedException
-from pydio.job.local_watcher import LocalWatcher
-from pydio.sdk.exceptions import ProcessException, InterruptException, PydioSdkDefaultException
-from pydio.sdk.remote import PydioSdk
-from pydio.sdk.local import SystemSdk
-from pydio.job.EventLogger import EventLogger
-
-from pydio.utils.functions import connection_helper
-
 from pydispatch import dispatcher
-from pydio import PUBLISH_SIGNAL, TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
-from pydio.utils.global_config import ConfigManager
-from pydio.utils import i18n
-_ = i18n.language.ugettext
-from pydio.utils.pydio_profiler import pydio_profile
+from requests.exceptions import RequestException, Timeout, SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, InvalidSchema, InvalidURL
+try:
+    from pydio.job.change_processor import ChangeProcessor, StorageChangeProcessor
+    from pydio.job.job_config import JobsLoader
+    from pydio.job.localdb import LocalDbHandler, SqlEventHandler, DBCorruptedException
+    from pydio.job.local_watcher import LocalWatcher
+    from pydio.job.change_stores import SqliteChangeStore
+    from pydio.job.EventLogger import EventLogger
+    from pydio.sdk.exceptions import ProcessException, InterruptException, PydioSdkDefaultException
+    from pydio.sdk.remote import PydioSdk
+    from pydio.sdk.local import SystemSdk
+    from pydio.utils.functions import connection_helper
+    from pydio.utils.global_config import ConfigManager
+    from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils.check_sqlite import check_sqlite_file
+    from pydio import PUBLISH_SIGNAL, TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
+    from pydio.utils import i18n
+    _ = i18n.language.ugettext
+except ImportError:
+    from job.change_processor import ChangeProcessor, StorageChangeProcessor
+    from job.job_config import JobsLoader
+    from job.localdb import LocalDbHandler, SqlEventHandler, DBCorruptedException
+    from job.change_stores import SqliteChangeStore
+    from job.EventLogger import EventLogger
+    from job.local_watcher import LocalWatcher
+    from sdk.exceptions import ProcessException, InterruptException, PydioSdkDefaultException
+    from sdk.remote import PydioSdk
+    from sdk.local import SystemSdk
+    from utils.functions import connection_helper
+    from utils.global_config import ConfigManager
+    from utils.pydio_profiler import pydio_profile
+    from utils.check_sqlite import check_sqlite_file
+    from utils import i18n
+    _ = i18n.language.ugettext
+    COMMAND_SIGNAL = 'command'
+    JOB_COMMAND_SIGNAL = 'job_command'
+    PUBLISH_SIGNAL = 'publish'
+    TRANSFER_RATE_SIGNAL = 'transfer_rate'
+    TRANSFER_CALLBACK_SIGNAL = 'transfer_callback'
+
 
 class ContinuousDiffMerger(threading.Thread):
     """Main Thread grabbing changes from both sides, computing the necessary changes to apply, and applying them"""
@@ -61,7 +84,6 @@ class ContinuousDiffMerger(threading.Thread):
         self.job_config = job_config
         sqlite_files = [file for file in os.listdir(self.configs_path) if file.endswith(".sqlite")]
 
-        from pydio.utils.check_sqlite import check_sqlite_file
         for sqlite_file in sqlite_files:
             try:
                 exists_and_correct = check_sqlite_file(os.path.join(self.configs_path, sqlite_file))
@@ -347,7 +369,6 @@ class ContinuousDiffMerger(threading.Thread):
         """
         logger = EventLogger(self.configs_path)
         very_first = False
-
         if self.watcher:
             if self.watcher_first_run:
                 def status_callback(status):
@@ -428,7 +449,6 @@ class ContinuousDiffMerger(threading.Thread):
                     self.marked_for_snapshot_pathes = []
 
                 # Load local and/or remote changes, depending on the direction
-                from pydio.job.change_stores import SqliteChangeStore
                 self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'])
                 self.current_store.open()
                 try:
@@ -481,14 +501,14 @@ class ContinuousDiffMerger(threading.Thread):
                 changes_length = len(self.current_store)
                 if not changes_length:
                     self.processing = False
-                    logging.info('No changes detected in ' + self.ws_id)
+                    logging.info('No changes detected in ' + self.job_config.id)
                     self.update_min_seqs_from_store()
                     self.exit_loop_clean(logger)
                     very_first = False
                     continue
 
                 self.global_progress['status_indexing'] = 1
-                logging.info('Reducing changes')
+                logging.info('Reducing changes for ' + self.job_config.id)
                 logger.log_state(_('Merging changes between remote and local, please wait...'), 'sync')
 
                 # We are updating the status to IDLE here for the nodes which has status as NEW
@@ -507,25 +527,25 @@ class ContinuousDiffMerger(threading.Thread):
                 # IDLE (The final state once upload/ download happens or once when the conflict is resolved)
                 self.db_handler.update_bulk_node_status_as_idle()
 
-                logging.debug('[CMERGER] Delete Copies')
+                logging.debug('[CMERGER] Delete Copies ' + self.job_config.id)
                 self.current_store.delete_copies()
                 self.update_min_seqs_from_store()
-                logging.debug('[CMERGER] Dedup changes')
+                logging.debug('[CMERGER] Dedup changes ' + self.job_config.id)
                 self.current_store.dedup_changes()
                 self.update_min_seqs_from_store()
                 if not self.storage_watcher or very_first:
-                    logging.debug('[CMERGER] Detect unnecessary changes')
+                    logging.debug('[CMERGER] Detect unnecessary changes ' + self.ws_id)
                     logger.log_state(_('Detecting unecessary changes...'), 'sync')
                     self.current_store.detect_unnecessary_changes(local_sdk=self.system, remote_sdk=self.sdk)
                     logging.debug('[CMERGER] Done detecting unnecessary changes')
                     logger.log_state(_('Done detecting unecessary changes...'), 'sync')
                 self.update_min_seqs_from_store()
-                logging.debug('Clearing op and pruning folders moves')
+                logging.debug('Clearing op and pruning folders moves ' + self.job_config.id)
                 self.current_store.clear_operations_buffer()
                 self.current_store.prune_folders_moves()
                 self.update_min_seqs_from_store()
 
-                logging.debug('Store conflicts')
+                logging.debug('Store conflicts ' + self.job_config.id)
                 store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler, self.job_config)
                 if store_conflicts:
                     if self.job_config.solve == 'both':
@@ -546,7 +566,7 @@ class ContinuousDiffMerger(threading.Thread):
 
                 changes_length = len(self.current_store)
                 if not changes_length:
-                    logging.info('No changes detected for ' + self.ws_id)
+                    logging.info('No changes detected for ' + self.job_config.id)
                     self.exit_loop_clean(logger)
                     very_first = False
                     continue

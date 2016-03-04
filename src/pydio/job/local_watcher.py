@@ -1,4 +1,4 @@
-#
+# -*- coding: utf-8 -*-
 # Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 # This file is part of Pydio.
 #
@@ -31,11 +31,18 @@ from watchdog.utils import platform
 if platform.is_linux():
     from watchdog.observers.polling import PollingObserver as Observer
 from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
+try:
+    from pydio.job.localdb import SqlEventHandler, SqlSnapshot
+    from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils import i18n
+    _ = i18n.language.ugettext
+except ImportError:
+    from job.localdb import SqlEventHandler, SqlSnapshot
+    from utils.pydio_profiler import pydio_profile
+    from utils import i18n
+    _ = i18n.language.ugettext
 
-from pydio.job.localdb import SqlEventHandler, SqlSnapshot
-from pydio.utils.pydio_profiler import pydio_profile
 
-# -*- coding: utf-8 -*-
 class SnapshotDiffStart(DirectorySnapshotDiff):
     def __init__(self, ref_dirsnap, dirsnap):
         """
@@ -106,9 +113,6 @@ class LocalWatcher(threading.Thread):
 
     @pydio_profile
     def check_from_snapshot(self, sub_folder=None, state_callback=(lambda status: None)):
-        from pydio.utils import i18n
-        _ = i18n.language.ugettext
-
         logging.info('Scanning for changes since last application launch')
         if (not sub_folder and os.path.exists(self.basepath)) or (sub_folder and os.path.exists(self.basepath + sub_folder)):
             previous_snapshot = SqlSnapshot(self.basepath, self.job_data_path, sub_folder)

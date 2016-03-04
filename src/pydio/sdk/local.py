@@ -23,11 +23,17 @@ import hashlib
 import stat
 import netifaces
 from exceptions import SystemSdkException
-from pydio.utils.functions import hashfile
-from pydio.utils.global_config import ConfigManager
 import shutil
-from pydio.utils import i18n
-_ = i18n.language.ugettext
+try:
+    from pydio.utils.functions import hashfile
+    from pydio.utils.global_config import ConfigManager
+    from pydio.utils import i18n
+    _ = i18n.language.ugettext
+except ImportError:
+    from utils.functions import hashfile
+    from utils.global_config import ConfigManager
+    _ = str
+
 
 class SystemSdk(object):
 

@@ -24,9 +24,14 @@ import sys
 from pathlib import *
 import datetime
 import logging
-from pydio.job.localdb import DBCorruptedException
-from pydio.utils.pydio_profiler import pydio_profile
-from pydio.utils.global_config import GlobalConfigManager
+try:
+    from pydio.job.localdb import DBCorruptedException
+    from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils.global_config import GlobalConfigManager
+except ImportError:
+    from job.localdb import DBCorruptedException
+    from utils.pydio_profiler import pydio_profile
+    from utils.global_config import GlobalConfigManager
 
 
 class EventLogger():

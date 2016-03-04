@@ -24,11 +24,16 @@ import os
 import logging
 import fnmatch
 import math
-
-from pydio.sdk.exceptions import InterruptException
-from pydio.utils.pydio_profiler import pydio_profile
 import time
 import random
+try:
+    from pydio.sdk.exceptions import InterruptException
+    from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils.global_config import GlobalConfigManager
+except ImportError:
+    from sdk.exceptions import InterruptException
+    from utils.pydio_profiler import pydio_profile
+    from utils.global_config import GlobalConfigManager
 from threading import Thread
 try:
     import resource
@@ -45,7 +50,6 @@ class SqliteChangeStore():
         self.includes = includes
         self.excludes = excludes
         self.create = False
-        from pydio.utils.global_config import GlobalConfigManager
         global_config_manager = GlobalConfigManager.Instance(configs_path=os.path.dirname(os.path.dirname(filename)))
         # Increasing the timeout (default 5 seconds), to avoid database is locked error
         self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
@@ -56,8 +60,6 @@ class SqliteChangeStore():
 
     def open(self):
         self.conn = sqlite3.connect(self.db, timeout=self.timeout)
-        #self.conn = sqlite3.connect(':memory:', timeout=self.timeout, check_same_thread=False)
-        #self.create = True
         self.conn.row_factory = sqlite3.Row
         if self.create:
             self.conn.execute(

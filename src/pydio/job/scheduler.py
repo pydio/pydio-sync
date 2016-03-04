@@ -20,13 +20,19 @@
 import logging, sys
 
 from pydispatch import dispatcher
-
-from pydio.job.continous_merger import ContinuousDiffMerger
-from pydio import COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
-from pydio.utils.functions import Singleton, guess_filesystemencoding
-from pydio.job import manager
-from pydio.utils.pydio_profiler import pydio_profile
-
+try:
+    from pydio.job.continous_merger import ContinuousDiffMerger
+    from pydio import COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
+    from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils.functions import Singleton, guess_filesystemencoding
+    from pydio.job import manager
+except ImportError:
+    from job.continous_merger import ContinuousDiffMerger
+    from job import manager
+    from utils.functions import Singleton, guess_filesystemencoding
+    from utils.pydio_profiler import pydio_profile
+    COMMAND_SIGNAL = 'command'
+    JOB_COMMAND_SIGNAL = 'job_command'
 
 @Singleton
 class PydioScheduler():

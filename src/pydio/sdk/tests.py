@@ -2,7 +2,7 @@ import io
 import mock
 import unittest
 
-from utils import upload_file_showing_progress, BytesIOWithCallback
+from util import upload_file_showing_progress, BytesIOWithCallback
 
 
 class UtilsLocalTest(unittest.TestCase):

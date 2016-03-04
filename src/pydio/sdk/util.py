@@ -1,4 +1,4 @@
-#
+#  -*- coding: utf-8 -*-
 #  Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 #  This file is part of Pydio.
 #
@@ -23,16 +23,15 @@ import requests
 import time
 import os
 import sys
-import math
 import hashlib
-
 from io import BytesIO, FileIO
 from pydispatch import dispatcher
-from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
+try:
+    from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
+except ImportError:
+    TRANSFER_RATE_SIGNAL = 'transfer_rate'
+    TRANSFER_CALLBACK_SIGNAL = 'transfer_callback'
 from six import b
-# -*- coding: utf-8 -*-
-from pydio.sdk.exceptions import PydioSdkDefaultException
-
 
 class BytesIOWithFile(BytesIO):
 

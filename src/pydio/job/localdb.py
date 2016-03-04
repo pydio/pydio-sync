@@ -28,14 +28,16 @@ import fnmatch
 import pickle
 import logging
 from pathlib import *
-from pydio.utils.pydio_profiler import pydio_profile
-
 from watchdog.events import FileSystemEventHandler
 from watchdog.utils.dirsnapshot import DirectorySnapshotDiff
-
-from pydio.utils.functions import hashfile, set_file_hidden, guess_filesystemencoding
-
-import cProfile
+try:
+    from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils.functions import hashfile, set_file_hidden, guess_filesystemencoding
+    from pydio.utils.global_config import GlobalConfigManager
+except ImportError:
+    from utils.pydio_profiler import pydio_profile
+    from utils.functions import hashfile, set_file_hidden, guess_filesystemencoding
+    from utils.global_config import GlobalConfigManager
 
 class DBCorruptedException(Exception):
     pass
@@ -50,7 +52,6 @@ class SqlSnapshot(object):
         self._inode_to_path = {}
         self.is_recursive = True
         self.sub_folder = sub_folder
-        from pydio.utils.global_config import GlobalConfigManager
         global_config_manager = GlobalConfigManager.Instance(configs_path=job_data_path)
         # Increasing the timeout (default 5 seconds), to avoid database is locked error
         self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
@@ -143,7 +144,6 @@ class LocalDbHandler():
         self.db = job_data_path + '/pydio.sqlite'
         self.job_data_path = job_data_path
         self.event_handler = None
-        from pydio.utils.global_config import GlobalConfigManager
         global_config_manager = GlobalConfigManager.Instance(configs_path=job_data_path)
         # Increasing the timeout (default 5 seconds), to avoid database is locked error
         self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']

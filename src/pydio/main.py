@@ -1,4 +1,4 @@
-#
+# -*- coding: utf-8 -*-
 # Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 #  This file is part of Pydio.
 #
@@ -22,13 +22,31 @@ import logging
 import sys
 import os
 try:
-    from pydio.utils.functions import get_user_home, guess_filesystemencoding
     import pydio.monkeypatch
     import pydio.utils.functions
+    from pydio.utils.functions import get_user_home, guess_filesystemencoding
+    from pydio.job.job_config import JobConfig, JobsLoader
+    from pydio.test.diagnostics import PydioDiagnostics
+    from pydio.utils.config_ports import PortsDetector
+    from pydio.utils.global_config import ConfigManager, GlobalConfigManager
+    from pydio.ui.web_api import PydioApi
+    from pydio.job.scheduler import PydioScheduler
+    from pydio.job import manager
+    from pydio.utils.i18n import PoProcessor
+    from pydio.utils.pydio_profiler import LogFile
 except ImportError:
-   from utils.functions import get_user_home, guess_filesystemencoding
-   import utils.functions
-   import monkeypatch
+    from utils.functions import get_user_home, guess_filesystemencoding
+    import utils.functions
+    import monkeypatch
+    from job.job_config import JobConfig, JobsLoader
+    from job import manager
+    from test.diagnostics import PydioDiagnostics
+    from utils.config_ports import PortsDetector
+    from utils.global_config import ConfigManager, GlobalConfigManager
+    from ui.web_api import PydioApi
+    from job.scheduler import PydioScheduler
+    from utils.i18n import PoProcessor
+    from utils.pydio_profiler import LogFile
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-7s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logging.getLogger().setLevel(logging.DEBUG)
@@ -79,13 +97,6 @@ if __name__ == "__main__":
         logging.debug("Prepending to sys.path: %s" % os.path.dirname(pydio_module))
         sys.path.insert(0, os.path.dirname(pydio_module))
 
-from pydio.job.job_config import JobConfig, JobsLoader
-from pydio.test.diagnostics import PydioDiagnostics
-from pydio.utils.config_ports import PortsDetector
-from pydio.utils.global_config import ConfigManager
-from pydio.utils.global_config import GlobalConfigManager
-from pydio.ui.web_api import PydioApi
-from pydio.job.scheduler import PydioScheduler
 
 import appdirs
 APP_NAME='Pydio'
@@ -162,14 +173,19 @@ def main(argv=sys.argv[1:]):
                     logging.exception(e)
                     pass
             if os.path.exists(user_dir):
-                from pydio.utils.favorites_manager import add_to_favorites
+                try:
+                    from pydio.utils.favorites_manager import add_to_favorites
+                except ImportError:
+                    from utils.favorites_manager import add_to_favorites
                 add_to_favorites(user_dir, APP_NAME)
 
     setup_logging(args.verbose, jobs_root_path)
 
     if args.auto_start:
-        import pydio.autostart
-
+        try:
+            import pydio.autostart
+        except ImportError:
+            import autostart
         pydio.autostart.setup(argv)
         return 0
 
@@ -215,11 +231,9 @@ def main(argv=sys.argv[1:]):
         return sys.exit(0)
 
     if args.memory_profile:
-        from pydio.utils.pydio_profiler import LogFile
         sys.stdout = LogFile('stdout')
 
     if args.extract_html:
-        from pydio.utils.i18n import PoProcessor
         proc = PoProcessor()
         if args.extract_html == 'extract':
             root = Path(__file__).parent
@@ -252,7 +266,6 @@ def main(argv=sys.argv[1:]):
     scheduler = PydioScheduler.Instance(jobs_root_path=jobs_root_path, jobs_loader=jobs_loader)
     server = PydioApi(ports_detector.get_port(), ports_detector.get_username(),
         ports_detector.get_password(), external_ip=args.api_address)
-    from pydio.job import manager
     manager.api_server = server
 
     try:
@@ -303,5 +316,4 @@ def setup_logging(verbosity=None, application_path=None):
 
 if __name__ == "__main__":
     main()
-    from pydio.job import manager
     manager.wait()

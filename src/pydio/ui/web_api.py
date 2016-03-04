@@ -17,17 +17,12 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 
-from flask import Flask
+from flask import Flask, request, redirect, Response
 from flask_restful import Api, reqparse
-
-from flask import request, redirect, Response
 from flask.ext.restful import Resource
+import flask
 from requests.exceptions import SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, \
     InvalidSchema, InvalidURL, Timeout, RequestException
-from pydio.job.job_config import JobConfig, JobsLoader
-from pydio.job.EventLogger import EventLogger
-from pydio.job.localdb import LocalDbHandler
-from pydio.job.scheduler import PydioScheduler
 import json
 import requests
 import keyring
@@ -39,16 +34,30 @@ import os
 import urllib2
 import unicodedata
 from pathlib import *
-from pydio.utils.global_config import ConfigManager, GlobalConfigManager
-from pydio.utils.functions import connection_helper
-from pydio.utils import i18n
-_ = i18n.language.ugettext
-
 from functools import wraps
 import authdigest
-import flask
-from pydio.utils.pydio_profiler import pydio_profile
-
+try:
+    from pydio.job.job_config import JobConfig, JobsLoader
+    from pydio.job.EventLogger import EventLogger
+    from pydio.job.scheduler import PydioScheduler
+    from pydio.job.localdb import LocalDbHandler
+    from pydio.utils.global_config import ConfigManager, GlobalConfigManager
+    from pydio.utils.functions import connection_helper
+    from pydio.utils.i18n import get_languages
+    from pydio.utils import i18n
+    _ = i18n.language.ugettext
+    from pydio.utils.pydio_profiler import pydio_profile
+except ImportError:
+    from job.EventLogger import EventLogger
+    from job.localdb import LocalDbHandler
+    from job.scheduler import PydioScheduler
+    from job.job_config import JobConfig, JobsLoader
+    from utils.global_config import ConfigManager, GlobalConfigManager
+    from utils.functions import connection_helper
+    from utils.pydio_profiler import pydio_profile
+    from utils.i18n import get_languages
+    from utils import i18n
+    _ = i18n.language.ugettext
 try:
     #raise ImportError
     from pydio.endpoint.resolver import EndpointResolver, RESOLVER_CONFIG, EndpointException
@@ -56,6 +65,7 @@ except ImportError:
     EndpointResolver = False
     RESOLVER_CONFIG = False
     EndpointException = False
+
 
 class FlaskRealmDigestDB(authdigest.RealmDigestDB):
     def requires_auth(self, f):
@@ -127,7 +137,6 @@ class PydioApi(Api):
     @pydio_profile
     def serve_i18n_file(self):
         s = ''
-        from pydio.utils.i18n import get_languages
         import json
         languages = get_languages()
         short_lang = []

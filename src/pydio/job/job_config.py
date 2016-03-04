@@ -24,7 +24,10 @@ import json
 import urlparse
 import os
 import logging
-from pydio.utils.functions import Singleton
+try:
+    from pydio.utils.functions import Singleton
+except ImportError:
+    from utils.functions import Singleton
 
 
 @Singleton

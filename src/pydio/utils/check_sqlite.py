@@ -58,7 +58,10 @@ def check_integrity_sqlite_file(filename):
 
 def check_sqlite_file(filename):
     from os.path import isfile
-    from pydio.job.localdb import DBCorruptedException
+    try:
+        from pydio.job.localdb import DBCorruptedException
+    except ImportError:
+        from job.localdb import DBCorruptedException
 
     if not isfile(filename):
         return False

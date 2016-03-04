@@ -24,25 +24,31 @@ import hmac
 import random
 import unicodedata
 import platform
-from pydio.utils.functions import hashfile
 from hashlib import sha256
 from hashlib import sha1
 from urlparse import urlparse
-
-
 from requests.exceptions import ConnectionError, RequestException
 import keyring
 from keyring.errors import PasswordSetError
 import xml.etree.ElementTree as ET
-
 from exceptions import PydioSdkException, PydioSdkBasicAuthException, PydioSdkTokenAuthException, \
-    PydioSdkQuotaException, PydioSdkPermissionException, PydioSdkTokenAuthNotSupportedException
-from .utils import *
-from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
-from pydio.utils import i18n
-_ = i18n.language.ugettext
+    PydioSdkQuotaException, PydioSdkPermissionException, PydioSdkTokenAuthNotSupportedException, PydioSdkDefaultException
+from util import *
+try:
+    from pydio.utils.functions import hashfile
+    from pydio import TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
+    from pydio.utils import i18n
+    _ = i18n.language.ugettext
+except ImportError:
+    from utils.functions import hashfile
+    from utils import i18n
+    _ = i18n.language.ugettext
+    try:
+        TRANSFER_RATE_SIGNAL
+    except NameError:
+        TRANSFER_RATE_SIGNAL = 'transfer_rate'
+        TRANSFER_CALLBACK_SIGNAL = 'transfer_callback'
 
-# -*- coding: utf-8 -*-
 
 PYDIO_SDK_MAX_UPLOAD_PIECES = 40 * 1024 * 1024
 
@@ -290,8 +296,8 @@ class PydioSdk():
         :param with_progress: dict an object that can be updated with various progress data
         :return:
         """
+        #logging.info(url)
         # We know that token auth is not supported anyway
-        logging.debug(url)
         if self.stick_to_basic:
             return self.perform_basic(url, request_type=type, data=data, files=files, headers=headers, stream=stream,
                                           with_progress=with_progress)
@@ -439,7 +445,6 @@ class PydioSdk():
                 resp = self.perform_request(url, headers=h)
             else:
                 resp = self.perform_request(url)
-
             try:
                 content = resp.content
                 if platform.system() == "Darwin":
@@ -486,7 +491,7 @@ class PydioSdk():
         data = dict()
         maxlen = min(len(pathes), self.stat_slice_number)
         clean_pathes = map(lambda t: self.remote_folder + t.replace('\\', '/'),
-                           filter(lambda x: x != '', pathes[:maxlen]))
+                           filter(lambda x: self.normalize_reverse(x) != '', pathes[:maxlen]))
         data['nodes[]'] = map(lambda p: self.normalize(p), clean_pathes)
         url = self.url + action + self.urlencode_normalized(clean_pathes[0])
         try:
@@ -672,11 +677,12 @@ class PydioSdk():
                         else:
                             for prop in properties:
                                 server_data[prop['@name']] = prop['$']
-        except KeyError, ValueError:
+        except KeyError as e:
+            logging.exception(e)
             pass
         return server_data
 
-    def upload(self, local, local_stat, path, callback_dict=None, max_upload_size=-1):
+    def upload_and_hashstat(self, local, local_stat, path, callback_dict=None, max_upload_size=-1):
         """
         Upload a file to the server.
         :param local: file path
@@ -700,7 +706,6 @@ class PydioSdk():
         if (self.upload_max_size - 4096) < local_stat['size']:
             self.has_disk_space_for_upload(path, local_stat['size'])
             existing_part = self.stat(path+'.dlpart', True)
-
         dirpath = os.path.dirname(path)
         if dirpath and dirpath != '/':
             folder = self.stat(dirpath)
@@ -738,7 +743,54 @@ class PydioSdk():
             raise PydioSdkException('upload', path, _('File is incorrect after upload'))
         return True
 
-    def download(self, path, local, callback_dict=None):
+    def upload(self, local, local_stat, path, callback_dict=None, max_upload_size=-1):
+        """
+        Upload a file to the server.
+        :param local: file path
+        :param local_stat: stat of the file
+        :param path: target path on the server
+        :param callback_dict: an dict that can be fed with progress data
+        :param max_upload_size: a known or arbitrary upload max size. If the file file is bigger, it will be
+        chunked into many POST requests
+        :return: Server response
+        """
+        if not local_stat:
+            raise PydioSdkException('upload', path, _('Local file to upload not found!'))
+        existing_part = False
+        if (self.upload_max_size - 4096) < local_stat['size']:
+            self.has_disk_space_for_upload(path, local_stat['size'])
+            existing_part = self.stat(path+'.dlpart', True)
+        dirpath = os.path.dirname(path)
+        if dirpath and dirpath != '/':
+            folder = self.stat(dirpath)
+            if not folder:
+                self.mkdir(os.path.dirname(path))
+        url = self.url + '/upload/put' + self.urlencode_normalized((self.remote_folder + os.path.dirname(path)))
+        files = {
+            'userfile_0': local
+        }
+        if existing_part:
+            files['existing_dlpart'] = existing_part
+        data = {
+            'force_post': 'true',
+            'xhr_uploader': 'true',
+            'urlencoded_filename': self.urlencode_normalized(os.path.basename(path))
+        }
+        try:
+            self.perform_request(url=url, type='post', data=data, files=files, with_progress=callback_dict)
+        except PydioSdkDefaultException as e:
+            if e.message == '507':
+                usage, total = self.quota_usage()
+                raise PydioSdkQuotaException(path, local_stat['size'], usage, total)
+            if e.message == '412':
+                raise PydioSdkPermissionException('Cannot upload '+os.path.basename(path)+' in directory '+os.path.dirname(path))
+            else:
+                raise e
+        except RequestException as ce:
+            raise PydioSdkException("upload", str(path), 'RequestException: ' + str(ce.message))
+        return True
+
+    def stat_and_download(self, path, local, callback_dict=None):
         """
         Download the content of a server file to a local file.
         :param path: node path on the server
@@ -826,6 +878,89 @@ class PydioSdk():
                     os.unlink(local_tmp)
                 raise pe
 
+        except Exception as e:
+            logging.exception(e)
+            if os.path.exists(local_tmp):
+                os.unlink(local_tmp)
+            raise PydioSdkException('download', path, _('Error while downloading file: %s') % e.message)
+
+    def download(self, path, local, callback_dict=None):
+        """
+        Download the content of a server file to a local file.
+        :param path: node path on the server
+        :param local: local path on filesystem
+        :param callback_dict: a dict() than can be updated by with progress data
+        :return: Server response
+        """
+        url = self.url + '/download' + self.urlencode_normalized((self.remote_folder + path))
+        local_tmp = local + '.pydio_dl'
+        headers = None
+        write_mode = 'wb'
+        dl = 0
+        if not os.path.exists(os.path.dirname(local)):
+            os.makedirs(os.path.dirname(local))
+        elif os.path.exists(local_tmp):
+            # A .pydio_dl already exists, maybe it's a chunk of the original?
+            # Try to get an md5 of the corresponding chunk
+            current_size = os.path.getsize(local_tmp)
+            chunk_local_hash = hashfile(open(local_tmp, 'rb'), hashlib.md5())
+            chunk_remote_stat = self.stat(path, True, partial_hash=[0, current_size])
+            if chunk_remote_stat and chunk_local_hash == chunk_remote_stat['hash']:
+                headers = {'range':'bytes=%i-%i' % (current_size, chunk_remote_stat['size'])}
+                write_mode = 'a+'
+                dl = current_size
+                if callback_dict:
+                    callback_dict['bytes_sent'] = float(current_size)
+                    callback_dict['total_bytes_sent'] = float(current_size)
+                    callback_dict['total_size'] = float(chunk_remote_stat['size'])
+                    callback_dict['transfer_rate'] = 0
+                    dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, send=self, change=callback_dict)
+
+            else:
+                os.unlink(local_tmp)
+        try:
+            with open(local_tmp, write_mode) as fd:
+                start = time.clock()
+                r = self.perform_request(url=url, stream=True, headers=headers)
+                total_length = r.headers.get('content-length')
+                if total_length is None: # no content length header
+                    fd.write(r.content)
+                else:
+                    previous_done = 0
+                    for chunk in r.iter_content(1024 * 8):
+                        if self.interrupt_tasks:
+                            raise PydioSdkException("interrupt", path=path, detail=_('Task interrupted by user'))
+                        dl += len(chunk)
+                        fd.write(chunk)
+                        done = int(50 * dl / int(total_length))
+                        if done != previous_done:
+                            transfer_rate = dl // (time.clock() - start)
+                            logging.debug("\r[%s%s] %s bps" % ('=' * done, ' ' * (50 - done), transfer_rate))
+                            dispatcher.send(signal=TRANSFER_RATE_SIGNAL, send=self, transfer_rate=transfer_rate)
+                            if callback_dict:
+                                callback_dict['bytes_sent'] = float(len(chunk))
+                                callback_dict['total_bytes_sent'] = float(dl)
+                                callback_dict['total_size'] = float(total_length)
+                                callback_dict['transfer_rate'] = transfer_rate
+                                dispatcher.send(signal=TRANSFER_CALLBACK_SIGNAL, send=self, change=callback_dict)
+
+                        previous_done = done
+
+            if not os.path.exists(local_tmp):
+                raise PydioSdkException('download', local, _('File not found after download'))
+            else:
+                is_system_windows = platform.system().lower().startswith('win')
+                if is_system_windows and os.path.exists(local):
+                    os.unlink(local)
+                os.rename(local_tmp, local)
+            return True
+        except PydioSdkException as pe:
+            if pe.operation == 'interrupt':
+                raise pe
+            else:
+                if os.path.exists(local_tmp):
+                    os.unlink(local_tmp)
+                raise pe
         except Exception as e:
             logging.exception(e)
             if os.path.exists(local_tmp):

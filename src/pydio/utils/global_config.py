@@ -67,7 +67,10 @@ class ConfigManager:
         return self.device_id
 
     def get_version_data(self):
-        from pydio.version import version, build, version_date
+        try:
+            from pydio.version import version, build, version_date
+        except ImportError:
+            from version import version, build, version_date
         return {'version': version, 'build':build, 'date':version_date}
 
     def get_defined_proxies(self):
