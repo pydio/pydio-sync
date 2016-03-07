@@ -215,6 +215,8 @@ class GlobalConfigManager:
 
         # Set the global config only if no prior settings exists
         if not os.path.exists(global_config_file) or os.stat(global_config_file).st_size == 0:
+            if not os.path.exists(self.configs_path):
+                os.makedirs(self.configs_path)
             with open(global_config_file, 'w') as conf_file:
                 json.dump(data, conf_file)
 
