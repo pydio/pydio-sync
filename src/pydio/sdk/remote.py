@@ -24,6 +24,7 @@ import hmac
 import random
 import unicodedata
 import platform
+import math
 from hashlib import sha256
 from hashlib import sha1
 from urlparse import urlparse
