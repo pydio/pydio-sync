@@ -541,6 +541,13 @@ class SqliteChangeStore():
         op.target = target
         self.pendingoperations.append(op)
 
+    def process_pending(self):
+        # TODO lock
+        for op in self.pendingoperations:
+            #self.buffer_real_operation(op.location, op.type, op.source, op.target)
+            self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (op.type, op.location, op.source.replace("\\", "/"), op.target.replace("\\", "/")))
+        self.conn.commit()
+
     def clear_operations_buffer(self):
         #logging.info("CLEARING ajxp_last_buffer")
         self.conn.execute("DELETE FROM ajxp_last_buffer")
@@ -670,7 +677,7 @@ class SqliteChangeStore():
         target = change['target'].replace("\\", "/")
         action = change['type']
         for _ in self.conn.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (action, location, source, target)):
-            logging.info('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
+            logging.debug('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
             return True
         return False
 
