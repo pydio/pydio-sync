@@ -105,7 +105,6 @@ class SqliteChangeStore():
                         'AND type="create" ORDER BY source,target')
         mkdirs = []
         ids = []
-        logging.info(res)
         for row in res:
             r = self.sqlite_row_to_dict(row, load_node=False)
             ids.append(str(r['row_id']))
