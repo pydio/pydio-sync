@@ -177,6 +177,7 @@ class SqliteChangeStore():
                     if not i.isAlive():
                         pool.remove(i)
                         i.join()
+                        yield str(i)
                         #logging.info("Change done " + str(i))
                 if len(pool) >= 4:  # TODO this number is arbitrary is SHOULD be dynamically changed depending on a server's load and HW resources
                     time.sleep(.2)
@@ -206,7 +207,6 @@ class SqliteChangeStore():
                 logging.info("@@@@@@@@@@@ Interrupted @@@@@@@@@@")
                 logging.exception(e)
         self.conn.commit()
-        return True
 
     @pydio_profile
     def list_changes(self, cursor=0, limit=5, where=''):
