@@ -625,7 +625,8 @@ class ContinuousDiffMerger(threading.Thread):
                     except InterruptException as i:
                         raise i
                     except PydioSdkDefaultException as p:
-                        raise p
+                        logging.exception(p)
+                        return False
                     except Exception as ex:
                         logging.exception(ex)
                         return False
@@ -637,10 +638,17 @@ class ContinuousDiffMerger(threading.Thread):
                     if not self.processing:
                         self.processing = True
                         for i in self.current_store.process_changes_with_callback(processor_callback, processor_callback2):
+                            #logging.info("Updating seqs")
+                            self.current_store.process_pending_changes()
+                            self.update_min_seqs_from_store(success=True)
                             self.update_current_tasks()
                             self.update_global_progress()
-                        self.current_store.process_pending()
+                            self.global_progress['queue_done'] = float(counter[0])
+                            counter[0] += 1
                         self.update_min_seqs_from_store(success=True)
+                        self.update_current_tasks()
+                        self.update_global_progress()
+                        #logging.info("DONE WITH CHANGES")
                         self.processing = False
 
                 except InterruptException as iexc:
@@ -698,7 +706,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.remote_seq = self.current_store.get_min_seq('remote', success=success)
         if self.remote_seq == -1:
             self.remote_seq = self.remote_target_seq
-        logging.debug('Storing sequences remote=%i local=%i', self.remote_seq, self.local_seq)
+        #logging.info('Storing sequences remote=%i local=%i', self.remote_seq, self.local_seq)
         self.update_sequences_file(self.local_seq, self.remote_seq)
         if self.event_handler:
             self.event_handler.last_seq_id = self.local_seq

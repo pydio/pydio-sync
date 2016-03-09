@@ -142,13 +142,17 @@ class SqliteChangeStore():
             def __init__(self, change):
                 threading.Thread.__init__(self)
                 self.change = change
-                time.sleep(0.01)
 
             def run(self):
                 #logging.info("Running change " + str(threading.current_thread()) + " " + str(self.change))
                 time.sleep(10.0/random.randint(2, 20))
                 ts = time.time()
-                callback2(self.change)
+                try:
+                    if not callback2(self.change):
+                        self.status = "FAILED"
+                        logging.info("An error occured processing " + str(self.change))
+                except Exception as e:
+                    logging.exception(e)
                 time.sleep(5.0/random.randint(2, 10))
                 #logging.info("DONE change " + str(threading.current_thread()) + " in " + str(time.time()-ts))
 
@@ -161,8 +165,10 @@ class SqliteChangeStore():
             try:
                 change = next(iter)
                 #logging.info('PROCESSING CHANGE WITH ROW ID %i' % change['row_id'])
+                #logging.info('PROCESSING CHANGE %s' % change)
                 proc = lerunnable(change)
                 self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (change['row_id'],))
+                #logging.info("DELETE CHANGE")
                 return proc
             except StopIteration:
                 return False
@@ -195,7 +201,7 @@ class SqliteChangeStore():
                             self.buffer_real_operation(op.location, op.type, op.source, op.target)
                         try:
                             humanize
-                            logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts)[:-4] + " to process changes.")
+                            logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts).replace('ago', '') + " to process changes.")
                         except NameError:
                             pass
                         break
@@ -410,7 +416,7 @@ class SqliteChangeStore():
                 self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
                                   ('remote', node['node_path'].replace('\\', '/')))
             elif node['status'] == 'SOLVED:KEEPBOTH':
-                logging.info("[DEBUG] work in progress -- keepboth")
+                #logging.info("[DEBUG] work in progress -- keepboth " + node['node_path'])
                 # remove conflict from table, effect: FILES out of sync,
                 #self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?', ('remote', node['node_path'].replace('\\', '/')))
                 self.local_sdk.duplicateWith(node['node_path'], job_config.user_id)
@@ -540,9 +546,12 @@ class SqliteChangeStore():
         op.target = target
         self.pendingoperations.append(op)
 
-    def process_pending(self):
+    def process_pending_changes(self):
+        """ Updates the buffer with the operations treated
+        """
         # TODO lock
-        for op in self.pendingoperations:
+        while len(self.pendingoperations) > 0:
+            op = self.pendingoperations.pop()
             #self.buffer_real_operation(op.location, op.type, op.source, op.target)
             self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (op.type, op.location, op.source.replace("\\", "/"), op.target.replace("\\", "/")))
         self.conn.commit()
@@ -676,7 +685,7 @@ class SqliteChangeStore():
         target = change['target'].replace("\\", "/")
         action = change['type']
         for _ in self.conn.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (action, location, source, target)):
-            logging.debug('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
+            #logging.info('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
             return True
         return False
 
