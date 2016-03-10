@@ -19,14 +19,28 @@
 #
 import os,sys
 import urllib2
-
+import logging
+import time
+import math
 
 def hashfile(afile, hasher, blocksize=65536):
+    ts = time.time()
     buf = afile.read(blocksize)
     while len(buf) > 0:
         hasher.update(buf)
         buf = afile.read(blocksize)
-    return hasher.hexdigest()
+    res = hasher.hexdigest()
+    if res == "d41d8cd98f00b204e9800998ecf8427e":  # empty file
+        time.sleep(.2)
+        #logging.info("DOUBLE HASH")
+        afile.seek(0)
+        buf = afile.read(blocksize)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = afile.read(blocksize)
+        res = hasher.hexdigest()
+    #logging.info(" HASHED " + afile.name + " " + str(res) + " in " + str(time.time()-ts) + "s")
+    return res
 
 
 def set_file_hidden(path):
