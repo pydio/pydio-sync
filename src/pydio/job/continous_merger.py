@@ -501,7 +501,7 @@ class ContinuousDiffMerger(threading.Thread):
                 changes_length = len(self.current_store)
                 if not changes_length:
                     self.processing = False
-                    logging.info('No changes detected in ' + self.job_config.id)
+                    logging.info('No changes detected in ' + self.job_config.id + " (watcher status " + str(self.watcher.isAlive()) + ")")
                     self.update_min_seqs_from_store()
                     self.exit_loop_clean(logger)
                     very_first = False
@@ -645,7 +645,9 @@ class ContinuousDiffMerger(threading.Thread):
                             counter[0] += 1
                             self.update_current_tasks()
                             self.update_global_progress()
-                            time.sleep(0.1)
+                            time.sleep(0.1) # Allow for changes to be noticeable in UI
+                        time.sleep(.5)
+                        self.current_store.process_pending_changes()
                         self.update_min_seqs_from_store(success=True)
                         self.update_current_tasks()
                         self.update_global_progress()

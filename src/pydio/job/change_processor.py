@@ -280,7 +280,7 @@ class ChangeProcessor:
 
     def process_remote_mkfile(self, path):
         message = 'MKFILE ============> ' + path
-        self.remote_sdk.mkfile(path)
+        self.remote_sdk.mkfile(path, self.local_sdk.stat(path))
         self.log(type='remote', action='mkfile', status='success', target=path,
                  console_message=message, message=(_('File created at %s') % path))
 

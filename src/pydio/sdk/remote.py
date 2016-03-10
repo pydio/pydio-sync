@@ -49,7 +49,11 @@ except ImportError:
     except NameError:
         TRANSFER_RATE_SIGNAL = 'transfer_rate'
         TRANSFER_CALLBACK_SIGNAL = 'transfer_callback'
-
+""" FIXME
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+ DEBUG ONLY """
 
 PYDIO_SDK_MAX_UPLOAD_PIECES = 40 * 1024 * 1024
 
@@ -574,16 +578,17 @@ class PydioSdk():
         self.is_pydio_error_response(resp)
         return resp.content
 
-    def mkfile(self, path):
+    def mkfile(self, path, localstat):
         """
         Create an empty file on the server
         :param path: node path
         :return: result of the server query
         """
-        url = self.url + '/mkfile' + self.urlencode_normalized((self.remote_folder + path)) + '?force=true'
-        resp = self.perform_request(url=url)
-        self.is_pydio_error_response(resp)
-        return resp.content
+        if not self.stat(path) and localstat['size'] == 0:
+            url = self.url + '/mkfile' + self.urlencode_normalized((self.remote_folder + path)) + '?force=true'
+            resp = self.perform_request(url=url)
+            self.is_pydio_error_response(resp)
+            return resp.content
 
     def rename(self, source, target):
         """
@@ -696,7 +701,7 @@ class PydioSdk():
         """
         if not local_stat:
             raise PydioSdkException('upload', path, _('Local file to upload not found!'))
-        if local_stat['size'] == 0:
+        if local_stat['size'] == 0 and not self.stat(path):
             self.mkfile(path)
             new = self.stat(path)
             if not new or not (new['size'] == local_stat['size']):
@@ -1053,6 +1058,9 @@ class PydioSdk():
         except Exception as e:
             logging.exception(e)
             pass
+        if resp.content.find('ERROR') > -1:
+            logging.info(resp.url)
+            logging.info("  " + resp.content)
         if error:
             raise PydioSdkDefaultException(message)
 
@@ -1166,6 +1174,7 @@ class PydioSdk():
             (header_body, close_body, content_type) = encode_multiparts(fields)
             body = BytesIOWithFile(header_body, close_body, files['userfile_0'], callback=cb, chunk_size=max_size,
                                    file_part=0, signal_sender=self)
+            #logging.info(url)
             resp = requests.post(
                 url,
                 data=body,

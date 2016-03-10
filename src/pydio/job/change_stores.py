@@ -177,36 +177,43 @@ class SqliteChangeStore():
         logging.info("To be processed " + str(it.__length_hint__()))
         pool = []
         ts = time.time()
+        schedule_exit = False  # This is used to indicate that the last change was scheduled
         while True:
             try:
                 for i in pool:
                     if not i.isAlive():
                         pool.remove(i)
                         i.join()
-                        yield str(i)
                         #logging.info("Change done " + str(i))
-                if len(pool) >= 4:  # TODO this number is arbitrary is SHOULD be dynamically changed depending on a server's load and HW resources
+                        yield str(i)
+                if schedule_exit and len(pool) == 0:
+                    break
+                if len(pool) >= 4:  # TODO this number is arbitrary it SHOULD be dynamically changed depending on a server's load and HW resources
                     time.sleep(.2)
                     continue
                 else:
-                    try:
-                        humanize
-                        logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
-                    except NameError:
-                        pass
                     output = processonechange(it)
                     time.sleep(.1)
-                    if not output:
+                    if not output and not schedule_exit:
                         for op in self.pendingoperations:
                             self.buffer_real_operation(op.location, op.type, op.source, op.target)
                         try:
                             humanize
                             logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts).replace('ago', '') + " to process changes.")
                         except NameError:
-                            pass
-                        break
-                    if output.isAlive():
+                            pass # NOP if not humanize lib
+                        schedule_exit = True
+                        continue
+                    else:
+                        # waiting for changes to be processed
+                        time.sleep(.2)
+                    if output and output.isAlive():
                         pool.append(output)
+                    try:
+                        humanize
+                        logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
+                    except NameError:
+                        pass
                     """if hasattr(output, "done"):
                         pool.append(output)"""
             except InterruptException as e:
@@ -550,6 +557,7 @@ class SqliteChangeStore():
         """ Updates the buffer with the operations treated
         """
         # TODO lock
+        #logging.info("Processing pending changes (" + str(len(self.pendingoperations)) + ")")
         while len(self.pendingoperations) > 0:
             op = self.pendingoperations.pop()
             #self.buffer_real_operation(op.location, op.type, op.source, op.target)
@@ -557,7 +565,18 @@ class SqliteChangeStore():
         self.conn.commit()
 
     def clear_operations_buffer(self):
-        #logging.info("CLEARING ajxp_last_buffer")
+        """nbrows = 0
+        for r in self.conn.execute('SELECT * FROM ajxp_last_buffer'):
+            txt = u""
+            for c in r:
+                if type(c) == unicode:
+                    txt += c
+                else:
+                    txt += str(c)
+                txt += "|"
+            logging.info(txt)
+            nbrows += 1
+        logging.info("$$ About to clear %d rows of ajxp_last_buffer", nbrows)"""
         self.conn.execute("DELETE FROM ajxp_last_buffer")
         self.conn.commit()
 
@@ -685,7 +704,7 @@ class SqliteChangeStore():
         target = change['target'].replace("\\", "/")
         action = change['type']
         for _ in self.conn.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (action, location, source, target)):
-            #logging.info('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
+            logging.info('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
             return True
         return False
 
