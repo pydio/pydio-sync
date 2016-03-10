@@ -641,10 +641,11 @@ class ContinuousDiffMerger(threading.Thread):
                             #logging.info("Updating seqs")
                             self.current_store.process_pending_changes()
                             self.update_min_seqs_from_store(success=True)
-                            self.update_current_tasks()
-                            self.update_global_progress()
                             self.global_progress['queue_done'] = float(counter[0])
                             counter[0] += 1
+                            self.update_current_tasks()
+                            self.update_global_progress()
+                            time.sleep(0.1)
                         self.update_min_seqs_from_store(success=True)
                         self.update_current_tasks()
                         self.update_global_progress()
