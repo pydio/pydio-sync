@@ -24,6 +24,7 @@ import stat
 import netifaces
 from exceptions import SystemSdkException
 import shutil
+import logging
 try:
     from pydio.utils.functions import hashfile
     from pydio.utils.global_config import ConfigManager
@@ -61,7 +62,11 @@ class SystemSdk(object):
         return None
 
     def mkfile(self, path):
-        open(self.basepath + path, 'w').close()
+        full_path = self.basepath + path
+        if not os.path.exists(full_path):
+            open(full_path, 'w').close()
+        else:
+            logging.warning("Attemp to locally MKFILE an existing file")
 
     def stat(self, path, full_path=False, with_hash=False):
         """
