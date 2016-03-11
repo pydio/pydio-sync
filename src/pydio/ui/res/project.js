@@ -748,38 +748,39 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 $location.path('/edit/new/step4');
 
             }else if(stepName == 'step4'){
-
-
                 delete $scope.job.compute_sizes;
                 delete $scope.job.id;
-                $scope.job.$save(function(){
-
-                    // Update reads
-                    var t2;
-                    var job_id = $scope.job.id;
-                    (function tickJob() {
-                        var j = Jobs.get({job_id:job_id}, function(){
-                            $scope.job = j;
-                            if($scope.job.last_event && $scope.job.last_event.type == 'sync' && $scope.job.last_event.status == 'success'){
-                                $location.path('/');
-                                return;
-                            }
-                            if($scope.job.state){
-                                if($scope.job.state.global.queue_length > 0 && $scope.job.state.global.queue_done >= (90 / 100 * $scope.job.state.global.queue_length)){
+                if (typeof($scope.SAVEDJOB) === "undefined"){
+                    $scope.job.$save(function(){
+                        // Update reads
+                        var t2;
+                        var job_id = $scope.job.id;
+                        (function tickJob() {
+                            var j = Jobs.get({job_id:job_id}, function(){
+                                $scope.job = j;
+                                if($scope.job.last_event && $scope.job.last_event.type == 'sync' && $scope.job.last_event.status == 'success'){
                                     $location.path('/');
                                     return;
                                 }
-                                $scope.job = j;
-                                $scope.job.state.progress = 100 * parseFloat($scope.job.state.global.queue_done) / parseFloat($scope.job.state.global.queue_length)
-                            }
-                            t2 = $timeout(tickJob, 1000);
+                                if($scope.job.state){
+                                    if($scope.job.state.global.queue_length > 0 && $scope.job.state.global.queue_done >= (90 / 100 * $scope.job.state.global.queue_length)){
+                                        $location.path('/');
+                                        return;
+                                    }
+                                    $scope.job = j;
+                                    $scope.job.state.progress = 100 * parseFloat($scope.job.state.global.queue_done) / parseFloat($scope.job.state.global.queue_length)
+                                }
+                                t2 = $timeout(tickJob, 1000);
+                            });
+                        })();
+                        $scope.$on('$destroy', function(){
+                            $timeout.cancel(t2);
                         });
-                    })();
-                    $scope.$on('$destroy', function(){
-                        $timeout.cancel(t2);
                     });
-
-                });
+                    $scope.SAVEDJOB = true;
+                } else {
+                    //console.log("Prevented double sync launch");
+                }
 
 
             }else{
