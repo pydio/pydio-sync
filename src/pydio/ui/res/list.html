@@ -24,7 +24,7 @@
                 </td>
                 <td style="width:100px; text-align: right;padding-right: 15px;">
                     <div style="position: relative;" ng-if="job.active">
-                        <progress-circle progress-circle-model="job.state.global"
+                        <progress-circle progress-circle-model="Math.max(job.state.global, 100)"
                                          element-width=80 element-height=80></progress-circle>
                         <a style="font-size: 2em; position: absolute; left: 27px;top: 20px;" href ng-if="job.active" ng-click="job.last_event.type=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
                         <span class="glyphicon" ng-if="job.last_event.type != 'error'" ng-class="{'glyphicon-pause':job.running,'glyphicon-play':!job.running, 'display_on_hover':job.state.tasks && job.state.tasks.total}"
