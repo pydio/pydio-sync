@@ -49,11 +49,11 @@ except ImportError:
     except NameError:
         TRANSFER_RATE_SIGNAL = 'transfer_rate'
         TRANSFER_CALLBACK_SIGNAL = 'transfer_callback'
-""" FIXME
+"""
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
- DEBUG ONLY """
+# DEBUG ONLY """
 
 PYDIO_SDK_MAX_UPLOAD_PIECES = 40 * 1024 * 1024
 
@@ -707,7 +707,17 @@ class PydioSdk():
             if not new or not (new['size'] == local_stat['size']):
                 raise PydioSdkException('upload', path, _('File not correct after upload (expected size was 0 bytes)'))
             return True
-
+        # Wait for file size to be stable
+        with open(local, 'r') as f:
+            f.seek(0, 2)  # end of file
+            size = f.tell()
+            while True:
+                logging.info(" Waiting for file write to end...")
+                time.sleep(.8)
+                f.seek(0, 2)  # end of file
+                if size == f.tell():
+                    break
+                size = f.tell()
         existing_part = False
         if (self.upload_max_size - 4096) < local_stat['size']:
             self.has_disk_space_for_upload(path, local_stat['size'])

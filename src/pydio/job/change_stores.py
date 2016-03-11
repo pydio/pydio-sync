@@ -199,7 +199,7 @@ class SqliteChangeStore():
                             self.buffer_real_operation(op.location, op.type, op.source, op.target)
                         try:
                             humanize
-                            logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts).replace('ago', '') + " to process changes.")
+                            logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts).replace(' ago', '') + " to process changes.")
                         except NameError:
                             pass # NOP if not humanize lib
                         schedule_exit = True
