@@ -316,12 +316,12 @@ msgstr "Le fichier %s a été envoyé sur le serveur"
 #: job/change_processor.py:272
 #, python-format
 msgid "New file created at %s"
-msgstr "Nouveau répertoire créé: %s"
+msgstr "Nouveau fichier créé: %s"
 
 #: job/change_processor.py:278
 #, python-format
 msgid "File created at %s"
-msgstr "Répertoire créé: %s"
+msgstr "Fichier créé: %s"
 
 #: res/i18n/html_strings.py:2
 msgid "How can I find my server URL?"
@@ -478,7 +478,7 @@ msgstr "Changer"
 
 #: res/i18n/html_strings.py:38 res/i18n/html_strings.py:93
 msgid "This workspace is read only!"
-msgstr "Ce workspace est en lecture seule!"
+msgstr "Ce workspace est en lecture seule !"
 
 #: res/i18n/html_strings.py:39 res/i18n/html_strings.py:94
 msgid "Synchronise only a subfolder of this workspace"
