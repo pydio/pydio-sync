@@ -688,7 +688,7 @@ class PydioSdk():
             pass
         return server_data
 
-    def upload_and_hashstat(self, local, local_stat, path, callback_dict=None, max_upload_size=-1):
+    def upload_and_hashstat(self, local, local_stat, path, status_handler, callback_dict=None, max_upload_size=-1):
         """
         Upload a file to the server.
         :param local: file path
@@ -741,6 +741,7 @@ class PydioSdk():
         try:
             self.perform_request(url=url, type='post', data=data, files=files, with_progress=callback_dict)
         except PydioSdkDefaultException as e:
+            status_handler.update_node_status(path, 'PENDING')
             if e.message == '507':
                 usage, total = self.quota_usage()
                 raise PydioSdkQuotaException(path, local_stat['size'], usage, total)
@@ -749,10 +750,12 @@ class PydioSdk():
             else:
                 raise e
         except RequestException as ce:
+            status_handler.update_node_status(path, 'PENDING')
             raise PydioSdkException("upload", str(path), 'RequestException: ' + str(ce.message))
 
         new = self.stat(path)
         if not new or not (new['size'] == local_stat['size']):
+            status_handler.update_node_status(path, 'PENDING')
             beginning_filename = path.rfind('/')
             if beginning_filename > -1 and path[beginning_filename+1] == " ":
                 raise PydioSdkException('upload', path, _("File beginning with a 'space' shouldn't be uploaded"))

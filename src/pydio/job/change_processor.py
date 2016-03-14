@@ -258,16 +258,16 @@ class ChangeProcessor:
                 message = path + ' =====PATCH=====> ' + path
             except Exception as e:
                 logging.exception(e)
-                self.remote_sdk.upload_and_hashstat(full_path, self.local_sdk.stat(path), path, callback_dict,
-                               max_upload_size=max_upload_size)
+                self.remote_sdk.upload_and_hashstat(full_path, self.local_sdk.stat(path), path, self.status_handler,
+                                                    callback_dict, max_upload_size=max_upload_size)
             finally:
                 if os.path.exists(sig_path):
                     os.remove(sig_path)
                 if os.path.exists(delta_path):
                     os.remove(delta_path)
         else:
-            self.remote_sdk.upload_and_hashstat(full_path, self.local_sdk.stat(path), path, callback_dict,
-                               max_upload_size=max_upload_size)
+            self.remote_sdk.upload_and_hashstat(full_path, self.local_sdk.stat(path), path, self.status_handler,
+                                callback_dict, max_upload_size=max_upload_size)
 
         self.update_node_status(path, 'IDLE')
         self.log(type='remote', action='upload', status='success', target=path,

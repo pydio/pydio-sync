@@ -701,6 +701,10 @@ class SqlEventHandler(FileSystemEventHandler):
             if os.path.exists(src_path):
                 try:
                     hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
+                except IOError:
+                    # Skip the file from processing, It could be a file that is being copied or a open file!
+                    logging.debug('Skipping file %s, as it is being copied / kept open!'%(src_path))
+                    return
                 except Exception as e:
                     logging.exception(e)
                     return
