@@ -1,3 +1,16 @@
+# PydioSync - Release Notes - 14.03.2016
+## v1.2.0 stable (Windows, MacOS, Linux)
+----
+- Added a general configuration file with options such as logging format, size, auto update
+- Refactored sharing from Desktop
+- Added German language translation
+- Added options panel
+- Fixed a possible renaming file problems
+- Fixed handling of encoding in MacOSX (was causing unnecessary down/uploads)
+- Multithreaded the processing of changes
+- Patched import for easier development and use of Python tools
+- Fixed multi syncs after multi click on Fire the Rocket
+
 # PydioSync - Release Notes - 20.01.2016
 ## v1.0.4 stable (Windows, MacOS, Linux)
 ----
