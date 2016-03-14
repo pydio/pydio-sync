@@ -24,7 +24,7 @@
                 </td>
                 <td style="width:100px; text-align: right;padding-right: 15px;">
                     <div style="position: relative;" ng-if="job.active">
-                        <progress-circle progress-circle-model="Math.max(job.state.global, 100)"
+                        <progress-circle progress-circle-model="job.state.global"
                                          element-width=80 element-height=80></progress-circle>
                         <a style="font-size: 2em; position: absolute; left: 27px;top: 20px;" href ng-if="job.active" ng-click="job.last_event.type=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
                         <span class="glyphicon" ng-if="job.last_event.type != 'error'" ng-class="{'glyphicon-pause':job.running,'glyphicon-play':!job.running, 'display_on_hover':job.state.tasks && job.state.tasks.total}"
@@ -66,7 +66,7 @@
 
         <h4 ng-if="running.tasks.total && running.tasks.current.length"  >{{_('Transfers in progress')}} <span class="small">({{running.tasks.total}})</span></h4>
         <div ng-if="running.tasks.total && running.tasks.current.length" ng-repeat="task in running.tasks.current" style="padding:2px 0;">
-            <span ng-if="task.total_bytes_sent"><span class="badge">{{ Math.min(100, 100 * task.total_bytes_sent / task.bytesize) | number: 0}}%</span></span>
+            <span ng-if="task.total_bytes_sent"><span class="badge">{{ task.bytesize > 0 ? Math.min(100, 100 * task.total_bytes_sent / task.bytesize) : 0 | number: 0}}%</span></span>
             <span ng-if="!task.total_bytes_sent && task.location == 'local'" class="glyphicon glyphicon-cloud-upload"></span>
             <span ng-if="!task.total_bytes_sent && task.location == 'remote'" class="glyphicon glyphicon-cloud-download"></span>
             <span>{{task.target && task.target != 'NULL'?task.target:task.source | basename}}</span>
