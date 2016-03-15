@@ -21,7 +21,6 @@ import os,sys
 import urllib2
 import logging
 import time
-import math
 
 def hashfile(afile, hasher, blocksize=65536):
     ts = time.time()

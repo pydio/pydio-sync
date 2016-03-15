@@ -27,6 +27,7 @@ import time
 import fnmatch
 import pickle
 import logging
+import threading
 from pathlib import *
 from watchdog.events import FileSystemEventHandler
 from watchdog.utils.dirsnapshot import DirectorySnapshotDiff
@@ -700,10 +701,13 @@ class SqlEventHandler(FileSystemEventHandler):
         else:
             if os.path.exists(src_path):
                 try:
-                    hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
+                    if self.prevent_atomic_commit:
+                        hash_key = "HASHME"  # Will be hashed when transaction ends
+                    else:
+                        hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
                 except IOError:
                     # Skip the file from processing, It could be a file that is being copied or a open file!
-                    logging.debug('Skipping file %s, as it is being copied / kept open!'%(src_path))
+                    logging.debug('Skipping file %s, as it is being copied / kept open!' % src_path)
                     return
                 except Exception as e:
                     logging.exception(e)
@@ -847,8 +851,80 @@ class SqlEventHandler(FileSystemEventHandler):
 
     @pydio_profile
     def end_transaction(self):
-        self.prevent_atomic_commit = False
+        """ The db is unicode_escape encoded, other functions seem to expect unicode
+        """
+        class hasher(threading.Thread):
+            """ This is a thread, used to md5 hash files
+            """
+            def __init__(self):
+                threading.Thread.__init__(self)
+                self.brow = ""
+                self.res = {}
+
+            def hashrow(self):
+                """
+                :return: a dict containing SQL code and values to be executed later
+                """
+                base = self.brow[0]
+                row = self.brow[1]
+                #logging.info(brow)
+                path = row[1] #unicodedata.normalize('NFC', r[1])
+                t = (
+                        os.path.getsize(base + path),
+                        hashfile(open(base + path, 'rb'), hashlib.md5()),
+                        os.path.getmtime(base + path),
+                        pickle.dumps(os.stat(base + path)),
+                        row[1]
+                     )
+                return {"sql": "UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND md5='HASHME'", "values": t}
+
+            def do(self):
+                self.res = self.hashrow()
+
+            def run(self):
+                pass
+
         self.transaction_conn.commit()
+        if self.prevent_atomic_commit:
+            cur = self.transaction_conn.cursor()
+        else:  # This is propably useless
+            cur = sqlite3.connect(self.db, timeout=self.timeout).cursor()
+        cur.execute("SELECT * FROM ajxp_index WHERE md5=?", ("HASHME",))
+        rows = cur.fetchall()
+        brows = [(self.base, row) for row in rows]
+        #logging.info(" HASHING BEGINS (" + str(len(brows)) + ")")
+        #ts = time.time()
+        pool = [hasher() for t in range(4)] # TODO Tune me depending on the number of changes to be processed, and HW
+        for p in pool:
+            p.start()
+        shouldexit = False
+        while True:
+            """ A pool of threads is used and managed here, for every cycle we go through the pool to collect
+                possible results and load more items in the pool to be hashed, termination is handled by the
+                shouldexit flag. We make sure all the results are collected by waiting for the threads to join.
+            """
+            for t in pool:
+                more = False
+                if not t.isAlive():
+                    if t.res != {}:
+                        cur.execute(t.res["sql"], t.res["values"])
+                        t.res = {}
+                    if not shouldexit:
+                        try:
+                            more = True
+                            t.brow = brows.pop()
+                            t.do()
+                        except IndexError:
+                            shouldexit = True
+            if shouldexit:
+                for t in pool:
+                    t.join()
+                    if t.res != {}:
+                        cur.execute(t.res["sql"], t.res["values"])
+                break
+        #logging.info(" Threaded HASHING DONE " + str(time.time() - ts))
+        self.transaction_conn.commit()
+        self.prevent_atomic_commit = False
         self.transaction_conn.close()
 
     @pydio_profile
@@ -862,4 +938,3 @@ class SqlEventHandler(FileSystemEventHandler):
     @pydio_profile
     def unlock_db(self):
         self.last_write_time = int(round(time.time() * 1000))
-
