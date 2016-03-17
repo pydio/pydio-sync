@@ -24,6 +24,8 @@ import json
 import urlparse
 import os
 import logging
+import platform
+import unicodedata
 try:
     from pydio.utils.functions import Singleton
 except ImportError:
@@ -219,6 +221,11 @@ class JobConfig:
                     logging.error(
                         "Error while storing password in keychain, should we store it cyphered in the config?")
             if 'filters' in obj:
+                if platform.system() == "Darwin":
+                    for e in obj['filters']['excludes']:
+                        obj['filters']['excludes'] = unicodedata.normalize('NFD', e)
+                    for i in obj['filters']['includes']:
+                        obj['filters']['includes'] = unicodedata.normalize('NFD', i)
                 job_config.filters = obj['filters']
             if 'direction' in obj and obj['direction'] in ['up', 'down', 'bi']:
                 job_config.direction = obj['direction']
