@@ -211,7 +211,14 @@ class SqliteChangeStore():
                         pool.append(output)
                     try:
                         humanize
-                        logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
+                        current_change = ""
+                        if len(pool) == 1:
+                            try:
+                                current_change = pool[0].change
+                                logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss) + " " + (current_change['node']['node_path'] or current_change['source'] or current_change['target']))
+                            except Exception as e:
+                                logging.exception(e)
+                                logging.info(str(type(pool[0].change)) + " " + str(pool[0].change))
                     except NameError:
                         pass
                     """if hasattr(output, "done"):
