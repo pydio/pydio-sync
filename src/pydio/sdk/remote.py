@@ -79,7 +79,12 @@ class PydioSdk():
         self.stat_slice_number = 200
         self.stick_to_basic = False
         if user_id:
-            self.auth = (user_id, keyring.get_password(url, user_id))
+            try:
+                self.auth = (user_id, keyring.get_password(url, user_id))
+            except RuntimeError as re:
+                logging.info("Loading credentials from keyring failed")
+                logging.exception(re)
+                self.auth = auth
         else:
             self.auth = auth
         self.tokens = None

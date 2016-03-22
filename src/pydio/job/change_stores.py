@@ -59,28 +59,34 @@ class SqliteChangeStore():
         self.pendingoperations = []
 
     def open(self):
-        self.conn = sqlite3.connect(self.db, timeout=self.timeout)
-        self.conn.row_factory = sqlite3.Row
-        if self.create:
-            self.conn.execute(
-                'CREATE TABLE ajxp_changes (row_id INTEGER PRIMARY KEY AUTOINCREMENT , seq_id, location TEXT, '
-                'type TEXT, source TEXT, target TEXT, content INTEGER, md5 TEXT, bytesize INTEGER, data TEXT)')
-            self.conn.execute(
-                "CREATE TABLE ajxp_last_buffer ( id INTEGER PRIMARY KEY AUTOINCREMENT, location TEXT, type TEXT, "
-                "source TEXT, target TEXT )")
-            self.conn.execute("CREATE INDEX changes_seq_id ON ajxp_changes (seq_id)")
-            self.conn.execute("CREATE INDEX changes_location ON ajxp_changes (location)")
-            self.conn.execute("CREATE INDEX changes_type ON ajxp_changes (type)")
-            self.conn.execute("CREATE INDEX changes_source ON ajxp_changes (source)")
-            self.conn.execute("CREATE INDEX changes_target ON ajxp_changes (target)")
-            self.conn.execute("CREATE INDEX changes_md5 ON ajxp_changes (md5)")
-            self.conn.execute("CREATE INDEX buffer_location ON ajxp_last_buffer (location)")
-            self.conn.execute("CREATE INDEX buffer_type ON ajxp_last_buffer (type)")
-            self.conn.execute("CREATE INDEX buffer_source ON ajxp_last_buffer (source)")
-            self.conn.execute("CREATE INDEX buffer_target ON ajxp_last_buffer (target)")
-        else:
-            self.conn.execute("DELETE FROM ajxp_changes")
-        self.conn.commit()
+        try:
+            self.conn = sqlite3.connect(self.db, timeout=self.timeout)
+            self.conn.row_factory = sqlite3.Row
+            if self.create:
+                self.conn.execute(
+                    'CREATE TABLE ajxp_changes (row_id INTEGER PRIMARY KEY AUTOINCREMENT , seq_id, location TEXT, '
+                    'type TEXT, source TEXT, target TEXT, content INTEGER, md5 TEXT, bytesize INTEGER, data TEXT)')
+                self.conn.execute(
+                    "CREATE TABLE ajxp_last_buffer ( id INTEGER PRIMARY KEY AUTOINCREMENT, location TEXT, type TEXT, "
+                    "source TEXT, target TEXT )")
+                self.conn.execute("CREATE INDEX changes_seq_id ON ajxp_changes (seq_id)")
+                self.conn.execute("CREATE INDEX changes_location ON ajxp_changes (location)")
+                self.conn.execute("CREATE INDEX changes_type ON ajxp_changes (type)")
+                self.conn.execute("CREATE INDEX changes_source ON ajxp_changes (source)")
+                self.conn.execute("CREATE INDEX changes_target ON ajxp_changes (target)")
+                self.conn.execute("CREATE INDEX changes_md5 ON ajxp_changes (md5)")
+                self.conn.execute("CREATE INDEX buffer_location ON ajxp_last_buffer (location)")
+                self.conn.execute("CREATE INDEX buffer_type ON ajxp_last_buffer (type)")
+                self.conn.execute("CREATE INDEX buffer_source ON ajxp_last_buffer (source)")
+                self.conn.execute("CREATE INDEX buffer_target ON ajxp_last_buffer (target)")
+            else:
+                self.conn.execute("DELETE FROM ajxp_changes")
+            self.conn.commit()
+        except sqlite3.OperationalError as oe:
+            # Catch Database locked errors and try again
+            logging.exception(oe)
+            time.sleep(.5)
+            self.open()
 
 
     def __len__(self):
@@ -211,7 +217,14 @@ class SqliteChangeStore():
                         pool.append(output)
                     try:
                         humanize
-                        logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
+                        current_change = ""
+                        if len(pool) == 1:
+                            try:
+                                current_change = pool[0].change
+                                logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss) + " " + (current_change['node']['node_path'] or current_change['source'] or current_change['target']))
+                            except Exception as e:
+                                logging.exception(e)
+                                logging.info(str(type(pool[0].change)) + " " + str(pool[0].change))
                     except NameError:
                         pass
                     """if hasattr(output, "done"):

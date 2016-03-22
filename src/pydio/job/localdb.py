@@ -536,7 +536,7 @@ class SqlEventHandler(FileSystemEventHandler):
         self.timeout = db_handler.timeout
         self.reading = False
         self.last_write_time = 0
-        self.db_wait_duration = 1
+        self.db_wait_duration = .1
         self.last_seq_id = 0
         self.prevent_atomic_commit = False
         self.con = None
@@ -561,6 +561,18 @@ class SqlEventHandler(FileSystemEventHandler):
             else:
                 base = os.path.basename(event.src_path)
                 path = self.remove_prefix(self.get_unicode_path(event.src_path))
+        try:
+            #logging.info(" 1 : " + str(type(base)) + " " + str(type(path)))
+            if isinstance(path, str):
+                #logging.info('ENCODING PATH')
+                path = unicode(path, 'utf-8')
+            if isinstance(base, str):
+                #logging.info('ENCODING BASE')
+                base = unicode(base, 'utf-8')
+            #logging.info("2 : " + str(type(base)) + " " + str(type(path)))
+            #logging.info(base + u" " + path)
+        except Exception as e:
+            logging.exception(e)
         if path == '.':
             return False
         for i in self.includes:
@@ -576,7 +588,7 @@ class SqlEventHandler(FileSystemEventHandler):
 
     @pydio_profile
     def on_moved(self, event):
-
+        #   logging.info(event.src_path + event.dest_path)
         if not self.included(event):
             logging.debug('ignoring move event ' + event.src_path + " " + event.dest_path)
             return
