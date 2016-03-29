@@ -901,32 +901,44 @@ class SqlEventHandler(FileSystemEventHandler):
             cur = self.transaction_conn.cursor()
         else:  # This is propably useless
             cur = sqlite3.connect(self.db, timeout=self.timeout).cursor()
-        cur.execute("SELECT * FROM ajxp_index WHERE md5=?", ("HASHME",))
-        rows = cur.fetchall()
-        brows = [(self.base, row) for row in rows]
-        #logging.info(" HASHING BEGINS (" + str(len(brows)) + ")")
+        def hashfetcher(cur):
+            """ Yields brows (basepath + sql row) of changes to be processed
+            :param cur: sqlite cursor
+            :yield: brow
+            """
+            while True:
+                try:
+                    cur.execute("SELECT * FROM ajxp_index WHERE md5=?", ("HASHME",))
+                    rows = cur.fetchmany(100)
+                    if not rows:
+                        break
+                    for row in rows:
+                        yield (self.base, row)
+                except sqlite3.OperationalError as oe:
+                    logging.exception(oe)  # catch DB locked errors
+                    pass
+        #logging.info(" HASHING BEGINS (" + str(cur.execute("SELECT COUNT(*) FROM ajxp_index WHERE md5=?", ("HASHME",)).fetchone()[0]) + ")")
         #ts = time.time()
         pool = [hasher() for t in range(4)] # TODO Tune me depending on the number of changes to be processed, and HW
         for p in pool:
             p.start()
         shouldexit = False
+        brows = hashfetcher(cur)
         while True:
             """ A pool of threads is used and managed here, for every cycle we go through the pool to collect
                 possible results and load more items in the pool to be hashed, termination is handled by the
                 shouldexit flag. We make sure all the results are collected by waiting for the threads to join.
             """
             for t in pool:
-                more = False
                 if not t.isAlive():
                     if t.res != {}:
                         cur.execute(t.res["sql"], t.res["values"])
                         t.res = {}
                     if not shouldexit:
                         try:
-                            more = True
-                            t.brow = brows.pop()
+                            t.brow = next(brows)
                             t.do()
-                        except IndexError:
+                        except StopIteration:
                             shouldexit = True
             if shouldexit:
                 for t in pool:

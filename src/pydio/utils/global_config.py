@@ -165,11 +165,11 @@ class GlobalConfigManager:
                 "disable_existing_loggers": "True",
                 "formatters": {
                     "short": {
-                        "format": "%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(message)s",
+                        "format": u"%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(message)s",
                         "datefmt": "%H:%M:%S"
                     },
                     "verbose": {
-                        "format": "%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(filename)s : %(lineno)s | %(funcName)s | %(message)s",
+                        "format": u"%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(filename)s : %(lineno)s | %(funcName)s | %(message)s",
                         "datefmt": "%Y-%m-%d %H:%M:%S"
                     }
                 },
