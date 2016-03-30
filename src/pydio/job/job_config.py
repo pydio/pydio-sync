@@ -222,11 +222,20 @@ class JobConfig:
                         "Error while storing password in keychain, should we store it cyphered in the config?")
             if 'filters' in obj:
                 if platform.system() == "Darwin":
-                    for e in obj['filters']['excludes']:
-                        obj['filters']['excludes'] = unicodedata.normalize('NFD', e)
-                    for i in obj['filters']['includes']:
-                        obj['filters']['includes'] = unicodedata.normalize('NFD', i)
-                job_config.filters = obj['filters']
+                    if isinstance(obj['filters']['excludes'], list):
+                        job_config.filters['excludes'] = []
+                        for e in obj['filters']['excludes']:
+                            job_config.filters['excludes'].append(unicodedata.normalize('NFD', e))
+                    elif isinstance(obj['filters']['excludes'], str):
+                        job_config.filters['excludes'] = unicodedata.normalize('NFD', obj['filters']['excludes'])
+                    if isinstance(obj['filters']['includes'], list):
+                        job_config.filters['includes'] = []
+                        for i in obj['filters']['includes']:
+                            job_config.filters['includes'].append(unicodedata.normalize('NFD', i))
+                    elif isinstance(obj['filters']['includes'], str):
+                        job_config.filters['includes'] = unicodedata.normalize('NFD', obj['filters']['includes'])
+                else:
+                    job_config.filters = obj['filters']
             if 'direction' in obj and obj['direction'] in ['up', 'down', 'bi']:
                 job_config.direction = obj['direction']
             if 'trust_ssl' in obj and obj['trust_ssl'] in [True, False]:
