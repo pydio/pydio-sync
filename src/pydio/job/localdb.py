@@ -645,9 +645,14 @@ class SqlEventHandler(FileSystemEventHandler):
             src_path = self.get_unicode_path(event.src_path)
             if not os.path.exists(src_path):
                 return
-            self.updateOrInsert(src_path, is_directory=event.is_directory, skip_nomodif=False)
         except Exception as ex:
             logging.exception(ex)
+        while True:
+            try:
+                self.updateOrInsert(src_path, is_directory=event.is_directory, skip_nomodif=False)
+                break
+            except sqlite3.OperationalError:  # database locked
+                time.sleep(.1)
         self.last_write_time = int(round(time.time() * 1000))
 
     @pydio_profile
@@ -881,21 +886,24 @@ class SqlEventHandler(FileSystemEventHandler):
                 row = self.brow[1]
                 #logging.info(brow)
                 path = row[1] #unicodedata.normalize('NFC', r[1])
-                t = (
-                        os.path.getsize(base + path),
-                        hashfile(open(base + path, 'rb'), hashlib.md5()),
-                        os.path.getmtime(base + path),
-                        pickle.dumps(os.stat(base + path)),
-                        row[1]
-                     )
-                return {"sql": "UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND md5='HASHME'", "values": t}
+                if os.path.exists(base + path):
+                    with open(base + path, 'rb') as fd:
+                        t = (
+                            os.path.getsize(base + path),
+                            hashfile(fd, hashlib.md5()),
+                            os.path.getmtime(base + path),
+                            pickle.dumps(os.stat(base + path)),
+                            row[1]
+                             )
+                    return {"sql": "UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND md5='HASHME'", "values": t}
+                else:
+                    {"sql": "DELETE FROM ajxp_index WHERE node_path=? AND md5='HASHME'", "values": base+path}
 
             def do(self):
                 self.res = self.hashrow()
 
             def run(self):
                 pass
-
         self.transaction_conn.commit()
         if self.prevent_atomic_commit:
             cur = self.transaction_conn.cursor()
