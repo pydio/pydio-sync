@@ -716,13 +716,14 @@ class PydioSdk():
         with open(local, 'r') as f:
             f.seek(0, 2)  # end of file
             size = f.tell()
-            while True:
-                logging.info(" Waiting for file write to end...")
-                time.sleep(.8)
-                f.seek(0, 2)  # end of file
-                if size == f.tell():
-                    break
-                size = f.tell()
+            if local_stat['size'] != size:
+                while True:
+                    logging.info(" Waiting for file write to end...")
+                    time.sleep(.8)
+                    f.seek(0, 2)  # end of file
+                    if size == f.tell():
+                        break
+                    size = f.tell()
         existing_part = False
         if (self.upload_max_size - 4096) < local_stat['size']:
             self.has_disk_space_for_upload(path, local_stat['size'])
