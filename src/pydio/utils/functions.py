@@ -23,7 +23,14 @@ import logging
 import time
 
 def hashfile(afile, hasher, blocksize=65536):
-    ts = time.time()
+    """
+    Hash a fd
+    :param afile: a file descriptor, WARNING don't forget to close it in the caller, check with p = psutil.Processor(); len(p.open_files())
+    :param hasher: usually hashlib.md5()
+    :param blocksize: the size of the chunks
+    :return: hash of fd using hasher and blocksize
+    """
+    #ts = time.time()
     buf = afile.read(blocksize)
     while len(buf) > 0:
         hasher.update(buf)
