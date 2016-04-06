@@ -127,7 +127,7 @@ class PydioApi(Api):
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
         self.app.add_url_rule('/res/about.html', 'dynamic_about', self.serve_about_content)
-
+        #self.app.add_url_rule('/checksync', 'checksync', self.check_sync)
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
@@ -213,6 +213,12 @@ class PydioApi(Api):
             if func is None:
                 raise RuntimeError('Not running with the Werkzeug Server')
             func()
+
+    def check_sync(self):
+        return Response(response="LOL",
+                        status=200,
+                        mimetype="text/html")
+# end of PydioApi
 
 class WorkspacesManager(Resource):
 
