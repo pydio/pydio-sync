@@ -42,7 +42,11 @@ if getattr(sys, 'frozen', False):
     os.environ['REQUESTS_CA_BUNDLE'] = requests.certs.where()
     logging.info("Setting certificate path to " + requests.certs.where())
 
-fs_encoding = sys.getfilesystemencoding()
+if sys.getfilesystemencoding() is not None:
+    fs_encoding = sys.getfilesystemencoding()
+else:
+    logging.warning('Filesystem encoding forced to UTF-8')
+    fs_encoding = 'UTF-8'
 
 if not fs_encoding and sys.platform.startswith('linux'):
     def _watchdog_encode(path):
