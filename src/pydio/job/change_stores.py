@@ -27,11 +27,11 @@ import math
 import time
 import random
 try:
-    from pydio.sdk.exceptions import InterruptException
+    from pydio.sdkremote.exceptions import InterruptException
     from pydio.utils.pydio_profiler import pydio_profile
     from pydio.utils.global_config import GlobalConfigManager
 except ImportError:
-    from sdk.exceptions import InterruptException
+    from sdkremote.exceptions import InterruptException
     from utils.pydio_profiler import pydio_profile
     from utils.global_config import GlobalConfigManager
 from threading import Thread

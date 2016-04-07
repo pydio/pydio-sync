@@ -25,11 +25,11 @@ import sys
 try:
     from pydio.utils.global_config import ConfigManager
     from pydio.utils.pydio_profiler import pydio_profile
-    from pydio.sdk.remote import PydioSdk
+    from pydio.sdkremote.remote import PydioSdk
 except ImportError:
     from utils.global_config import ConfigManager
     from utils.pydio_profiler import pydio_profile
-    from sdk.remote import PydioSdk
+    from sdkremote.remote import PydioSdk
 
 class PydioDiagnostics():
 

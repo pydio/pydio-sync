@@ -402,7 +402,7 @@ class JobManager(Resource):
             dl_rate = 2 * 1024 * 1024
             up_rate = 0.1 * 1024 * 1024
             # COMPUTE REMOTE SIZE
-            from pydio.sdk.remote import PydioSdk
+            from pydio.sdkremote.remote import PydioSdk
             trust_ssl = False
             if 'trust_ssl' in json_req:
                 trust_ssl = json_req['trust_ssl']
@@ -705,7 +705,7 @@ class ShareManager(Resource):
                 return {"error": "Cannot find job"}
             job = jobs[job_id]
 
-            from pydio.sdk.remote import PydioSdk
+            from pydio.sdkremote.remote import PydioSdk
             remote_instance = PydioSdk(job.server, job.workspace, job.remote_folder, job.user_id,
                            auth="",
                            device_id=ConfigManager.Instance().get_device_id(),

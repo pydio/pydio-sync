@@ -37,7 +37,7 @@ class ChangeProcessor:
         :param change: dict
         :param change_store: pydio.job.change_stores.SqliteChangeStore
         :param job_config: dict
-        :param local_sdk: pydio.sdk.local.SystemSdk
+        :param local_sdk: pydio.sdklocal.local.SystemSdk
         :param status_handler: pydio.local.status_handler
         :param event_logs_handler: pydio.job.EventLogger
         :type remote_sdk: pydio.sdk.remote.PydioSdk

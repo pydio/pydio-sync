@@ -18,7 +18,7 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 
-from pydio.sdk.remote import PydioSdk
+from pydio.sdkremote.remote import PydioSdk
 import unittest
 
 class SdkTest(unittest.TestCase):
