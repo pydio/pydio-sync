@@ -1,0 +1,4 @@
+[submodule "src/pydio/sdkremote"]
+	path = src/pydio/sdkremote
+	url = https://github.com/pydio/pydio-sdk-python
+	branch = python2
