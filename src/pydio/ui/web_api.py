@@ -32,15 +32,20 @@ import logging
 import sys
 import os
 import urllib2
+import posixpath
 import unicodedata
 from pathlib import *
 from functools import wraps
 import authdigest
+import pickle
+import zlib
+import platform
+import base64
 try:
     from pydio.job.job_config import JobConfig, JobsLoader
     from pydio.job.EventLogger import EventLogger
     from pydio.job.scheduler import PydioScheduler
-    from pydio.job.localdb import LocalDbHandler
+    from pydio.job.localdb import LocalDbHandler, SqlEventHandler
     from pydio.utils.global_config import ConfigManager, GlobalConfigManager
     from pydio.utils.functions import connection_helper
     from pydio.utils.i18n import get_languages
@@ -49,7 +54,7 @@ try:
     from pydio.utils.pydio_profiler import pydio_profile
 except ImportError:
     from job.EventLogger import EventLogger
-    from job.localdb import LocalDbHandler
+    from job.localdb import LocalDbHandler, SqlEventHandler
     from job.scheduler import PydioScheduler
     from job.job_config import JobConfig, JobsLoader
     from utils.global_config import ConfigManager, GlobalConfigManager
@@ -123,11 +128,12 @@ class PydioApi(Api):
         self.add_resource(ShareLinkManager, '/share_link/<string:job_id>/<string:folder_flag>/<path:relative_path>')
         self.add_resource(ShareCopyManager, '/share_cp')
         self.add_resource(GeneralConfigManager, '/general_configs')
+        self.add_resource(Feedback, '/feedbackinfo')
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
         self.app.add_url_rule('/res/about.html', 'dynamic_about', self.serve_about_content)
-        #self.app.add_url_rule('/checksync', 'checksync', self.check_sync)
+        self.app.add_url_rule('/checksync', 'checksync', self.check_sync)
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
@@ -215,7 +221,7 @@ class PydioApi(Api):
             func()
 
     def check_sync(self):
-        return Response(response="LOL",
+        return Response(response="TO DO",
                         status=200,
                         mimetype="text/html")
 # end of PydioApi
@@ -721,12 +727,18 @@ class ShareManager(Resource):
                 )
 
                 if len(check_res) > 2:  # when share link doesn't exists content length will be zero for file and 2 for folder
-                    res = json.loads(check_res)
-                    if "minisite" in res and res["minisite"]["public"]:
-                        return {"link": res["minisite"]["public_link"], "existingLinkFlag": "true"}
-                    elif "repositoryId" in res:
-                        return {"link": _("The folder is already shared as a workspace!"), "existingLinkFlag": "true"}
-
+                    try:
+                        res = json.loads(check_res)
+                        if "links" in res:  # Pydio > 6.4.0
+                            for ids in res["links"]:
+                                if "public_link" in res["links"][ids]:
+                                    return {"link": res["links"][ids]["public_link"], "existingLinkFlag": "true"}
+                        if "minisite" in res and res["minisite"]["public"]:
+                            return {"link": res["minisite"]["public_link"], "existingLinkFlag": "true"}
+                        elif "repositoryId" in res:
+                            return {"link": _("The folder is already shared as a workspace!"), "existingLinkFlag": "true"}
+                    except ValueError:
+                        pass  # No json received -> assuming no share...
                 elif args["checkExistingLinkFlag"]:
                     return {"existingLinkFlag": "false"}
 
@@ -760,7 +772,6 @@ class ShareLinkManager(Resource):
         """
         #logging.info("[SHARE] " + job_id + " " + folder_flag + " " + relative_path)
         try:
-            import platform
             is_system_windows = platform.system().lower().startswith("win")
             if is_system_windows:
                 name_pipe_path = "//./pipe/pydioLocalServer"
@@ -855,3 +866,81 @@ class GeneralConfigManager(Resource):
         if len(data) > 0:
             global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
             return global_config_manager.update_general_config(data=data)
+
+class Feedback(Resource):
+    def get(self):
+        """
+        :return: {} containing some basic usage information
+        """
+        jobs = JobsLoader.Instance().get_jobs()
+        resp = {"errors": "zlib_blob", "nberrors": 0, "platform": platform.system()}
+        for job_id in jobs:
+            resp[job_id] = {"nbsyncedfiles": 0, "lastseq": 0, "serverInfo": {}}
+        globalconfig = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
+        resp["pydiosync_version"] = ConfigManager.Instance().get_version_data()["version"]
+        # parse logs for Errors, zip the errors
+        logdir = globalconfig.configs_path
+        files = os.listdir(logdir)
+        logfiles = []
+        for f in files:
+            if f.startswith(globalconfig.default_settings['log_configuration']['log_file_name']):
+                logfiles.append(f)
+        compressor = zlib.compressobj()
+        compressed_data = ""
+        errors = "["
+        for logfile in logfiles:
+            try:
+                with open(os.path.join(logdir, logfile), 'r') as f:
+                    for l in f.readlines():
+                        if l.find('ERROR') > -1:
+                            resp['nberrors'] += 1
+                            errors += '"' + l.replace('\n', '') + '",'
+                    compressed_data += compressor.compress(str(errors))
+                    errors = ""
+            except Exception as e:
+                logging.exception(e)
+        compressor.compress("]")
+        compressed_data += compressor.flush()
+        # base64 encode the compressed extracted errors
+        resp['errors'] = compressed_data
+        resp["errors"] = base64.b64encode(resp["errors"])
+        # Instantiate and get logs from pydio.sqlite
+        for job_id in jobs:
+            try:
+                url = posixpath.join(jobs[job_id].server, 'index.php?get_action=get_boot_conf')
+                req = requests.get(url, verify=False)
+                logging.info("URL " + url)
+                logging.info(req.content)
+                jsonresp = json.loads(req.content)
+                if 'ajxpVersion' in jsonresp:
+                    resp[job_id]['serverInfo']['ajxpVersion'] = jsonresp['ajxpVersion']
+                if 'customWording' in jsonresp:
+                    resp[job_id]['serverInfo']['customWording'] = jsonresp['customWording']
+                if 'currentLanguage' in jsonresp:
+                    resp[job_id]['serverInfo']['currentLanguage'] = jsonresp['currentLanguage']
+                if 'theme' in jsonresp:
+                    resp[job_id]['serverInfo']['theme'] = jsonresp['theme']
+                if 'licence_features' in jsonresp:
+                    resp[job_id]['serverInfo']['licence_features'] = jsonresp['licence_features']
+            except Exception as e:
+                logging.exception(e)
+            pydiosqlite = SqlEventHandler(includes=jobs[job_id].filters['includes'],
+                                          excludes=jobs[job_id].filters['excludes'],
+                                          basepath=jobs[job_id].directory,
+                                          job_data_path=os.path.join(globalconfig.configs_path, job_id))
+            dbstats = pydiosqlite.db_stats()
+            resp[job_id] = {}
+            resp[job_id]['nbsyncedfiles'] = dbstats['nbfiles']
+            resp[job_id]['nbdirs'] = dbstats['nbdirs']
+            #logging.info(dir(jobs[jobs.keys()[0]]))
+            try:
+                with open(os.path.join(globalconfig.configs_path, job_id, "sequence"), "rb") as f:
+                    sequences = pickle.load(f)
+                    resp[job_id]['lastseq'] = sequences['local']
+                    resp[job_id]['remotelastseq'] = sequences['remote']
+            except Exception:
+                logging.info('Problem loading sequences file')
+                resp[job_id]['lastseq'] = -1
+                resp[job_id]['remotelastseq'] = -1
+        return resp
+# end of feedback

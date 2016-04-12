@@ -1033,3 +1033,22 @@ class SqlEventHandler(FileSystemEventHandler):
     @pydio_profile
     def unlock_db(self):
         self.last_write_time = int(round(time.time() * 1000))
+
+    def db_stats(self):
+        """
+        :return: some stats about the database
+        """
+        c = sqlite3.connect(self.db, timeout=self.timeout)
+        logging.info(self.db)
+        while True:
+            try:
+                dirs = c.execute("SELECT count(*) from ajxp_index where md5=?", ('directory',)).fetchone()
+                files = c.execute("SELECT count(*) from ajxp_index where md5<>?", ('directory',)).fetchone()
+                c.commit()
+                break
+            except sqlite3.OperationalError as oe:
+                logging.exception(oe)  # catch DB locked errors
+                pass
+        c.close()
+        #logging.info(str(files) + " " + str(dirs))
+        return {"nbfiles": files, "nbdirs": dirs}

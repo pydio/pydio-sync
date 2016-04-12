@@ -199,7 +199,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 }, isArray:false}
             });
         }])
-
     .config(function($routeProvider) {
         $routeProvider
             .when('/', {
@@ -259,6 +258,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             .when('/general_configs', {
                 controller:'GeneralConfigCtrl',
                 templateUrl:'general_configs.html'
+            })
+            .when('/feedback',{
+                controller:'FeedbackCtrl',
+                templateUrl:'feedback.html'
             })
             .otherwise({
                 redirectTo:'/'
@@ -1028,4 +1031,23 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         $scope.about_page = function() {
             $location.path('/about');
         };
+    })
+    .controller('FeedbackCtrl', function($scope, $routeParams, $window, $location, $timeout, $http, Jobs, Logs){
+        $scope._ = window.translate;
+        if (window.ui_config){
+            $scope.ui_config = window.ui_config;
+        }
+        $scope.loading = false;
+        $scope.errorschecked = true;
+        var responsePromise = $http.get("/feedbackinfo");
+        $scope.feedbackdata = {};
+        responsePromise.success(function(data, status, headers, config) {
+            $scope.feedbackdata.nberrors = data.nberrors;
+            $scope.feedbackdata.lastseq = data.lastseq;
+            $scope.feedbackdata.errors = data.errors;
+            $scope.feedbackdata.nbsyncedfiles = data.nbsyncedfiles;
+        });
+        responsePromise.error(function(data, status, headers, config) {
+            alert("Problem connecting to the agent, AJAX failed!");
+        });
     });
