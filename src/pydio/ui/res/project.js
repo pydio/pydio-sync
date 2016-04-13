@@ -965,7 +965,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         if (window.ui_config){
             $scope.ui_config = window.ui_config;
         }
-
+        $scope.general_configs_show_update_info = true;
         // do the proxy query only for workspaces
         if($scope.ui_config.login_mode === 'alias') {
             var proxies_temp = Proxy.query(function(){

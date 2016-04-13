@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-04-12 11:53+0200\n"
+"POT-Creation-Date: 2016-04-13 15:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -163,27 +163,27 @@ msgstr ""
 msgid "An SSL error happened, please check the logs"
 msgstr ""
 
-#: job/continous_merger.py:673 ui/web_api.py:329
+#: job/continous_merger.py:673 ui/web_api.py:342
 msgid "A proxy error happened, please check the logs"
 msgstr ""
 
-#: job/continous_merger.py:676 ui/web_api.py:332
+#: job/continous_merger.py:676 ui/web_api.py:345
 msgid "Connection error: too many redirects"
 msgstr ""
 
-#: job/continous_merger.py:679 ui/web_api.py:335
+#: job/continous_merger.py:679 ui/web_api.py:348
 msgid "Chunked encoding error, please check the logs"
 msgstr ""
 
-#: job/continous_merger.py:682 ui/web_api.py:338
+#: job/continous_merger.py:682 ui/web_api.py:351
 msgid "Content Decoding error, please check the logs"
 msgstr ""
 
-#: job/continous_merger.py:685 ui/web_api.py:341
+#: job/continous_merger.py:685 ui/web_api.py:354
 msgid "Http connection error: invalid schema."
 msgstr ""
 
-#: job/continous_merger.py:688 ui/web_api.py:344
+#: job/continous_merger.py:688 ui/web_api.py:357
 msgid "Http connection error: invalid URL."
 msgstr ""
 
@@ -191,7 +191,7 @@ msgstr ""
 msgid "Connection timeout, will retry later."
 msgstr ""
 
-#: job/continous_merger.py:694 ui/web_api.py:354
+#: job/continous_merger.py:694 ui/web_api.py:367
 msgid "Cannot resolve domain!"
 msgstr ""
 
@@ -256,7 +256,7 @@ msgid ""
 msgstr ""
 
 #: res/i18n/html_strings.py:12 res/i18n/html_strings.py:13
-#: res/i18n/html_strings.py:14 res/i18n/html_strings.py:224
+#: res/i18n/html_strings.py:14 res/i18n/html_strings.py:228
 msgid "Required"
 msgstr ""
 
@@ -488,7 +488,7 @@ msgstr ""
 msgid "Run the sync every day at"
 msgstr ""
 
-#: res/i18n/html_strings.py:81 res/i18n/html_strings.py:167
+#: res/i18n/html_strings.py:81 res/i18n/html_strings.py:171
 msgid "Conflicts"
 msgstr ""
 
@@ -540,8 +540,8 @@ msgstr ""
 msgid "Login"
 msgstr ""
 
-#: res/i18n/html_strings.py:96 res/i18n/html_strings.py:189
-#: res/i18n/html_strings.py:194
+#: res/i18n/html_strings.py:96 res/i18n/html_strings.py:193
+#: res/i18n/html_strings.py:198
 msgid "Password"
 msgstr ""
 
@@ -557,7 +557,7 @@ msgstr ""
 msgid "[loading...]"
 msgstr ""
 
-#: res/i18n/html_strings.py:107 res/i18n/html_strings.py:198
+#: res/i18n/html_strings.py:107 res/i18n/html_strings.py:202
 msgid "Advanced parameters"
 msgstr ""
 
@@ -569,7 +569,7 @@ msgstr ""
 msgid "Increase the timeout in case of slow responsive server "
 msgstr ""
 
-#: res/i18n/html_strings.py:110 res/i18n/html_strings.py:147
+#: res/i18n/html_strings.py:110 res/i18n/html_strings.py:151
 msgid "Timeout in seconds"
 msgstr ""
 
@@ -594,384 +594,400 @@ msgid "Save Parameters"
 msgstr ""
 
 #: res/i18n/html_strings.py:116
-msgid "Please wait..."
+msgid "Help us! "
 msgstr ""
 
 #: res/i18n/html_strings.py:117
-msgid "PydioSync Feedback Form"
+msgid "Give us your feedback to improve PydioSync."
 msgstr ""
 
 #: res/i18n/html_strings.py:118
+msgid "Please wait..."
+msgstr ""
+
+#: res/i18n/html_strings.py:119
+msgid "PydioSync Feedback Form"
+msgstr ""
+
+#: res/i18n/html_strings.py:120
 msgid ""
 "You have the power to help us improve PydioSync by submitting anonymously "
 "this simple form."
 msgstr ""
 
-#: res/i18n/html_strings.py:119
+#: res/i18n/html_strings.py:121
 msgid "Include the number of synced files;"
 msgstr ""
 
-#: res/i18n/html_strings.py:120
+#: res/i18n/html_strings.py:122
 msgid "Include the last sequence number;"
 msgstr ""
 
-#: res/i18n/html_strings.py:121
-msgid "Include errors;"
-msgstr ""
-
-#: res/i18n/html_strings.py:122
-msgid "Include the number of errors;"
-msgstr ""
-
 #: res/i18n/html_strings.py:123
-msgid "Comments"
+msgid "Include server info;"
 msgstr ""
 
 #: res/i18n/html_strings.py:124
-msgid "General configurations page"
+msgid "Include errors;"
 msgstr ""
 
-#: res/i18n/html_strings.py:125 res/i18n/html_strings.py:225
-msgid "Proxy settings"
+#: res/i18n/html_strings.py:125
+msgid "Include the number of errors;"
 msgstr ""
 
 #: res/i18n/html_strings.py:126
-msgid "Enable / Disable Proxy."
+msgid "Comments (Appreciated)"
 msgstr ""
 
 #: res/i18n/html_strings.py:127
-msgid ""
-"If you want the network connections to pass through proxy, fill the "
-"parameters below."
+msgid "About"
 msgstr ""
 
 #: res/i18n/html_strings.py:128
-msgid "Log settings"
+msgid "General configurations page"
 msgstr ""
 
 #: res/i18n/html_strings.py:129
-msgid "You can change the name of log file here."
-msgstr ""
-
-#: res/i18n/html_strings.py:130
-msgid "File Name"
-msgstr ""
-
-#: res/i18n/html_strings.py:131
-msgid "Limit the number of log files to be stored locally."
-msgstr ""
-
-#: res/i18n/html_strings.py:132
-msgid "Number of log files"
-msgstr ""
-
-#: res/i18n/html_strings.py:133
-msgid "Set restrictions on log file size here."
-msgstr ""
-
-#: res/i18n/html_strings.py:134
-msgid "Enhance the log details as you need them."
-msgstr ""
-
-#: res/i18n/html_strings.py:135
-msgid "Info"
-msgstr ""
-
-#: res/i18n/html_strings.py:136
-msgid "Debug"
-msgstr ""
-
-#: res/i18n/html_strings.py:137
-msgid "Warning"
-msgstr ""
-
-#: res/i18n/html_strings.py:138
 msgid "Update settings"
 msgstr ""
 
-#: res/i18n/html_strings.py:139
+#: res/i18n/html_strings.py:130
 msgid "Enable / Disable update here."
 msgstr ""
 
-#: res/i18n/html_strings.py:140
+#: res/i18n/html_strings.py:131
 msgid ""
 "Set the update check frequency (here 1 means update check only once a day, "
 "default value 0 means it check for update each time agent establishes a new "
 "connection with UI) "
 msgstr ""
 
-#: res/i18n/html_strings.py:141
+#: res/i18n/html_strings.py:132
 msgid "Update check frequency in days"
 msgstr ""
 
-#: res/i18n/html_strings.py:142
+#: res/i18n/html_strings.py:133
 msgid "Date on which last update check happened"
 msgstr ""
 
-#: res/i18n/html_strings.py:143
+#: res/i18n/html_strings.py:134
 msgid "Last update check was on: "
 msgstr ""
 
+#: res/i18n/html_strings.py:135 res/i18n/html_strings.py:229
+msgid "Proxy settings"
+msgstr ""
+
+#: res/i18n/html_strings.py:136
+msgid "Enable / Disable Proxy."
+msgstr ""
+
+#: res/i18n/html_strings.py:137
+msgid ""
+"If you want the network connections to pass through proxy, fill the "
+"parameters below."
+msgstr ""
+
+#: res/i18n/html_strings.py:138
+msgid "Log settings"
+msgstr ""
+
+#: res/i18n/html_strings.py:139
+msgid "You can change the name of log file here."
+msgstr ""
+
+#: res/i18n/html_strings.py:140
+msgid "File Name"
+msgstr ""
+
+#: res/i18n/html_strings.py:141
+msgid "Limit the number of log files to be stored locally."
+msgstr ""
+
+#: res/i18n/html_strings.py:142
+msgid "Number of log files"
+msgstr ""
+
+#: res/i18n/html_strings.py:143
+msgid "Set restrictions on log file size here."
+msgstr ""
+
 #: res/i18n/html_strings.py:144
-msgid "Other settings"
+msgid "Enhance the log details as you need them."
 msgstr ""
 
 #: res/i18n/html_strings.py:145
-msgid "Max wait time for local db access"
+msgid "Info"
 msgstr ""
 
 #: res/i18n/html_strings.py:146
-msgid "If you encounter database locked error try increasing this value"
+msgid "Debug"
+msgstr ""
+
+#: res/i18n/html_strings.py:147
+msgid "Warning"
 msgstr ""
 
 #: res/i18n/html_strings.py:148
-msgid "Update Settings"
+msgid "Other settings"
 msgstr ""
 
 #: res/i18n/html_strings.py:149
+msgid "Max wait time for local db access"
+msgstr ""
+
+#: res/i18n/html_strings.py:150
+msgid "If you encounter database locked error try increasing this value"
+msgstr ""
+
+#: res/i18n/html_strings.py:152
+msgid "Update Settings"
+msgstr ""
+
+#: res/i18n/html_strings.py:153
 msgid ""
 "Ooops, cannot contact agent! Make sure it is running correctly, process will "
 "try to reconnect in 20s"
 msgstr ""
 
-#: res/i18n/html_strings.py:150
+#: res/i18n/html_strings.py:154
 msgid "Select a workspace"
 msgstr ""
 
-#: res/i18n/html_strings.py:151
+#: res/i18n/html_strings.py:155
 msgid "Full path to the local folder"
 msgstr ""
 
-#: res/i18n/html_strings.py:152
+#: res/i18n/html_strings.py:156
 msgid "Are you sure you want to delete this synchro? No data will be deleted"
 msgstr ""
 
-#: res/i18n/html_strings.py:153
+#: res/i18n/html_strings.py:157
 msgid "computing..."
 msgstr ""
 
-#: res/i18n/html_strings.py:154 res/i18n/html_strings.py:158
-#: res/i18n/html_strings.py:160 res/i18n/html_strings.py:164
+#: res/i18n/html_strings.py:158 res/i18n/html_strings.py:162
+#: res/i18n/html_strings.py:164 res/i18n/html_strings.py:168
 msgid "Status"
 msgstr ""
 
-#: res/i18n/html_strings.py:155 res/i18n/html_strings.py:159
-#: res/i18n/html_strings.py:161
+#: res/i18n/html_strings.py:159 res/i18n/html_strings.py:163
+#: res/i18n/html_strings.py:165
 msgid "syncing"
 msgstr ""
 
-#: res/i18n/html_strings.py:156
+#: res/i18n/html_strings.py:160
 msgid "Size"
 msgstr ""
 
-#: res/i18n/html_strings.py:157
+#: res/i18n/html_strings.py:161
 msgid "Estimated time"
 msgstr ""
 
-#: res/i18n/html_strings.py:162
+#: res/i18n/html_strings.py:166
 msgid "Last sync"
 msgstr ""
 
-#: res/i18n/html_strings.py:163
+#: res/i18n/html_strings.py:167
 msgid "ERROR"
 msgstr ""
 
-#: res/i18n/html_strings.py:165
+#: res/i18n/html_strings.py:169
 msgid "idle"
 msgstr ""
 
-#: res/i18n/html_strings.py:166
+#: res/i18n/html_strings.py:170
 msgid "[DISABLED]"
 msgstr ""
 
-#: res/i18n/html_strings.py:168
+#: res/i18n/html_strings.py:172
 msgid "Solve Conflict"
 msgstr ""
 
-#: res/i18n/html_strings.py:169
+#: res/i18n/html_strings.py:173
 msgid "Solved"
 msgstr ""
 
-#: res/i18n/html_strings.py:170
+#: res/i18n/html_strings.py:174
 msgid "Last files synced"
 msgstr ""
 
-#: res/i18n/html_strings.py:171
+#: res/i18n/html_strings.py:175
 msgid "Open File"
 msgstr ""
 
-#: res/i18n/html_strings.py:172
+#: res/i18n/html_strings.py:176
 msgid "Transfers in progress"
 msgstr ""
 
-#: res/i18n/html_strings.py:173
+#: res/i18n/html_strings.py:177
 msgid ""
 "An element named %1 was modified on both the server and on your local "
 "computer. Select how you want to solve this conflicting case:"
 msgstr ""
 
-#: res/i18n/html_strings.py:174
+#: res/i18n/html_strings.py:178
 msgid "Apply to all conflicts"
 msgstr ""
 
-#: res/i18n/html_strings.py:175
+#: res/i18n/html_strings.py:179
 msgid "Mine"
 msgstr ""
 
-#: res/i18n/html_strings.py:176
+#: res/i18n/html_strings.py:180
 msgid "Both Versions"
 msgstr ""
 
-#: res/i18n/html_strings.py:177
+#: res/i18n/html_strings.py:181
 msgid "Theirs"
 msgstr ""
 
-#: res/i18n/html_strings.py:178 res/i18n/html_strings.py:179
+#: res/i18n/html_strings.py:182 res/i18n/html_strings.py:183
 msgid "Create a new synchronization"
 msgstr ""
 
-#: res/i18n/html_strings.py:180 res/i18n/html_strings.py:181
-#: res/i18n/html_strings.py:210
+#: res/i18n/html_strings.py:184 res/i18n/html_strings.py:185
+#: res/i18n/html_strings.py:214
 msgid "Share %1 via Pydio"
 msgstr ""
 
-#: res/i18n/html_strings.py:182 res/i18n/html_strings.py:201
+#: res/i18n/html_strings.py:186 res/i18n/html_strings.py:205
 msgid "Description"
 msgstr ""
 
-#: res/i18n/html_strings.py:183
+#: res/i18n/html_strings.py:187
 msgid "Path"
 msgstr ""
 
-#: res/i18n/html_strings.py:184
+#: res/i18n/html_strings.py:188
 msgid "Share item"
 msgstr ""
 
-#: res/i18n/html_strings.py:185
+#: res/i18n/html_strings.py:189
 msgid "by creating a public link that can easily be sent to your contacts."
 msgstr ""
 
-#: res/i18n/html_strings.py:186
+#: res/i18n/html_strings.py:190
 msgid "You can customize the link parameters using the forms below."
 msgstr ""
 
-#: res/i18n/html_strings.py:187
+#: res/i18n/html_strings.py:191
 msgid "Secure Link Access"
 msgstr ""
 
-#: res/i18n/html_strings.py:188
+#: res/i18n/html_strings.py:192
 msgid "Optional Password"
 msgstr ""
 
-#: res/i18n/html_strings.py:190
+#: res/i18n/html_strings.py:194
 msgid "Expires After"
 msgstr ""
 
-#: res/i18n/html_strings.py:191 res/i18n/html_strings.py:196
+#: res/i18n/html_strings.py:195 res/i18n/html_strings.py:200
 msgid "Days"
 msgstr ""
 
-#: res/i18n/html_strings.py:192 res/i18n/html_strings.py:197
+#: res/i18n/html_strings.py:196 res/i18n/html_strings.py:201
 msgid "Downloads"
 msgstr ""
 
-#: res/i18n/html_strings.py:193
+#: res/i18n/html_strings.py:197
 msgid "Security"
 msgstr ""
 
-#: res/i18n/html_strings.py:195
+#: res/i18n/html_strings.py:199
 msgid "Expires after"
 msgstr ""
 
-#: res/i18n/html_strings.py:199
+#: res/i18n/html_strings.py:203
 msgid "Link Handle"
 msgstr ""
 
-#: res/i18n/html_strings.py:200
+#: res/i18n/html_strings.py:204
 msgid ""
 "If you want a durable and pretty link (like https://.../my-share-link), you "
 "can use this field. Link handle will be generated if left empty."
 msgstr ""
 
-#: res/i18n/html_strings.py:202
+#: res/i18n/html_strings.py:206
 msgid "This will be displayed to the shared users."
 msgstr ""
 
-#: res/i18n/html_strings.py:203
+#: res/i18n/html_strings.py:207
 msgid "Access Rights"
 msgstr ""
 
-#: res/i18n/html_strings.py:204
+#: res/i18n/html_strings.py:208
 msgid "By default, the item will be previewed and downloadable"
 msgstr ""
 
-#: res/i18n/html_strings.py:205
+#: res/i18n/html_strings.py:209
 msgid "Preview"
 msgstr ""
 
-#: res/i18n/html_strings.py:206
+#: res/i18n/html_strings.py:210
 msgid "Download"
 msgstr ""
 
-#: res/i18n/html_strings.py:207
+#: res/i18n/html_strings.py:211
 msgid "Upload"
 msgstr ""
 
-#: res/i18n/html_strings.py:208 res/i18n/html_strings.py:209
+#: res/i18n/html_strings.py:212 res/i18n/html_strings.py:213
 msgid "Generate Link"
 msgstr ""
 
-#: res/i18n/html_strings.py:211
+#: res/i18n/html_strings.py:215
 msgid "Shared Link"
 msgstr ""
 
-#: res/i18n/html_strings.py:212
+#: res/i18n/html_strings.py:216
 msgid ""
 "Shared link to the selected item already exists. Below is the link to the "
 "selected item"
 msgstr ""
 
-#: res/i18n/html_strings.py:213
+#: res/i18n/html_strings.py:217
 msgid "New shared link to the selected item has been generated"
 msgstr ""
 
-#: res/i18n/html_strings.py:214
+#: res/i18n/html_strings.py:218
 msgid "Shared Link to the selected item has not been generated"
 msgstr ""
 
-#: res/i18n/html_strings.py:215
+#: res/i18n/html_strings.py:219
 msgid "Copy to Clipboard"
 msgstr ""
 
-#: res/i18n/html_strings.py:216
+#: res/i18n/html_strings.py:220
 msgid "UnShare Link"
 msgstr ""
 
-#: res/i18n/html_strings.py:217
+#: res/i18n/html_strings.py:221
 msgid "Text has been copied to clipboard."
 msgstr ""
 
-#: res/i18n/html_strings.py:218
+#: res/i18n/html_strings.py:222
 msgid "Successfully unshared."
 msgstr ""
 
-#: res/i18n/html_strings.py:219
+#: res/i18n/html_strings.py:223
 msgid "Please wait ..."
 msgstr ""
 
-#: res/i18n/html_strings.py:220
+#: res/i18n/html_strings.py:224
 msgid "Welcome to the Pydio Sync"
 msgstr ""
 
-#: res/i18n/html_strings.py:221
+#: res/i18n/html_strings.py:225
 msgid "The easiest way to keep your data in control"
 msgstr ""
 
-#: res/i18n/html_strings.py:222
+#: res/i18n/html_strings.py:226
 msgid "Loading..."
 msgstr ""
 
-#: res/i18n/html_strings.py:223 res/i18n/html_strings.py:226
+#: res/i18n/html_strings.py:227 res/i18n/html_strings.py:230
 msgid "Get Started"
 msgstr ""
 
@@ -1072,36 +1088,36 @@ msgstr ""
 msgid "Error while downloading file: %s"
 msgstr ""
 
-#: ui/web_api.py:313
+#: ui/web_api.py:326
 msgid "Couldn't load your workspaces, check your server !"
 msgstr ""
 
-#: ui/web_api.py:315
+#: ui/web_api.py:328
 msgid "Server not found (404), is it up and has it Pydio installed ?"
 msgstr ""
 
-#: ui/web_api.py:317
+#: ui/web_api.py:330
 msgid "Authentication failed: please verify your login and password"
 msgstr ""
 
-#: ui/web_api.py:319
+#: ui/web_api.py:332
 msgid "Access to the server is forbidden"
 msgstr ""
 
-#: ui/web_api.py:321
+#: ui/web_api.py:334
 msgid "Server seems to be encountering problems (500)"
 msgstr ""
 
-#: ui/web_api.py:326
+#: ui/web_api.py:339
 msgid ""
 "An SSL error happened! Is your server using a self-signed certificate? In "
 "that case please check 'Trust SSL certificate'"
 msgstr ""
 
-#: ui/web_api.py:351
+#: ui/web_api.py:364
 msgid "Connection timeout!"
 msgstr ""
 
-#: ui/web_api.py:739
+#: ui/web_api.py:752
 msgid "The folder is already shared as a workspace!"
 msgstr ""
