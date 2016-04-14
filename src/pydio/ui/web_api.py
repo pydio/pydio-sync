@@ -31,6 +31,7 @@ import types
 import logging
 import sys
 import os
+import time
 import urllib2
 import posixpath
 import unicodedata
@@ -134,6 +135,7 @@ class PydioApi(Api):
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
         self.app.add_url_rule('/res/about.html', 'dynamic_about', self.serve_about_content)
         self.app.add_url_rule('/checksync', 'checksync', self.check_sync)
+        self.app.add_url_rule('/streamlifesign', 'streamlifesign', self.stream_life_sign)
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
@@ -224,6 +226,18 @@ class PydioApi(Api):
         return Response(response="TO DO",
                         status=200,
                         mimetype="text/html")
+
+    @authDB.requires_auth
+    def stream_life_sign(self):
+        # TODO signal to update jobs
+        def ev():
+            while True:
+                # Poll data from the database
+                # and see if there's a new message
+                time.sleep(1)
+                yield "data: {}\n\n".format("alive")
+        return Response(ev(), mimetype="text/event-stream")
+
 # end of PydioApi
 
 class WorkspacesManager(Resource):
