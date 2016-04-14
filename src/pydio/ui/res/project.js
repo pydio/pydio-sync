@@ -283,8 +283,12 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
         $scope.openFile = function(source){
           var url = source.split('/');
-          url = source.split('/', url.length - 1);
-          url = url.join('/');
+          if(url.length>1) {
+              url = source.split('/', url.length - 1);
+              url = url.join('/');
+          } else if(url.length === 1) {
+              url = url[0].substring( 0, url[0].lastIndexOf( "\\" ) + 1);
+          }
           $scope.QtObject.openUrl(url);
         };
 
@@ -603,8 +607,12 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
 
         $scope.openFile = function(source){
           var url = source.split('/');
-          url = source.split('/', url.length - 1);
-          url = url.join('/');
+          if(url.length>1) {
+              url = source.split('/', url.length - 1);
+              url = url.join('/');
+          } else if(url.length === 1) {
+              url = url[0].substring( 0, url[0].lastIndexOf( "\\" ) + 1);
+          }
           $scope.QtObject.openUrl(url);
         };
 
