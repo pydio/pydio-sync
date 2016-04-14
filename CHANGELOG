@@ -1,6 +1,7 @@
-# PydioSync - Release Notes - 14.03.2016
-## v1.2.0 stable (Windows, MacOS, Linux)
+# PydioSync - Release Notes - 13.04.2016
+## v1.2.1 dev (Windows, MacOS, Linux)
 ----
+- Fixed TLS1.2 support on MacOSX
 - Changed links to pydio.com in about, added license info
 - Updated translations
 - Better handling of Database lock erros
@@ -11,6 +12,7 @@
 - Code change use submodule for SDK
 - Default to UTF-8 when filesystem encoding is unknown
 - Wait for file write to end during upload
+- send update requests only when the sync agent is up
 
 # PydioSync - Release Notes - 14.03.2016
 ## v1.2.0 stable (Windows, MacOS, Linux)
