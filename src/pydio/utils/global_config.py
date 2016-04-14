@@ -148,7 +148,7 @@ class ConfigManager:
         file_name = os.path.join(self.configs_path, 'proxies.json')
         try:
             with open(file_name, 'w') as f:
-                json.dump(data, f)
+                json.dump(data, f, indent=4, separators=(',', ': '))
         except Exception as ex:
             logging.exception(ex)
         return "write to Proxies.json file is successful"
@@ -218,7 +218,7 @@ class GlobalConfigManager:
             if not os.path.exists(self.configs_path):
                 os.makedirs(self.configs_path)
             with open(global_config_file, 'w') as conf_file:
-                json.dump(data, conf_file)
+                json.dump(data, conf_file, indent=4, separators=(',', ': '))
 
     def update_general_config(self, data):
         """
@@ -226,7 +226,7 @@ class GlobalConfigManager:
         :param data: dict object with configuration data
         """
         with open(os.path.join(self.configs_path, 'general_config.json'), 'w') as conf_file:
-            json.dump(data, conf_file)
+            json.dump(data, conf_file, indent=4, separators=(',', ': '))
 
     def get_general_config(self):
         """

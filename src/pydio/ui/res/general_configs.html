@@ -1,11 +1,45 @@
 <h1 class="generalConfigHeader" ng-value="GetGeneralConfigsDetails()">
     <div class="pull-right">
-        <button type="button" ng-click="about_page()" class="btn" ng-class="{'btn-info':'true','btn-default':'true'}">About</button>
+        <button type="button" ng-click="about_page()" class="btn" ng-class="{'btn-info':'true','btn-default':'true'}">{{_('About')}}</button>
     </div>
 
     {{_('General configurations page')}}</h1>
 
-<div  style="margin: 20% 1%;">
+<div  style="margin: 15% 1%;">
+    <h3 style="margin-top: 10px; cursor:pointer;" ng-click="general_configs_show_update_info=!general_configs_show_update_info">
+        <span ng-class="{'glyphicon-chevron-right':!general_configs_show_update_info,'glyphicon-chevron-down':general_configs_show_update_info}"
+              class="small glyphicon"></span>
+        {{_('Update settings')}}<span ng-if="!general_configs_show_update_info">...</span>
+    </h3>
+
+    <div ng-show="general_configs_show_update_info">
+        <div>
+            <div class="well">
+                <p class="small" style="margin-top:2%;">
+                    <div class="pull-right">
+                        <div class="btn-group">
+                            <button type="button" class="btn" ng-click="general_configs_data.update_info.enable_update_check='true'" ng-class="{'btn-success':general_configs_data.update_info.enable_update_check=='true','btn-default':general_configs_data.update_info.enable_update_check=='true'}">On</button>
+                            <button type="button" class="btn" ng-click="general_configs_data.update_info.enable_update_check='false'" ng-class="{'btn-danger':general_configs_data.update_info.enable_update_check=='false','btn-default':general_configs_data.update_info.enable_update_check=='false'}">Off</button>
+                        </div>
+                    </div>
+                {{_('Enable / Disable update here.')}}</p>
+
+                <div ng-show="general_configs_data.update_info.enable_update_check=='true'" style="margin-top:5%;">
+                    <p class="small" style="margin-top:2%;">{{_('Set the update check frequency (here 1 means update check only once a day, default value 0 means it check for update each time agent establishes a new connection with UI) ')}}</p>
+                    <div class="input-group">
+                        <span class="input-group-addon" >{{_('Update check frequency in days')}}</span>
+                        <input type="number" min="0" max="1000000" ng-model="general_configs_data.update_info.update_check_frequency_days" class="form-control" >
+                    </div>
+
+                    <p class="small" style="margin-top:2%;">{{_('Date on which last update check happened')}}</p>
+                    <div class="input-group" style="text-align:left;">
+                        <span class="input-group-addon" >{{_('Last update check was on: ')}}</span><span />
+                        <span class="input-group-addon">{{general_configs_data.update_info.last_update_date | date}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div ng-show="ui_config.login_mode === 'alias'" ng-value="proxies">
         <h3 style="margin-top: 40px; cursor:pointer;" ng-click="general_configs_show_proxy_settings=!general_configs_show_proxy_settings">
@@ -108,42 +142,6 @@
             </div>
         </div>
     </div>
-
-    <h3 style="margin-top: 10px; cursor:pointer;" ng-click="general_configs_show_update_info=!general_configs_show_update_info">
-        <span ng-class="{'glyphicon-chevron-right':!general_configs_show_update_info,'glyphicon-chevron-down':general_configs_show_update_info}"
-              class="small glyphicon"></span>
-        {{_('Update settings')}}<span ng-if="!general_configs_show_update_info">...</span>
-    </h3>
-
-    <div ng-show="general_configs_show_update_info">
-        <div>
-            <div class="well">
-                <p class="small" style="margin-top:2%;">
-                    <div class="pull-right">
-                        <div class="btn-group">
-                            <button type="button" class="btn" ng-click="general_configs_data.update_info.enable_update_check='true'" ng-class="{'btn-success':general_configs_data.update_info.enable_update_check=='true','btn-default':general_configs_data.update_info.enable_update_check=='true'}">On</button>
-                            <button type="button" class="btn" ng-click="general_configs_data.update_info.enable_update_check='false'" ng-class="{'btn-danger':general_configs_data.update_info.enable_update_check=='false','btn-default':general_configs_data.update_info.enable_update_check=='false'}">Off</button>
-                        </div>
-                    </div>
-                {{_('Enable / Disable update here.')}}</p>
-
-                <div ng-show="general_configs_data.update_info.enable_update_check=='true'" style="margin-top:5%;">
-                    <p class="small" style="margin-top:2%;">{{_('Set the update check frequency (here 1 means update check only once a day, default value 0 means it check for update each time agent establishes a new connection with UI) ')}}</p>
-                    <div class="input-group">
-                        <span class="input-group-addon" >{{_('Update check frequency in days')}}</span>
-                        <input type="number" min="0" max="1000000" ng-model="general_configs_data.update_info.update_check_frequency_days" class="form-control" >
-                    </div>
-
-                    <p class="small" style="margin-top:2%;">{{_('Date on which last update check happened')}}</p>
-                    <div class="input-group">
-                        <span class="input-group-addon" >{{_('Last update check was on: ')}}</span>
-                        <span class="input-group-addon">{{general_configs_data.update_info.last_update_date | date}}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
 
     <h3 style="margin-top: 10px; cursor:pointer;" ng-click="general_configs_show_misc_settings=!general_configs_show_misc_settings">
         <span ng-class="{'glyphicon-chevron-right':!general_configs_show_misc_settings,'glyphicon-chevron-down':general_configs_show_misc_settings}"

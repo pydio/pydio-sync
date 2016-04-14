@@ -1,3 +1,18 @@
+# PydioSync - Release Notes - 13.04.2016
+## v1.2.1 dev (Windows, MacOS, Linux)
+----
+- Changed links to pydio.com in about, added license info
+- Updated translations
+- Better handling of Database lock erros
+- Multithreaded indexation
+- Include/ Exclude filter fix for MacOSX, added support for UTF-8
+- Fixed explorer icons to not display in inactive folders
+- Fixed share for new sharing with Pydio
+- Code change use submodule for SDK
+- Default to UTF-8 when filesystem encoding is unknown
+- Wait for file write to end during upload
+- send update requests only when the sync agent is up
+
 # PydioSync - Release Notes - 14.03.2016
 ## v1.2.0 stable (Windows, MacOS, Linux)
 ----
