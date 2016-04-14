@@ -1,6 +1,7 @@
 # PydioSync - Release Notes - 13.04.2016
 ## v1.2.1 dev (Windows, MacOS, Linux)
 ----
+- Fixed TLS1.2 support on MacOSX
 - Changed links to pydio.com in about, added license info
 - Updated translations
 - Better handling of Database lock erros
