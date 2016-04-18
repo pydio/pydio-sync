@@ -148,6 +148,7 @@ class SqliteChangeStore():
             def __init__(self, change):
                 threading.Thread.__init__(self)
                 self.change = change
+                self.status = ""
 
             def run(self):
                 #logging.info("Running change " + str(threading.current_thread()) + " " + str(self.change))
@@ -173,8 +174,9 @@ class SqliteChangeStore():
                 #logging.info('PROCESSING CHANGE WITH ROW ID %i' % change['row_id'])
                 #logging.info('PROCESSING CHANGE %s' % change)
                 proc = lerunnable(change)
-                self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (change['row_id'],))
-                #logging.info("DELETE CHANGE")
+                if proc.status != "FAILED":
+                    self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (change['row_id'],))
+                    #logging.info("DELETE CHANGE")
                 return proc
             except StopIteration:
                 return False
