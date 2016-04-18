@@ -49,6 +49,10 @@ try:
     from pydio.job.localdb import LocalDbHandler, SqlEventHandler
     from pydio.utils.global_config import ConfigManager, GlobalConfigManager
     from pydio.utils.functions import connection_helper
+    from pydio.sdkremote.exceptions import ProcessException, InterruptException, PydioSdkDefaultException
+    from pydio.sdkremote.remote import PydioSdk
+    from pydio.sdklocal.local import SystemSdk
+    from pydio.utils import check_sync
     from pydio.utils.i18n import get_languages
     from pydio.utils import i18n
     _ = i18n.language.ugettext
@@ -61,6 +65,7 @@ except ImportError:
     from utils.global_config import ConfigManager, GlobalConfigManager
     from utils.functions import connection_helper
     from utils.pydio_profiler import pydio_profile
+    from utils import check_sync
     from utils.i18n import get_languages
     from utils import i18n
     _ = i18n.language.ugettext
@@ -222,8 +227,12 @@ class PydioApi(Api):
                 raise RuntimeError('Not running with the Werkzeug Server')
             func()
 
-    def check_sync(self):
-        return Response(response="TO DO",
+    @authDB.requires_auth
+    def check_sync(self, job_id):
+        # check job exists
+        # load conf
+        resp = check_sync.dofullcheck(job_id, conf, sdk)
+        return Response(response=resp,
                         status=200,
                         mimetype="text/html")
 
