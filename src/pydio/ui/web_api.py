@@ -678,6 +678,7 @@ class UpdateManager(Resource):
     def get(self, complete_url):
         global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
         general_config = global_config_manager.get_general_config()
+        noupdate_msg = {u'noupdate': u'No update available'}
         if bool(general_config['update_info']['enable_update_check']):
             import time
             if general_config['update_info']['update_check_frequency_days'] > 0:
@@ -685,7 +686,7 @@ class UpdateManager(Resource):
                     general_config['update_info']['last_update_date'] = time.time() * 1000
                     global_config_manager.update_general_config(general_config)
                 else:
-                    return ""
+                    return noupdate_msg
             elif general_config['update_info']['update_check_frequency_days'] == 0:
                 general_config['update_info']['last_update_date'] = time.time() * 1000
                 global_config_manager.update_general_config(general_config)
@@ -693,7 +694,7 @@ class UpdateManager(Resource):
             resp = requests.get(complete_url, stream=False, proxies=ConfigManager.Instance().get_defined_proxies())
             return json.loads(resp.content)
         else:
-            return ""
+            return noupdate_msg
 
 class ShareManager(Resource):
     """
