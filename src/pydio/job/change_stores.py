@@ -670,8 +670,13 @@ class SqliteChangeStore():
             md5 = ''
         if change['node'] and change['node']['bytesize']:
             bytesize = change['node']['bytesize']
+        elif change['node'] and change['node']['bytesize']==0:
+            # Fixing the bug: Instead of assigning the bytesize of the empty file to null, it should be set to zero, it
+            # prevents from the errors on file size comparison.
+            bytesize = 0
         else:
             bytesize = ''
+
         content = 0
         if md5 != 'directory' and (change['type'] == 'content' or change['type'] == 'create'):
             content = 1
