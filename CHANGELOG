@@ -1,3 +1,12 @@
+# PydioSync - Release Notes - 21.04.2016
+## v1.2.2 stable (Windows, MacOS, Linux)
+----
+- Fixed missing version number on Windows
+- Fixed auto update check
+- Fixed delete changes even if their processing failed
+- Fixed handling of empty files in indexation
+- Fixed Open File functionality on old synced files in Windows
+
 # PydioSync - Release Notes - 13.04.2016
 ## v1.2.1 dev (Windows, MacOS, Linux)
 ----
