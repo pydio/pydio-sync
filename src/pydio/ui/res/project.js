@@ -394,6 +394,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             });
         };
 
+        $scope.show_feedback_alert = true;
+        $scope.alert_dismiss = function() {
+            $scope.show_feedback_alert = !$scope.show_feedback_alert;
+        }
     })
 
     .controller('ListLogsCtrl', function($scope, $routeParams, $timeout, Jobs, Logs, Conflicts){

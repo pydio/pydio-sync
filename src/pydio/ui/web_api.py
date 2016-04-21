@@ -31,6 +31,7 @@ import types
 import logging
 import sys
 import os
+import time
 import urllib2
 import posixpath
 import unicodedata
@@ -48,6 +49,10 @@ try:
     from pydio.job.localdb import LocalDbHandler, SqlEventHandler
     from pydio.utils.global_config import ConfigManager, GlobalConfigManager
     from pydio.utils.functions import connection_helper
+    from pydio.sdkremote.exceptions import ProcessException, InterruptException, PydioSdkDefaultException
+    from pydio.sdkremote.remote import PydioSdk
+    from pydio.sdklocal.local import SystemSdk
+    from pydio.utils import check_sync
     from pydio.utils.i18n import get_languages
     from pydio.utils import i18n
     _ = i18n.language.ugettext
@@ -60,6 +65,8 @@ except ImportError:
     from utils.global_config import ConfigManager, GlobalConfigManager
     from utils.functions import connection_helper
     from utils.pydio_profiler import pydio_profile
+    from sdkremote.remote import PydioSdk
+    from utils import check_sync
     from utils.i18n import get_languages
     from utils import i18n
     _ = i18n.language.ugettext
@@ -133,7 +140,8 @@ class PydioApi(Api):
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
         self.app.add_url_rule('/res/about.html', 'dynamic_about', self.serve_about_content)
-        self.app.add_url_rule('/checksync', 'checksync', self.check_sync)
+        self.app.add_url_rule('/checksync/<string:job_id>', 'checksync', self.check_sync)
+        self.app.add_url_rule('/streamlifesign', 'streamlifesign', self.stream_life_sign)
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
@@ -220,10 +228,41 @@ class PydioApi(Api):
                 raise RuntimeError('Not running with the Werkzeug Server')
             func()
 
-    def check_sync(self):
-        return Response(response="TO DO",
+    @authDB.requires_auth
+    def check_sync(self, job_id):
+        logging.info("YO")
+        # load conf
+        conf = JobsLoader.Instance()
+        jobs = conf.jobs
+        if job_id not in jobs:
+            return Response("Unknown job", status=400, mimetype="text")
+        # check job exists
+        job = jobs[job_id]
+        sdk = PydioSdk(job.server,
+                       ws_id=job.workspace,
+                       remote_folder=job.remote_folder,
+                       user_id=job.user_id,
+                       device_id=ConfigManager.Instance().get_device_id(),
+                       skip_ssl_verify=job.trust_ssl,
+                       proxies=ConfigManager.Instance().get_defined_proxies(),
+                       timeout=job.timeout
+                       )
+        resp = check_sync.dofullcheck(job_id, jobs, sdk)
+        return Response(json.dumps(resp),
                         status=200,
-                        mimetype="text/html")
+                        mimetype="text/json")
+
+    @authDB.requires_auth
+    def stream_life_sign(self):
+        # TODO signal to update jobs
+        def ev():
+            while True:
+                # Poll data from the database
+                # and see if there's a new message
+                time.sleep(1)
+                yield "data: {}\n\n".format("alive")
+        return Response(ev(), mimetype="text/event-stream")
+
 # end of PydioApi
 
 class WorkspacesManager(Resource):
