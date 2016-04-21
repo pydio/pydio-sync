@@ -65,6 +65,7 @@ except ImportError:
     from utils.global_config import ConfigManager, GlobalConfigManager
     from utils.functions import connection_helper
     from utils.pydio_profiler import pydio_profile
+    from sdkremote.remote import PydioSdk
     from utils import check_sync
     from utils.i18n import get_languages
     from utils import i18n
@@ -139,7 +140,7 @@ class PydioApi(Api):
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
         self.app.add_url_rule('/res/about.html', 'dynamic_about', self.serve_about_content)
-        self.app.add_url_rule('/checksync', 'checksync', self.check_sync)
+        self.app.add_url_rule('/checksync/<string:job_id>', 'checksync', self.check_sync)
         self.app.add_url_rule('/streamlifesign', 'streamlifesign', self.stream_life_sign)
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
@@ -229,12 +230,27 @@ class PydioApi(Api):
 
     @authDB.requires_auth
     def check_sync(self, job_id):
-        # check job exists
+        logging.info("YO")
         # load conf
-        resp = check_sync.dofullcheck(job_id, conf, sdk)
-        return Response(response=resp,
+        conf = JobsLoader.Instance()
+        jobs = conf.jobs
+        if job_id not in jobs:
+            return Response("Unknown job", status=400, mimetype="text")
+        # check job exists
+        job = jobs[job_id]
+        sdk = PydioSdk(job.server,
+                       ws_id=job.workspace,
+                       remote_folder=job.remote_folder,
+                       user_id=job.user_id,
+                       device_id=ConfigManager.Instance().get_device_id(),
+                       skip_ssl_verify=job.trust_ssl,
+                       proxies=ConfigManager.Instance().get_defined_proxies(),
+                       timeout=job.timeout
+                       )
+        resp = check_sync.dofullcheck(job_id, jobs, sdk)
+        return Response(json.dumps(resp),
                         status=200,
-                        mimetype="text/html")
+                        mimetype="text/json")
 
     @authDB.requires_auth
     def stream_life_sign(self):
