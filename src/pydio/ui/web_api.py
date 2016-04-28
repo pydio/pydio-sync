@@ -230,7 +230,6 @@ class PydioApi(Api):
 
     @authDB.requires_auth
     def check_sync(self, job_id):
-        logging.info("YO")
         # load conf
         conf = JobsLoader.Instance()
         jobs = conf.jobs
@@ -245,7 +244,7 @@ class PydioApi(Api):
                        device_id=ConfigManager.Instance().get_device_id(),
                        skip_ssl_verify=job.trust_ssl,
                        proxies=ConfigManager.Instance().get_defined_proxies(),
-                       timeout=job.timeout
+                       timeout=380
                        )
         resp = check_sync.dofullcheck(job_id, jobs, sdk)
         return Response(json.dumps(resp),

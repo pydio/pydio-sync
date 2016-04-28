@@ -20,6 +20,8 @@
 
 import fnmatch
 from watchdog.utils.dirsnapshot import DirectorySnapshot as dirsnap
+from requests.exceptions import ReadTimeout
+import logging
 import platform
 import unicodedata
 import os
@@ -36,7 +38,10 @@ def docheck(sdk, path, subfolder=""):
     """ Using PydioSdk connects to a server and compares the list of files at
         :param path: with the list of files at the :param sdk:
     """
-    remote_ls = sdk.list(recursive='true')
+    try:
+        remote_ls = sdk.list(recursive='true')
+    except ReadTimeout:
+        logging.info("Recursive list failed")
     if subfolder != "":
         remote2 = {}
         for p in remote_ls:

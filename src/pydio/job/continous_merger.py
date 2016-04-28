@@ -449,7 +449,7 @@ class ContinuousDiffMerger(threading.Thread):
                     self.marked_for_snapshot_pathes = []
 
                 # Load local and/or remote changes, depending on the direction
-                self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'])
+                self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'], self.job_config.poolsize)
                 self.current_store.open()
                 try:
                     if self.job_config.direction != 'up':
@@ -625,7 +625,6 @@ class ContinuousDiffMerger(threading.Thread):
                     except InterruptException as i:
                         raise i
                     except PydioSdkDefaultException as p:
-                        logging.exception(p)
                         return False
                     except Exception as ex:
                         logging.exception(ex)
@@ -645,7 +644,7 @@ class ContinuousDiffMerger(threading.Thread):
                             counter[0] += 1
                             self.update_current_tasks()
                             self.update_global_progress()
-                            time.sleep(0.1) # Allow for changes to be noticeable in UI
+                            time.sleep(0.05) # Allow for changes to be noticeable in UI
                         time.sleep(.5)
                         self.current_store.process_pending_changes()
                         self.update_min_seqs_from_store(success=True)
@@ -731,4 +730,8 @@ class ContinuousDiffMerger(threading.Thread):
     @pydio_profile
     def load_remote_changes_in_store(self, seq_id, store):
         last_seq = self.sdk.changes_stream(seq_id, store.flatten_and_store)
+        """try:
+            self.sdk.websocket_send()
+        except Exception as e:
+            logging.exception(e)"""
         return last_seq

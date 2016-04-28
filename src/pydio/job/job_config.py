@@ -175,7 +175,8 @@ class JobConfig:
                     "timeout": obj.timeout,
                     "hide_up_dir": obj.hide_up_dir,
                     "hide_bi_dir": obj.hide_bi_dir,
-                    "hide_down_dir": obj.hide_down_dir
+                    "hide_down_dir": obj.hide_down_dir,
+                    "poolsize": obj.poolsize
                     }
 
         raise TypeError(repr(JobConfig) + " can't be encoded")
@@ -271,5 +272,9 @@ class JobConfig:
                 job_config.hide_bi_dir = obj['hide_bi_dir']
             if 'hide_down_dir' in obj:
                 job_config.hide_down_dir = obj['hide_down_dir']
+            if 'poolsize' in obj:
+                job_config.poolsize = obj['poolsize']
+            else:
+                job_config.poolsize = 4
             return job_config
         return obj

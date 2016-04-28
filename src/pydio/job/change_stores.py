@@ -43,9 +43,9 @@ except ImportError:
 
 class SqliteChangeStore():
     conn = None
-    DEBUG = False;
+    DEBUG = False
 
-    def __init__(self, filename, includes, excludes):
+    def __init__(self, filename, includes, excludes, poolsize=4):
         self.db = filename
         self.includes = includes
         self.excludes = excludes
@@ -57,6 +57,7 @@ class SqliteChangeStore():
             self.create = True
         self.last_commit = time.time()
         self.pendingoperations = []
+        self.maxpoolsize = poolsize
 
     def open(self):
         try:
@@ -152,15 +153,16 @@ class SqliteChangeStore():
 
             def run(self):
                 #logging.info("Running change " + str(threading.current_thread()) + " " + str(self.change))
-                time.sleep(10.0/random.randint(2, 20))
                 ts = time.time()
                 try:
                     if not callback2(self.change):
                         self.status = "FAILED"
                         logging.info("An error occured processing " + str(self.change))
+                except InterruptException:
+                    self.status = "FAILED"
+                    # silent fail (network)
                 except Exception as e:
                     logging.exception(e)
-                time.sleep(5.0/random.randint(2, 10))
                 #logging.info("DONE change " + str(threading.current_thread()) + " in " + str(time.time()-ts))
 
         def lerunnable(change):
@@ -196,12 +198,12 @@ class SqliteChangeStore():
                         yield str(i)
                 if schedule_exit and len(pool) == 0:
                     break
-                if len(pool) >= 4:  # TODO this number is arbitrary it SHOULD be dynamically changed depending on a server's load and HW resources
+                if len(pool) >= self.maxpoolsize:
                     time.sleep(.2)
                     continue
                 else:
                     output = processonechange(it)
-                    time.sleep(.1)
+                    time.sleep(.01)
                     if not output and not schedule_exit:
                         for op in self.pendingoperations:
                             self.buffer_real_operation(op.location, op.type, op.source, op.target)
@@ -214,7 +216,7 @@ class SqliteChangeStore():
                         continue
                     else:
                         # waiting for changes to be processed
-                        time.sleep(.2)
+                        time.sleep(.02)
                     if output and output.isAlive():
                         pool.append(output)
                     try:
