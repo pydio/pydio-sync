@@ -689,8 +689,7 @@ class SqlEventHandler(FileSystemEventHandler):
             self.on_moved(event)
         except Exception as ex:
             logging.exception(ex)
-
-        self.last_write_time = int(round(time.time() * 1000))
+        self.unlock_db()
 
     @pydio_profile
     def on_created(self, event):
@@ -713,7 +712,7 @@ class SqlEventHandler(FileSystemEventHandler):
             except sqlite3.OperationalError:  # database locked
                 logging.info('DB locked')
                 time.sleep(.1)
-        self.last_write_time = int(round(time.time() * 1000))
+        self.unlock_db()
 
     @pydio_profile
     def on_deleted(self, event):
