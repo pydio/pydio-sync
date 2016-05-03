@@ -178,7 +178,7 @@ class SqliteChangeStore():
                 proc = lerunnable(change)
                 if proc.status != "FAILED":
                     self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (change['row_id'],))
-                    #logging.info("DELETE CHANGE")
+                    #logging.info("DELETE CHANGE %s" % change)
                 return proc
             except StopIteration:
                 return False
@@ -225,7 +225,16 @@ class SqliteChangeStore():
                         if len(pool) == 1:
                             try:
                                 current_change = pool[0].change
-                                logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss) + " " + (current_change['node']['node_path'] or current_change['source'] or current_change['target']))
+                                more = ""
+                                if current_change:
+                                    if current_change['node']:
+                                        if 'node_path' in current_change['node']:
+                                            more = current_change['node']['node_path']
+                                        elif 'source' in current_change:
+                                            more = current_change['source']
+                                        elif 'target' in current_change:
+                                            more = current_change['target']
+                                logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss) + " " + more)
                             except Exception as e:
                                 logging.exception(e)
                                 logging.info(str(type(pool[0].change)) + " " + str(pool[0].change))

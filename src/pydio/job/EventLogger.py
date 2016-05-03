@@ -24,6 +24,7 @@ import sys
 from pathlib import *
 import datetime
 import logging
+import time
 try:
     from pydio.job.localdb import DBCorruptedException
     from pydio.utils.pydio_profiler import pydio_profile
@@ -87,8 +88,11 @@ class EventLogger():
                              " WHERE type=?", (message, source, action, target, status, date_time, event_type))
 
             conn.commit()
-        except sqlite3.Error as e:
+        except sqlite3.OperationalError as e:
             logging.error('sql insert error while trying to log event : %s ' % (e.message,))
+            conn.close()
+            time.sleep(.05)
+            self.log(event_type, message, action, status, source, target, uniq)
         conn.close()
 
     @pydio_profile
@@ -145,16 +149,21 @@ class EventLogger():
 
     @pydio_profile
     def get_all_from_type(self, type):
-        type_list = ['local', 'remote']
-        if type in type_list:
-            logging.debug("type ok")
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            c = conn.cursor()
-            events = c.execute("SELECT * FROM events WHERE type = '%s' ORDER BY date DESC" % type).fetchall()
-            c.close()
-            return events
-        else:
-            return "No type of this kind", 404
+        try:
+            type_list = ['local', 'remote']
+            if type in type_list:
+                logging.debug("type ok")
+                conn = sqlite3.connect(self.db, timeout=self.timeout)
+                c = conn.cursor()
+                events = c.execute("SELECT * FROM events WHERE type = '%s' ORDER BY date DESC" % type).fetchall()
+                c.close()
+                return events
+            else:
+                return "No type of this kind", 404
+        except sqlite3.OperationalError:
+            logging.info("Database was locked trying to get_all_from_type")
+            time.sleep(.2)
+            self.get_all_from_type(type)
 
     @pydio_profile
     def get_all_from_action(self, action):
@@ -170,15 +179,19 @@ class EventLogger():
 
     @pydio_profile
     def get_all_from_status(self, status):
-        status_list = ['in_progress', 'done', 'undefined']
-        if status in status_list:
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            c = conn.cursor()
-            events = c.execute("SELECT * FROM events WHERE status = '%s' ORDER BY date DESC" % status).fetchall()
-            c.close()
-            return events
-        else:
-            return "No status of this kind", 404
+        try:
+            status_list = ['in_progress', 'done', 'undefined']
+            if status in status_list:
+                conn = sqlite3.connect(self.db, timeout=self.timeout)
+                c = conn.cursor()
+                events = c.execute("SELECT * FROM events WHERE status = '%s' ORDER BY date DESC" % status).fetchall()
+                c.close()
+                return events
+            else:
+                return "No status of this kind", 404
+        except sqlite3.OperationalError:
+            time.sleep(.2)
+            return self.get_all_from_status(status)
 
     @pydio_profile
     def get_last_action(self):
@@ -190,7 +203,7 @@ class EventLogger():
             c = sqlite3.connect(self.db, timeout=self.timeout).cursor()
             res = c.execute("SELECT * FROM events ORDER BY id DESC LIMIT 1").fetchall()
             c.close()
-        except OperationalError:
+        except sqlite3.OperationalError:
             logging.debug("Database was locked, while fetching last_action")
         finally:
             return res

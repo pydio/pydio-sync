@@ -196,6 +196,9 @@ class LocalDbHandler():
 
     @pydio_profile
     def get_node_md5(self, node_path):
+        """
+        WARNING NOT USED
+        """
         node_path = self.normpath(node_path)
         conn = sqlite3.connect(self.db, timeout=self.timeout)
         conn.row_factory = sqlite3.Row
@@ -209,34 +212,43 @@ class LocalDbHandler():
 
     @pydio_profile
     def get_node_status(self, node_path):
-        node_path = self.normpath(node_path)
-        conn = sqlite3.connect(self.db, timeout=self.timeout)
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        status = "False"
-        for row in c.execute("SELECT ajxp_node_status.status FROM ajxp_index,ajxp_node_status "
-                             "WHERE ajxp_index.node_path = ? AND ajxp_node_status.node_id = ajxp_index.node_id", (node_path,)):
-            status = row['status']
-            break
-        c.close()
-        return status
+        try:
+            node_path = self.normpath(node_path)
+            conn = sqlite3.connect(self.db, timeout=self.timeout)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            status = "False"
+            for row in c.execute("SELECT ajxp_node_status.status FROM ajxp_index,ajxp_node_status "
+                                 "WHERE ajxp_index.node_path = ? AND ajxp_node_status.node_id = ajxp_index.node_id", (node_path,)):
+                status = row['status']
+                break
+            c.close()
+            return status
+        except sqlite3.OperationalError:
+            # If the database was locked return PENDING state, better than nothing ^_^
+            return "PENDING"
+
 
     @pydio_profile
     def get_directory_node_status(self, node_path):
         node_path = "" if self.normpath('/') == self.normpath(node_path) else self.normpath(node_path)
-        conn = sqlite3.connect(self.db, timeout=self.timeout)
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        status = "IDLE"
-        if [r[0] for r in c.execute("SELECT COUNT(ajxp_index.node_id) \
-                     FROM ajxp_index \
-                     LEFT JOIN ajxp_node_status \
-                     ON ajxp_node_status.node_id = ajxp_index.node_id\
-                     WHERE ajxp_node_status.status<>'IDLE' \
-                     AND ajxp_index.node_path LIKE ?", (self.normpath(node_path + '/%'),))][0] > 0:
-            status = "PENDING"
-        c.close()
-        return status
+        try:
+            conn = sqlite3.connect(self.db, timeout=self.timeout)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            status = "IDLE"
+            if [r[0] for r in c.execute("SELECT COUNT(ajxp_index.node_id) \
+                         FROM ajxp_index \
+                         LEFT JOIN ajxp_node_status \
+                         ON ajxp_node_status.node_id = ajxp_index.node_id\
+                         WHERE ajxp_node_status.status<>'IDLE' \
+                         AND ajxp_index.node_path LIKE ?", (self.normpath(node_path + '/%'),))][0] > 0:
+                status = "PENDING"
+            c.close()
+            return status
+        except sqlite3.OperationalError:
+            # If the database was locked return PENDING state, better than nothing ^_^
+            return "PENDING"
 
     @pydio_profile
     def list_conflict_nodes(self):
@@ -546,6 +558,20 @@ class LocalDbHandler():
         conn.close()
         return last
 
+    def list_non_idle_nodes(self):
+        logging.info("Listing non IDLE nodes")
+        try:
+            conn = sqlite3.connect(self.db, timeout=self.timeout)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            q = "SELECT ajxp_index.node_id FROM ajxp_index,ajxp_node_status WHERE ajxp_node_status.status <> 'IDLE'  AND ajxp_node_status.node_id = ajxp_index.node_id"
+            for row in c.execute(q):
+                logging.info(row)
+            c.close()
+            return ""
+        except sqlite3.OperationalError:
+            time.sleep(.2)
+            return self.list_non_idle_nodes()
 
 class SqlEventHandler(FileSystemEventHandler):
     """reading = False
@@ -564,10 +590,11 @@ class SqlEventHandler(FileSystemEventHandler):
         self.timeout = db_handler.timeout
         self.reading = False
         self.last_write_time = 0
-        self.db_wait_duration = .1
+        self.db_wait_duration = .4
         self.last_seq_id = 0
         self.prevent_atomic_commit = False
         self.con = None
+        self.locked = False
 
     @staticmethod
     def get_unicode_path(src):
@@ -1024,6 +1051,7 @@ class SqlEventHandler(FileSystemEventHandler):
 
     @pydio_profile
     def lock_db(self):
+        self.locked = True
         ###################################################################
         while self.reading:
             time.sleep(self.db_wait_duration)
@@ -1032,6 +1060,7 @@ class SqlEventHandler(FileSystemEventHandler):
 
     @pydio_profile
     def unlock_db(self):
+        self.locked = False
         self.last_write_time = int(round(time.time() * 1000))
 
     def db_stats(self):

@@ -52,7 +52,7 @@ try:
     from pydio.sdkremote.exceptions import ProcessException, InterruptException, PydioSdkDefaultException
     from pydio.sdkremote.remote import PydioSdk
     from pydio.sdklocal.local import SystemSdk
-    from pydio.utils import check_sync
+    from pydio.utils.check_sync import SyncChecker
     from pydio.utils.i18n import get_languages
     from pydio.utils import i18n
     _ = i18n.language.ugettext
@@ -141,6 +141,7 @@ class PydioApi(Api):
         self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
         self.app.add_url_rule('/res/about.html', 'dynamic_about', self.serve_about_content)
         self.app.add_url_rule('/checksync/<string:job_id>', 'checksync', self.check_sync)
+        self.app.add_url_rule('/checksync', 'checksync', self.check_sync)
         self.app.add_url_rule('/streamlifesign', 'streamlifesign', self.stream_life_sign)
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
@@ -229,10 +230,12 @@ class PydioApi(Api):
             func()
 
     @authDB.requires_auth
-    def check_sync(self, job_id):
+    def check_sync(self, job_id=None):
         # load conf
         conf = JobsLoader.Instance()
         jobs = conf.jobs
+        if job_id is None:
+            return Response(str(jobs.keys()), status=200, mimetype="text")
         if job_id not in jobs:
             return Response("Unknown job", status=400, mimetype="text")
         # check job exists
@@ -246,7 +249,8 @@ class PydioApi(Api):
                        proxies=ConfigManager.Instance().get_defined_proxies(),
                        timeout=380
                        )
-        resp = check_sync.dofullcheck(job_id, jobs, sdk)
+        checker = SyncChecker(job_id, jobs, sdk)
+        resp = checker.dofullcheck()
         return Response(json.dumps(resp),
                         status=200,
                         mimetype="text/json")

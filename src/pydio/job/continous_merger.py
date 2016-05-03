@@ -41,6 +41,7 @@ try:
     from pydio.utils.global_config import ConfigManager
     from pydio.utils.pydio_profiler import pydio_profile
     from pydio.utils.check_sqlite import check_sqlite_file
+    from pydio.utils.check_sync import SyncHardener
     from pydio import PUBLISH_SIGNAL, TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
     from pydio.utils import i18n
     _ = i18n.language.ugettext
@@ -58,6 +59,7 @@ except ImportError:
     from utils.global_config import ConfigManager
     from utils.pydio_profiler import pydio_profile
     from utils.check_sqlite import check_sqlite_file
+    from utils.check_sync import SyncHardener
     from utils import i18n
     _ = i18n.language.ugettext
     COMMAND_SIGNAL = 'command'
@@ -120,7 +122,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.db_handler = LocalDbHandler(self.configs_path, job_config.directory)
         self.interrupt = False
         self.event_timer = 2
-        self.online_timer = 10
+        self.online_timer = job_config.online_timer
         self.offline_timer = 60
         self.online_status = True
         self.job_status_running = True
@@ -448,6 +450,9 @@ class ContinuousDiffMerger(threading.Thread):
                         self.watcher.check_from_snapshot(snap_path)
                     self.marked_for_snapshot_pathes = []
 
+                while self.event_handler.locked:
+                    logging.info("Waiting for changes to be written before retrieving remote changes.")
+                    time.sleep(.5)
                 # Load local and/or remote changes, depending on the direction
                 self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'], self.job_config.poolsize)
                 self.current_store.open()
@@ -505,6 +510,8 @@ class ContinuousDiffMerger(threading.Thread):
                     self.update_min_seqs_from_store()
                     self.exit_loop_clean(logger)
                     very_first = False
+                    #logging.info("CheckSync of " + self.job_config.id)
+                    #self.db_handler.list_non_idle_nodes()
                     continue
 
                 self.global_progress['status_indexing'] = 1

@@ -276,5 +276,9 @@ class JobConfig:
                 job_config.poolsize = obj['poolsize']
             else:
                 job_config.poolsize = 4
+            if 'poll_interval' in obj:
+                job_config.online_timer = obj['poll_interval']
+            else:
+                job_config.online_timer = 10
             return job_config
         return obj
