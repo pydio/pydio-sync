@@ -71,7 +71,7 @@ class PydioDiagnostics():
                                  user_id=self.user_id, device_id=ConfigManager.Instance().get_device_id())
         try:
             success = pydio_sdk.stat(unicode('/', 'utf-8'))
-        except EOFError:
+        except Exception:
             logging.info("Server ping failed, probably because of keyring, temporary bypass")
             success = True
         logging.info('Server ping on %s with user/pass %s/%s: %s' % (self.url, self.user_id, self.password, 'success' if success else 'failure'))
