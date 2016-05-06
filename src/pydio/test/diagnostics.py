@@ -70,7 +70,8 @@ class PydioDiagnostics():
         else:
             pydio_sdk = PydioSdk(self.url, self.basepath, self.ws_id or '',
                                  user_id=self.user_id, device_id=ConfigManager.Instance().get_device_id())
-        if platform.system() == "linux":
+
+        if platform.system() == "Linux":
             pydio_sdk.stick_to_basic = True
         success = pydio_sdk.stat(unicode('/', 'utf-8'))
         logging.info('Server ping on %s with user/pass %s/%s: %s' % (self.url, self.user_id, self.password, 'success' if success else 'failure'))
