@@ -1,3 +1,11 @@
+# PydioSync - Release Notes - 10.05.2016
+## v1.2.3 stable (Windows, MacOS, Linux)
+----
+- Configurable poll intervals (configs.json)
+- Faster change processor
+- Added some Index for faster DB processing
+- Better support for Linux
+
 # PydioSync - Release Notes - 21.04.2016
 ## v1.2.2 stable (Windows, MacOS, Linux)
 ----
