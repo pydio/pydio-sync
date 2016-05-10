@@ -55,7 +55,12 @@ class SyncChecker():
             remote_ls = self.sdk.list(recursive='true')
         except ReadTimeout:
             logging.info("Recursive list failed")
-            #remote_ls = self.sdk.list(recursive='false', max_depth=1)
+            # TODO: this code is untested
+            remote_ls = self.sdk.list(recursive='false', max_depth=1)
+            blk_stats = self.sdk.bulk_stat(list(remote_ls.keys()), with_hash=True)
+            for p in blk_stats:
+                if blk_stats[p]['hash'] == 'directory':
+                    remote_ls.append(self.sdk.list(recursive='true'))
 
         if subfolder != "":
             remote2 = {}
