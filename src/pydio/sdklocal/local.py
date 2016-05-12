@@ -22,7 +22,10 @@ import os
 import hashlib
 import stat
 import netifaces
-from sdkremote.exceptions import SystemSdkException
+try:
+    from pydio.sdkremote.exceptions import SystemSdkException
+except ImportError:
+    from sdkremote.exceptions import SystemSdkException
 import shutil
 import logging
 try:
