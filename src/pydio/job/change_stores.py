@@ -162,6 +162,7 @@ class SqliteChangeStore():
                     self.status = "FAILED"
                     # silent fail (network)
                 except Exception as e:
+                    self.status = "FAILED"
                     logging.exception(e)
                 #logging.info("DONE change " + str(threading.current_thread()) + " in " + str(time.time()-ts))
 
