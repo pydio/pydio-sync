@@ -172,6 +172,10 @@ class SqliteChangeStore():
                         logging.exception(e)
                 #logging.info("DONE change " + str(threading.current_thread()) + " in " + str(time.time()-ts))
 
+            def stop(self):
+                pass
+        # end of Processor_callback
+
         def lerunnable(change):
             p = Processor_callback(change)
             p.start()
@@ -199,16 +203,19 @@ class SqliteChangeStore():
                             self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
                             #logging.info("DELETE CHANGE %s" % change)
                         else:
+                            class Failchange:
+                                pass
                             if i.change['row_id'] not in self.failingchanges:
+                                self.failingchanges[i.change['row_id']] = Failchange()
                                 self.failingchanges[i.change['row_id']].change = i.change
-                            if "fail" in self.failingchanges[i.change['row_id']]:
-                                if self.failingchanges[i.change['row_id']].fail > 5:  # Try 5 times then delete it and move on, Is this ever reached ?
-                                    self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
-                                    del self.failingchanges[i.change['row_id']]
-                                else:
-                                    self.failingchanges[i.change['row_id']].fail += 1
-                            else:
                                 self.failingchanges[i.change['row_id']].fail = 1
+                            else:
+                                if "fail" in self.failingchanges[i.change['row_id']]:
+                                    if self.failingchanges[i.change['row_id']].fail > 5:  # Try 5 times then delete it and move on, Is this ever reached ?
+                                        self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
+                                        del self.failingchanges[i.change['row_id']]
+                                    else:
+                                        self.failingchanges[i.change['row_id']].fail += 1
                         pool.remove(i)
                         i.join()
                         #logging.info("Change done " + str(i))

@@ -647,6 +647,8 @@ class ContinuousDiffMerger(threading.Thread):
                     if not self.processing:
                         self.processing = True
                         for i in self.current_store.process_changes_with_callback(processor_callback, processor_callback2):
+                            if self.interrupt:
+                                raise InterruptException
                             #logging.info("Updating seqs")
                             self.current_store.process_pending_changes()
                             self.update_min_seqs_from_store(success=True)
