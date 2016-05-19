@@ -58,6 +58,7 @@ class SqliteChangeStore():
         self.last_commit = time.time()
         self.pendingoperations = []
         self.maxpoolsize = poolsize
+        self.failingchanges = {}  # keep track of failing changes
 
     def open(self):
         try:
@@ -82,6 +83,7 @@ class SqliteChangeStore():
                 self.conn.execute("CREATE INDEX buffer_target ON ajxp_last_buffer (target)")
             else:
                 self.conn.execute("DELETE FROM ajxp_changes")
+                self.conn.execute("vacuum")
             self.conn.commit()
         except sqlite3.OperationalError as oe:
             # Catch Database locked errors and try again
@@ -157,13 +159,17 @@ class SqliteChangeStore():
                 try:
                     if not callback2(self.change):
                         self.status = "FAILED"
-                        logging.info("An error occured processing " + str(self.change))
+                        logging.info("An error occurred processing " + str(self.change))
+                    else:
+                        self.status = "SUCCESS"
                 except InterruptException:
                     self.status = "FAILED"
                     # silent fail (network)
                 except Exception as e:
                     self.status = "FAILED"
-                    logging.exception(e)
+                    self.error = e
+                    if not hasattr(e, "code"):
+                        logging.exception(e)
                 #logging.info("DONE change " + str(threading.current_thread()) + " in " + str(time.time()-ts))
 
         def lerunnable(change):
@@ -174,12 +180,8 @@ class SqliteChangeStore():
         def processonechange(iter):
             try:
                 change = next(iter)
-                #logging.info('PROCESSING CHANGE WITH ROW ID %i' % change['row_id'])
                 #logging.info('PROCESSING CHANGE %s' % change)
                 proc = lerunnable(change)
-                if proc.status != "FAILED":
-                    self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (change['row_id'],))
-                    #logging.info("DELETE CHANGE %s" % change)
                 return proc
             except StopIteration:
                 return False
@@ -193,6 +195,20 @@ class SqliteChangeStore():
             try:
                 for i in pool:
                     if not i.isAlive():
+                        if i.status == "SUCCESS" or (hasattr(i, "error") and hasattr(i.error, "code") and i.error.code == 1404):  # file download impossible -> Assume deleted from server
+                            self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
+                            #logging.info("DELETE CHANGE %s" % change)
+                        else:
+                            if i.change['row_id'] not in self.failingchanges:
+                                self.failingchanges[i.change['row_id']].change = i.change
+                            if "fail" in self.failingchanges[i.change['row_id']]:
+                                if self.failingchanges[i.change['row_id']].fail > 5:  # Try 5 times then delete it and move on, Is this ever reached ?
+                                    self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
+                                    del self.failingchanges[i.change['row_id']]
+                                else:
+                                    self.failingchanges[i.change['row_id']].fail += 1
+                            else:
+                                self.failingchanges[i.change['row_id']].fail = 1
                         pool.remove(i)
                         i.join()
                         #logging.info("Change done " + str(i))
@@ -211,6 +227,7 @@ class SqliteChangeStore():
                         try:
                             humanize
                             logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts).replace(' ago', '') + " to process changes.")
+                            logging.info(" Fails : " + str(len(self.failingchanges)))
                         except NameError:
                             pass # NOP if not humanize lib
                         schedule_exit = True
@@ -245,8 +262,12 @@ class SqliteChangeStore():
                         pool.append(output)"""
             except InterruptException as e:
                 logging.info("@@@@@@@@@@@ Interrupted @@@@@@@@@@")
+            except Exception as e:
                 logging.exception(e)
-        self.conn.commit()
+        try:
+            self.conn.commit()
+        except Exception as e:
+            logging.exception(e)
 
     @pydio_profile
     def list_changes(self, cursor=0, limit=5, where=''):

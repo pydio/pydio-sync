@@ -34,7 +34,7 @@ try:
     from pydio.job.local_watcher import LocalWatcher
     from pydio.job.change_stores import SqliteChangeStore
     from pydio.job.EventLogger import EventLogger
-    from pydio.sdkremote.exceptions import ProcessException, InterruptException, PydioSdkDefaultException
+    from pydio.sdkremote.exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException
     from pydio.sdkremote.remote import PydioSdk
     from pydio.sdklocal.local import SystemSdk
     from pydio.utils.functions import connection_helper
@@ -52,7 +52,7 @@ except ImportError:
     from job.change_stores import SqliteChangeStore
     from job.EventLogger import EventLogger
     from job.local_watcher import LocalWatcher
-    from sdkremote.exceptions import ProcessException, InterruptException, PydioSdkDefaultException
+    from sdkremote.exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException
     from sdkremote.remote import PydioSdk
     from sdklocal.local import SystemSdk
     from utils.functions import connection_helper
@@ -449,10 +449,12 @@ class ContinuousDiffMerger(threading.Thread):
                                                         raise InterruptException()
                         self.watcher.check_from_snapshot(snap_path)
                     self.marked_for_snapshot_pathes = []
-
+                writewait = .5
                 while self.event_handler.locked:
                     logging.info("Waiting for changes to be written before retrieving remote changes.")
-                    time.sleep(.5)
+                    if writewait < 5:
+                        writewait += .5
+                    time.sleep(writewait)
                 # Load local and/or remote changes, depending on the direction
                 self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'], self.job_config.poolsize)
                 self.current_store.open()
@@ -626,16 +628,17 @@ class ContinuousDiffMerger(threading.Thread):
                         proc.process_change()
                         if self.interrupt or not self.job_status_running:
                             raise InterruptException()
+                    except PydioSdkException as pe:
+                        if pe.message.find("Original file") > -1:
+                            pe.code = 1404
+                            raise pe
                     except ProcessException as pe:
                         logging.error(pe.message)
                         return False
+                    except PydioSdkDefaultException as p:
+                        raise p
                     except InterruptException as i:
                         raise i
-                    except PydioSdkDefaultException as p:
-                        return False
-                    except Exception as ex:
-                        logging.exception(ex)
-                        return False
                     return True
 
                 try:
