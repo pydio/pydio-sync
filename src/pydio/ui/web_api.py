@@ -55,7 +55,6 @@ try:
     from pydio.utils.check_sync import SyncChecker
     from pydio.utils.i18n import get_languages
     from pydio.utils import i18n
-    _ = i18n.language.ugettext
     from pydio.utils.pydio_profiler import pydio_profile
 except ImportError:
     from job.EventLogger import EventLogger
@@ -69,7 +68,6 @@ except ImportError:
     from utils import check_sync
     from utils.i18n import get_languages
     from utils import i18n
-    _ = i18n.language.ugettext
 try:
     #raise ImportError
     from pydio.endpoint.resolver import EndpointResolver, RESOLVER_CONFIG, EndpointException
@@ -77,6 +75,7 @@ except ImportError:
     EndpointResolver = False
     RESOLVER_CONFIG = False
     EndpointException = False
+_ = i18n.language.ugettext
 
 
 class FlaskRealmDigestDB(authdigest.RealmDigestDB):
@@ -159,17 +158,15 @@ class PydioApi(Api):
             lang_part = l.split('_')[0]
             if lang_part:
                 short_lang.append(lang_part)
-
-        with open(str(self.real_static_folder / 'i18n.js')) as js:
-            for line in js:
-                s += line
-
+        if short_lang != [u"en"]:
+            with open(str(self.real_static_folder / 'i18n.js')) as js:
+                for line in js:
+                    s += line
         if EndpointResolver:
             additional_strings = EndpointResolver.Instance().load_additional_strings()
             if additional_strings:
                 s += '\nvar PydioAdditionalStrings = ' + json.dumps(additional_strings) + ';'
                 s += '\nwindow.PydioLangs = merge(PydioAdditionalStrings, PydioLangs);'
-
         s += '\n'
         s += 'window.PydioEnvLanguages = ' + json.dumps(short_lang) + ';'
         return Response(response=s,

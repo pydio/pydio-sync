@@ -1038,6 +1038,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 }
             }
             $location.path('/');
+            location.assign("/");
+            location.reload();
         }
 
         $scope.about_page = function() {

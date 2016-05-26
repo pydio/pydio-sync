@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-04-13 15:06+0200\n"
+"POT-Creation-Date: 2016-05-26 15:18+0200\n"
 "PO-Revision-Date: 2014-10-01 16:43+0200\n"
 "Last-Translator: Charles du Jeu <charles@pydio.com>\n"
 "Language-Team: French\n"
@@ -65,41 +65,41 @@ msgstr "Nouveau fichier créé: %s"
 msgid "File created at %s"
 msgstr "Fichier créé: %s"
 
-#: job/continous_merger.py:310
+#: job/continous_merger.py:312
 msgid "Job Paused"
 msgstr "Tâche en pause"
 
-#: job/continous_merger.py:321
+#: job/continous_merger.py:323
 msgid "Job Started"
 msgstr "Tâche démarrée"
 
-#: job/continous_merger.py:331
+#: job/continous_merger.py:333
 msgid "Job stopping"
 msgstr "Tâche en cours d'arrêt"
 
-#: job/continous_merger.py:357
+#: job/continous_merger.py:359
 msgid "Synchronized"
 msgstr "Synchronisé"
 
-#: job/continous_merger.py:380
+#: job/continous_merger.py:382
 msgid "Checking changes since last launch..."
 msgstr "Recherche des changements depuis le dernier démarrage..."
 
-#: job/continous_merger.py:392
+#: job/continous_merger.py:394
 msgid "Oops, error while indexing the local folder. Pausing the task."
 msgstr ""
 "Oops, erreur lors de la l'indexation du dossier local. Tâche mise en pause."
 
-#: job/continous_merger.py:413
+#: job/continous_merger.py:415
 msgid "Status: Paused"
 msgstr "Statut: en pause"
 
-#: job/continous_merger.py:422
+#: job/continous_merger.py:424
 #, python-format
 msgid "Status: scheduled for %s"
 msgstr "Satut: programmé pour %s"
 
-#: job/continous_merger.py:429
+#: job/continous_merger.py:431
 #, python-format
 msgid ""
 "Cannot find local folder! Did you disconnect a volume? Waiting %s seconds "
@@ -108,13 +108,13 @@ msgstr ""
 "Impossible de trouver le dossier local, avez-vous déconnecté un volume "
 "externe ? Attente de %s secondes"
 
-#: job/continous_merger.py:431
+#: job/continous_merger.py:433
 msgid "Cannot find local folder, did you disconnect a volume?"
 msgstr ""
 "Impossible de trouver le dossier local, avez-vous déconnecté un volume "
 "externe ?"
 
-#: job/continous_merger.py:437
+#: job/continous_merger.py:439
 msgid ""
 "Cannot find remote folder, maybe it was renamed? Sync cannot start, please "
 "check the configuration."
@@ -122,19 +122,19 @@ msgstr ""
 "Impossible de trouver le dossier distant, s'il-vous-plaît vérifiez votre "
 "configuration"
 
-#: job/continous_merger.py:460
+#: job/continous_merger.py:467
 msgid "Gathering data from remote workspace, this can take a while..."
 msgstr ""
 "Récupération d'informations du workspace, ceci peut durer un certain temps..."
 
-#: job/continous_merger.py:470
+#: job/continous_merger.py:477
 #, python-format
 msgid "No Internet connection detected! Waiting for %s seconds to retry"
 msgstr ""
 "Pas de connexion Internet détectée, en attente de %s secondes avant de "
 "réessayer"
 
-#: job/continous_merger.py:472
+#: job/continous_merger.py:479
 #, python-format
 msgid ""
 "Connection to server failed, server is probably down. Waiting %s seconds to "
@@ -143,77 +143,77 @@ msgstr ""
 "La connexion au serveur a échoué, en attente de %s secondes avant de "
 "réessayer"
 
-#: job/continous_merger.py:481
+#: job/continous_merger.py:488
 #, python-format
 msgid "Error while connecting to remote server (%s)"
 msgstr "Erreur lors de la connexion au serveur (%s)"
 
-#: job/continous_merger.py:512
+#: job/continous_merger.py:521
 msgid "Merging changes between remote and local, please wait..."
 msgstr "Fusion des modifications distantes et locales..."
 
-#: job/continous_merger.py:538
+#: job/continous_merger.py:547
 #, fuzzy
 msgid "Detecting unecessary changes..."
 msgstr "%i Changements détectés"
 
-#: job/continous_merger.py:541
+#: job/continous_merger.py:550
 #, fuzzy
 msgid "Done detecting unecessary changes..."
 msgstr "%i Changements détectés"
 
-#: job/continous_merger.py:558
+#: job/continous_merger.py:567
 msgid "Conflicts detected, cannot continue!"
 msgstr "Conflits détectés, impossible de continuer!"
 
-#: job/continous_merger.py:580
+#: job/continous_merger.py:589
 #, python-format
 msgid "Processing %i changes"
 msgstr "Traitement de %i changements"
 
-#: job/continous_merger.py:659 job/continous_merger.py:661
+#: job/continous_merger.py:670 job/continous_merger.py:672
 #, python-format
 msgid "%i files modified"
 msgstr "%i fichiers modifiés"
 
-#: job/continous_merger.py:670
+#: job/continous_merger.py:681
 msgid "An SSL error happened, please check the logs"
 msgstr "Erreur SSL, veuillez vérifier les journaux d'erreur"
 
-#: job/continous_merger.py:673 ui/web_api.py:342
+#: job/continous_merger.py:684 ui/web_api.py:368
 msgid "A proxy error happened, please check the logs"
 msgstr "Erreur de proxy, veuillez vérifier les journaux d'érreurs"
 
-#: job/continous_merger.py:676 ui/web_api.py:345
+#: job/continous_merger.py:687 ui/web_api.py:371
 msgid "Connection error: too many redirects"
 msgstr "Erreur de connexion : trop de redirections."
 
-#: job/continous_merger.py:679 ui/web_api.py:348
+#: job/continous_merger.py:690 ui/web_api.py:374
 msgid "Chunked encoding error, please check the logs"
 msgstr "Erreur de chunk encoding, veuillez vérifier les journaux d'erreurs."
 
-#: job/continous_merger.py:682 ui/web_api.py:351
+#: job/continous_merger.py:693 ui/web_api.py:377
 msgid "Content Decoding error, please check the logs"
 msgstr ""
 "Erreur de décodage du contenu, veuillez vérifier les journaux d'erreurs"
 
-#: job/continous_merger.py:685 ui/web_api.py:354
+#: job/continous_merger.py:696 ui/web_api.py:380
 msgid "Http connection error: invalid schema."
 msgstr "Erreur de connexion http: schéma invalide."
 
-#: job/continous_merger.py:688 ui/web_api.py:357
+#: job/continous_merger.py:699 ui/web_api.py:383
 msgid "Http connection error: invalid URL."
 msgstr "Erreur de connexion http : URL invalide."
 
-#: job/continous_merger.py:691
+#: job/continous_merger.py:702
 msgid "Connection timeout, will retry later."
 msgstr "La connexion au serveur a expiré, elle sera retentée plus tard."
 
-#: job/continous_merger.py:694 ui/web_api.py:367
+#: job/continous_merger.py:705 ui/web_api.py:393
 msgid "Cannot resolve domain!"
 msgstr "Impossible de résoudre le domaine! Problème de DNS?"
 
-#: job/continous_merger.py:698
+#: job/continous_merger.py:709
 #, python-format
 msgid "Unexpected Error: %s"
 msgstr "Erreur inattendue : %s"
@@ -282,7 +282,7 @@ msgstr ""
 "pydio"
 
 #: res/i18n/html_strings.py:12 res/i18n/html_strings.py:13
-#: res/i18n/html_strings.py:14 res/i18n/html_strings.py:228
+#: res/i18n/html_strings.py:14 res/i18n/html_strings.py:230
 msgid "Required"
 msgstr "Requis"
 
@@ -518,7 +518,7 @@ msgstr "Une heure précise"
 msgid "Run the sync every day at"
 msgstr "Executer tout les jours à "
 
-#: res/i18n/html_strings.py:81 res/i18n/html_strings.py:171
+#: res/i18n/html_strings.py:81 res/i18n/html_strings.py:173
 msgid "Conflicts"
 msgstr "Conflits"
 
@@ -574,8 +574,8 @@ msgstr "Serveur"
 msgid "Login"
 msgstr "Identifiant"
 
-#: res/i18n/html_strings.py:96 res/i18n/html_strings.py:193
-#: res/i18n/html_strings.py:198
+#: res/i18n/html_strings.py:96 res/i18n/html_strings.py:195
+#: res/i18n/html_strings.py:200
 msgid "Password"
 msgstr "Mot de passe"
 
@@ -591,7 +591,7 @@ msgstr "Choisir"
 msgid "[loading...]"
 msgstr "[chargement...]"
 
-#: res/i18n/html_strings.py:107 res/i18n/html_strings.py:202
+#: res/i18n/html_strings.py:107 res/i18n/html_strings.py:204
 msgid "Advanced parameters"
 msgstr "Paramètres avancés"
 
@@ -719,7 +719,7 @@ msgstr "Date à laquelle la dernière vérification a eu lieu"
 msgid "Last update check was on: "
 msgstr "Dernière vérification le :"
 
-#: res/i18n/html_strings.py:135 res/i18n/html_strings.py:229
+#: res/i18n/html_strings.py:135 res/i18n/html_strings.py:231
 msgid "Proxy settings"
 msgstr "Les paramètres de proxy"
 
@@ -790,10 +790,18 @@ msgstr ""
 "cette valeur"
 
 #: res/i18n/html_strings.py:152
+msgid "Set Language"
+msgstr "Choisir la langue"
+
+#: res/i18n/html_strings.py:153
+msgid "Language (2 letter code)"
+msgstr "Langue (code à 2 lettres)"
+
+#: res/i18n/html_strings.py:154
 msgid "Update Settings"
 msgstr "Mettre à jour"
 
-#: res/i18n/html_strings.py:153
+#: res/i18n/html_strings.py:155
 msgid ""
 "Ooops, cannot contact agent! Make sure it is running correctly, process will "
 "try to reconnect in 20s"
@@ -801,79 +809,79 @@ msgstr ""
 "Bizarre, impossible de contacter l'agent! Veuillez vous assurer qu'il est "
 "correctement démarré, le process se reconnectera dans 20s."
 
-#: res/i18n/html_strings.py:154
+#: res/i18n/html_strings.py:156
 msgid "Select a workspace"
 msgstr "Sélectionner un workspace"
 
-#: res/i18n/html_strings.py:155
+#: res/i18n/html_strings.py:157
 msgid "Full path to the local folder"
 msgstr "Chemin complet vers le répertoire local"
 
-#: res/i18n/html_strings.py:156
+#: res/i18n/html_strings.py:158
 msgid "Are you sure you want to delete this synchro? No data will be deleted"
 msgstr ""
 "Etes-vous sûr que vous voulez supprimer cette synchro ? Aucun fichier "
 "synchronisé ne sera effacé."
 
-#: res/i18n/html_strings.py:157
+#: res/i18n/html_strings.py:159
 msgid "computing..."
 msgstr "calcul..."
 
-#: res/i18n/html_strings.py:158 res/i18n/html_strings.py:162
-#: res/i18n/html_strings.py:164 res/i18n/html_strings.py:168
+#: res/i18n/html_strings.py:160 res/i18n/html_strings.py:164
+#: res/i18n/html_strings.py:166 res/i18n/html_strings.py:170
 msgid "Status"
 msgstr "Statut"
 
-#: res/i18n/html_strings.py:159 res/i18n/html_strings.py:163
-#: res/i18n/html_strings.py:165
+#: res/i18n/html_strings.py:161 res/i18n/html_strings.py:165
+#: res/i18n/html_strings.py:167
 msgid "syncing"
 msgstr "en cours"
 
-#: res/i18n/html_strings.py:160
+#: res/i18n/html_strings.py:162
 msgid "Size"
 msgstr "Taille"
 
-#: res/i18n/html_strings.py:161
+#: res/i18n/html_strings.py:163
 msgid "Estimated time"
 msgstr "Temps restant"
 
-#: res/i18n/html_strings.py:166
+#: res/i18n/html_strings.py:168
 msgid "Last sync"
 msgstr "Dernière sync."
 
-#: res/i18n/html_strings.py:167
+#: res/i18n/html_strings.py:169
 msgid "ERROR"
 msgstr "ERREUR"
 
-#: res/i18n/html_strings.py:169
+#: res/i18n/html_strings.py:171
 msgid "idle"
 msgstr "au repos"
 
-#: res/i18n/html_strings.py:170
+#: res/i18n/html_strings.py:172
 msgid "[DISABLED]"
 msgstr "[DÉSACTIVÉ]"
 
-#: res/i18n/html_strings.py:172
+#: res/i18n/html_strings.py:174
 msgid "Solve Conflict"
 msgstr "Résoudre le conflit"
 
-#: res/i18n/html_strings.py:173
+#: res/i18n/html_strings.py:175
 msgid "Solved"
 msgstr "Résolu"
 
-#: res/i18n/html_strings.py:174
+#: res/i18n/html_strings.py:176
 msgid "Last files synced"
 msgstr "Derniers fichiers synchronisés"
 
-#: res/i18n/html_strings.py:175
+#: res/i18n/html_strings.py:177
 msgid "Open File"
 msgstr "Ouvrir"
 
-#: res/i18n/html_strings.py:176
+#: res/i18n/html_strings.py:178
 msgid "Transfers in progress"
 msgstr "Transferts en cours"
 
-#: res/i18n/html_strings.py:177
+#: res/i18n/html_strings.py:179
 msgid ""
 "An element named %1 was modified on both the server and on your local "
 "computer. Select how you want to solve this conflicting case:"
@@ -881,85 +889,85 @@ msgstr ""
 "Un élément nommé %1 a été modifié sur le serveur et en local. Sélectionnez "
 "la ou les versions que vous souhaitez garder."
 
-#: res/i18n/html_strings.py:178
+#: res/i18n/html_strings.py:180
 msgid "Apply to all conflicts"
 msgstr "Appliquer à tous"
 
-#: res/i18n/html_strings.py:179
+#: res/i18n/html_strings.py:181
 msgid "Mine"
 msgstr "La mienne"
 
-#: res/i18n/html_strings.py:180
+#: res/i18n/html_strings.py:182
 msgid "Both Versions"
 msgstr "Les deux"
 
-#: res/i18n/html_strings.py:181
+#: res/i18n/html_strings.py:183
 msgid "Theirs"
 msgstr "La leur"
 
-#: res/i18n/html_strings.py:182 res/i18n/html_strings.py:183
+#: res/i18n/html_strings.py:184 res/i18n/html_strings.py:185
 msgid "Create a new synchronization"
 msgstr "Créer une nouvelle synchronisation"
 
-#: res/i18n/html_strings.py:184 res/i18n/html_strings.py:185
-#: res/i18n/html_strings.py:214
+#: res/i18n/html_strings.py:186 res/i18n/html_strings.py:187
+#: res/i18n/html_strings.py:216
 msgid "Share %1 via Pydio"
 msgstr "Partager %1 avec Pydio"
 
-#: res/i18n/html_strings.py:186 res/i18n/html_strings.py:205
+#: res/i18n/html_strings.py:188 res/i18n/html_strings.py:207
 msgid "Description"
 msgstr "Description"
 
-#: res/i18n/html_strings.py:187
+#: res/i18n/html_strings.py:189
 msgid "Path"
 msgstr "Chemin"
 
-#: res/i18n/html_strings.py:188
+#: res/i18n/html_strings.py:190
 msgid "Share item"
 msgstr "Partager l'élément"
 
-#: res/i18n/html_strings.py:189
+#: res/i18n/html_strings.py:191
 msgid "by creating a public link that can easily be sent to your contacts."
 msgstr ""
 "en créant un lien public qui peut-être envoyé facilement à vos contacts."
 
-#: res/i18n/html_strings.py:190
+#: res/i18n/html_strings.py:192
 msgid "You can customize the link parameters using the forms below."
 msgstr "Vous pouvez choisir les paramètres en utilisant le formulaire suivant."
 
-#: res/i18n/html_strings.py:191
+#: res/i18n/html_strings.py:193
 msgid "Secure Link Access"
 msgstr "Sécurité du lien"
 
-#: res/i18n/html_strings.py:192
+#: res/i18n/html_strings.py:194
 msgid "Optional Password"
 msgstr "Mot de passe optionnel"
 
-#: res/i18n/html_strings.py:194
+#: res/i18n/html_strings.py:196
 msgid "Expires After"
 msgstr "Expire après"
 
-#: res/i18n/html_strings.py:195 res/i18n/html_strings.py:200
+#: res/i18n/html_strings.py:197 res/i18n/html_strings.py:202
 msgid "Days"
 msgstr "Jours"
 
-#: res/i18n/html_strings.py:196 res/i18n/html_strings.py:201
+#: res/i18n/html_strings.py:198 res/i18n/html_strings.py:203
 msgid "Downloads"
 msgstr "Téléchargements"
 
-#: res/i18n/html_strings.py:197
+#: res/i18n/html_strings.py:199
 msgid "Security"
 msgstr "Sécurité"
 
-#: res/i18n/html_strings.py:199
+#: res/i18n/html_strings.py:201
 msgid "Expires after"
 msgstr "Expire après"
 
-#: res/i18n/html_strings.py:203
+#: res/i18n/html_strings.py:205
 msgid "Link Handle"
 msgstr "Lien"
 
-#: res/i18n/html_strings.py:204
+#: res/i18n/html_strings.py:206
 msgid ""
 "If you want a durable and pretty link (like https://.../my-share-link), you "
 "can use this field. Link handle will be generated if left empty."
@@ -968,110 +976,110 @@ msgstr ""
 "fixer la dernière partie du lien (e.g. https://.../mon-joli-lien). Laissez "
 "le vide pour qu'il soit généré automatiquement."
 
-#: res/i18n/html_strings.py:206
+#: res/i18n/html_strings.py:208
 msgid "This will be displayed to the shared users."
 msgstr "Affichée aux utilisateurs accédant au lien"
 
-#: res/i18n/html_strings.py:207
+#: res/i18n/html_strings.py:209
 msgid "Access Rights"
 msgstr "Droits d'accès"
 
-#: res/i18n/html_strings.py:208
+#: res/i18n/html_strings.py:210
 msgid "By default, the item will be previewed and downloadable"
 msgstr "Par défaut, l'élément sera prévisualisé et téléchargeable"
 
-#: res/i18n/html_strings.py:209
+#: res/i18n/html_strings.py:211
 msgid "Preview"
 msgstr "Aperçu"
 
-#: res/i18n/html_strings.py:210
+#: res/i18n/html_strings.py:212
 msgid "Download"
 msgstr "Téléchargement seulement"
 
-#: res/i18n/html_strings.py:211
+#: res/i18n/html_strings.py:213
 msgid "Upload"
 msgstr "Envoi seulement"
 
-#: res/i18n/html_strings.py:212 res/i18n/html_strings.py:213
+#: res/i18n/html_strings.py:214 res/i18n/html_strings.py:215
 msgid "Generate Link"
 msgstr "Générer URL"
 
-#: res/i18n/html_strings.py:215
+#: res/i18n/html_strings.py:217
 msgid "Shared Link"
 msgstr "Lien de partage"
 
-#: res/i18n/html_strings.py:216
+#: res/i18n/html_strings.py:218
 msgid ""
 "Shared link to the selected item already exists. Below is the link to the "
 "selected item"
 msgstr "Le lien partagé pour l'élément sélectionné existe déjà :"
 
-#: res/i18n/html_strings.py:217
+#: res/i18n/html_strings.py:219
 msgid "New shared link to the selected item has been generated"
 msgstr "Le lien de partage a été généré"
 
-#: res/i18n/html_strings.py:218
+#: res/i18n/html_strings.py:220
 msgid "Shared Link to the selected item has not been generated"
 msgstr "Le lien de partage n'a pas été généré"
 
-#: res/i18n/html_strings.py:219
+#: res/i18n/html_strings.py:221
 msgid "Copy to Clipboard"
 msgstr "Copier"
 
-#: res/i18n/html_strings.py:220
+#: res/i18n/html_strings.py:222
 msgid "UnShare Link"
 msgstr "Arrêter le partage"
 
-#: res/i18n/html_strings.py:221
+#: res/i18n/html_strings.py:223
 msgid "Text has been copied to clipboard."
 msgstr "Le texte a été copié dans votre presse-papiers"
 
-#: res/i18n/html_strings.py:222
+#: res/i18n/html_strings.py:224
 msgid "Successfully unshared."
 msgstr "Le lien a été supprimé."
 
-#: res/i18n/html_strings.py:223
+#: res/i18n/html_strings.py:225
 msgid "Please wait ..."
 msgstr "S'il vous plaît, attendez ..."
 
-#: res/i18n/html_strings.py:224
+#: res/i18n/html_strings.py:226
 msgid "Welcome to the Pydio Sync"
 msgstr "Bienvenue sur Pydio Sync"
 
-#: res/i18n/html_strings.py:225
+#: res/i18n/html_strings.py:227
 msgid "The easiest way to keep your data in control"
 msgstr "La manière la plus simple de garder le contrôle de vos données"
 
-#: res/i18n/html_strings.py:226
+#: res/i18n/html_strings.py:228
 msgid "Loading..."
 msgstr "[Chargement...]"
 
-#: res/i18n/html_strings.py:227 res/i18n/html_strings.py:230
+#: res/i18n/html_strings.py:229 res/i18n/html_strings.py:232
 msgid "Get Started"
 msgstr "Démarrer"
 
-#: sdklocal/local.py:118
+#: sdklocal/local.py:121
 msgid "Cannot remove local folder"
 msgstr ""
 "Impossible de supprimer le dossier local, il est peut-être utilisé par une "
 "autre application ?"
 
-#: sdkremote/exceptions.py:51
+#: sdkremote/exceptions.py:52
 msgid "Http-Basic authentication failed, wrong credentials?"
 msgstr "Erreur de l'authentification (http), mauvais identifiants ?"
 
-#: sdkremote/exceptions.py:55
+#: sdkremote/exceptions.py:56
 msgid "Token-based authentication failed, reload credentials?"
 msgstr "Erreur de l'authentification (token), mauvais identifiants ?"
 
-#: sdkremote/exceptions.py:59
+#: sdkremote/exceptions.py:60
 msgid ""
 "Token-based authentication seems unsupported, this may impact performances?"
 msgstr ""
 "L'authentification par jeton n'est pas supporté, cela peut impacter les "
 "performances."
 
-#: sdkremote/exceptions.py:70
+#: sdkremote/exceptions.py:71
 #, python-format
 msgid ""
 "[Quota limit reached] - You are using %(usage)s iMB of %(total)s iMB, you "
@@ -1080,12 +1088,12 @@ msgstr ""
 "[Limite du quota] Vous utilisez %(usage)s iMo sur %(total)s iMo, vous ne "
 "pouvez uploader %(filename)s (%(filesize)s iMo)"
 
-#: sdkremote/exceptions.py:75
+#: sdkremote/exceptions.py:76
 #, python-format
 msgid "[File permission] %s"
 msgstr "[Permission] %s"
 
-#: sdkremote/exceptions.py:80
+#: sdkremote/exceptions.py:81
 msgid "Stopping tasks"
 msgstr "Arrêt des taches"
 
@@ -1107,7 +1115,7 @@ msgstr "Méthode HTTP non supportée"
 msgid "Authentication Exception"
 msgstr "Erreur d'authentification"
 
-#: sdkremote/remote.py:384
+#: sdkremote/remote.py:386
 msgid ""
 "Invalid JSON value received while getting remote changes. Is the server "
 "correctly configured?"
@@ -1115,71 +1123,71 @@ msgstr ""
 "Le JSON reçu est invalide, tout en obtenant des changements à distance -"
 "> ..., lors du téléchargement des changements distants."
 
-#: sdkremote/remote.py:423
+#: sdkremote/remote.py:425
 msgid "Invalid JSON value received while getting remote changes"
 msgstr "Le JSON reçu est invalide, tout en obtenant des changements à distance"
 
-#: sdkremote/remote.py:451 sdkremote/remote.py:498 sdkremote/remote.py:878
-#: sdkremote/remote.py:967 sdkremote/remote.py:1230
+#: sdkremote/remote.py:453 sdkremote/remote.py:500 sdkremote/remote.py:886
+#: sdkremote/remote.py:975 sdkremote/remote.py:1237
 msgid "Task interrupted by user"
 msgstr "Tâche interrompue par l'utilisateur"
 
-#: sdkremote/remote.py:719 sdkremote/remote.py:793
+#: sdkremote/remote.py:725 sdkremote/remote.py:801
 msgid "Local file to upload not found!"
 msgstr "Fichier à envoyer introuvable !"
 
-#: sdkremote/remote.py:724
+#: sdkremote/remote.py:730
 msgid "File not correct after upload (expected size was 0 bytes)"
 msgstr "Fichier incorrect après l'upload (la taille attendue était 0)"
 
-#: sdkremote/remote.py:777
+#: sdkremote/remote.py:785
 msgid "File beginning with a 'space' shouldn't be uploaded"
 msgstr ""
 
-#: sdkremote/remote.py:778
+#: sdkremote/remote.py:786
 msgid "File is incorrect after upload"
 msgstr "Fichier incorrect après l'upload"
 
-#: sdkremote/remote.py:838
+#: sdkremote/remote.py:846
 msgid "Original file was not found on server"
 msgstr "Le fichier original est introuvable sur le serveur"
 
-#: sdkremote/remote.py:895 sdkremote/remote.py:985
+#: sdkremote/remote.py:903 sdkremote/remote.py:993
 msgid "File not found after download"
 msgstr "Fichier introuvable après son téléchargement."
 
-#: sdkremote/remote.py:900
+#: sdkremote/remote.py:908
 msgid "File is not correct after download"
 msgstr "Le fichier est incorrect après son téléchargement."
 
-#: sdkremote/remote.py:920 sdkremote/remote.py:1003
+#: sdkremote/remote.py:928 sdkremote/remote.py:1011
 #, python-format
 msgid "Error while downloading file: %s"
 msgstr "Erreur lors du téléchargement du fichier: %s"
 
-#: ui/web_api.py:326
+#: ui/web_api.py:352
 msgid "Couldn't load your workspaces, check your server !"
 msgstr "Impossible de charger les dépôts, veuillez vérifier sur le serveur !"
 
-#: ui/web_api.py:328
+#: ui/web_api.py:354
 msgid "Server not found (404), is it up and has it Pydio installed ?"
 msgstr ""
 "Impossible de trouver le serveur, est-ce qu'il est bien en route, avec Pydio "
 "installé ?"
 
-#: ui/web_api.py:330
+#: ui/web_api.py:356
 msgid "Authentication failed: please verify your login and password"
 msgstr "L'authentification a échoué: veuillez vérifier vos identifiants."
 
-#: ui/web_api.py:332
+#: ui/web_api.py:358
 msgid "Access to the server is forbidden"
 msgstr "Accès interdit à ce serveur."
 
-#: ui/web_api.py:334
+#: ui/web_api.py:360
 msgid "Server seems to be encountering problems (500)"
 msgstr "Le serveur rencontre une erreur interne (500)"
 
-#: ui/web_api.py:339
+#: ui/web_api.py:365
 msgid ""
 "An SSL error happened! Is your server using a self-signed certificate? In "
 "that case please check 'Trust SSL certificate'"
@@ -1187,11 +1195,11 @@ msgstr ""
 "Une erreur SSL s'est produite: si votre serveur utilise un certificat auto-"
 "signé, veuillez cocher la case 'Se fier au certificat'"
 
-#: ui/web_api.py:364
+#: ui/web_api.py:390
 msgid "Connection timeout!"
 msgstr "Connexion trop longue !"
 
-#: ui/web_api.py:752
+#: ui/web_api.py:783
 msgid "The folder is already shared as a workspace!"
 msgstr "Le dossier est déjà partagé comme un workspace !"
 
