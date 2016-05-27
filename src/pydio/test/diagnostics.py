@@ -25,18 +25,17 @@ import sys
 #import zmq
 try:
     from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils.global_config import ConfigManager
+    from pydio.sdkremote.remote import PydioSdk
 except:
     from utils.pydio_profiler import pydio_profile
+    from utils.global_config import ConfigManager
+    from sdkremote.remote import PydioSdk
+
 
 class PydioDiagnostics():
 
     def __init__(self, url, basepath, ws_id, user_id, password=None):
-        try:  # these import need to be delayed because of language settings
-            from pydio.utils.global_config import ConfigManager
-            from pydio.sdkremote.remote import PydioSdk
-        except ImportError:
-            from utils.global_config import ConfigManager
-            from sdkremote.remote import PydioSdk
         self.url = url
         self.basepath = basepath
         self.ws_id = ws_id
