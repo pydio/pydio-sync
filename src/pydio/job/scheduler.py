@@ -17,7 +17,7 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
-import logging, sys
+import logging, sys, os
 
 from pydispatch import dispatcher
 try:
@@ -130,6 +130,19 @@ class PydioScheduler():
             self.enable_job(job_id)
         elif command == 'disable':
             self.disable_job(job_id)
+        elif command == "resync":
+            self.disable_job(job_id)
+            logging.info("R E S Y N C " + job_id)
+            # delete databases
+            job_folder = os.path.join(str(self.jobs_root_path), job_id)
+            for file in os.listdir(job_folder):
+                if file in ["pydio.sqlite", "changes.sqlite", "sequences"]:
+                    try:
+                        os.unlink(os.path.join(job_folder, file))
+                    except Exception as e:
+                        logging.exception(e)
+            self.enable_job(job_id)
+            self.start_job(job_id)
 
     def handle_generic_signal(self, sender, command):
         if command == 'reload-configs':

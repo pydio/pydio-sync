@@ -1,11 +1,15 @@
-<h2 class="editHeader">{{_('SYNC %1 parameters', job.label?job.label:job.id)}}
+<div style="margin-bottom:10px;">
+    <h2 class="editHeader">
     <div class="pull-right">
         <div class="btn-group">
             <button type="button" ng-click="toggleJobActive()" class="btn" ng-class="{'btn-success':job.active,'btn-default':!job.active}">On</button>
             <button type="button" ng-click="toggleJobActive()" class="btn" ng-class="{'btn-danger':!job.active,'btn-default':job.active}">Off</button>
         </div>
     </div>
-</h2>
+    {{_('SYNC %1 parameters', job.label?job.label:job.id)}}
+    </h2>
+</div>
+
 <div style="margin-top: 120px;">
     <div class="small pull-left" style="text-align: center; width: 40%; overflow: visible;">
         <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
@@ -14,14 +18,39 @@
         <span ng-if="job.remote_folder">{{_('Folder')}}: {{job.remote_folder}}</span>
     </div>
 
-    <span style="display: block; float:left; width: 20%;margin: 50px auto; border-top: 1px dashed #000000;"></span>
+    <div ng-show="job.resynctimeout >= 0" style="">
+        <div class="modal" style="display: block;background-color:rgba(0,0,0,0.23);">
+            <div class="modal-dialog" style="top: 30%;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="modal-title">{{_('Resync task')}}</div>
+                    </div>
+                    <div class="modal-body">
+                        <span class="glyphicon glyphicon-warning-sign" style="font-size:2em;"></span>
+                        <div style="margin-top: -2em; margin-left:3em;">
+                            <span style="font-size:1em">{{_('This operation will make sure that your server and local folder are correctly synchronized. Beware, this can take a while, and may be resource intensive.')}}</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="text-align:center;">
+                        <button class="btn btn-default btn-sm" ng-click="cancelResync()" style="text-align: center; width:44%; display:inline;">{{_('Cancel')}}</button>
+                        <span style="width:5%; display:inline-block;"></span>
+                        <button class="btn btn-default btn-sm" ng-click="proceedResync()" style="text-align: center; width:44%; display:inline;">{{_('Proceed')}} ({{ job.resynctimeout }} s)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <span style="float:left; width: 3.6%; margin-top: 50px; border-top: 1px dashed #000000;"></span>
+    <span href="#" ng-click="showResync=!showResync; triggerResync()" class="glyphicon glyphicon-refresh btn btn-default" style="float: left; margin: 2.6em 6px 0 6px; display: inline;" data-toggle="tooltip" data-placement="bottom" title="{{_('Trigger a full re-indexation')}}" data-original-title="Beware, resyncing is resource intensive for the server and the client."></span>
+    <span style="float:left; width: 3.6%; margin-top: 50px; border-top: 1px dashed #000000;"></span>
 
     <div class="small pull-right" style="text-align: center; width: 40%; overflow: visible; word-break: break-all;">
         <img src="images/desktop.png" style="width: 100px;"><br>
         {{job.directory_label?job.directory_label:job.directory}} <a ng-show="QtObject" ng-click="openFile(job.directory+'/')"><span class="glyphicon glyphicon-new-window"></span></a><br>
     </div>
+    </div>
     <br style="clear: both;">
-
     <h3 style="margin-top: 30px;">{{_('Label')}}</h3>
     <div class="">
         <input type="text" ng-model="job.label" class="form-control">
@@ -138,4 +167,5 @@
     <a href="#" title="Cancel"><span class="glyphicon glyphicon-arrow-left" style="color: white;font-size: 27px;position: absolute;left: 10px;top: 13px;"></span></a>
     <button type="button"  class="btn btn-danger" ng-click="deleteJob()" style="width: 40%;margin:0 1%;" href>{{_('Delete Sync')}}</button>
     <button type="button" ng-click="save('full')" class="btn btn-info" style="width: 40%;margin:0 1%;">{{_('Save Parameters')}}</button>
+</div>
 </div>

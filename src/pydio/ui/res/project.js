@@ -680,7 +680,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         $scope.toggleJobActive = function(){
             $scope.job.active = !$scope.job.active;
             Commands.query({cmd:($scope.job.active?'enable':'disable'), job_id:$scope.job.id}, function(){
-
                 $location.path('/')
             });
         };
@@ -811,6 +810,30 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 $location.path('/');
             }
         };
+        $scope.triggerResync = function () {
+            $scope.job.resynctimeout = 10;
+            $scope.resynctimer = setInterval(function () {
+                if ($scope.job.resynctimeout > 0) {
+                    $scope.job.resynctimeout -= 1;
+                } else {
+                    // post to resync
+                    clearInterval($scope.resynctimer);
+                    $scope.job.resynctimeout = "undefined";
+                    Commands.query({cmd:"resync", job_id:$scope.job.id}, function(){
+                        //console.log("THIS WILL RESYNC")
+                        $location.path('/')
+                    });
+                }
+                $scope.$apply();
+                }, 1000);
+        }
+        $scope.proceedResync = function (){
+            $scope.job.resynctimeout = 0;
+        }
+        $scope.cancelResync = function (){
+            clearInterval($scope.resynctimer);
+            $scope.job.resynctimeout = "undefined";
+        }
     })
 
      .controller('ShareCtrl', function($scope, $window, $route, $location, $routeParams, Share, shareFile) {

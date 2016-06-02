@@ -771,6 +771,9 @@ class SqlEventHandler(FileSystemEventHandler):
                 break
             except sqlite3.OperationalError:
                 time.sleep(.1)
+            except sqlite3.ProgrammingError:
+                logging.info("Note to dev: Experimental check the callee.")
+                conn = sqlite3.connect(self.db, timeout=self.timeout)
             except Exception as ex:
                 logging.exception(ex)
         self.unlock_db()

@@ -480,7 +480,6 @@ class JobManager(Resource):
             json_req['byte_size'] = up[0] + down
             json_req['eta'] = up[0] * 8 / dl_rate + down * 8 / up_rate
             return json_req
-
         JobsLoader.Instance().update_job(new_job)
         scheduler = PydioScheduler.Instance()
         scheduler.reload_configs()
@@ -492,7 +491,7 @@ class JobManager(Resource):
 
     @authDB.requires_auth
     @pydio_profile
-    def get(self, job_id = None):
+    def get(self, job_id=None):
         if request.path == '/':
             return redirect("/res/index.html", code=302)
         jobs = JobsLoader.Instance().get_jobs()
