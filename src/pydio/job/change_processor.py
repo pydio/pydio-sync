@@ -192,15 +192,18 @@ class ChangeProcessor:
 
     @pydio_profile
     def process_local_move(self, source, target):
-        if os.path.exists(self.job_config.directory + source):
-            if not os.path.exists(self.job_config.directory + os.path.dirname(target)):
-                os.makedirs(self.job_config.directory + os.path.dirname(target))
-            shutil.move(self.job_config.directory + source, self.job_config.directory + target)
-            message = source + ' to ' + target + ' <============ MOVE'
-            self.log(type='local', action='move', status='success', target=target,
-                     source=source, console_message=message,
-                     message=(_('Moved %(source)s to %(target)s') % ({'source': source, 'target': target})))
-            return True
+        try:
+            if os.path.exists(self.job_config.directory + source):
+                if not os.path.exists(self.job_config.directory + os.path.dirname(target)):
+                    os.makedirs(self.job_config.directory + os.path.dirname(target))
+                shutil.move(self.job_config.directory + source, self.job_config.directory + target)
+                message = source + ' to ' + target + ' <============ MOVE'
+                self.log(type='local', action='move', status='success', target=target,
+                         source=source, console_message=message,
+                         message=(_('Moved %(source)s to %(target)s') % ({'source': source, 'target': target})))
+                return True
+        except Exception as e:
+            logging.exception(e)
         return False
 
     @pydio_profile
