@@ -169,6 +169,8 @@ class ContinuousDiffMerger(threading.Thread):
 
         if self.job_config.frequency == 'manual':
             self.job_status_running = False
+        self.logger = EventLogger(self.configs_path)
+    # end init
 
     def update_sequences_file(self, local_seq, remote_seq):
         with open(os.path.join(self.configs_path, "sequences"), "wb") as f:
@@ -369,33 +371,8 @@ class ContinuousDiffMerger(threading.Thread):
         """
         Start the thread
         """
-        logger = EventLogger(self.configs_path)
         very_first = False
-        if self.watcher:
-            if self.watcher_first_run:
-                def status_callback(status):
-                    logger.log_state(status, 'sync')
-                self.init_global_progress()
-
-                try:
-                    self.global_progress['status_indexing'] = 1
-                    logger.log_state(_('Checking changes since last launch...'), "sync")
-                    very_first = True
-                    self.db_handler.update_bulk_node_status_as_idle()
-                    self.watcher.check_from_snapshot(state_callback=status_callback)
-                except DBCorruptedException as e:
-                    self.stop()
-                    JobsLoader.Instance().clear_job_data(self.job_config.id)
-                    logging.error(e)
-                    return
-                except Exception as e:
-                    logging.exception(e)
-                    self.interrupt = True
-                    logger.log_state(_('Oops, error while indexing the local folder. Pausing the task.'), 'error')
-                    logging.error(e)
-
-                self.watcher_first_run = False
-            self.watcher.start()
+        self.start_watcher()
 
         while not self.interrupt:
             try:
@@ -412,7 +389,7 @@ class ContinuousDiffMerger(threading.Thread):
 
                 if not self.job_status_running:
                     logging.debug("self.online_timer: %s" % self.online_timer)
-                    logger.log_state(_('Status: Paused'), "sync")
+                    self.logger.log_state(_('Status: Paused'), "sync")
                     self.sleep_offline()
                     continue
 
@@ -421,7 +398,7 @@ class ContinuousDiffMerger(threading.Thread):
                     end_time = datetime.time(int(self.job_config.start_time['h']), int(self.job_config.start_time['m']), 59)
                     now = datetime.datetime.now().time()
                     if not start_time < now < end_time:
-                        logger.log_state(_('Status: scheduled for %s') % str(start_time), "sync")
+                        self.logger.log_state(_('Status: scheduled for %s') % str(start_time), "sync")
                         self.sleep_offline()
                         continue
                     else:
@@ -430,7 +407,7 @@ class ContinuousDiffMerger(threading.Thread):
                 if not self.system.check_basepath():
                     log = _('Cannot find local folder! Did you disconnect a volume? Waiting %s seconds before retry') % self.offline_timer
                     logging.error(log)
-                    logger.log_state(_('Cannot find local folder, did you disconnect a volume?'), "error")
+                    self.logger.log_state(_('Cannot find local folder, did you disconnect a volume?'), "error")
                     self.sleep_offline()
                     continue
 
@@ -438,7 +415,7 @@ class ContinuousDiffMerger(threading.Thread):
                 if not self.sdk.check_basepath():
                     log = _('Cannot find remote folder, maybe it was renamed? Sync cannot start, please check the configuration.')
                     logging.error(log)
-                    logger.log_state(log, 'error')
+                    self.logger.log_state(log, 'error')
                     self.sleep_offline()
                     continue
 
@@ -449,7 +426,8 @@ class ContinuousDiffMerger(threading.Thread):
                                                         raise InterruptException()
                         self.watcher.check_from_snapshot(snap_path)
                     self.marked_for_snapshot_pathes = []
-                writewait = .5
+
+                writewait = .5  # To avoid reading events before they're written (db lock) wait for writing to finish
                 while self.event_handler.locked:
                     logging.info("Waiting for changes to be written before retrieving remote changes.")
                     if writewait < 5:
@@ -464,7 +442,7 @@ class ContinuousDiffMerger(threading.Thread):
                             'Loading remote changes with sequence {0:s} for job id {1:s}'.format(str(self.remote_seq),
                                                                                                    str(self.job_config.id)))
                         if self.remote_seq == 0:
-                            logger.log_state(_('Gathering data from remote workspace, this can take a while...'), 'sync')
+                            self.logger.log_state(_('Gathering data from remote workspace, this can take a while...'), 'sync')
                             very_first = True
                         self.remote_target_seq = self.load_remote_changes_in_store(self.remote_seq, self.current_store)
                         self.current_store.sync()
@@ -479,13 +457,13 @@ class ContinuousDiffMerger(threading.Thread):
                         error = _('Connection to server failed, server is probably down. Waiting %s seconds to retry') % self.offline_timer
                     self.marked_for_snapshot_pathes = []
                     logging.error(error)
-                    logger.log_state(error, "wait")
+                    self.logger.log_state(error, "wait")
                     self.sleep_offline()
                     continue
                 except Exception as e:
                     error = 'Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer)
                     logging.exception(e)
-                    logger.log_state(_('Error while connecting to remote server (%s)') % e.message, "error")
+                    self.logger.log_state(_('Error while connecting to remote server (%s)') % e.message, "error")
                     self.marked_for_snapshot_pathes = []
                     self.sleep_offline()
                     continue
@@ -508,17 +486,24 @@ class ContinuousDiffMerger(threading.Thread):
                 changes_length = len(self.current_store)
                 if not changes_length:
                     self.processing = False
-                    logging.info('No changes detected in ' + self.job_config.id + " (watcher status " + str(self.watcher.isAlive()) + ")")
+                    logging.info('No changes detected in ' + self.job_config.id)
                     self.update_min_seqs_from_store()
-                    self.exit_loop_clean(logger)
+                    self.exit_loop_clean(self.logger)
                     very_first = False
                     #logging.info("CheckSync of " + self.job_config.id)
                     #self.db_handler.list_non_idle_nodes()
+                    if not self.watcher.isAlive():
+                        logging.info("File watcher died, restarting...")
+                        self.watcher.stop()
+                        self.watcher = LocalWatcher(self.job_config.directory,
+                                                    self.configs_path,
+                                                    event_handler=self.event_handler)
+                        self.start_watcher()
                     continue
 
                 self.global_progress['status_indexing'] = 1
                 logging.info('Reducing changes for ' + self.job_config.id)
-                logger.log_state(_('Merging changes between remote and local, please wait...'), 'sync')
+                self.logger.log_state(_('Merging changes between remote and local, please wait...'), 'sync')
 
                 # We are updating the status to IDLE here for the nodes which has status as NEW
                 # The reason is when we create a new sync on the existing folder, some of the files might
@@ -544,10 +529,10 @@ class ContinuousDiffMerger(threading.Thread):
                 self.update_min_seqs_from_store()
                 if not self.storage_watcher or very_first:
                     logging.debug('[CMERGER] Detect unnecessary changes ' + self.ws_id)
-                    logger.log_state(_('Detecting unecessary changes...'), 'sync')
+                    self.logger.log_state(_('Detecting unecessary changes...'), 'sync')
                     self.current_store.detect_unnecessary_changes(local_sdk=self.system, remote_sdk=self.sdk)
                     logging.debug('[CMERGER] Done detecting unnecessary changes')
-                    logger.log_state(_('Done detecting unecessary changes...'), 'sync')
+                    self.logger.log_state(_('Done detecting unecessary changes...'), 'sync')
                 self.update_min_seqs_from_store()
                 logging.debug('Clearing op and pruning folders moves ' + self.job_config.id)
                 self.current_store.clear_operations_buffer()
@@ -564,7 +549,7 @@ class ContinuousDiffMerger(threading.Thread):
                         store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler, self.job_config)
                 if store_conflicts:
                     logging.info('Conflicts detected, cannot continue!')
-                    logger.log_state(_('Conflicts detected, cannot continue!'), 'error')
+                    self.logger.log_state(_('Conflicts detected, cannot continue!'), 'error')
                     self.current_store.close()
                     self.sleep_offline()
                     continue
@@ -576,7 +561,7 @@ class ContinuousDiffMerger(threading.Thread):
                 changes_length = len(self.current_store)
                 if not changes_length:
                     logging.info('No changes detected for ' + self.job_config.id)
-                    self.exit_loop_clean(logger)
+                    self.exit_loop_clean(self.logger)
                     very_first = False
                     continue
 
@@ -586,7 +571,7 @@ class ContinuousDiffMerger(threading.Thread):
                 import change_processor
                 self.global_progress['queue_length'] = changes_length
                 logging.info('Processing %i changes' % changes_length)
-                logger.log_state(_('Processing %i changes') % changes_length, "start")
+                self.logger.log_state(_('Processing %i changes') % changes_length, "start")
                 counter = [1]
                 def processor_callback(change):
                     try:
@@ -656,7 +641,7 @@ class ContinuousDiffMerger(threading.Thread):
                             counter[0] += 1
                             self.update_current_tasks()
                             self.update_global_progress()
-                            time.sleep(0.05) # Allow for changes to be noticeable in UI
+                            time.sleep(0.05)  # Allow for changes to be noticeable in UI
                         time.sleep(.5)
                         self.current_store.process_pending_changes()
                         self.update_min_seqs_from_store(success=True)
@@ -667,50 +652,77 @@ class ContinuousDiffMerger(threading.Thread):
 
                 except InterruptException as iexc:
                     pass
-                logger.log_state(_('%i files modified') % self.global_progress['queue_done'], 'success')
+                self.logger.log_state(_('%i files modified') % self.global_progress['queue_done'], 'success')
                 if self.global_progress['queue_done']:
-                    logger.log_notif(_('%i files modified') % self.global_progress['queue_done'], 'success')
+                    self.logger.log_notif(_('%i files modified') % self.global_progress['queue_done'], 'success')
 
-                self.exit_loop_clean(logger)
+                self.exit_loop_clean(self.logger)
 
             except PydioSdkDefaultException as re:
                 logging.error(re.message)
-                logger.log_state(re.message, 'error')
+                self.logger.log_state(re.message, 'error')
             except SSLError as rt:
                 logging.error(rt.message)
-                logger.log_state(_('An SSL error happened, please check the logs'), 'error')
+                self.logger.log_state(_('An SSL error happened, please check the logs'), 'error')
             except ProxyError as rt:
                 logging.error(rt.message)
-                logger.log_state(_('A proxy error happened, please check the logs'), 'error')
+                self.logger.log_state(_('A proxy error happened, please check the logs'), 'error')
             except TooManyRedirects as rt:
                 logging.error(rt.message)
-                logger.log_state(_('Connection error: too many redirects'), 'error')
+                self.logger.log_state(_('Connection error: too many redirects'), 'error')
             except ChunkedEncodingError as rt:
                 logging.error(rt.message)
-                logger.log_state(_('Chunked encoding error, please check the logs'), 'error')
+                self.logger.log_state(_('Chunked encoding error, please check the logs'), 'error')
             except ContentDecodingError as rt:
                 logging.error(rt.message)
-                logger.log_state(_('Content Decoding error, please check the logs'), 'error')
+                self.logger.log_state(_('Content Decoding error, please check the logs'), 'error')
             except InvalidSchema as rt:
                 logging.error(rt.message)
-                logger.log_state(_('Http connection error: invalid schema.'), 'error')
+                self.logger.log_state(_('Http connection error: invalid schema.'), 'error')
             except InvalidURL as rt:
                 logging.error(rt.message)
-                logger.log_state(_('Http connection error: invalid URL.'), 'error')
+                self.logger.log_state(_('Http connection error: invalid URL.'), 'error')
             except Timeout as to:
                 logging.error(to)
-                logger.log_state(_('Connection timeout, will retry later.'), 'error')
+                self.logger.log_state(_('Connection timeout, will retry later.'), 'error')
             except RequestException as ree:
                 logging.error(ree.message)
-                logger.log_state(_('Cannot resolve domain!'), 'error')
+                self.logger.log_state(_('Cannot resolve domain!'), 'error')
             except Exception as e:
                 if not (e.message.lower().count('[quota limit reached]') or e.message.lower().count('[file permissions]')):
                     logging.exception('Unexpected Error: %s' % e.message)
-                    logger.log_state(_('Unexpected Error: %s') % e.message, 'error')
+                    self.logger.log_state(_('Unexpected Error: %s') % e.message, 'error')
                 else:
                     logging.exception(e)
             logging.debug('Finished this cycle, waiting for %i seconds' % self.online_timer)
             very_first = False
+
+    def start_watcher(self):
+        if self.watcher:
+            if self.watcher_first_run:
+                def status_callback(status):
+                    self.logger.log_state(status, 'sync')
+                self.init_global_progress()
+
+                try:
+                    self.global_progress['status_indexing'] = 1
+                    self.logger.log_state(_('Checking changes since last launch...'), "sync")
+                    very_first = True
+                    self.db_handler.update_bulk_node_status_as_idle()
+                    self.watcher.check_from_snapshot(state_callback=status_callback)
+                except DBCorruptedException as e:
+                    self.stop()
+                    JobsLoader.Instance().clear_job_data(self.job_config.id)
+                    logging.error(e)
+                    return
+                except Exception as e:
+                    logging.exception(e)
+                    self.interrupt = True
+                    self.logger.log_state(_('Oops, error while indexing the local folder. Pausing the task.'), 'error')
+                    logging.error(e)
+
+                self.watcher_first_run = False
+            self.watcher.start()
 
     @pydio_profile
     def update_min_seqs_from_store(self, success=False):
