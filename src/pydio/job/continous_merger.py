@@ -492,7 +492,7 @@ class ContinuousDiffMerger(threading.Thread):
                     very_first = False
                     #logging.info("CheckSync of " + self.job_config.id)
                     #self.db_handler.list_non_idle_nodes()
-                    if not self.watcher.isAlive():
+                    if not self.watcher.isAlive() and not self.interrupt:
                         logging.info("File watcher died, restarting...")
                         self.watcher.stop()
                         self.watcher = LocalWatcher(self.job_config.directory,
