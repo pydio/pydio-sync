@@ -6,10 +6,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: 1\n"
+"Project-Id-Version: Pydio-Sync\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-05-26 15:18+0200\n"
-"PO-Revision-Date: 2016-06-24 12:36+0100\n"
+"PO-Revision-Date: 2016-06-24 17:10+0100\n"
 "Last-Translator: DepaMarco <depardimarco@hotmail.it>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -18,6 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.5.4\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 #: job/change_processor.py:160
 #, python-format
@@ -37,7 +38,7 @@ msgstr "File %s eliminato"
 #: job/change_processor.py:191
 #, python-format
 msgid "Folder %s deleted"
-msgstr "Cartella %s eliminato"
+msgstr "Cartella %s eliminata"
 
 #: job/change_processor.py:202 job/change_processor.py:212
 #, python-format
@@ -86,7 +87,7 @@ msgstr "Verifica cambiamenti dall'ultimo avvio..."
 
 #: job/continous_merger.py:394
 msgid "Oops, error while indexing the local folder. Pausing the task."
-msgstr ""
+msgstr "Oops, errore durante l'indicizzazione del file. Processo sospeso."
 
 #: job/continous_merger.py:415
 msgid "Status: Paused"
@@ -104,23 +105,26 @@ msgid ""
 "Cannot find local folder! Did you disconnect a volume? Waiting %s seconds "
 "before retry"
 msgstr ""
-"Impossibile trovare la cartella locale! E' stato rimosso un volume? "
+"Impossibile trovare la cartella locale! È' stato rimosso un volume? "
 "Attendere %s secondi prima di riprovare"
 
 # Are you sure that the right word is "volume"? I suggest "unit"
 #: job/continous_merger.py:433
 msgid "Cannot find local folder, did you disconnect a volume?"
-msgstr "Impossibile trovare la cartella locale. E' stato rimosso un volume?"
+msgstr "Impossibile trovare la cartella locale. È stato rimosso un volume?"
 
 #: job/continous_merger.py:439
 msgid ""
 "Cannot find remote folder, maybe it was renamed? Sync cannot start, please "
 "check the configuration."
 msgstr ""
+"Impossibile trovare la cartella remota. È stata rinominata? Sync non può "
+"avviarsi. Verificare la configurazione."
 
 #: job/continous_merger.py:467
 msgid "Gathering data from remote workspace, this can take a while..."
 msgstr ""
+"Ottenimento informazioni dal workspace remoto. Può richiedere un po'..."
 
 #: job/continous_merger.py:477
 #, python-format
@@ -174,11 +178,11 @@ msgstr "Errore SSL, controllare i log"
 
 #: job/continous_merger.py:684 ui/web_api.py:368
 msgid "A proxy error happened, please check the logs"
-msgstr ""
+msgstr "Riscontrato errore Proxy! Controllare i log..."
 
 #: job/continous_merger.py:687 ui/web_api.py:371
 msgid "Connection error: too many redirects"
-msgstr ""
+msgstr "Errore di connessione: troppe redirezioni"
 
 #: job/continous_merger.py:690 ui/web_api.py:374
 msgid "Chunked encoding error, please check the logs"
@@ -186,32 +190,32 @@ msgstr ""
 
 #: job/continous_merger.py:693 ui/web_api.py:377
 msgid "Content Decoding error, please check the logs"
-msgstr ""
+msgstr "Errore nella decodifica contenuto: Controllare i log"
 
 #: job/continous_merger.py:696 ui/web_api.py:380
 msgid "Http connection error: invalid schema."
-msgstr ""
+msgstr "Errore connessione HTTP: schema non valido."
 
 #: job/continous_merger.py:699 ui/web_api.py:383
 msgid "Http connection error: invalid URL."
-msgstr ""
+msgstr "Errore connessione HTTP: URL non valido."
 
 #: job/continous_merger.py:702
 msgid "Connection timeout, will retry later."
-msgstr ""
+msgstr "Connessione scaduta. Nuovo tentativo più tardi"
 
 #: job/continous_merger.py:705 ui/web_api.py:393
 msgid "Cannot resolve domain!"
-msgstr ""
+msgstr "Impossibile risolvere il nome del dominio!"
 
 #: job/continous_merger.py:709
 #, python-format
 msgid "Unexpected Error: %s"
-msgstr ""
+msgstr "Errore inaspettato: %s"
 
 #: job/local_watcher.py:123
 msgid "Walking through your local folder, please wait..."
-msgstr ""
+msgstr "Scansione cartella locale. Attendere..."
 
 #: job/local_watcher.py:134
 #, python-format
@@ -227,36 +231,41 @@ msgid ""
 "The server URL is the adress that you can see in your browser when accessing "
 "Pydio via the web."
 msgstr ""
+"L'URL del server è l'indirizzo visualizzato nel browser quando si accede a "
+"Pydio via web."
 
 #: res/i18n/html_strings.py:4
 msgid "It starts with http or https depending on your server configuration."
-msgstr ""
+msgstr "Inizia con HTTP o HTTPS, in base alla configurazione del server."
 
 #: res/i18n/html_strings.py:5
 msgid ""
 "If you are logged in Pydio and you see the last part of the URL starting "
 "with \"ws-\", remove this part and only keep the beginning (see image below)."
 msgstr ""
+"Se sei autenticato in Pydio e vedi l'ultima parte dell'URL che inizia con "
+"\"ws-\", rimuovi questa parte e tieni solo l'inizio (guarda l'immagine "
+"sotto)."
 
 #: res/i18n/html_strings.py:6
 msgid "Got it!"
-msgstr ""
+msgstr "Ricevuto!"
 
 #: res/i18n/html_strings.py:7
 msgid "Connecting ..."
-msgstr ""
+msgstr "Connessione..."
 
 #: res/i18n/html_strings.py:8
 msgid "Configure Connection"
-msgstr ""
+msgstr "Configura Connessione"
 
 #: res/i18n/html_strings.py:9
 msgid "Error while trying to connect to %1 :"
-msgstr ""
+msgstr "Errore durante la connessione a %1:"
 
 #: res/i18n/html_strings.py:10
 msgid "%1"
-msgstr ""
+msgstr "%1"
 
 #: res/i18n/html_strings.py:11
 msgid ""
@@ -1130,8 +1139,8 @@ msgid ""
 "An SSL error happened! Is your server using a self-signed certificate? In "
 "that case please check 'Trust SSL certificate'"
 msgstr ""
-"E' accaduto un errore SSL! Forse il server usa un certificato self-signed. "
-"In questo caso, selezionare 'Fidarsi del certificato SSL'"
+"Riscontrato errore SSL! Forse il server usa un certificato self-signed. In "
+"questo caso, selezionare 'Fidarsi del certificato SSL'"
 
 #: ui/web_api.py:390
 msgid "Connection timeout!"
