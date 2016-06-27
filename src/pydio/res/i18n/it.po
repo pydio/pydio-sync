@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Pydio-Sync\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-05-26 15:18+0200\n"
-"PO-Revision-Date: 2016-06-24 17:10+0100\n"
+"PO-Revision-Date: 2016-06-27 12:16+0100\n"
 "Last-Translator: DepaMarco <depardimarco@hotmail.it>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -272,6 +272,8 @@ msgid ""
 "Connect to the server with the same URL as the one you would use to access "
 "through a web browser, e.g. http://mydomain.com/pydio"
 msgstr ""
+"Connettiti al server con lo stesso URL che useresti con un web browser, per "
+"esempio: http://mydomain.com/pydio"
 
 #: res/i18n/html_strings.py:12 res/i18n/html_strings.py:13
 #: res/i18n/html_strings.py:14 res/i18n/html_strings.py:230
@@ -280,15 +282,15 @@ msgstr "Richiesto"
 
 #: res/i18n/html_strings.py:15
 msgid "Tips"
-msgstr ""
+msgstr "Consigli"
 
 #: res/i18n/html_strings.py:16
 msgid "where can I find the server URL?"
-msgstr ""
+msgstr "Dove posso trovare l'URL del server?"
 
 #: res/i18n/html_strings.py:17
 msgid "Connect"
-msgstr ""
+msgstr "Connetti"
 
 #: res/i18n/html_strings.py:18
 msgid "Trust SSL certificate"
@@ -313,7 +315,7 @@ msgstr "modifica"
 
 #: res/i18n/html_strings.py:24 res/i18n/html_strings.py:99
 msgid "Remote workspace"
-msgstr ""
+msgstr "Workspace remoto"
 
 #: res/i18n/html_strings.py:25 res/i18n/html_strings.py:103
 msgid "This workspace is read only!"
@@ -321,238 +323,247 @@ msgstr "Questo workspace è in sola lettura!"
 
 #: res/i18n/html_strings.py:26 res/i18n/html_strings.py:104
 msgid "Synchronise only a subfolder of this workspace"
-msgstr ""
+msgstr "Sincronizza solo una sotto cartella di questo workspace"
 
 #: res/i18n/html_strings.py:27 res/i18n/html_strings.py:29
 msgid "loading"
-msgstr ""
+msgstr "caricamento"
 
 #: res/i18n/html_strings.py:28 res/i18n/html_strings.py:43
 #: res/i18n/html_strings.py:105
 msgid "Whole workspace"
-msgstr ""
+msgstr "Intero workspace"
 
 #: res/i18n/html_strings.py:30 res/i18n/html_strings.py:41
 #: res/i18n/html_strings.py:91 res/i18n/html_strings.py:100
 msgid "Workspace"
-msgstr ""
+msgstr "Workspace"
 
 #: res/i18n/html_strings.py:31 res/i18n/html_strings.py:42
 #: res/i18n/html_strings.py:92 res/i18n/html_strings.py:101
 msgid "Folder"
-msgstr ""
+msgstr "Cartella"
 
 #: res/i18n/html_strings.py:32 res/i18n/html_strings.py:38
 #: res/i18n/html_strings.py:102
 msgid "Change"
-msgstr ""
+msgstr "Cambia"
 
 #: res/i18n/html_strings.py:33 res/i18n/html_strings.py:50
 #: res/i18n/html_strings.py:52
 msgid "Next"
-msgstr ""
+msgstr "Avanti"
 
 #: res/i18n/html_strings.py:34 res/i18n/html_strings.py:48
 msgid "Advanced Parameters"
-msgstr ""
+msgstr "Parametri Avanzati"
 
 #: res/i18n/html_strings.py:35
 msgid "Save changes"
-msgstr ""
+msgstr "Salva cambiamenti"
 
 #: res/i18n/html_strings.py:36
 msgid "2/3 Select a destination"
-msgstr ""
+msgstr "2/3 Seleziona una destinazione"
 
 #: res/i18n/html_strings.py:37
 msgid "By default a local folder will be created on your computer"
-msgstr ""
+msgstr "Di default verrà creata una cartella locale sul tuo computer"
 
 #: res/i18n/html_strings.py:39
 msgid "3/3 Optional Parameters"
-msgstr ""
+msgstr "3/3 Parametri Opzionali"
 
 #: res/i18n/html_strings.py:40 res/i18n/html_strings.py:90
 msgid "Server"
-msgstr ""
+msgstr "Server"
 
 #: res/i18n/html_strings.py:45
 msgid "Local folder"
-msgstr ""
+msgstr "Cartella locale"
 
 #: res/i18n/html_strings.py:47
 msgid "Name this synchro"
-msgstr ""
+msgstr "Nome sincronizzazione"
 
 #: res/i18n/html_strings.py:49 res/i18n/html_strings.py:51
 msgid "Previous"
-msgstr ""
+msgstr "Indietro"
 
 #: res/i18n/html_strings.py:53
 msgid "SYNC NAME"
-msgstr ""
+msgstr "NOME SINC"
 
 #: res/i18n/html_strings.py:54
 msgid "DATA SIZE"
-msgstr ""
+msgstr "DIMENSIONE DATI"
 
 #: res/i18n/html_strings.py:55
 msgid "ESTIMATED TIME"
-msgstr ""
+msgstr "TEMPO STIMATO"
 
 #: res/i18n/html_strings.py:56
 msgid "Ready for ignition!"
-msgstr ""
+msgstr "Pronti per l'accensione!"
 
 #: res/i18n/html_strings.py:57
 msgid "Are you ready to launch the synchronization?"
-msgstr ""
+msgstr "Sei pronto a lanciare la sincronizzazione?"
 
 #: res/i18n/html_strings.py:58
 msgid "Your data will be in orbit in no time!"
-msgstr ""
+msgstr "I tuoi dati saranno in orbita in pochissimo tempo!"
 
 #: res/i18n/html_strings.py:59
 msgid "FIRE THE ROCKET!"
-msgstr ""
+msgstr "LANCIA IL RAZZO!"
 
 #: res/i18n/html_strings.py:60
 msgid "change parameters"
-msgstr ""
+msgstr "cambia parametri"
 
 #: res/i18n/html_strings.py:61
 msgid "Synchronization running..."
-msgstr ""
+msgstr "Sincronizzazione in corso..."
 
 #: res/i18n/html_strings.py:62
 msgid "Liftoff! First sync can take some time..."
-msgstr ""
+msgstr "Decollo! La prima sincronizzazione può richiedere del tempo..."
 
 #: res/i18n/html_strings.py:63
 msgid "CREATE NEW SYNCHRO"
-msgstr ""
+msgstr "CREA NUOVA SINCRO"
 
 #: res/i18n/html_strings.py:64
 msgid "DONE"
-msgstr ""
+msgstr "FATTO"
 
 #: res/i18n/html_strings.py:65
 msgid "Sync Direction"
-msgstr ""
+msgstr "Direzione Sinc"
 
 #: res/i18n/html_strings.py:66
 msgid ""
 "Modifications are sent to the server but the client does not download "
 "anything."
-msgstr ""
+msgstr "Le modifiche sono inviate al server ma il client non scarica nulla."
 
 #: res/i18n/html_strings.py:67
 msgid ""
 "Modifications from both sides (local/remote) are automatically reflected on "
 "the other side."
 msgstr ""
+"Le modifiche da entrambi i lati (locale/remoto) sono automaticamente "
+"ripetute dall'altro lato."
 
 #: res/i18n/html_strings.py:68
 msgid ""
 "Modifications from the server are downloaded buth nothing is sent to the "
 "server."
 msgstr ""
+"Le modifiche sul server sono scaricate ma niente viene inviato al server."
 
 #: res/i18n/html_strings.py:69
 msgid "Upload Only"
-msgstr ""
+msgstr "Solo Caricamento"
 
 #: res/i18n/html_strings.py:70
 msgid "computer to server"
-msgstr ""
+msgstr "dal computer al server"
 
 #: res/i18n/html_strings.py:71
 msgid "Bi-directional"
-msgstr ""
+msgstr "Bidirezionale"
 
 #: res/i18n/html_strings.py:72
 msgid "default when possible"
-msgstr ""
+msgstr "default quando possibile"
 
 #: res/i18n/html_strings.py:73
 msgid "Download Only"
-msgstr ""
+msgstr "Solo Scaricamento"
 
 #: res/i18n/html_strings.py:74
 msgid "server to computer"
-msgstr ""
+msgstr "dal server al computer"
 
 #: res/i18n/html_strings.py:75
 msgid "Sync Frequency"
-msgstr ""
+msgstr "Frequenza Sinc"
 
 #: res/i18n/html_strings.py:76
 msgid "By default, the application will synchronize automatically"
-msgstr ""
+msgstr "Di default, l'applicazione si sincronizzerà automaticamente"
 
 #: res/i18n/html_strings.py:77
 msgid "Automatically"
-msgstr ""
+msgstr "Automaticamente"
 
 #: res/i18n/html_strings.py:78
 msgid "Manually"
-msgstr ""
+msgstr "Manualmente"
 
 #: res/i18n/html_strings.py:79
 msgid "Given Time"
-msgstr ""
+msgstr "Momento Prestabilito"
 
 #: res/i18n/html_strings.py:80
 msgid "Run the sync every day at"
-msgstr ""
+msgstr "Esegui sincronizzazione ogni giorno alle"
 
 #: res/i18n/html_strings.py:81 res/i18n/html_strings.py:173
 msgid "Conflicts"
-msgstr ""
+msgstr "Conflitti"
 
 #: res/i18n/html_strings.py:82
 msgid ""
 "When files were modified on both the server and your computer at the same "
 "time, a conflict is detected."
 msgstr ""
+"Quando i file vengono modificati sia sul server che sul computer nello "
+"stesso momento, viene rilevato un conflitto."
 
 #: res/i18n/html_strings.py:83
 msgid "Automatic"
-msgstr ""
+msgstr "Automatico"
 
 #: res/i18n/html_strings.py:84
 msgid "Solve conflicts manually"
-msgstr ""
+msgstr "Risolvi i conflitti manualmente"
 
+# Are you sure that "sinc" is the correct word here? Maybe "folder"?
 #: res/i18n/html_strings.py:85
 msgid ""
 "With the default keep-both behavior conflicting files will be copied on your "
 "local sync. Which version is to be kept?"
 msgstr ""
+"Con il comportamento di default 'mantieni entrambi', i file in conflitto "
+"verranno copiati nella sinc locale. Quale versione deve essere mantenuta?"
 
 #: res/i18n/html_strings.py:86
 msgid "Keep both"
-msgstr ""
+msgstr "Mantieni entrambi"
 
 #: res/i18n/html_strings.py:87
 msgid "Prefer local"
-msgstr ""
+msgstr "Prediligi locale"
 
 #: res/i18n/html_strings.py:88
 msgid "Prefer remote"
-msgstr ""
+msgstr "Prediligi remoto"
 
 #: res/i18n/html_strings.py:89
 msgid "SYNC %1 parameters"
-msgstr ""
+msgstr "SINC %1 parametri"
 
 #: res/i18n/html_strings.py:93
 msgid "Label"
-msgstr ""
+msgstr "Nome"
 
+# Are you sure about word "Connexion"? It's quite old compared with "Connection"
 #: res/i18n/html_strings.py:94
 msgid "Server Connexion"
-msgstr ""
+msgstr "Connessione Server"
 
 #: res/i18n/html_strings.py:95
 msgid "Login"
