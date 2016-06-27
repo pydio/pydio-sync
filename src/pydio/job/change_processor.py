@@ -53,7 +53,8 @@ class ChangeProcessor:
     def log(self, type, action, status, message, console_message, source='', target=''):
         logging.info(console_message)
         logging.info(message)
-        self.log_handler.log(event_type=type, action=action, status=status, source=source, target=target, message=message)
+        if self.log_handler:
+            self.log_handler.log(event_type=type, action=action, status=status, source=source, target=target, message=message)
 
     def update_node_status(self, path, status):
         self.status_handler.update_node_status(path, status)
@@ -81,7 +82,8 @@ class ChangeProcessor:
                         self.process_local_mkdir(item['node']['node_path'])
                     else:
                         self.process_remote_mkdir(item['node']['node_path'])
-                    self.change_store.buffer_real_operation(location, item['type'], 'NULL', item['node']['node_path'])
+                    if self.change_store:
+                        self.change_store.buffer_real_operation(location, item['type'], 'NULL', item['node']['node_path'])
 
             elif item['node']['bytesize'] == 0:
                 logging.debug('[' + location + '] Create file ' + item['node']['node_path'])
@@ -89,21 +91,24 @@ class ChangeProcessor:
                     self.process_local_mkfile(item['node']['node_path'])
                 else:
                     self.process_remote_mkfile(item['node']['node_path'])
-                self.change_store.buffer_real_operation(location, 'create', 'NULL', item['node']['node_path'])
+                if self.change_store:
+                    self.change_store.buffer_real_operation(location, 'create', 'NULL', item['node']['node_path'])
 
             else:
                 if item['node']['node_path']:
                     if location == 'remote':
                         self.process_download(item['node']['node_path'], is_mod=(item['type'] != 'create'), callback_dict=item)
-                        if item['type'] == 'create':
-                            self.change_store.buffer_real_operation(location, item['type'], 'NULL',
+                        if self.change_store:
+                            if item['type'] == 'create':
+                                self.change_store.buffer_real_operation(location, item['type'], 'NULL',
                                                                     item['node']['node_path'])
-                        else:
-                            self.change_store.buffer_real_operation(location, item['type'], item['node']['node_path'],
-                                                                    item['node']['node_path'])
+                            else:
+                                self.change_store.buffer_real_operation(location, item['type'], item['node']['node_path'],
+                                                                        item['node']['node_path'])
                     else:
                         self.process_upload(item['node']['node_path'], is_mod=(item['type'] != 'create'), callback_dict=item)
-                        self.change_store.buffer_real_operation(location, item['type'], ('NULL' if item['type'] =='create' else item['node']['node_path']),
+                        if self.change_store:
+                            self.change_store.buffer_real_operation(location, item['type'], ('NULL' if item['type'] =='create' else item['node']['node_path']),
                                                                 item['node']['node_path'])
 
         elif item['type'] == 'delete':
@@ -112,7 +117,8 @@ class ChangeProcessor:
                 self.process_local_delete(item['source'])
             else:
                 self.process_remote_delete(item['source'])
-            self.change_store.buffer_real_operation(location, 'delete', item['source'], 'NULL')
+            if self.change_store:
+                self.change_store.buffer_real_operation(location, 'delete', item['source'], 'NULL')
 
         elif item['type'] == 'bulk_mkdirs':
             try:
@@ -123,7 +129,7 @@ class ChangeProcessor:
                     #self.change_store.buffer_real_operation(bulk_location, 'create', 'NULL', path)
                     bulk.append({'type':'create', 'location':bulk_location, 'source':'NULL', 'target':path})
 
-                if bulk:
+                if bulk and self.change_store:
                     self.change_store.bulk_buffer_real_operation(bulk)
             except Exception as e:
                 logging.exception(e)
@@ -132,25 +138,29 @@ class ChangeProcessor:
             logging.debug('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
             if location == 'remote':
                 if os.path.exists(self.job_config.directory + item['source']):
-                    if self.process_local_move(item['source'], item['target']):
+                    if self.process_local_move(item['source'], item['target']) and self.change_store:
                         self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'])
                 else:
                     if item["node"]["md5"] == "directory":
                         logging.debug('Cannot find folder to move, switching to creation')
                         self.process_local_mkdir(item['target'])
-                        self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
+                        if self.change_store:
+                            self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
                     else:
                         logging.debug('Cannot find source, switching to DOWNLOAD')
                         self.process_download(item['target'], is_mod=False, callback_dict=item)
-                    self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
+                    if self.change_store:
+                        self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
             else:
                 if self.remote_sdk.stat(item['source']):
                     self.process_remote_move(item['source'], item['target'])
-                    self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'])
+                    if self.change_store:
+                        self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'])
                 elif item['node']['md5'] != 'directory':
                     logging.debug('Cannot find source, switching to UPLOAD')
                     self.process_upload(item['target'], callback_dict=item, is_mod=False)
-                    self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
+                    if self.change_store:
+                        self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
 
     def process_local_mkdir(self, path):
         message = path + ' <============ MKDIR'
@@ -286,7 +296,6 @@ class ChangeProcessor:
         self.remote_sdk.mkfile(path, self.local_sdk.stat(path))
         self.log(type='remote', action='mkfile', status='success', target=path,
                  console_message=message, message=(_('File created at %s') % path))
-
 
 class StorageChangeProcessor(ChangeProcessor):
 

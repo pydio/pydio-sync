@@ -30,10 +30,12 @@ try:
     from pydio.sdkremote.exceptions import InterruptException
     from pydio.utils.pydio_profiler import pydio_profile
     from pydio.utils.global_config import GlobalConfigManager
+    from pydio.job.change_history import ChangeHistory
 except ImportError:
     from sdkremote.exceptions import InterruptException
     from utils.pydio_profiler import pydio_profile
     from utils.global_config import GlobalConfigManager
+    from job.change_history import ChangeHistory
 from threading import Thread
 try:
     import resource
@@ -45,7 +47,7 @@ class SqliteChangeStore():
     conn = None
     DEBUG = False
 
-    def __init__(self, filename, includes, excludes, poolsize=4):
+    def __init__(self, filename, includes, excludes, poolsize=4, local_sdk=None, remote_sdk=None, job_config=None):
         self.db = filename
         self.includes = includes
         self.excludes = excludes
@@ -56,9 +58,13 @@ class SqliteChangeStore():
         if not os.path.exists(self.db):
             self.create = True
         self.last_commit = time.time()
+        self.local_sdk = local_sdk
+        self.remote_sdk = remote_sdk
         self.pendingoperations = []
         self.maxpoolsize = poolsize
         self.failingchanges = {}  # keep track of failing changes
+        self.change_history = ChangeHistory(self.db[:self.db.rfind("/")] + "/history.sqlite", self.local_sdk, self.remote_sdk, job_config)
+        self.job_config = job_config
 
     def open(self):
         try:
@@ -102,7 +108,7 @@ class SqliteChangeStore():
         else:
             res = self.conn.execute("SELECT count(row_id) FROM ajxp_changes WHERE location=?", (location,))
         count = res.fetchone()
-        if(self.DEBUG):
+        if self.DEBUG:
             logging.info("Changes store count #"+str(count[0]))
         return count[0]
 
@@ -165,11 +171,11 @@ class SqliteChangeStore():
                 except InterruptException:
                     self.status = "FAILED"
                     # silent fail (network)
-                except Exception as e:
+                """except Exception as e:
                     self.status = "FAILED"
                     self.error = e
                     if not hasattr(e, "code"):
-                        logging.exception(e)
+                        logging.exception(e)"""
                 #logging.info("DONE change " + str(threading.current_thread()) + " in " + str(time.time()-ts))
 
             def stop(self):
@@ -195,13 +201,15 @@ class SqliteChangeStore():
         pool = []
         ts = time.time()
         schedule_exit = False  # This is used to indicate that the last change was scheduled
+        self.change_history.LOCKED = True
         while True:
             try:
                 for i in pool:
                     if not i.isAlive():
                         if i.status == "SUCCESS" or (hasattr(i, "error") and hasattr(i.error, "code") and i.error.code == 1404):  # file download impossible -> Assume deleted from server
                             self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
-                            #logging.info("DELETE CHANGE %s" % change)
+                            #logging.info("DELETE CHANGE %s" % i.change)
+                            self.change_history.insert_change(i)
                         else:
                             class Failchange:
                                 pass
@@ -274,6 +282,18 @@ class SqliteChangeStore():
         try:
             self.conn.commit()
         except Exception as e:
+            logging.exception(e)
+        while True:
+            try:
+                self.change_history.conn.commit()
+                break
+            except sqlite3.OperationalError:
+                pass
+        self.change_history.LOCKED = False
+        try:
+            self.change_history.consolidate()
+        except Exception as e:
+            logging.info("TODO: handle")
             logging.exception(e)
 
     @pydio_profile
@@ -423,9 +443,8 @@ class SqliteChangeStore():
             self.debug("Detecting and removing copies")
 
     @pydio_profile
-    def detect_unnecessary_changes(self, local_sdk, remote_sdk):
+    def detect_unnecessary_changes(self, local_sdk):
         self.local_sdk = local_sdk
-        self.remote_sdk = remote_sdk
         local = self.get_row_count('local')
         rem = self.get_row_count('remote')
         logging.debug("[detect unecessary] LOCAL CHANGES: " + str(local) + " REMOTE CHANGES " + str(rem))
@@ -465,7 +484,7 @@ class SqliteChangeStore():
         return map(lambda row: str(row['row_id']), to_remove)
 
     @pydio_profile
-    def clean_and_detect_conflicts(self, status_handler, job_config):
+    def clean_and_detect_conflicts(self, status_handler):
 
         # transform solved conflicts into process operation
         def handle_solved(node):
@@ -481,7 +500,7 @@ class SqliteChangeStore():
                 #logging.info("[DEBUG] work in progress -- keepboth " + node['node_path'])
                 # remove conflict from table, effect: FILES out of sync,
                 #self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?', ('remote', node['node_path'].replace('\\', '/')))
-                self.local_sdk.duplicateWith(node['node_path'], job_config.user_id)
+                self.local_sdk.duplicateWith(node['node_path'], self.job_config.user_id)
                 self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
                                   ('local', node['node_path'].replace('\\', '/')))
 
@@ -676,6 +695,7 @@ class SqliteChangeStore():
         return -1
 
     def close(self):
+        self.change_history.conn.close()
         self.conn.close()
 
     def massive_store(self, location, changes):
