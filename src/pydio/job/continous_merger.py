@@ -694,6 +694,7 @@ class ContinuousDiffMerger(threading.Thread):
                     self.logger.log_state(_('Unexpected Error: %s') % e.message, 'error')
                 else:
                     logging.exception(e)
+                self.sleep_offline()
             logging.debug('Finished this cycle, waiting for %i seconds' % self.online_timer)
             very_first = False
 

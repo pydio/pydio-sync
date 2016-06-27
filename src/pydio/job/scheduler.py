@@ -173,4 +173,3 @@ class PydioScheduler():
         logging.debug("[Scheduler] Reloading config")
         self.jobs_loader.load_config()
         self.job_configs = self.jobs_loader.get_jobs()
-
