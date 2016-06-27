@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Pydio-Sync\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-05-26 15:18+0200\n"
-"PO-Revision-Date: 2016-06-24 17:10+0100\n"
+"PO-Revision-Date: 2016-06-27 09:00+0100\n"
 "Last-Translator: DepaMarco <depardimarco@hotmail.it>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -272,6 +272,8 @@ msgid ""
 "Connect to the server with the same URL as the one you would use to access "
 "through a web browser, e.g. http://mydomain.com/pydio"
 msgstr ""
+"Connettiti al server con lo stesso URL che useresti con un web browser, per "
+"esempio: http://mydomain.com/pydio"
 
 #: res/i18n/html_strings.py:12 res/i18n/html_strings.py:13
 #: res/i18n/html_strings.py:14 res/i18n/html_strings.py:230
@@ -280,7 +282,7 @@ msgstr "Richiesto"
 
 #: res/i18n/html_strings.py:15
 msgid "Tips"
-msgstr ""
+msgstr "Consigli"
 
 #: res/i18n/html_strings.py:16
 msgid "where can I find the server URL?"
