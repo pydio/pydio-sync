@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Pydio-Sync\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-05-26 15:18+0200\n"
-"PO-Revision-Date: 2016-06-27 12:05+0100\n"
+"PO-Revision-Date: 2016-06-27 12:16+0100\n"
 "Last-Translator: DepaMarco <depardimarco@hotmail.it>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -440,121 +440,130 @@ msgstr "FATTO"
 
 #: res/i18n/html_strings.py:65
 msgid "Sync Direction"
-msgstr ""
+msgstr "Direzione Sinc"
 
 #: res/i18n/html_strings.py:66
 msgid ""
 "Modifications are sent to the server but the client does not download "
 "anything."
-msgstr ""
+msgstr "Le modifiche sono inviate al server ma il client non scarica nulla."
 
 #: res/i18n/html_strings.py:67
 msgid ""
 "Modifications from both sides (local/remote) are automatically reflected on "
 "the other side."
 msgstr ""
+"Le modifiche da entrambi i lati (locale/remoto) sono automaticamente "
+"ripetute dall'altro lato."
 
 #: res/i18n/html_strings.py:68
 msgid ""
 "Modifications from the server are downloaded buth nothing is sent to the "
 "server."
 msgstr ""
+"Le modifiche sul server sono scaricate ma niente viene inviato al server."
 
 #: res/i18n/html_strings.py:69
 msgid "Upload Only"
-msgstr ""
+msgstr "Solo Caricamento"
 
 #: res/i18n/html_strings.py:70
 msgid "computer to server"
-msgstr ""
+msgstr "dal computer al server"
 
 #: res/i18n/html_strings.py:71
 msgid "Bi-directional"
-msgstr ""
+msgstr "Bidirezionale"
 
 #: res/i18n/html_strings.py:72
 msgid "default when possible"
-msgstr ""
+msgstr "default quando possibile"
 
 #: res/i18n/html_strings.py:73
 msgid "Download Only"
-msgstr ""
+msgstr "Solo Scaricamento"
 
 #: res/i18n/html_strings.py:74
 msgid "server to computer"
-msgstr ""
+msgstr "dal server al computer"
 
 #: res/i18n/html_strings.py:75
 msgid "Sync Frequency"
-msgstr ""
+msgstr "Frequenza Sinc"
 
 #: res/i18n/html_strings.py:76
 msgid "By default, the application will synchronize automatically"
-msgstr ""
+msgstr "Di default, l'applicazione si sincronizzerà automaticamente"
 
 #: res/i18n/html_strings.py:77
 msgid "Automatically"
-msgstr ""
+msgstr "Automaticamente"
 
 #: res/i18n/html_strings.py:78
 msgid "Manually"
-msgstr ""
+msgstr "Manualmente"
 
 #: res/i18n/html_strings.py:79
 msgid "Given Time"
-msgstr ""
+msgstr "Momento Prestabilito"
 
 #: res/i18n/html_strings.py:80
 msgid "Run the sync every day at"
-msgstr ""
+msgstr "Esegui sincronizzazione ogni giorno alle"
 
 #: res/i18n/html_strings.py:81 res/i18n/html_strings.py:173
 msgid "Conflicts"
-msgstr ""
+msgstr "Conflitti"
 
 #: res/i18n/html_strings.py:82
 msgid ""
 "When files were modified on both the server and your computer at the same "
 "time, a conflict is detected."
 msgstr ""
+"Quando i file vengono modificati sia sul server che sul computer nello "
+"stesso momento, viene rilevato un conflitto."
 
 #: res/i18n/html_strings.py:83
 msgid "Automatic"
-msgstr ""
+msgstr "Automatico"
 
 #: res/i18n/html_strings.py:84
 msgid "Solve conflicts manually"
-msgstr ""
+msgstr "Risolvi i conflitti manualmente"
 
+# Are you sure that "sinc" is the correct word here? Maybe "folder"?
 #: res/i18n/html_strings.py:85
 msgid ""
 "With the default keep-both behavior conflicting files will be copied on your "
 "local sync. Which version is to be kept?"
 msgstr ""
+"Con il comportamento di default 'mantieni entrambi', i file in conflitto "
+"verranno copiati nella sinc locale. Quale versione deve essere mantenuta?"
 
 #: res/i18n/html_strings.py:86
 msgid "Keep both"
-msgstr ""
+msgstr "Mantieni entrambi"
 
 #: res/i18n/html_strings.py:87
 msgid "Prefer local"
-msgstr ""
+msgstr "Prediligi locale"
 
 #: res/i18n/html_strings.py:88
 msgid "Prefer remote"
-msgstr ""
+msgstr "Prediligi remoto"
 
 #: res/i18n/html_strings.py:89
 msgid "SYNC %1 parameters"
-msgstr ""
+msgstr "SINC %1 parametri"
 
 #: res/i18n/html_strings.py:93
 msgid "Label"
-msgstr ""
+msgstr "Nome"
 
+# Are you sure about word "Connexion"? It's quite old compared with "Connection"
 #: res/i18n/html_strings.py:94
 msgid "Server Connexion"
-msgstr ""
+msgstr "Connessione Server"
 
 #: res/i18n/html_strings.py:95
 msgid "Login"
