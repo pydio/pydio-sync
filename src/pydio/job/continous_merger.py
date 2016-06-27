@@ -530,7 +530,7 @@ class ContinuousDiffMerger(threading.Thread):
                 if not self.storage_watcher or very_first:
                     logging.debug('[CMERGER] Detect unnecessary changes ' + self.ws_id)
                     self.logger.log_state(_('Detecting unecessary changes...'), 'sync')
-                    self.current_store.detect_unnecessary_changes(self.system)
+                    self.current_store.detect_unnecessary_changes()
                     logging.debug('[CMERGER] Done detecting unnecessary changes')
                     self.logger.log_state(_('Done detecting unecessary changes...'), 'sync')
                 self.update_min_seqs_from_store()

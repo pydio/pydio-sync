@@ -443,8 +443,7 @@ class SqliteChangeStore():
             self.debug("Detecting and removing copies")
 
     @pydio_profile
-    def detect_unnecessary_changes(self, local_sdk):
-        self.local_sdk = local_sdk
+    def detect_unnecessary_changes(self):
         local = self.get_row_count('local')
         rem = self.get_row_count('remote')
         logging.debug("[detect unecessary] LOCAL CHANGES: " + str(local) + " REMOTE CHANGES " + str(rem))
