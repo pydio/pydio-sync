@@ -434,7 +434,7 @@ class ContinuousDiffMerger(threading.Thread):
                         writewait += .5
                     time.sleep(writewait)
                 # Load local and/or remote changes, depending on the direction
-                self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'], self.job_config.poolsize)
+                self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'], self.job_config.poolsize, local_sdk=self.system, remote_sdk=self.sdk, job_config=self.job_config)
                 self.current_store.open()
                 try:
                     if self.job_config.direction != 'up':
@@ -530,7 +530,7 @@ class ContinuousDiffMerger(threading.Thread):
                 if not self.storage_watcher or very_first:
                     logging.debug('[CMERGER] Detect unnecessary changes ' + self.ws_id)
                     self.logger.log_state(_('Detecting unecessary changes...'), 'sync')
-                    self.current_store.detect_unnecessary_changes(local_sdk=self.system, remote_sdk=self.sdk)
+                    self.current_store.detect_unnecessary_changes()
                     logging.debug('[CMERGER] Done detecting unnecessary changes')
                     self.logger.log_state(_('Done detecting unecessary changes...'), 'sync')
                 self.update_min_seqs_from_store()
@@ -540,13 +540,13 @@ class ContinuousDiffMerger(threading.Thread):
                 self.update_min_seqs_from_store()
 
                 logging.debug('Store conflicts ' + self.job_config.id)
-                store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler, self.job_config)
+                store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
                 if store_conflicts:
                     if self.job_config.solve == 'both':
                         logging.info('Marking nodes SOLVED:KEEPBOTH')
                         for row in self.db_handler.list_conflict_nodes():
                             self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPBOTH')
-                        store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler, self.job_config)
+                        store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
                 if store_conflicts:
                     logging.info('Conflicts detected, cannot continue!')
                     self.logger.log_state(_('Conflicts detected, cannot continue!'), 'error')
