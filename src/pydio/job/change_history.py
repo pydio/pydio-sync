@@ -143,25 +143,31 @@ class ChangeHistory():
     TODO: Worker thread to retry all failed changes
     """
     def consolidate(self):
-        logging.info("C O N S O L I D A T E")
+        logging.info("Checking history for failed changes and retry.")
         for failed_change in self.get_all_failed(format='raw'):
-            # convert to change processor expected dict
-            node = {'node_path': failed_change['node_path'], 'md5': failed_change['md5'], 'bytesize': failed_change['bytesize'], 'last_try': failed_change['last_try']}
-            change = {
-                'location': failed_change['location'],
-                'type': failed_change['type'],
-                'content': failed_change['content'],
-                'md5': failed_change['md5'],
-                'source': failed_change['source'],
-                'target': failed_change['target'],
-                'node': node
-            }
-            # serialize success
-            # current_store DAFUQ
-            logging.info("Reprocessing " + str(change))
-            processor = ChangeProcessor(change, None, self.job_config, self.local_sdk, self.remote_sdk, None, None)
-            processor.process_change()
-            # TODO handle output of tried change
-            cursor = self.conn.cursor()
-            cursor.execute("UPDATE changes SET status = ?, last_try = ? WHERE seq_id = ?", ('SUCCESS', int(time.time()), failed_change['seq_id']))
-        self.conn.commit()
+            try:
+                # convert to change processor expected dict
+                node = {'node_path': failed_change['node_path'], 'md5': failed_change['md5'], 'bytesize': failed_change['bytesize'], 'last_try': failed_change['last_try']}
+                change = {
+                    'location': failed_change['location'],
+                    'type': failed_change['type'],
+                    'content': failed_change['content'],
+                    'md5': failed_change['md5'],
+                    'source': failed_change['source'],
+                    'target': failed_change['target'],
+                    'node': node
+                }
+                # serialize success
+                # current_store DAFUQ
+                logging.info("Reprocessing " + str(change))
+                processor = ChangeProcessor(change, None, self.job_config, self.local_sdk, self.remote_sdk, None, None)
+                processor.process_change()
+                # TODO handle output of tried change
+                cursor = self.conn.cursor()
+                cursor.execute("UPDATE changes SET status = ?, last_try = ? WHERE seq_id = ?", ('SUCCESS', int(time.time()), failed_change['seq_id']))
+            except Exception as e:
+                logging.exception(e)
+        try:
+            self.conn.commit()
+        except Exception as e:
+            logging.exception(e)
