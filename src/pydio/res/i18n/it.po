@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Pydio-Sync\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-05-26 15:18+0200\n"
-"PO-Revision-Date: 2016-06-29 16:40+0100\n"
+"PO-Revision-Date: 2016-06-29 16:48+0100\n"
 "Last-Translator: DepaMarco <depardimarco@hotmail.it>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -987,19 +987,19 @@ msgstr ""
 
 #: res/i18n/html_strings.py:212
 msgid "Download"
-msgstr ""
+msgstr "Scarica"
 
 #: res/i18n/html_strings.py:213
 msgid "Upload"
-msgstr ""
+msgstr "Carica"
 
 #: res/i18n/html_strings.py:214 res/i18n/html_strings.py:215
 msgid "Generate Link"
-msgstr ""
+msgstr "Genera Link"
 
 #: res/i18n/html_strings.py:217
 msgid "Shared Link"
-msgstr ""
+msgstr "Link Condiviso"
 
 #: res/i18n/html_strings.py:218
 msgid ""
@@ -1017,51 +1017,51 @@ msgstr ""
 
 #: res/i18n/html_strings.py:221
 msgid "Copy to Clipboard"
-msgstr ""
+msgstr "Copia negli Appunti"
 
 #: res/i18n/html_strings.py:222
 msgid "UnShare Link"
-msgstr ""
+msgstr "De-condividi Link"
 
 #: res/i18n/html_strings.py:223
 msgid "Text has been copied to clipboard."
-msgstr ""
+msgstr "Il testo è stato copiato negli appunti."
 
 #: res/i18n/html_strings.py:224
 msgid "Successfully unshared."
-msgstr ""
+msgstr "De-condiviso correttamente."
 
 #: res/i18n/html_strings.py:225
 msgid "Please wait ..."
-msgstr ""
+msgstr "Attendi..."
 
 #: res/i18n/html_strings.py:226
 msgid "Welcome to the Pydio Sync"
-msgstr ""
+msgstr "Benvenuto in Pydio Sync"
 
 #: res/i18n/html_strings.py:227
 msgid "The easiest way to keep your data in control"
-msgstr ""
+msgstr "Il modo più semplice per tenere i tuoi dati sotto controllo"
 
 #: res/i18n/html_strings.py:228
 msgid "Loading..."
-msgstr ""
+msgstr "Caricamento..."
 
 #: res/i18n/html_strings.py:229 res/i18n/html_strings.py:232
 msgid "Get Started"
-msgstr ""
+msgstr "Iniziamo"
 
 #: sdklocal/local.py:121
 msgid "Cannot remove local folder"
-msgstr ""
+msgstr "Impossibile rimuovere la cartella locale"
 
 #: sdkremote/exceptions.py:52
 msgid "Http-Basic authentication failed, wrong credentials?"
-msgstr ""
+msgstr "Autenticazione HTTP-Base fallita. Credenziali errate?"
 
 #: sdkremote/exceptions.py:56
 msgid "Token-based authentication failed, reload credentials?"
-msgstr ""
+msgstr "Autenticazione basata su Token fallita. Ricaricare le credenziali?"
 
 #: sdkremote/exceptions.py:60
 msgid ""
@@ -1078,11 +1078,11 @@ msgstr ""
 #: sdkremote/exceptions.py:76
 #, python-format
 msgid "[File permission] %s"
-msgstr ""
+msgstr "[Permesso File] %s"
 
 #: sdkremote/exceptions.py:81
 msgid "Stopping tasks"
-msgstr ""
+msgstr "Arresta processi"
 
 #: sdkremote/remote.py:163
 msgid "Cannot store tokens in keychain, there might be an OS permission issue!"
@@ -1090,15 +1090,15 @@ msgstr ""
 
 #: sdkremote/remote.py:182
 msgid "Authentication Error"
-msgstr ""
+msgstr "Errore di Autenticazione"
 
 #: sdkremote/remote.py:233 sdkremote/remote.py:291
 msgid "Unsupported HTTP method"
-msgstr ""
+msgstr "Metodo HTTP non supportato"
 
 #: sdkremote/remote.py:236 sdkremote/remote.py:294
 msgid "Authentication Exception"
-msgstr ""
+msgstr "Eccezione in Autenticazione"
 
 #: sdkremote/remote.py:386
 msgid ""
@@ -1113,11 +1113,11 @@ msgstr ""
 #: sdkremote/remote.py:453 sdkremote/remote.py:500 sdkremote/remote.py:886
 #: sdkremote/remote.py:975 sdkremote/remote.py:1237
 msgid "Task interrupted by user"
-msgstr ""
+msgstr "Processo interrotto dall'utente"
 
 #: sdkremote/remote.py:725 sdkremote/remote.py:801
 msgid "Local file to upload not found!"
-msgstr ""
+msgstr "File locale da caricare non trovato!"
 
 #: sdkremote/remote.py:730
 msgid "File not correct after upload (expected size was 0 bytes)"
@@ -1146,7 +1146,7 @@ msgstr ""
 #: sdkremote/remote.py:928 sdkremote/remote.py:1011
 #, python-format
 msgid "Error while downloading file: %s"
-msgstr ""
+msgstr "Errore nello scaricamento del file: %s"
 
 #: ui/web_api.py:352
 msgid "Couldn't load your workspaces, check your server !"
@@ -1162,11 +1162,11 @@ msgstr ""
 
 #: ui/web_api.py:358
 msgid "Access to the server is forbidden"
-msgstr ""
+msgstr "L'accesso al server è negato"
 
 #: ui/web_api.py:360
 msgid "Server seems to be encountering problems (500)"
-msgstr ""
+msgstr "Sembra che il server abbia riscontrato qualche problema (500)"
 
 #: ui/web_api.py:365
 msgid ""
