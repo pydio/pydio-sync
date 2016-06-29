@@ -552,6 +552,7 @@ class ContinuousDiffMerger(threading.Thread):
                     self.logger.log_state(_('Conflicts detected, cannot continue!'), 'error')
                     self.current_store.close()
                     self.sleep_offline()
+                    self.logger.log_notif(_('Conflicts detected, cannot continue!'), 'error')
                     continue
 
                 if self.job_config.direction == 'down' and self.job_config.solve != 'remote':
