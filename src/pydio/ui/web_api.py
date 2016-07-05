@@ -411,7 +411,10 @@ class FoldersManager(Resource):
             args = request.args
             base = args['url'].rstrip('/')
             verify = False if args['trust_ssl'] == 'true' else True
-            url = base + '/api/'+args['ws']+'/ls/?options=d&recursive=true&max_depth=2'
+            if 'subdir' in args and args['subdir'] != '':
+                url = base + '/api/'+args['ws']+'/ls/' + args['subdir'] + '?options=d&recursive=false'
+            else:
+                url = base + '/api/'+args['ws']+'/ls/?options=d&recursive=false'
             if 'password' in args:
                 auth = (args['user'], args['password'])
             else:

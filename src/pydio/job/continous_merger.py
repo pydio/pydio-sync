@@ -413,11 +413,20 @@ class ContinuousDiffMerger(threading.Thread):
 
                 # Before starting infinite loop, small check that remote folder still exists
                 if not self.sdk.check_basepath():
-                    log = _('Cannot find remote folder, maybe it was renamed? Sync cannot start, please check the configuration.')
-                    logging.error(log)
-                    self.logger.log_state(log, 'error')
-                    self.sleep_offline()
-                    continue
+                    # if it doesn't try to create it
+                    self.sdk.remote_folder = os.path.join("/", self.sdk.remote_folder)
+                    try:
+                        logging.info("Creating remote directory.")
+                        self.sdk.mkdir("")
+                        continue
+                    except Exception as e:
+                        logging.exception(e)
+                    if not self.sdk.check_basepath():
+                        log = _('Cannot find remote folder, maybe it was renamed? Sync cannot start, please check the configuration.')
+                        logging.error(log)
+                        self.logger.log_state(log, 'error')
+                        self.sleep_offline()
+                        continue
 
                 if self.watcher:
                     for snap_path in self.marked_for_snapshot_pathes:

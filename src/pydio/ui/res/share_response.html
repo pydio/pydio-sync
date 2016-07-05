@@ -1,3 +1,4 @@
+<div ng-init="miniview_done=false">
 <div ng-hide="miniview_done" ng-class="{'well': miniview}">
 <h1 class="shareHeader" ng-value="GetShareLink()">{{_('Share %1 via Pydio', share_filename.split('\\').pop().split('/').pop())}}</h1>
 
@@ -33,4 +34,5 @@
         <p>{{ share_details.fileName }}</p>
         <p>{{_('Successfully unshared.')}}</p>
     </div>
+</div>
 </div>

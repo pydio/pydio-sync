@@ -1,3 +1,76 @@
+<style>
+#AjxpConnexion-loader {
+    left: 0 !important;
+    top: 0 !important;
+    width: 100%;
+    z-index: 1022 !important;
+}
+
+#AjxpConnexion-loader {
+    height: 20px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+#AjxpConnexion-loader:before {
+    display: block;
+    position: absolute;
+    margin-top: 4px;
+    content: "";
+    left: -200px;
+    width: 200px;
+    height: 2px;
+    background-color: #03A9F4;
+    -webkit-animation: connexionLoading 1.5s linear infinite;
+          animation: connexionLoading 1.5s linear infinite;
+}
+
+@-webkit-keyframes connexionLoading {
+    from {
+        left: -200px;
+        width: 30%;
+    }
+    50% {
+        width: 30%;
+    }
+    70% {
+        width: 70%;
+    }
+    80% {
+        left: 50%;
+    }
+    95% {
+        left: 120%;
+    }
+    to {
+        left: 100%;
+    }
+}
+
+@keyframes connexionLoading {
+    from {
+        left: -200px;
+        width: 30%;
+    }
+    50% {
+        width: 30%;
+    }
+    70% {
+        width: 70%;
+    }
+    80% {
+        left: 50%;
+    }
+    95% {
+        left: 120%;
+    }
+    to {
+        left: 100%;
+    }
+}
+</style>
+<div id="AjxpConnexion-loader" style="display:block;" ng-show="list_folder_loading" ng-init="list_folder_loading=false"></div>
 <h3>{{_('1/3 Select a workspace')}}</h3>
 <p class="lead">
     <img src="images/earth.png" style="float: left;width: 100px;margin-top: -20px;">
@@ -22,7 +95,7 @@
             </ul>
         </div>
         <div class="input-group" ng-show="folders && folders.length" style="padding: 7px;">
-            <span ng-click="showFoldersBox=!showFoldersBox;job.remote_folder=''"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!showFoldersBox,'glyphicon-ok':showFoldersBox}"></span> <label >{{_('Synchronise only a subfolder of this workspace')}}</label></span>
+            <span ng-click="showFoldersBox=!showFoldersBox;job.remote_folder=''"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!showFoldersBox,'glyphicon-ok':showFoldersBox}"></span><label style="margin-left:2px;">{{_('Synchronise only a subfolder of this workspace')}}</label></span>
         </div>
         <div style="padding:7px 10px;" ng-if="folders_loading"> [{{_('loading')}}...]</div>
         <div style="padding:7px 10px;" ng-if="folders_loading_error">{{folders_loading_error}}</div>
@@ -30,15 +103,16 @@
             <div ng-click="job.remote_folder = ''" ng-class="{'list-group-item-success':!job.remote_folder}" style="cursor: pointer;padding: 5px;border-radius: 3px; display: none;">
                 <span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;{{_('Whole workspace')}}<span ng-if="folders_loading"> [{{_('loading')}}...]</span> <span>{{folders_loading_error}}</span>
             </div>
-            <!-- Want to loose the div in the repeat as well -->
-            <div>
+                <!-- Want to loose the div in the repeat as well -->
+                <!-- {{job}} {{ folders }} -->
                 <ng-include
                         ng-repeat="child in folders"
                         src="'tree_node.html'"
                         onload="data = child;job = job"/>
+
             </div>
         </div>
-    </div>
+</div>
     <div ng-if="!repositories && job.workspace" class="well-sm">
         <div class="input-group">
             <label class="input-group-addon">{{_('Workspace')}}</label>
