@@ -156,6 +156,18 @@
             <span class="input-group-addon">{{_('Timeout in seconds')}}</span>
             <input type="number" min="5" max="1000000" ng-model="general_configs_data.max_wait_time_for_local_db_access" class="form-control" >
         </div>
+        <h4 style="margin-top:10px;">{{_('Set Language')}}</h4>
+        <p>{{_("If you don't want the system's language to be used, manually set it to something else")}}</p>
+        <div class="input-group">
+            <span class="input-group-addon">{{_('Language ')}}</span>
+            <select ng-model="general_configs_data.language" class="form-control">
+                <option value="de">Deutsch</option>
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="it">Italiano</option>
+                <option value="nl">Nederlands</option>
+            </select>
+        </div>
     </div>
 
 </div>

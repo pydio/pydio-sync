@@ -24,13 +24,14 @@ import multiprocessing
 import sys
 #import zmq
 try:
-    from pydio.utils.global_config import ConfigManager
     from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils.global_config import ConfigManager
     from pydio.sdkremote.remote import PydioSdk
-except ImportError:
-    from utils.global_config import ConfigManager
+except:
     from utils.pydio_profiler import pydio_profile
+    from utils.global_config import ConfigManager
     from sdkremote.remote import PydioSdk
+
 
 class PydioDiagnostics():
 

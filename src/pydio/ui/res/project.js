@@ -162,7 +162,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     url   :'',
                     ws    :'',
                     user  :'',
-                    password:''
+                    password:'',
+                    subdir:''
                 }, isArray:true}
             });
         }])
@@ -543,6 +544,11 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         };
 
         $scope.updateProtocol = function(protocol){
+            if (typeof(DEBUG) !== "undefined"){
+                $scope.inline_host = DEBUG.server;
+                $scope.job.user = DEBUG.user;
+                $scope.job.password = DEBUG.password;
+            }
             $scope.inline_protocol = protocol;
             if($scope.job.server && $scope.inline_host){
                 $scope.job.server = $scope.inline_protocol + $scope.inline_host;
@@ -591,6 +597,7 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 $scope.job.workspace = $scope.job.repoObject['@repositorySlug'];
             }
             $scope.folders_loading = true;
+            $scope.list_folder_loading = true;
             $scope.folders_loading_error = '';
             $scope.folders = Folders.query({
                 job_id:'request',
@@ -604,8 +611,10 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     $scope.folders_loading_error = resp[0].error;
                 }
                 $scope.folders_loading = false;
+                $scope.list_folder_loading = false;
             }, function(resp){
                 $scope.folders_loading = false;
+                $scope.list_folder_loading = false;
                 $scope.folders_loading_error = window.translate('Error while loading folders!');
             });
         };
@@ -680,7 +689,6 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         $scope.toggleJobActive = function(){
             $scope.job.active = !$scope.job.active;
             Commands.query({cmd:($scope.job.active?'enable':'disable'), job_id:$scope.job.id}, function(){
-
                 $location.path('/')
             });
         };
@@ -724,6 +732,19 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
             };
             if($scope.job.id == 'new' && stepName && stepName == 'step2') {
                 var label;
+                if (typeof($scope.job.new_remote_folder) !== "undefined" && $scope.job.new_remote_folder['@filename'] !== "") {
+                    var paths = $scope.job.new_remote_folder['@filename'].split("/");
+                    if (paths[paths.length-1] !== $scope.job.new_remote_folder['@text']){ // if untitled folder was modified
+                         if ($scope.job.new_remote_folder['@text'][0] === "/" || $scope.job.new_remote_folder['@text'][0] === "\\")
+                            $scope.job.new_remote_folder['@text'] = $scope.job.new_remote_folder['@text'].substr(1);
+                         paths[paths.length-1] = $scope.job.new_remote_folder['@text'];
+                         $scope.job.new_remote_folder['@filename'] = paths.join("/");
+                    }
+                    if($scope.job.new_remote_folder['@filename'][0] === "/")
+                        $scope.job.remote_folder = $scope.job.new_remote_folder['@filename'];
+                    else
+                        $scope.job.remote_folder = "/" + $scope.job.new_remote_folder['@filename'];
+                }
                 if($scope.job.remote_folder && $scope.job.remote_folder != '/'){
                     label = basename($scope.job.remote_folder);
                 }else{
@@ -811,6 +832,185 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 $location.path('/');
             }
         };
+        $scope.triggerResync = function () {
+            $scope.job.resynctimeout = 10;
+            $scope.resynctimer = setInterval(function () {
+                if ($scope.job.resynctimeout > 0) {
+                    $scope.job.resynctimeout -= 1;
+                } else {
+                    // post to resync
+                    clearInterval($scope.resynctimer);
+                    $scope.job.resynctimeout = "undefined";
+                    Commands.query({cmd:"resync", job_id:$scope.job.id}, function(){
+                        //console.log("THIS WILL RESYNC")
+                        $location.path('/')
+                    });
+                }
+                $scope.$apply();
+                }, 1000);
+        }
+        $scope.proceedResync = function (){
+            $scope.job.resynctimeout = 0;
+        }
+        $scope.cancelResync = function (){
+            clearInterval($scope.resynctimer);
+            $scope.job.resynctimeout = "undefined";
+        }
+        $scope.clearNewFolder = function(){
+            // the following block should be factored into a clean function. #RefactorMe
+            if(typeof($scope.job) !== "undefined" && typeof($scope.job.new_remote_folder) !== "undefined"){ // delete if exists
+                var path = $scope.job.new_remote_folder['@filename'];
+                if (path[0]== "/") // remove leading /
+                    path = path.substr(1, path.length);
+                var pathitems = path.split("/");
+                var nextnode = {};
+                for (j in pathitems) {
+                    pathitems[j] = "/" + pathitems[j];
+                    if (j > 0) {
+                        pathitems[j] = pathitems[j-1] + pathitems[j];
+                        for (i in nextnode['tree']){
+                            if (typeof(nextnode['tree'][i]) !== "undefined" && pathitems[j] == nextnode['tree'][i]['@filename']){
+                                if (pathitems.length-1 == j){
+                                    nextnode['tree'].splice(i, 1);
+                                } else {
+                                    nextnode = nextnode['tree'][i];
+                                }
+                            }
+                        }
+                    } else {
+                        var exit = false;
+                        for (i in $scope.folders) { // find root
+                            if ($scope.folders[i]['@filename'] == pathitems[0]) {
+                                if (pathitems.length == 1){
+                                    console.log("DELETE")
+                                    $scope.folders[i]['tree'].splice($scope.folders[i]['tree'].indexOf($scope.job.new_remote_folder), 1);
+                                    exit = true;
+                                } else {
+                                    nextnode = $scope.folders[i];
+                                }
+                                break;
+                            }
+                        }
+                        if (exit)
+                            break;
+                    }
+                }
+            }
+            $scope.job.new_remote_folder = undefined;
+        }
+        $scope.newFolder = function (data){
+            $scope.clearNewFolder();
+            $scope.job.new_remote_folder = {'@filename':data['@filename'] + '/untitled folder', '@text': 'untitled folder', 'PydioSyncNewNode': true};
+            // the following block should be factored into a clean function. #RefactorMe
+            var path = data['@filename'];
+            if (path[0]== "/") // remove leading /
+                path = path.substr(1, path.length);
+            var pathitems = path.split("/");
+            var nextnode = {};
+            for (j in pathitems) {
+                pathitems[j] = "/" + pathitems[j];
+                if (j > 0) {
+                    pathitems[j] = pathitems[j-1] + pathitems[j];
+                    for (i in nextnode['tree']){
+                        if (typeof(nextnode['tree']) !== "undefined" && typeof(nextnode['tree'][i]) !== "undefined" && pathitems[j] == nextnode['tree'][i]['@filename']){
+                            //console.log(nextnode['tree'][i]);
+                            if (pathitems.length-1 == j){
+                                if (typeof(nextnode['tree'][i]['tree']) === "undefined" || typeof(nextnode['tree'][i]['tree']) == Boolean){
+                                    nextnode['tree'][i]['tree'] = [];
+                                }
+                                nextnode['tree'][i]['tree'].push($scope.job.new_remote_folder);
+                            } else {
+                                nextnode = nextnode['tree'][i];
+                            }
+                        }
+                    }
+                } else {
+                    var exit = false;
+                    for (i in $scope.folders) { // find root
+                        if ($scope.folders[i]['@filename'] == pathitems[0]) {
+                            if (pathitems.length == 1){
+                                if (typeof($scope.folders[i]['tree']) === "undefined" || typeof($scope.folders[i]) == Boolean){
+                                    $scope.folders[i]['tree'] = [];
+                                }
+                                $scope.folders[i]['tree'].push($scope.job.new_remote_folder);
+                                exit = true;
+                            } else {
+                                nextnode = $scope.folders[i];
+                            }
+                            break;
+                        }
+                    }
+                    if (exit)
+                        break;
+                }
+            }
+        }
+
+        $scope.displaySubFolders = function(path){
+            /* path subfolder name to refresh how to get the parent's ?
+            */
+            //console.log('Fetch ls ' + path);
+            $scope.list_folder_loading = true;
+            subfolders = Folders.query({
+                job_id:'request',
+                url:$scope.job.server,
+                user:$scope.job.user,
+                password:$scope.job.password,
+                trust_ssl:$scope.job.trust_ssl?'true':'false',
+                ws:$scope.job.workspace,
+                subdir:path
+            }, function(resp){
+                if(resp[0] && resp[0].error){
+                    $scope.folders_loading_error = resp[0].error;
+                }
+                $scope.folders_loading = false;
+                $scope.list_folder_loading = false;
+                $scope.updateSubFolders(path);
+            }, function(resp){
+                $scope.folders_loading = false;
+                $scope.list_folder_loading = false;
+                $scope.folders_loading_error = window.translate('Error while loading folders!');
+            });
+        }
+        $scope.updateSubFolders = function(path){
+            // insert the tree where it belongs... Replace an array inside an array of maps
+            // the following block should be factored into a clean function. #RefactorMe
+            if (path[0]== "/") // remove leading /
+                path = path.substr(1, path.length);
+            var pathitems = path.split("/");
+            var nextnode = {};
+            for (j in pathitems) {
+                pathitems[j] = "/" + pathitems[j];
+                if (j > 0) {
+                    pathitems[j] = pathitems[j-1] + pathitems[j];
+                    for (i in nextnode['tree']){
+                        if (typeof(nextnode['tree']) !== "undefined" && typeof(nextnode['tree'][i]) !== "undefined" && pathitems[j] == nextnode['tree'][i]['@filename']){
+                            //console.log(nextnode['tree'][i]);
+                            if (pathitems.length-1 == j){
+                                nextnode['tree'][i]['tree'] = subfolders;
+                            } else {
+                                nextnode = nextnode['tree'][i];
+                            }
+                        }
+                    }
+                } else {
+                    var exit = false;
+                    for (i in $scope.folders) { // find root
+                        if ($scope.folders[i]['@filename'] == pathitems[0]) {
+                            if (pathitems.length == 1){
+                                $scope.folders[i]['tree'] = subfolders;
+                                exit = true;
+                            } else {
+                                nextnode = $scope.folders[i];
+                            }
+                            break;
+                        }
+                    }
+                    if (exit)
+                        break;
+                }
+            }
+        }
     })
 
      .controller('ShareCtrl', function($scope, $window, $route, $location, $routeParams, Share, shareFile) {
@@ -1038,6 +1238,8 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 }
             }
             $location.path('/');
+            location.assign("/");
+            location.reload();
         }
 
         $scope.about_page = function() {

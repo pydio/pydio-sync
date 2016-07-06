@@ -118,6 +118,7 @@ elif sys.platform == 'linux2':
     logging.info('Linux DEFAULT_DATA_PATH: ' + DEFAULT_DATA_PATH)
 
 global_config_manager = GlobalConfigManager.Instance(configs_path=DEFAULT_DATA_PATH)
+global_config_manager.configs_path = DEFAULT_DATA_PATH
 global_config_manager.set_general_config(global_config_manager.default_settings)
 
 DEFAULT_PARENT_PATH = get_user_home(APP_NAME)

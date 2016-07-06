@@ -6,8 +6,7 @@ CREATE TABLE events (id INTEGER PRIMARY KEY AUTOINCREMENT, type text, message te
 
 CREATE TRIGGER LOG_DELETE AFTER DELETE ON ajxp_index BEGIN INSERT INTO ajxp_changes (node_id,source,target,type,deleted_md5) VALUES (old.node_id, old.node_path, "NULL", "delete", old.md5); END
 CREATE TRIGGER LOG_INSERT AFTER INSERT ON ajxp_index BEGIN INSERT INTO ajxp_changes (node_id,source,target,type) VALUES (new.node_id, "NULL", new.node_path, "create"); END
-CREATE TRIGGER "LOG_UPDATE_CONTENT" AFTER UPDATE ON "ajxp_index" FOR EACH ROW  WHEN old.node_path=new.node_path BEGIN INSERT INTO ajxp_changes (node_id,source,target,type) VALUES (new.node_id, old.node_path, new.node_path, "content"); END
-CREATE TRIGGER "LOG_UPDATE_PATH" AFTER UPDATE ON "ajxp_index" FOR EACH ROW  WHEN old.node_path!=new.node_path BEGIN INSERT INTO ajxp_changes (node_id,source,target,type) VALUES (new.node_id, old.node_path, new.node_path, "path"); END
+CREATE TRIGGER "LOG_UPDATE_CONTENT" AFTER UPDATE ON "ajxp_index" FOR EACH ROW BEGIN INSERT INTO "ajxp_changes" (node_id,source,target,type) VALUES (new.node_id, old.node_path, new.node_path, CASE WHEN old.node_path = new.node_path THEN "content" ELSE "path" END);END
 CREATE TRIGGER "STATUS_DELETE" AFTER DELETE ON "ajxp_index" BEGIN DELETE FROM ajxp_node_status WHERE node_id=old.node_id; END
 CREATE TRIGGER "STATUS_INSERT" AFTER INSERT ON "ajxp_index" BEGIN INSERT INTO ajxp_node_status (node_id) VALUES (new.node_id); END
 

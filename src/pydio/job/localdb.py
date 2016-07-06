@@ -270,6 +270,7 @@ class LocalDbHandler():
     @pydio_profile
     def count_conflicts(self):
         conn = sqlite3.connect(self.db, timeout=self.timeout)
+        conn.row_factory = sqlite3.Row
         c = 0
         for row in conn.execute("SELECT count(node_id) FROM ajxp_node_status WHERE status='CONFLICT'"):
             c = int(row[0])
@@ -299,7 +300,7 @@ class LocalDbHandler():
                 detail = pickle.dumps(detail)
             node_id = self.find_node_by_id(node_path, with_status=True)
             conn = sqlite3.connect(self.db, timeout=self.timeout)
-
+            conn.row_factory = sqlite3.Row
             if not isinstance(status, str):
                 logging.info("The status type is not string by default, explicitly assigning it a string value")
                 status = "False"
@@ -324,6 +325,7 @@ class LocalDbHandler():
     def update_bulk_node_status_as_idle(self):
         try:
             conn = sqlite3.connect(self.db, timeout=self.timeout)
+            conn.row_factory = sqlite3.Row
             conn.execute('UPDATE ajxp_node_status SET status="IDLE" WHERE ajxp_node_status.status="NEW"')
             conn.commit()
             conn.close()
@@ -335,6 +337,7 @@ class LocalDbHandler():
     def update_bulk_node_status_as_pending(self, list_seq_ids):
         if(len(list_seq_ids)) > 0:
             conn = sqlite3.connect(self.db, timeout=self.timeout)
+            conn.row_factory = sqlite3.Row
             try:
                 seq_ids = str(",".join(list_seq_ids))
 
@@ -409,6 +412,7 @@ class LocalDbHandler():
         try:
             location = 'remote' if location == 'local' else 'local'
             conn = sqlite3.connect(self.db, timeout=self.timeout)
+            conn.row_factory = sqlite3.Row
             conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (type, location, source.replace("\\", "/"), target.replace("\\", "/")))
             conn.commit()
             conn.close()
@@ -421,6 +425,7 @@ class LocalDbHandler():
         try:
             #logging.info("CLEARING local db ajxp_last_buffer")
             conn = sqlite3.connect(self.db, timeout=self.timeout)
+            conn.row_factory = sqlite3.Row
             conn.execute("DELETE FROM ajxp_last_buffer")
             conn.commit()
             conn.close()
@@ -727,6 +732,7 @@ class SqlEventHandler(FileSystemEventHandler):
                     conn = self.transaction_conn
                 else:
                     conn = sqlite3.connect(self.db, timeout=self.timeout)
+                    conn.row_factory = sqlite3.Row
                 conn.execute("DELETE FROM ajxp_index WHERE node_path LIKE ?", (self.remove_prefix(src_path) + '%',))
                 if not self.prevent_atomic_commit:
                     conn.commit()
@@ -771,6 +777,10 @@ class SqlEventHandler(FileSystemEventHandler):
                 break
             except sqlite3.OperationalError:
                 time.sleep(.1)
+            except sqlite3.ProgrammingError:
+                logging.info("Note to dev: Experimental check the callee.")
+                conn = sqlite3.connect(self.db, timeout=self.timeout)
+                conn.row_factory = sqlite3.Row
             except Exception as ex:
                 logging.exception(ex)
         self.unlock_db()
@@ -803,8 +813,8 @@ class SqlEventHandler(FileSystemEventHandler):
                     conn = self.transaction_conn
                 else:
                     conn = sqlite3.connect(self.db, timeout=self.timeout)
-                if not force_insert:
                     conn.row_factory = sqlite3.Row
+                if not force_insert:
                     c = conn.cursor()
                     node_id = None
                     for row in c.execute("SELECT node_id FROM ajxp_index WHERE node_path=?", (search_key,)):
@@ -938,6 +948,7 @@ class SqlEventHandler(FileSystemEventHandler):
     @pydio_profile
     def begin_transaction(self):
         self.transaction_conn = sqlite3.connect(self.db, timeout=self.timeout)
+        self.transaction_conn.row_factory = sqlite3.Row
         self.prevent_atomic_commit = True
 
     @pydio_profile
@@ -984,6 +995,7 @@ class SqlEventHandler(FileSystemEventHandler):
             cur = self.transaction_conn.cursor()
         else:  # This is propably useless
             cur = sqlite3.connect(self.db, timeout=self.timeout).cursor()
+            cur.row_factory = sqlite3.Row
         def hashfetcher(cur):
             """ Yields brows (basepath + sql row) of changes to be processed
             :param cur: sqlite cursor
@@ -1067,6 +1079,7 @@ class SqlEventHandler(FileSystemEventHandler):
         :return: some stats about the database
         """
         c = sqlite3.connect(self.db, timeout=self.timeout)
+        c.row_factory = sqlite3.Row
         logging.info(self.db)
         while True:
             try:

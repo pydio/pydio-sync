@@ -55,7 +55,6 @@ try:
     from pydio.utils.check_sync import SyncChecker
     from pydio.utils.i18n import get_languages
     from pydio.utils import i18n
-    _ = i18n.language.ugettext
     from pydio.utils.pydio_profiler import pydio_profile
 except ImportError:
     from job.EventLogger import EventLogger
@@ -69,7 +68,6 @@ except ImportError:
     from utils import check_sync
     from utils.i18n import get_languages
     from utils import i18n
-    _ = i18n.language.ugettext
 try:
     #raise ImportError
     from pydio.endpoint.resolver import EndpointResolver, RESOLVER_CONFIG, EndpointException
@@ -77,6 +75,7 @@ except ImportError:
     EndpointResolver = False
     RESOLVER_CONFIG = False
     EndpointException = False
+_ = i18n.language.ugettext
 
 
 class FlaskRealmDigestDB(authdigest.RealmDigestDB):
@@ -135,6 +134,7 @@ class PydioApi(Api):
         self.add_resource(ShareLinkManager, '/share_link/<string:job_id>/<string:folder_flag>/<path:relative_path>')
         self.add_resource(ShareCopyManager, '/share_cp')
         self.add_resource(GeneralConfigManager, '/general_configs')
+        self.add_resource(HistoryManager, '/change_history/<string:job_id>')
         self.add_resource(Feedback, '/feedbackinfo')
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
@@ -159,17 +159,15 @@ class PydioApi(Api):
             lang_part = l.split('_')[0]
             if lang_part:
                 short_lang.append(lang_part)
-
-        with open(str(self.real_static_folder / 'i18n.js')) as js:
-            for line in js:
-                s += line
-
+        if short_lang != [u"en"]:
+            with open(str(self.real_static_folder / 'i18n.js')) as js:
+                for line in js:
+                    s += line
         if EndpointResolver:
             additional_strings = EndpointResolver.Instance().load_additional_strings()
             if additional_strings:
                 s += '\nvar PydioAdditionalStrings = ' + json.dumps(additional_strings) + ';'
                 s += '\nwindow.PydioLangs = merge(PydioAdditionalStrings, PydioLangs);'
-
         s += '\n'
         s += 'window.PydioEnvLanguages = ' + json.dumps(short_lang) + ';'
         return Response(response=s,
@@ -413,7 +411,10 @@ class FoldersManager(Resource):
             args = request.args
             base = args['url'].rstrip('/')
             verify = False if args['trust_ssl'] == 'true' else True
-            url = base + '/api/'+args['ws']+'/ls/?options=d&recursive=true&max_depth=2'
+            if 'subdir' in args and args['subdir'] != '':
+                url = base + '/api/'+args['ws']+'/ls/' + args['subdir'] + '?options=d&recursive=false'
+            else:
+                url = base + '/api/'+args['ws']+'/ls/?options=d&recursive=false'
             if 'password' in args:
                 auth = (args['user'], args['password'])
             else:
@@ -483,7 +484,6 @@ class JobManager(Resource):
             json_req['byte_size'] = up[0] + down
             json_req['eta'] = up[0] * 8 / dl_rate + down * 8 / up_rate
             return json_req
-
         JobsLoader.Instance().update_job(new_job)
         scheduler = PydioScheduler.Instance()
         scheduler.reload_configs()
@@ -495,7 +495,7 @@ class JobManager(Resource):
 
     @authDB.requires_auth
     @pydio_profile
-    def get(self, job_id = None):
+    def get(self, job_id=None):
         if request.path == '/':
             return redirect("/res/index.html", code=302)
         jobs = JobsLoader.Instance().get_jobs()
@@ -991,3 +991,32 @@ class Feedback(Resource):
                 resp[job_id]['remotelastseq'] = -1
         return resp
 # end of feedback
+
+class HistoryManager(Resource):
+    @authDB.requires_auth
+    def get(self, job_id):
+        jobs = JobsLoader.Instance().get_jobs()
+        if not job_id in jobs:
+            return {"error": "Cannot find job"}
+        try:
+            from pydio.job.change_history import ChangeHistory
+        except ImportError:
+            from job.change_history import ChangeHistory
+        scheduler = PydioScheduler.Instance()
+        job = scheduler.control_threads[job_id]
+        args = request.args
+        res = ""
+        if 'status' in args:
+            if args['status'].upper() == 'SUCCESS':
+                for failed in job.current_store.change_history.get_all_success():
+                    res += failed
+            elif args['status'].upper() == 'FAILED':
+                for failed in job.current_store.change_history.get_all_failed():
+                    res += failed
+            else:
+                return {'error': "Unknown status: " + urllib2.quote(args['status'])}
+        else:
+            for failed in job.current_store.change_history.get_all():
+                    res += failed
+        return res
+#end of HistoryManager

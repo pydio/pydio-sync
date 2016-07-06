@@ -51,8 +51,9 @@
             </table>
         </div>
         <h4 ng-if="(logs | filter: {action:'!loop'} ).length">{{_('Last files synced')}}<span style="font-size:80%; float:right; text-overflow: ellipsis;">{{ job["last_action"] | moment }}</span></h4>
+        <div style="height:95px; overflow-y: scroll;" ng-init="limit=100;">
         <table style="width: 100%;">
-            <tr ng-repeat="log in logs | filter: {action:'!loop'} | orderBy:'id':true  | limitTo: 4">
+            <tr ng-repeat="log in logs | filter: {action:'!loop'} | orderBy:'id':true  | limitTo: limit">
                 <td style="padding: 2px 0; width: 20px;">
                     <span ng-if="log.action=='delete'" class="glyphicon glyphicon-trash"></span>
                     <span ng-if="log.action!=='delete' && log.type=='remote'" class="glyphicon glyphicon-cloud-upload"></span>
@@ -62,7 +63,7 @@
                 <td ng-show="QtObject && log.action!='delete'" ng-click="openFile(job.directory + (log.source && log.source!='NULL' ? log.source:log.target))" style="text-align: right;padding:2px 0; width: 15%;"><a style="text-decoration: none;" class="small" href="">{{_('Open File')}}</a></td>
             </tr>
         </table>
-
+        </div>
 
         <h4 ng-if="running.tasks.total && running.tasks.current.length"  >{{_('Transfers in progress')}} <span class="small">({{running.tasks.total}})</span></h4>
         <div ng-if="running.tasks.total && running.tasks.current.length" ng-repeat="task in running.tasks.current" style="padding:2px 0;">

@@ -1,4 +1,5 @@
-<div ng-hide="miniview_done" ng-class="{'well': miniview}">
+<div ng-init="miniview_done=false">
+<div ng-hide="miniview_done" ng-class="{'well': miniview}" style="padding-bottom:100%;">
 <h1 class="shareHeader" ng-value="GetShareLink()">{{_('Share %1 via Pydio', share_filename.split('\\').pop().split('/').pop())}}</h1>
 
 <div style="margin-top: 80px;">
@@ -27,8 +28,8 @@
     <p class="small" ng-show="copyToClipBoardFlag">{{_('Text has been copied to clipboard.')}}</p>
 </div>
 </div>
-
-<div ng-show="miniview_done" class="well" style="margin-bottom: 100%;">
+</div>
+<div ng-show="miniview_done" class="well" style="padding-bottom: 100%;">
     <div style="text-align: center;">
         <p>{{ share_details.fileName }}</p>
         <p>{{_('Successfully unshared.')}}</p>

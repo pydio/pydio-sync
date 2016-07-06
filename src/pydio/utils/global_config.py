@@ -20,6 +20,7 @@
 from .functions import Singleton
 import pickle
 import os
+import time
 import uuid, json,logging
 import keyring
 
@@ -36,6 +37,8 @@ class ConfigManager:
     def __init__(self, configs_path, data_path):
         self.configs_path = configs_path
         self.data_path = data_path
+        self.general_config = None
+        self.last_load = 0
 
     def get_configs_path(self):
         return self.configs_path
@@ -156,8 +159,9 @@ class ConfigManager:
 @Singleton
 class GlobalConfigManager:
 
-    def __init__(self, configs_path):
-        self.configs_path = configs_path
+    def __init__(self, configs_path=None):
+        if configs_path is not None:
+            self.configs_path = configs_path
         self.default_settings = {
             "log_configuration": {
                 "log_file_name": "pydio.log",
@@ -204,6 +208,7 @@ class GlobalConfigManager:
                 "last_update_date": 0
             },
             "max_wait_time_for_local_db_access": 30,
+            "language": ""
         }
 
     def set_general_config(self, data):
@@ -212,7 +217,7 @@ class GlobalConfigManager:
         :param data: dict object with configuration data
         """
         global_config_file = os.path.join(self.configs_path, 'general_config.json')
-
+        self.last_load = 0
         # Set the global config only if no prior settings exists
         if not os.path.exists(global_config_file) or os.stat(global_config_file).st_size == 0:
             if not os.path.exists(self.configs_path):
@@ -225,6 +230,7 @@ class GlobalConfigManager:
         Update the global configurations into general_config.json
         :param data: dict object with configuration data
         """
+        self.last_load = 0
         with open(os.path.join(self.configs_path, 'general_config.json'), 'w') as conf_file:
             json.dump(data, conf_file, indent=4, separators=(',', ': '))
 
@@ -233,5 +239,8 @@ class GlobalConfigManager:
         Fetch the config details from general_config.json file
         :return: dict object with configuration data
         """
-        with open(os.path.join(self.configs_path, 'general_config.json')) as conf_file:
-            return json.load(conf_file)
+        with open(os.path.join(self.configs_path, 'general_config.json')) as conf_file:  # memoize general config, don't reload the file more than every 3 seconds
+            if time.time() - self.last_load > 5:
+                self.last_load = time.time()
+                self.general_config = json.load(conf_file)
+            return self.general_config

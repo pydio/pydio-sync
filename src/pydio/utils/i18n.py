@@ -1,5 +1,5 @@
 #
-# Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
+# Copyright 2007-2016 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 # This file is part of Pydio.
 #
 #  Pydio is free software: you can redistribute it and/or modify
@@ -42,10 +42,9 @@ else:
 #
 #  In maemo it is in the LANG environment variable
 #  (on desktop is usually LANGUAGES)
-def get_languages():
+def get_default_language():
     DEFAULT_LANGUAGES = os.environ.get('LANG', '').split(':')
     DEFAULT_LANGUAGES += ['en_US']
-
     languages = []
     if sys.platform == "darwin":
         try:
@@ -62,6 +61,26 @@ def get_languages():
     #  and here we have the languages and location of the translations
     languages += DEFAULT_LANGUAGES
     logging.info("LANGUAGE guessed: " + str(languages))
+    return languages
+
+def get_languages():
+    try:
+        from pydio.utils.global_config import GlobalConfigManager
+    except ImportError:
+        from utils.global_config import GlobalConfigManager
+    try:
+        conf = GlobalConfigManager.Instance().get_general_config()
+    except Exception:
+        # languages not ready, default to English
+        return ["en_US"]
+    languages = []
+    try:
+        if conf["language"] == "":
+            languages = get_default_language()
+        else:
+            return [conf["language"]]
+    except KeyError:
+        languages = get_default_language()
     return languages
 
 
@@ -141,7 +160,6 @@ class PoProcessor:
 
         dest.close()
 
-
     def extract_html_strings(self,file_name):
         import re
 
@@ -152,7 +170,6 @@ class PoProcessor:
                 if mo:
                     groups += mo
         return groups
-
 
     def extract_all_html_strings(self, root_html, output_file):
 
@@ -171,5 +188,3 @@ class PoProcessor:
                 index += 1
 
         return len(strings)
-
-
