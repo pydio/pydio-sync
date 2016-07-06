@@ -1,3 +1,13 @@
+# PydioSync - Release Notes - 06.07.2016
+## v1.2.6 stable (Windows, MacOS, Linux)
+----
+- Added language selection
+- Added Italian translation
+- Added create folder, full depth folder selection during sync task creation
+- Added single request failed change reprocessor
+- Added scrollable change history (TODO: fix autorefresh)
+- Configurable poolsize (concurrent connections) in GUI
+
 # PydioSync - Release Notes - 23.05.2016
 ## v1.2.4 stable (Windows, MacOS, Linux)
 ----
