@@ -209,7 +209,9 @@ class SqliteChangeStore():
                         if i.status == "SUCCESS" or (hasattr(i, "error") and hasattr(i.error, "code") and i.error.code == 1404):  # file download impossible -> Assume deleted from server
                             self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
                             #logging.info("DELETE CHANGE %s" % i.change)
-                            self.change_history.insert_change(i)
+                            if i.change is not None:
+                                i.change.status = "FAILED"
+                                self.change_history.insert_change(i)
                         else:
                             class Failchange:
                                 pass
@@ -221,6 +223,8 @@ class SqliteChangeStore():
                                 if "fail" in self.failingchanges[i.change['row_id']]:
                                     if self.failingchanges[i.change['row_id']].fail > 5:  # Try 5 times then delete it and move on, Is this ever reached ?
                                         self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
+                                        if i.change is not None:
+                                            self.change_history.insert_change(i)
                                         del self.failingchanges[i.change['row_id']]
                                     else:
                                         self.failingchanges[i.change['row_id']].fail += 1
