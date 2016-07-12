@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Pydio-Sync\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-07-06 10:58+0200\n"
-"PO-Revision-Date: 2016-07-12 11:18+0100\n"
+"PO-Revision-Date: 2016-07-12 12:39+0100\n"
 "Last-Translator: DepaMarco <depardimarco@hotmail.it>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -596,7 +596,6 @@ msgstr "SINC %1 parametri"
 
 # I'm not sure that "Risinc" is the best in this case... I will try to find a better solution
 #: res/i18n/html_strings.py:101
-#, fuzzy
 msgid "Resync task"
 msgstr "Processo Risinc"
 
@@ -691,27 +690,22 @@ msgstr ""
 "questo semplice modulo."
 
 #: res/i18n/html_strings.py:128
-#, fuzzy
 msgid "Include the number of synced files;"
 msgstr "Includi il numero di file sincronizzati;"
 
 #: res/i18n/html_strings.py:129
-#, fuzzy
 msgid "Include the last sequence number;"
 msgstr "Includi l'ultimo numero della sequenza;"
 
 #: res/i18n/html_strings.py:130
-#, fuzzy
 msgid "Include server info;"
 msgstr "Includi info sul server;"
 
 #: res/i18n/html_strings.py:131
-#, fuzzy
 msgid "Include errors;"
 msgstr "Includi errori;"
 
 #: res/i18n/html_strings.py:132
-#, fuzzy
 msgid "Include the number of errors;"
 msgstr "Includi il numero di errori;"
 
@@ -799,7 +793,7 @@ msgstr "Limita la dimensione del file di log quì."
 
 #: res/i18n/html_strings.py:151
 msgid "Enhance the log details as you need them."
-msgstr "Arricchisci il dettaglio dei log come ritieni più opportuno"
+msgstr "Arricchisci il dettaglio dei log come ritieni più opportuno."
 
 #: res/i18n/html_strings.py:152
 msgid "Info"
@@ -1007,14 +1001,13 @@ msgid "Link Handle"
 msgstr "Gestione Link"
 
 #: res/i18n/html_strings.py:213
-#, fuzzy
 msgid ""
 "If you want a durable and pretty link (like https://.../my-share-link), you "
 "can use this field. Link handle will be generated if left empty."
 msgstr ""
 "Se vuoi un link riconoscibile e duraturo (come https://.../mio-link-"
-"condivisione), puoi utilizzare questo campo. Un --<non so cosa>-- verrà "
-"generato se lasciato vuoto."
+"condivisione), puoi utilizzare questo campo. Un link casuale verrà generato "
+"se lasciato vuoto."
 
 #: res/i18n/html_strings.py:215
 msgid "This will be displayed to the shared users."
@@ -1112,7 +1105,6 @@ msgstr "Autenticazione HTTP-Base fallita. Credenziali errate?"
 msgid "Token-based authentication failed, reload credentials?"
 msgstr "Autenticazione basata su Token fallita. Ricaricare le credenziali?"
 
-# Are you sure that is a question? Anyway I translated it into Italian...
 #: sdkremote/exceptions.py:60
 msgid ""
 "Token-based authentication seems unsupported, this may impact performances?"
@@ -1120,15 +1112,14 @@ msgstr ""
 "L'autenticazione basata su Token sembra non essere supportata, questo può "
 "intaccare le performance?"
 
-# I get an error on parameter %(filesize)
 #: sdkremote/exceptions.py:71
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "[Quota limit reached] - You are using %(usage)s iMB of %(total)s iMB, you "
 "cannot upload %(filename)s %(filesize)s iMB"
 msgstr ""
-"[Limite quota raggiunto] - Stai utilizzando %(usage) iMB of %(total) iMB. "
-"Non puoi caricare %(filename) %(filesize) iMB"
+"[Limite quota raggiunto] - Stai utilizzando %(usage)s iMB of %(total)s iMB. "
+"Non puoi caricare %(filename)s %(filesize)s iMB"
 
 #: sdkremote/exceptions.py:76
 #, python-format
