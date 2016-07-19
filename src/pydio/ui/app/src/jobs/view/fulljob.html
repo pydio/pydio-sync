@@ -1,0 +1,146 @@
+<md-content class="md-padding">
+    <div style="margin-left: 70%;">
+        <div style="display: inline; padding:0 5px;">
+            <i class="material-icons">play_arrow</i>
+            <md-tooltip md-direction="bottom">
+                Start
+            </md-tooltip>
+        </div>
+        <div style="display: inline; padding:0 5px;">
+            <i class="material-icons">pause</i>
+            <md-tooltip md-direction="bottom">
+                Pause
+            </md-tooltip>
+        </div>
+        <div style="display: inline; padding:0 5px;">
+            <!--<i class="fa fa-stop" aria-hidden="true"></i>-->
+            <i class="material-icons">stop</i>
+            <md-tooltip md-direction="bottom">
+                Stop
+            </md-tooltip>
+        </div>
+    </div>
+
+    <md-content flex id="content">
+          <md-icon md-svg-icon="{{ul.selected.avatar}}" class="avatar"></md-icon>
+          <h2>{{jl.selected.name}}</h2>
+          <p>{{jl.selected.content}}</p>
+
+          <!-- ><md-button class="share" md-no-ink ng-click="ul.makeContact(ul.selected)" aria-label="Share with {{ ul.selected.name }}">
+            <md-icon md-svg-icon="share"></md-icon>
+          </md-button>
+          -->
+    </md-content>
+    <!-- NAVBAR -->
+    <md-nav-bar md-selected-nav-item="currentNavItem"  ng-init="currentNavItem= 'history'" nav-bar-aria-label="navigation links">
+        <md-nav-item md-nav-click="goto('history')" name="history">LAST ACTIONS</md-nav-item>
+      <md-nav-item md-nav-click="goto('settings')" name="settings">SETTINGS</md-nav-item>
+      <md-nav-item md-nav-click="goto('advanced')" name="advanced">ADVANCED</md-nav-item>
+      <!-- these require actual routing with ui-router or ng-route, so they won't work in the demo
+      <md-nav-item md-nav-sref="app.page4" name="page4">Page Four</md-nav-item>
+      <md-nav-item md-nav-href="#page5" name="page5">Page Five</md-nav-item>
+      -->
+    </md-nav-bar>
+
+    <div ng-if="currentNavItem == 'history'">
+        <md-content>
+            <md-list class="md-dense" flex>
+                <md-subheader class="md-no-sticky">Currently in Sync</md-subheader>
+                <md-list-item class="md-3-line" ng-repeat="item in JC.syncing">
+                    <img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.filename}}" />
+                    <div class="md-list-item-text" layout="column">
+                        <h3>{{ item.filename }}</h3>
+                        <!--<h4>{{ item.what }}</h4>-->
+                        <p>{{ item.notes }}</p>
+                    </div>
+                </md-list-item>
+            </md-list>
+        </md-content>
+        <md-content>
+            <md-list class="md-dense" flex>
+                <md-subheader class="md-no-sticky">Last synchronized files</md-subheader>
+                <md-list-item class="md-3-line" ng-repeat="item in JC.history">
+                    <img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.filename}}" />
+                    <div class="md-list-item-text" layout="column">
+                        <h3>{{ item.filename }}</h3>
+                        <!--<h4>{{ item.what }}</h4>-->
+                        <p>{{ item.notes }}</p>
+                    </div>
+                </md-list-item>
+            </md-list>
+        </md-content>
+    </div>
+
+    <div ng-if="currentNavItem == 'settings'">
+        <md-input-container class="md-block" flex-gt-xs>
+            <label>Remote Server</label>
+            <input ng-model="job.server">
+        </md-input-container>
+        <md-input-container class="md-block" flex-gt-xs>
+            <label>Login</label>
+            <input ng-model="job.login">
+        </md-input-container>
+        <div layout-gt-sm="row">
+        <md-input-container class="md-block" flex-gt-xs>
+            <label>Local Folder</label>
+            <input ng-model="job.local_folder">
+        </md-input-container>
+        <md-input-container class="md-block" flex-gt-xs>
+            <md-button>CHOOSE</md-button>
+        </md-input-container>
+        </div>
+        <div layout-gt-sm="row">
+        <md-input-container class="md-block" flex-gt-xs>
+            <label>Workspace</label>
+            <input ng-model="job.remote_workspace">
+        </md-input-container>
+        <md-input-container class="md-block" flex-gt-xs>
+            <md-button>CHOOSE</md-button>
+        </md-input-container>
+        </div>
+        <div layout-gt-sm="row">
+            <md-input-container class="md-block" flex-gt-xs>
+                <md-button>REVERT</md-button>
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <md-button class="md-raised md-primary">SAVE</md-button>
+            </md-input-container>
+        </div>
+    </div>
+    <div ng-if="currentNavItem == 'advanced'">
+        <md-input-container class="md-block" flex-gt-xs>
+            <md-button class="md-raised md-warn">DELETE SYNC TASK</md-button>
+        </md-input-container>
+        <md-input-container class="md-block" flex-gt-xs>
+            <h3>Synchronization Direction</h3>
+            <p>
+            By default, modifications from both sides (computer & server) are propagated to the other side.
+            </p>
+            <md-radio-group ng-model="job.direction">
+                <md-radio-button value="up">Upload only (computer to server)</md-radio-button>
+                <md-radio-button value="bi">Bi-directional (default value)</md-radio-button>
+                <md-radio-button value="down">Download only (server to computer)</md-radio-button>
+            </md-radio-group>
+        </md-input-container>
+        <md-input-container class="md-block" flex-gt-xs>
+            <h3>Synchronization Frequency</h3>
+            <p>By default, changes are propagated in real-time, but for some usecases it can be handy to disable real-time and switch to less frequent checks.</p>
+            <md-radio-group ng-model="job.frequency">
+                <md-radio-button value="auto">Automatically (real-time)</md-radio-button>
+                <md-radio-button value="manual">Manually (you trigger the sync)</md-radio-button>
+                <md-radio-button value="time">At a given time of day</md-radio-button>
+                <md-radio-button value="interval">Every x min</md-radio-button>
+            </md-radio-group>
+        </md-input-container>
+        <div layout-gt-sm="row">
+            <md-input-container class="md-block" flex-gt-xs>
+                <md-button onclick="alert('doRevert')">REVERT</md-button>
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <md-button class="md-raised md-primary" onclick="alert('doSave');">SAVE</md-button>
+            </md-input-container>
+        </div>
+    </div>
+
+
+</md-content>

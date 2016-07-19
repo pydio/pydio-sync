@@ -1,0 +1,21 @@
+Based on:
+https://github.com/angular/material-start
+
+You need to:
+```
+npm install
+```
+To add deps:
+```
+npm install <packageName> --save # adds it to package.json
+```
+
+Someone will have to someday to that:
+```
+npm update
+```
+
+At early dev stage this is a cool webserver:
+```
+npm install -g live-server
+```

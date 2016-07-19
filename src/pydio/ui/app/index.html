@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" >
+  <head>
+    <title>PydioSync</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+
+    <!-- <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'> -->
+    <link rel="stylesheet" href="../node_modules/angular-material/angular-material.css"/>
+    <link rel="stylesheet" href="assets/app.css"/>
+    <link rel="stylesheet" href="assets/font-awesome-4.6.3/css/font-awesome.min.css"/>
+
+    <style type="text/css">
+        /**
+         * Hide when Angular is not yet loaded and initialized
+         */
+        [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+          display: none !important;
+        }
+        @font-face {
+            font-family: 'Material Icons';
+            font-style: normal;
+            font-weight: 400;
+            src: url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.eot); /* For IE6-8 */
+            src: local('Material Icons'),
+                local('MaterialIcons-Regular'),
+                url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2) format('woff2'),
+                url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff) format('woff'),
+                url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.ttf) format('truetype');
+        }
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;  /* Preferred icon size */
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+
+            /* Support for all WebKit browsers. */
+            -webkit-font-smoothing: antialiased;
+            /* Support for Safari and Chrome. */
+            text-rendering: optimizeLegibility;
+
+            /* Support for Firefox. */
+            -moz-osx-font-smoothing: grayscale;
+
+            /* Support for IE. */
+            font-feature-settings: 'liga';
+        }
+    </style>
+
+  </head>
+
+  <body ng-app="starterApp" layout="column" ng-controller="JobController as JC" ng-cloak>
+
+    <md-toolbar layout="row">
+    <!-- hide-gt-sm -->
+      <md-button class="menu" ng-click="JC.toggleList()" aria-label="Show Job List">
+        <md-icon class="material-icons">menu</md-icon>
+      </md-button>
+      <h1 ng-click="showGeneralSettings = false; showNewTask = false; showAllJobs = true;">PydioSync</h1>
+      <span flex></span>
+      <div style="margin-right: 2%;"ng-init="showGeneralSettings = false">
+          <i class="material-icons" style="padding-top: 25px" ng-click="showGeneralSettings = !showGeneralSettings">settings</i>
+          <!--<i class="fa fa-cog" style="padding-top: 25px;" ng-click="showGeneralSettings = !showGeneralSettings; "></i>-->
+          <md-tooltip md-direction="bottom">
+              General Settings
+          </md-tooltip>
+      </div>
+    </md-toolbar>
+
+    <div flex layout="row">
+    <!-- md-is-locked-open="$mdMedia('gt-md')" -->
+        <md-sidenav  ng-click="JC.toggleList()" md-component-id="left" class="md-whiteframe-z2" >
+          <md-list>
+              <md-list-item>
+                  <label>
+                  </label>
+                  <md-button ng-init="showAllJobs = false" ng-click="showAllJobs = !showAllJobs" aria-label="Home"><i class="fa fa-home"></i></md-button>
+              </md-list-item>
+              <md-list-item ng-repeat="it in JC.jobList">
+                  <md-button ng-click="JC.selectJob(it)" ng-class="{'selected' : it === JC.selected }" style="display: table;">
+                      <md-progress-circular md-mode="determinate" value="{{it.progress}}" md-diameter="30" style="display: table-cell;"></md-progress-circular>
+                      <div style="display: table-cell;  padding-left: 10px;">{{it.name}}</div>
+                  </md-button>
+              </md-list-item>
+          </md-list>
+          <md-button class="md-fab md-mini" aria-label="Add Sync Task" style="margin-left: 80%;" ng-init="showNewTask=false" ng-click="JC.newSyncTask();">
+              <i class="fa fa-plus" aria-hidden="true"></i>
+          </md-button>
+        </md-sidenav>
+        <span ng-hide="showNewTask || showAllJobs || showGeneralSettings">
+            <ng-include src="'./src/jobs/view/fulljob.html'">
+        </span>
+        <span ng-show="showNewTask && !showAllJobs && !showGeneralSettings">
+            <ng-include src="'./src/jobs/view/newjob.html'">
+        </span>
+        <span ng-show="showAllJobs && !showGeneralSettings">
+            <ng-include src="'./src/jobs/view/alljobs.html'">
+        </span>
+        <span ng-show="showGeneralSettings">
+            <ng-include src="'./src/jobs/view/general_configs.html'">
+        </span>
+    </div>
+
+    <script type="text/javascript" src="../node_modules/angular/angular.js"></script>
+    <script type="text/javascript" src="../node_modules/angular-animate/angular-animate.js"></script>
+    <script type="text/javascript" src="../node_modules/angular-aria/angular-aria.js"></script>
+    <script type="text/javascript" src="../node_modules/angular-material/angular-material.js"></script>
+
+    <script type="text/javascript" src="./src/jobs/Jobs.js"></script>
+    <script type="text/javascript" src="./src/jobs/JobController.js"></script>
+    <script type="text/javascript" src="./src/jobs/NewJobController.js"></script>
+    <script type="text/javascript" src="./src/jobs/SettingsController.js"></script>
+    <script type="text/javascript" src="./src/jobs/JobService.js"></script>
+
+    <script type="text/javascript">
+
+          angular
+              .module('starterApp', ['ngMaterial', 'jobs'])
+              .config(function($mdThemingProvider, $mdIconProvider){
+
+                  $mdIconProvider
+                      .defaultIconSet("./assets/svg/avatars.svg", 128)
+                      .icon("menu"       , "./assets/svg/menu.svg"        , 24)
+                      .icon("share"      , "./assets/svg/share.svg"       , 24)
+                      .icon("google_plus", "./assets/svg/google_plus.svg" , 512)
+                      .icon("hangouts"   , "./assets/svg/hangouts.svg"    , 512)
+                      .icon("twitter"    , "./assets/svg/twitter.svg"     , 512)
+                      .icon("phone"      , "./assets/svg/phone.svg"       , 512);
+
+                      $mdThemingProvider.theme('default')
+                          .primaryPalette('indigo')
+                          .accentPalette('orange');
+
+              });
+    </script>
+    <script src="i18n.js"></script>
+    <script type="text/javascript">_ = window.translate</script>
+
+  </body>
+</html>

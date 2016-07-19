@@ -109,14 +109,14 @@ class PydioApi(Api):
         authDB.add_user(user, password)
         self.running = False
         if getattr(sys, 'frozen', False):
-            self.real_static_folder = Path(sys._MEIPASS) / 'ui' / 'app'
+            self.real_static_folder = Path(sys._MEIPASS) / 'ui' / 'res'
             static_folder = str(self.real_static_folder)
         else:
-            self.real_static_folder = Path(__file__).parent / 'app'
-            static_folder = 'app'
+            self.real_static_folder = Path(__file__).parent / 'res'
+            static_folder = 'res'
 
         logging.debug('Starting Flask server with following static folder : '+ static_folder)
-        self.app = Flask(__name__, static_folder=static_folder, static_url_path='/app')
+        self.app = Flask(__name__, static_folder=static_folder, static_url_path='/res')
         self.app.logger.setLevel(logging.ERROR)
         l = logging.getLogger("werkzeug")
         if l:
@@ -136,55 +136,18 @@ class PydioApi(Api):
         self.add_resource(GeneralConfigManager, '/general_configs')
         self.add_resource(HistoryManager, '/change_history/<string:job_id>')
         self.add_resource(Feedback, '/feedbackinfo')
-        self.app.add_url_rule('/i18n.js', 'i18n', self.serve_i18n_file)
-        self.app.add_url_rule('/config.js', 'config', self.server_js_config)
-        self.app.add_url_rule('/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
-        self.app.add_url_rule('/about.html', 'dynamic_about', self.serve_about_content)
+        self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
+        self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
+        self.app.add_url_rule('/res/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
+        self.app.add_url_rule('/res/about.html', 'dynamic_about', self.serve_about_content)
         self.app.add_url_rule('/checksync/<string:job_id>', 'checksync', self.check_sync)
         self.app.add_url_rule('/checksync', 'checksync', self.check_sync)
         self.app.add_url_rule('/streamlifesign', 'streamlifesign', self.stream_life_sign)
-        # Add the static deps here, beware they aren't basic protected
-        deps = [
-                    '/node_modules/angular-material/angular-material.css',
-                    '/node_modules/angular/angular.js',
-                    '/node_modules/angular-aria/angular-aria.js',
-                    '/node_modules/angular-material/angular-material.js',
-                    '/node_modules/angular-animate/angular-animate.js',
-                    '/node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2',
-                    '/node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff',
-                    '/node_modules/material-design-icons/iconfont/MaterialIcons-Regular.ttf'
-                ]
-        # a map 'dep_path' -> function to serve it
-        self.app.serv_deps = {}
-        for d in deps:
-            self.app.serv_deps[d] = self.gen_serv_dep(d)
-        for d in deps:
-            self.app.add_url_rule(d, d, self.app.serv_deps[d])
-        """
-        self.app.serve_material_css = self.serve_dep('/node_modules/angular-material/angular-material.css')
-        self.app.serve_angular = self.serve_dep('/node_modules/angular/angular.js')
-        self.app.serve_animate = self.serve_dep('/node_modules/angular-animate/angular-animate.js')
-        self.app.serve_aria = self.serve_dep('/node_modules/angular-aria/angular-aria.js')
-        """
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
             self.app.add_url_rule('/res/dynamic.png', 'dynamic_png', self.serve_dynamic_image)
 
-    #@authDB.requires_auth #FIXME: RuntimeError: working outside of request context
-    def gen_serv_dep(self, path):
-        fp = 'ui' + path  # doesn't work with os.path.join...
-        with open(fp) as f:
-                content = f.read()
-        if path.endswith('.css'):
-                mime = "text/css"
-        elif path.endswith('.js'):
-            mime = "text/javascript"
-        else:
-            mime = "text"
-        def func():
-            return Response(response=content, status=200, mimetype=mime)
-        return func
 
     @pydio_profile
     def serve_i18n_file(self):
@@ -534,7 +497,7 @@ class JobManager(Resource):
     @pydio_profile
     def get(self, job_id=None):
         if request.path == '/':
-            return redirect("/app/index.html", code=302)
+            return redirect("/res/index.html", code=302)
         jobs = JobsLoader.Instance().get_jobs()
         if not job_id:
             json_jobs = []
