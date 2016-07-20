@@ -1,10 +1,26 @@
 (function(){
 
-  angular.module('jobs')
+  angular.module('jobs', ['ngResource'])
+        .factory('Jobs', ['$resource',
+            function($resource){
+                return $resource('/jobs/:job_id/', {}, {
+                    query: {method:'GET', params:{job_id:''}, isArray:true}
+                });
+        }])
+        .filter('bytes', function() {
+        return function(bytes, precision) {
+            if (bytes == 0) return bytes;
+            if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return bytes;
+            if (typeof precision === 'undefined') precision = 1;
+            var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
+                number = Math.floor(Math.log(bytes) / Math.log(1024));
+            return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
+        }
+        })
        .controller('JobController', [
-          'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope',
+          'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', 'Jobs',
           JobController
-       ]);
+       ])
 
   /**
    * Main Controller for the Angular Material Starter App
@@ -13,7 +29,7 @@
    * @param avatarsService
    * @constructor
    */
-  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope ) {
+  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, Jobs ) {
     $scope._ = window.translate;
     var self = this;
 
@@ -28,6 +44,9 @@
     self.syncing = jobService.syncing;
     self.history = jobService.history;
     self.jobs = jobService.jobs;
+
+    $scope.pathes = {};
+    $scope.jobs = Jobs.query();
 
     jobService.loadJobList().then(
         function( jobList ) {

@@ -150,6 +150,7 @@ class PydioApi(Api):
                     '/node_modules/angular-aria/angular-aria.js',
                     '/node_modules/angular-material/angular-material.js',
                     '/node_modules/angular-animate/angular-animate.js',
+                    '/node_modules/angular-resource/angular-resource.min.js',
                     '/node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2',
                     '/node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff',
                     '/node_modules/material-design-icons/iconfont/MaterialIcons-Regular.ttf'

@@ -115,6 +115,7 @@
     <script type="text/javascript" src="../node_modules/angular-animate/angular-animate.js"></script>
     <script type="text/javascript" src="../node_modules/angular-aria/angular-aria.js"></script>
     <script type="text/javascript" src="../node_modules/angular-material/angular-material.js"></script>
+    <script type="text/javascript" src="../node_modules/angular-resource/angular-resource.min.js"></script>
 
     <script type="text/javascript" src="./src/jobs/Jobs.js"></script>
     <script type="text/javascript" src="./src/jobs/JobController.js"></script>
@@ -126,16 +127,7 @@
 
           angular
               .module('starterApp', ['ngMaterial', 'jobs'])
-              .config(function($mdThemingProvider, $mdIconProvider){
-
-                  $mdIconProvider
-                      .defaultIconSet("./assets/svg/avatars.svg", 128)
-                      .icon("menu"       , "./assets/svg/menu.svg"        , 24)
-                      .icon("share"      , "./assets/svg/share.svg"       , 24)
-                      .icon("google_plus", "./assets/svg/google_plus.svg" , 512)
-                      .icon("hangouts"   , "./assets/svg/hangouts.svg"    , 512)
-                      .icon("twitter"    , "./assets/svg/twitter.svg"     , 512)
-                      .icon("phone"      , "./assets/svg/phone.svg"       , 512);
+              .config(function($mdThemingProvider ){
 
                       $mdThemingProvider.theme('default')
                           .primaryPalette('indigo')

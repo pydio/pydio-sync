@@ -22,6 +22,7 @@
     "angular-aria": "^1.5.5",
     "angular-material": "git+https://github.com/angular/bower-material.git#master",
     "angular-messages": "^1.5.5",
+    "angular-resource": "^1.5.7",
     "material-design-icons": "^2.2.3"
   },
   "devDependencies": {

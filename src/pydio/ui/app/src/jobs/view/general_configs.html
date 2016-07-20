@@ -127,8 +127,7 @@
 
                 <p class="small" style="margin-top:2%;">{{_('Set restrictions on log file size here.')}}</p>
                 <div class="input-group">
-                    <!-- UNCOMMENT ME
-                        <span class="input-group-addon" style="min-width:150px;">{{general_configs_data.log_configuration.handlers.file.maxBytes | bytes}}</span> -->
+                        <span class="input-group-addon" style="min-width:150px;">{{general_configs_data.log_configuration.handlers.file.maxBytes | bytes}}</span>
                     <input type="number" ng-model="general_configs_data.log_configuration.handlers.file.maxBytes" class="form-control" min="0" max="1000000000000000">
                 </div>
 

@@ -1,15 +1,21 @@
 <!--{{ showAllJobs }}-->
+<div style="width: 1000px; background-color: red;">
+    RESIZE ME
 <md-content>
     <md-list class="md-dense" flex>
-        <md-list-item class="md-3-line" ng-repeat="item in JC.jobs" ng-if="item.active">
+        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="item.active">
             <div layout="row">
                 <img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label}}" />
                 <div class="md-list-item-text" layout="column">
                     <h3>{{ item.label }}</h3>
                     <!--<h4>{{ item.what }}</h4>-->
-                    <p>{{ item.status }}</p>
+                    <p>{{ item.last_event.message }}</p>
                 </div>
-            </div ng-if>
+            </div>
+            <span flex></span>
+            <div style="margin-top: 20px;">
+                <i class="material-icons">more_vert</i>
+            </div>
             <md-divider md-inset ng-if="!$last"></md-divider>
         </md-list-item>
     </md-list>
@@ -17,16 +23,19 @@
 <md-content>
     <md-subheader class="md-no-sticky">Disabled Tasks</md-subheader>
         <md-list class="md-dense" flex>
-        <md-list-item class="md-3-line" ng-repeat="item in JC.jobs" ng-if="!item.active">
+        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="!item.active">
             <div layout="row">
                 <img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label[0] + item.label[1]}}" />
                 <div class="md-list-item-text" layout="column">
                     <h3>{{ item.label }}</h3>
                     <!--<h4>{{ item.what }}</h4>-->
-                    <p>{{ item.status }}</p>
+                    <p>{{ item.message }}</p>
                 </div>
-            </div ng-if>
+            </div>
                 <md-divider md-inset ng-if="!$last"></md-divider>
         </md-list-item>
     </md-list>
 </md-content>
+</div>
+DEBUG INFO
+{{jobs}}
