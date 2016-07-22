@@ -34,20 +34,20 @@
     var self = this;
 
     self.selected     = null;
-    self.jobList        = [ ];
     self.selectJob   = selectUser;
     self.toggleList   = toggleSideNav;
     self.makeContact  = makeContact;
     self.newSyncTask = newSyncTask;
 
-    // Load all registered users
+    // Load all jobs
     self.syncing = jobService.syncing;
     self.history = jobService.history;
-    self.jobs = jobService.jobs;
-
     $scope.pathes = {};
     $scope.jobs = Jobs.query();
+    self.jobs = $scope.jobs;
 
+    /*
+    self.jobList        = [ ];
     jobService.loadJobList().then(
         function( jobList ) {
             self.jobList    = [].concat(jobList);
@@ -59,7 +59,7 @@
             self.jobs = jobs;
         }
     );
-
+    */
     // *********************************
     // Internal methods
     // *********************************
@@ -77,7 +77,7 @@
      */
     function selectUser ( user ) {
       $scope.showAllJobs = false;
-      self.selected = angular.isNumber(user) ? $scope.jobList[user] : user;
+      self.selected = angular.isNumber(user) ? $scope.jobs[user] : user;
     }
 
     /**

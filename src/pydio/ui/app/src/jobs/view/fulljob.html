@@ -1,18 +1,19 @@
 <md-content class="md-padding">
-    <div style="margin-left: 70%;">
-        <div style="display: inline; padding:0 5px;">
+    <div layout="row">
+    <span flex></span>
+        <div style="padding:0 5px;">
             <i class="material-icons">play_arrow</i>
             <md-tooltip md-direction="bottom">
                 Start
             </md-tooltip>
         </div>
-        <div style="display: inline; padding:0 5px;">
+        <div style="padding:0 5px;">
             <i class="material-icons">pause</i>
             <md-tooltip md-direction="bottom">
                 Pause
             </md-tooltip>
         </div>
-        <div style="display: inline; padding:0 5px;">
+        <div style="padding:0 5px;">
             <!--<i class="fa fa-stop" aria-hidden="true"></i>-->
             <i class="material-icons">stop</i>
             <md-tooltip md-direction="bottom">
@@ -22,10 +23,13 @@
     </div>
 
     <md-content flex id="content">
-          <md-icon md-svg-icon="{{ul.selected.avatar}}" class="avatar"></md-icon>
-          <h2>{{jl.selected.name}}</h2>
-          <p>{{jl.selected.content}}</p>
-
+          <div layout="row">
+                <md-icon md-svg-icon="{{jl.selected.avatar}}" class="avatar"></md-icon>
+                <div layout="column">
+                    <h3>{{JC.selected.label}}</h3>
+                    <p>{{JC.selected.last_event.message}}</p>
+                </div>
+          </div>
           <!-- ><md-button class="share" md-no-ink ng-click="ul.makeContact(ul.selected)" aria-label="Share with {{ ul.selected.name }}">
             <md-icon md-svg-icon="share"></md-icon>
           </md-button>
@@ -99,12 +103,9 @@
         </md-input-container>
         </div>
         <div layout-gt-sm="row">
-            <md-input-container class="md-block" flex-gt-xs>
+                <span flex></span>
                 <md-button>REVERT</md-button>
-            </md-input-container>
-            <md-input-container class="md-block" flex-gt-xs>
                 <md-button class="md-raised md-primary">SAVE</md-button>
-            </md-input-container>
         </div>
     </div>
     <div ng-if="currentNavItem == 'advanced'">
@@ -133,12 +134,9 @@
             </md-radio-group>
         </md-input-container>
         <div layout-gt-sm="row">
-            <md-input-container class="md-block" flex-gt-xs>
+            <span flex></span>
                 <md-button onclick="alert('doRevert')">REVERT</md-button>
-            </md-input-container>
-            <md-input-container class="md-block" flex-gt-xs>
                 <md-button class="md-raised md-primary" onclick="alert('doSave');">SAVE</md-button>
-            </md-input-container>
         </div>
     </div>
 

@@ -1,41 +1,97 @@
 <!--{{ showAllJobs }}-->
-<div style="width: 1000px; background-color: red;">
-    RESIZE ME
 <md-content>
     <md-list class="md-dense" flex>
-        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="item.active">
+        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="item.active" ng-click="JC.selected = JC.jobs[$index]">
             <div layout="row">
                 <img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label}}" />
                 <div class="md-list-item-text" layout="column">
                     <h3>{{ item.label }}</h3>
-                    <!--<h4>{{ item.what }}</h4>-->
-                    <p>{{ item.last_event.message }}</p>
+                    <h4>{{ item.last_event.message }}</h4>
                 </div>
             </div>
             <span flex></span>
-            <div style="margin-top: 20px;">
-                <i class="material-icons">more_vert</i>
-            </div>
+            <md-menu md-position-mode="target-right target" >
+                <md-button aria-label="Open Sync menu" class="md-icon-button" ng-click="$mdOpenMenu($event)">
+                    <i md-menu-origin class="material-icons" style="margin-top:10px;">more_vert</i>
+                </md-button>
+                <md-menu-content width="4">
+                    <md-menu-item>
+                        <md-button ng-click="ctrl.announceClick($index)">
+                        <div layout="row" flex>
+                            <p flex>{{_('More info...')}}</p>
+                        </div>
+                        </md-button>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button ng-click="ctrl.announceClick($index)">
+                        <div layout="row" flex>
+                            <p flex>{{_('Pause')}}</p>
+                         </div>
+                        </md-button>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button ng-click="ctrl.announceClick($index)">
+                        <div layout="row" flex>
+                            <p flex>{{_('Stop')}}</p>
+                        </div>
+                    </md-button>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button ng-click="ctrl.announceClick($index)">
+                        <div layout="row" flex>
+                            <p flex>{{_('Settings')}}</p>
+                        </div>
+                        </md-button>
+                    </md-menu-item>
+                </md-menu-content>
+            </md-menu>
             <md-divider md-inset ng-if="!$last"></md-divider>
         </md-list-item>
     </md-list>
 </md-content>
 <md-content>
-    <md-subheader class="md-no-sticky">Disabled Tasks</md-subheader>
+    <md-subheader class="md-no-sticky">{{_('Disabled Tasks')}}</md-subheader>
         <md-list class="md-dense" flex>
-        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="!item.active">
+        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="!item.active" ng-click="JC.selected = JC.jobs[$index]; JC.toggleList()">
             <div layout="row">
                 <img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label[0] + item.label[1]}}" />
                 <div class="md-list-item-text" layout="column">
                     <h3>{{ item.label }}</h3>
-                    <!--<h4>{{ item.what }}</h4>-->
-                    <p>{{ item.message }}</p>
                 </div>
             </div>
+            <span flex></span>
+            <md-menu md-position-mode="target-right target" >
+                <md-button aria-label="Open Sync menu" class="md-icon-button" ng-click="$mdOpenMenu($event)">
+                    <i md-menu-origin class="material-icons" style="margin-top:10px;">more_vert</i>
+                </md-button>
+                <md-menu-content width="4">
+                    <md-menu-item>
+                        <md-button ng-click="ctrl.announceClick($index)">
+                        <div layout="row" flex>
+                            <p flex>{{_('More info...')}}</p>
+                        </div>
+                        </md-button>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button ng-click="ctrl.announceClick($index)">
+                        <div layout="row" flex>
+                            <p flex>{{_('Start')}}</p>
+                         </div>
+                        </md-button>
+                    </md-menu-item>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button ng-click="ctrl.announceClick($index)">
+                        <div layout="row" flex>
+                            <p flex>{{_('Settings')}}</p>
+                        </div>
+                        </md-button>
+                    </md-menu-item>
+                </md-menu-content>
+            </md-menu>
                 <md-divider md-inset ng-if="!$last"></md-divider>
         </md-list-item>
     </md-list>
 </md-content>
-</div>
 DEBUG INFO
 {{jobs}}

@@ -132,12 +132,14 @@
                 </div>
 
                 <p class="small" style="margin-top:2%;">{{_('Enhance the log details as you need them.')}}</p>
-                <p>Selected Value: <span class="radioValue">{{ data.group1 }}</span> </p>
-                <md-radio-group ng-model="data.group1">
-                  <md-radio-button value="Apple" class="md-primary">Apple</md-radio-button>
-                  <md-radio-button value="Banana"> Banana </md-radio-button>
-                  <md-radio-button value="Mango">Mango</md-radio-button>
+                <!-- TODO check that it works in other languages -->
+                <md-radio-group layout="row" ng-model="general_configs_data.log_configuration.root.level">
+                  <md-radio-button value="Info" class="md-primary">{{_('Info')}}</md-radio-button>
+                  <md-radio-button value="Debug"> {{_('Debug')}} </md-radio-button>
+                  <md-radio-button value="Warning">{{_('Warning')}}</md-radio-button>
                 </md-radio-group>
+                <p>DEBUG selected Value: <span class="radioValue">{{ general_configs_data.log_configuration.root.level }}</span> </p>
+                <!-- OLD STUFF
                 <div>
                     <div class="advanced_radio_box"
                          ng-class="{'label-radio-selected':general_configs_data.log_configuration.root.level=='INFO'}"
@@ -155,6 +157,7 @@
                         <label>{{_('Warning')}}</label>
                     </div>
                 </div>
+                -->
             </div>
         </div>
     </div>
@@ -179,7 +182,8 @@
         <div class="input-group">
             <span class="input-group-addon">{{_('Language ')}}</span>
             <md-select ng-model="general_configs_data.language" class="form-control">
-                <md-optgroup>{{_('Language')}}
+                <md-optgroup>
+                    <label>{{_('Language')}}</label>
                     <md-option value="de">Deutsch</md-option>
                     <md-option value="en">English</md-option>
                     <md-option value="fr">Français</md-option>

@@ -77,19 +77,20 @@
       </div>
     </md-toolbar>
 
-    <div flex layout="row">
+    <div flex layout="column">
     <!-- md-is-locked-open="$mdMedia('gt-md')" -->
         <md-sidenav  ng-click="JC.toggleList()" md-component-id="left" class="md-whiteframe-z2" >
           <md-list>
               <md-list-item>
-                  <label>
-                  </label>
                   <md-button ng-init="showAllJobs = false" ng-click="showAllJobs = !showAllJobs" aria-label="Home"><i class="fa fa-home"></i></md-button>
               </md-list-item>
-              <md-list-item ng-repeat="it in JC.jobList">
+              <md-list-item ng-repeat="it in JC.jobs" layout="row">
                   <md-button ng-click="JC.selectJob(it)" ng-class="{'selected' : it === JC.selected }" style="display: table;">
-                      <md-progress-circular md-mode="determinate" value="{{it.progress}}" md-diameter="30" style="display: table-cell;"></md-progress-circular>
-                      <div style="display: table-cell;  padding-left: 10px;">{{it.name}}</div>
+                    <div style="display: table-cell">
+                        <i style="vertical-align: middle;" class="material-icons" ng-if="it.state.global.queue_done == 0">check_circle</i>
+                        <md-progress-circular ng-if="it.state.global.queue_done > 0" md-mode="determinate" value="{{it.state.global.queue_done}}" md-diameter="30" style="display: table-cell;"></md-progress-circular>
+                    </div>
+                    <div style="display: table-cell;  padding-left: 10px;">{{it.label}}</div>
                   </md-button>
               </md-list-item>
           </md-list>
