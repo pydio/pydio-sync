@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Pydio-Sync\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-07-06 10:58+0200\n"
-"PO-Revision-Date: 2016-06-29 16:48+0100\n"
+"PO-Revision-Date: 2016-07-12 12:39+0100\n"
 "Last-Translator: DepaMarco <depardimarco@hotmail.it>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -176,9 +176,10 @@ msgstr "Riscontrato errore Proxy! Controllare i log..."
 msgid "Connection error: too many redirects"
 msgstr "Errore di connessione: troppe redirezioni"
 
+# I used "pacchetti" (packages, in English) because of "chunk" is not pretty translated into Italian and seems not related with Internet stuffs.
 #: job/continous_merger.py:685 ui/web_api.py:375
 msgid "Chunked encoding error, please check the logs"
-msgstr ""
+msgstr "Errore nella codifica dei pacchetti. Controlla i log."
 
 #: job/continous_merger.py:688 ui/web_api.py:378
 msgid "Content Decoding error, please check the logs"
@@ -553,12 +554,10 @@ msgid "Prefer remote"
 msgstr "Prediligi remoto"
 
 #: res/i18n/html_strings.py:89
-#, fuzzy
 msgid "Connection settings"
-msgstr "Connessione scaduta!"
+msgstr "Impostazioni connessione"
 
 #: res/i18n/html_strings.py:90
-#, fuzzy
 msgid "Increase the timeout in case of slow responsive server"
 msgstr "Aumenta il timeout in caso di risposte lente dal server"
 
@@ -571,23 +570,23 @@ msgid ""
 "You can increase or reduce the number of concurrent connections. More means "
 "a faster sync but requires a server with more resources. (Default: 4)"
 msgstr ""
+"Puoi aumentare o ridurre il numero di connessioni contemporanee. Un numero "
+"maggiore implica una sincronizzazione più veloce ma richiede un server con "
+"maggiori risorse. (Default: 4)"
 
 #: res/i18n/html_strings.py:93
-#, fuzzy
 msgid "Concurrent connections"
-msgstr "Configura Connessione"
+msgstr "Connessioni concorrenti"
 
 #: res/i18n/html_strings.py:94
 msgid "Include/Exclude from Sync"
 msgstr "Includi/Escludi dalla Sinc"
 
 #: res/i18n/html_strings.py:95
-#, fuzzy
 msgid "Syncronise, use a list of files or patterns to include in the sync"
 msgstr "Sincronizza, usa una lista di file o percorsi da includere nella sinc"
 
 #: res/i18n/html_strings.py:96
-#, fuzzy
 msgid "Do not synchronise, list of files or patterns to exclude from sync"
 msgstr "Non sincronizzare, lista di file o percorsi da escludere dalla sinc"
 
@@ -595,9 +594,10 @@ msgstr "Non sincronizzare, lista di file o percorsi da escludere dalla sinc"
 msgid "SYNC %1 parameters"
 msgstr "SINC %1 parametri"
 
+# I'm not sure that "Risinc" is the best in this case... I will try to find a better solution
 #: res/i18n/html_strings.py:101
 msgid "Resync task"
-msgstr ""
+msgstr "Processo Risinc"
 
 #: res/i18n/html_strings.py:102
 msgid ""
@@ -605,18 +605,21 @@ msgid ""
 "correctly synchronized. Beware, this can take a while, and may be resource "
 "intensive."
 msgstr ""
+"Questa operazione si assicurerà che il server e la tua cartella locale siano "
+"correttamente sincronizzati. Considera che questo può richiedere del tempo e "
+"può far uso intensivo delle risorse."
 
 #: res/i18n/html_strings.py:103
 msgid "Cancel"
-msgstr ""
+msgstr "Annulla"
 
 #: res/i18n/html_strings.py:104
 msgid "Proceed"
-msgstr ""
+msgstr "Procedi"
 
 #: res/i18n/html_strings.py:105
 msgid "Trigger a full re-indexation"
-msgstr ""
+msgstr "Lancia un re-indicizzazione completa"
 
 #: res/i18n/html_strings.py:106
 msgid "Label"
@@ -687,27 +690,22 @@ msgstr ""
 "questo semplice modulo."
 
 #: res/i18n/html_strings.py:128
-#, fuzzy
 msgid "Include the number of synced files;"
 msgstr "Includi il numero di file sincronizzati;"
 
 #: res/i18n/html_strings.py:129
-#, fuzzy
 msgid "Include the last sequence number;"
 msgstr "Includi l'ultimo numero della sequenza;"
 
 #: res/i18n/html_strings.py:130
-#, fuzzy
 msgid "Include server info;"
 msgstr "Includi info sul server;"
 
 #: res/i18n/html_strings.py:131
-#, fuzzy
 msgid "Include errors;"
 msgstr "Includi errori;"
 
 #: res/i18n/html_strings.py:132
-#, fuzzy
 msgid "Include the number of errors;"
 msgstr "Includi il numero di errori;"
 
@@ -783,19 +781,19 @@ msgstr "Nome File"
 
 #: res/i18n/html_strings.py:148
 msgid "Limit the number of log files to be stored locally."
-msgstr ""
+msgstr "Limita il numero di file di log da salvare localmente."
 
 #: res/i18n/html_strings.py:149
 msgid "Number of log files"
-msgstr ""
+msgstr "Numero di file di log"
 
 #: res/i18n/html_strings.py:150
 msgid "Set restrictions on log file size here."
-msgstr ""
+msgstr "Limita la dimensione del file di log quì."
 
 #: res/i18n/html_strings.py:151
 msgid "Enhance the log details as you need them."
-msgstr ""
+msgstr "Arricchisci il dettaglio dei log come ritieni più opportuno."
 
 #: res/i18n/html_strings.py:152
 msgid "Info"
@@ -829,9 +827,8 @@ msgid "Set Language"
 msgstr "Imposta Lingua"
 
 #: res/i18n/html_strings.py:160
-#, fuzzy
 msgid "Language "
-msgstr "Imposta Lingua"
+msgstr "Lingua"
 
 #: res/i18n/html_strings.py:161
 msgid "Update Settings"
@@ -911,7 +908,7 @@ msgstr "Ultimi file sincronizzati"
 
 #: res/i18n/html_strings.py:184
 msgid "Open File"
-msgstr ""
+msgstr "Apri File"
 
 #: res/i18n/html_strings.py:185
 msgid "Transfers in progress"
@@ -922,10 +919,12 @@ msgid ""
 "An element named %1 was modified on both the server and on your local "
 "computer. Select how you want to solve this conflicting case:"
 msgstr ""
+"L'elemento chiamato %1 è stato modificato sia sul server che sul computer "
+"locale. Scegli come vuoi risolvere il conflitto:"
 
 #: res/i18n/html_strings.py:187
 msgid "Apply to all conflicts"
-msgstr ""
+msgstr "Applica a tutti i conflitti"
 
 #: res/i18n/html_strings.py:188
 msgid "Mine"
@@ -946,81 +945,85 @@ msgstr "Aggiungere una sincronizzazione"
 #: res/i18n/html_strings.py:193 res/i18n/html_strings.py:194
 #: res/i18n/html_strings.py:223
 msgid "Share %1 via Pydio"
-msgstr ""
+msgstr "Condividi %1 via Pydio"
 
 #: res/i18n/html_strings.py:195 res/i18n/html_strings.py:214
 msgid "Description"
-msgstr ""
+msgstr "Descrizione"
 
 #: res/i18n/html_strings.py:196
 msgid "Path"
-msgstr ""
+msgstr "Percorso"
 
 #: res/i18n/html_strings.py:197
 msgid "Share item"
-msgstr ""
+msgstr "Condividi elemento"
 
 #: res/i18n/html_strings.py:198
 msgid "by creating a public link that can easily be sent to your contacts."
 msgstr ""
+"creando un link pubblico che può essere inviato agevolmente ai tuoi contatti."
 
 #: res/i18n/html_strings.py:199
 msgid "You can customize the link parameters using the forms below."
-msgstr ""
+msgstr "Puoi personalizzare i parametri del link usando la form sottostante."
 
 #: res/i18n/html_strings.py:200
 msgid "Secure Link Access"
-msgstr ""
+msgstr "Accesso Link Sicuro"
 
 #: res/i18n/html_strings.py:201
 msgid "Optional Password"
-msgstr ""
+msgstr "Password Opzionale"
 
 #: res/i18n/html_strings.py:203
 msgid "Expires After"
-msgstr ""
+msgstr "Termina Dopo"
 
 #: res/i18n/html_strings.py:204 res/i18n/html_strings.py:209
 msgid "Days"
-msgstr ""
+msgstr "Giorni"
 
 #: res/i18n/html_strings.py:205 res/i18n/html_strings.py:210
 msgid "Downloads"
-msgstr ""
+msgstr "Scaricamenti"
 
 #: res/i18n/html_strings.py:206
 msgid "Security"
-msgstr ""
+msgstr "Sicurezza"
 
 #: res/i18n/html_strings.py:208
 msgid "Expires after"
-msgstr ""
+msgstr "Termina dopo"
 
 #: res/i18n/html_strings.py:212
 msgid "Link Handle"
-msgstr ""
+msgstr "Gestione Link"
 
 #: res/i18n/html_strings.py:213
 msgid ""
 "If you want a durable and pretty link (like https://.../my-share-link), you "
 "can use this field. Link handle will be generated if left empty."
 msgstr ""
+"Se vuoi un link riconoscibile e duraturo (come https://.../mio-link-"
+"condivisione), puoi utilizzare questo campo. Un link casuale verrà generato "
+"se lasciato vuoto."
 
 #: res/i18n/html_strings.py:215
 msgid "This will be displayed to the shared users."
-msgstr ""
+msgstr "Questo verrà mostrato agli utenti condivisi."
 
 #: res/i18n/html_strings.py:216
 msgid "Access Rights"
-msgstr ""
+msgstr "Permessi Accesso"
 
 #: res/i18n/html_strings.py:217
 msgid "By default, the item will be previewed and downloadable"
-msgstr ""
+msgstr "Di default, l'elemento potrà essere visto in anteprima e scaricato"
 
 #: res/i18n/html_strings.py:218
 msgid "Preview"
-msgstr ""
+msgstr "Anteprima"
 
 #: res/i18n/html_strings.py:219
 msgid "Download"
@@ -1043,14 +1046,16 @@ msgid ""
 "Shared link to the selected item already exists. Below is the link to the "
 "selected item"
 msgstr ""
+"Esiste già un link condiviso per l'elemento selezionato. Sotto il link per "
+"l'elemento"
 
 #: res/i18n/html_strings.py:226
 msgid "New shared link to the selected item has been generated"
-msgstr ""
+msgstr "Un nuovo link condiviso per l'elemento è stato generato"
 
 #: res/i18n/html_strings.py:227
 msgid "Shared Link to the selected item has not been generated"
-msgstr ""
+msgstr "Link condiviso per l'elemento selezionato non generato"
 
 #: res/i18n/html_strings.py:228
 msgid "Copy to Clipboard"
@@ -1104,6 +1109,8 @@ msgstr "Autenticazione basata su Token fallita. Ricaricare le credenziali?"
 msgid ""
 "Token-based authentication seems unsupported, this may impact performances?"
 msgstr ""
+"L'autenticazione basata su Token sembra non essere supportata, questo può "
+"intaccare le performance?"
 
 #: sdkremote/exceptions.py:71
 #, python-format
@@ -1111,6 +1118,8 @@ msgid ""
 "[Quota limit reached] - You are using %(usage)s iMB of %(total)s iMB, you "
 "cannot upload %(filename)s %(filesize)s iMB"
 msgstr ""
+"[Limite quota raggiunto] - Stai utilizzando %(usage)s iMB of %(total)s iMB. "
+"Non puoi caricare %(filename)s %(filesize)s iMB"
 
 #: sdkremote/exceptions.py:76
 #, python-format
@@ -1124,6 +1133,8 @@ msgstr "Arresta processi"
 #: sdkremote/remote.py:165
 msgid "Cannot store tokens in keychain, there might be an OS permission issue!"
 msgstr ""
+"Impossibile salvare i token nel portachiavi. Dev'esserci un problema nei "
+"permessi dell'OS"
 
 #: sdkremote/remote.py:184
 msgid "Authentication Error"
@@ -1142,10 +1153,12 @@ msgid ""
 "Invalid JSON value received while getting remote changes. Is the server "
 "correctly configured?"
 msgstr ""
+"Valore JSON non valido durante la ricezione dei cambiamenti remoti. Il "
+"server è configurato correttamente?"
 
 #: sdkremote/remote.py:427
 msgid "Invalid JSON value received while getting remote changes"
-msgstr ""
+msgstr "Valore JSON non valido durante la ricezione dei cambiamenti remoti"
 
 #: sdkremote/remote.py:455 sdkremote/remote.py:502 sdkremote/remote.py:889
 #: sdkremote/remote.py:978 sdkremote/remote.py:1245
@@ -1159,26 +1172,28 @@ msgstr "File locale da caricare non trovato!"
 #: sdkremote/remote.py:733
 msgid "File not correct after upload (expected size was 0 bytes)"
 msgstr ""
+"File non corretto dopo il caricamento (la dimensione attesa era 0 byte)"
 
+# I think that the plural form is better here... Isn't?
 #: sdkremote/remote.py:788
 msgid "File beginning with a 'space' shouldn't be uploaded"
-msgstr ""
+msgstr "I file che iniziano con uno 'spazio' non dovrebbero essere caricati"
 
 #: sdkremote/remote.py:789
 msgid "File is incorrect after upload"
-msgstr ""
+msgstr "File non corretto dopo il caricamento"
 
 #: sdkremote/remote.py:849
 msgid "Original file was not found on server"
-msgstr ""
+msgstr "File originale non trovato sul server"
 
 #: sdkremote/remote.py:906 sdkremote/remote.py:996
 msgid "File not found after download"
-msgstr ""
+msgstr "File non trovato dopo lo scaricamento"
 
 #: sdkremote/remote.py:911
 msgid "File is not correct after download"
-msgstr ""
+msgstr "File non corretto dopo lo scaricamento"
 
 #: sdkremote/remote.py:931 sdkremote/remote.py:1014
 #, python-format
@@ -1187,15 +1202,15 @@ msgstr "Errore nello scaricamento del file: %s"
 
 #: ui/web_api.py:353
 msgid "Couldn't load your workspaces, check your server !"
-msgstr ""
+msgstr "Impossibile caricare i tuoi workspace. Controlla sul server!"
 
 #: ui/web_api.py:355
 msgid "Server not found (404), is it up and has it Pydio installed ?"
-msgstr ""
+msgstr "Server non trovato (404). È raggiungibile ed ha Pydio installato?"
 
 #: ui/web_api.py:357
 msgid "Authentication failed: please verify your login and password"
-msgstr ""
+msgstr "Autenticazione fallita: verifica login e password"
 
 #: ui/web_api.py:359
 msgid "Access to the server is forbidden"
