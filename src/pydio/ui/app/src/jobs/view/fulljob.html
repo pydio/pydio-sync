@@ -1,19 +1,19 @@
 <md-content class="md-padding">
     <div layout="row">
     <span flex></span>
-        <div style="padding:0 5px;">
+        <div style="padding:0 5px;" ng-if="!JC.selected.active">
             <i class="material-icons">play_arrow</i>
             <md-tooltip md-direction="bottom">
                 Start
             </md-tooltip>
         </div>
-        <div style="padding:0 5px;">
+        <div style="padding:0 5px;" ng-if="JC.selected.active">
             <i class="material-icons">pause</i>
             <md-tooltip md-direction="bottom">
                 Pause
             </md-tooltip>
         </div>
-        <div style="padding:0 5px;">
+        <div style="padding:0 5px;" ng-if="JC.selected.active">
             <!--<i class="fa fa-stop" aria-hidden="true"></i>-->
             <i class="material-icons">stop</i>
             <md-tooltip md-direction="bottom">
@@ -139,6 +139,5 @@
                 <md-button class="md-raised md-primary" onclick="alert('doSave');">SAVE</md-button>
         </div>
     </div>
-
-
+    <!-- DEBUG {{JC.selected}} -->
 </md-content>

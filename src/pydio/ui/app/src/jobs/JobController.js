@@ -38,7 +38,7 @@
     self.toggleList   = toggleSideNav;
     self.makeContact  = makeContact;
     self.newSyncTask = newSyncTask;
-
+    self.changeSelected = changeSelected;
     // Load all jobs
     self.syncing = jobService.syncing;
     self.history = jobService.history;
@@ -113,5 +113,10 @@
         $scope.showNewTask = !$scope.showNewTask;
     }
     window.onload = function (){ toggleSideNav(); }
+
+    function changeSelected(item){
+        self.selected = self.jobs[item];
+        $scope.showAllJobs = false;
+    }
   }
 })();

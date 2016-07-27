@@ -1,7 +1,7 @@
 <!--{{ showAllJobs }}-->
 <md-content>
     <md-list class="md-dense" flex>
-        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="item.active" ng-click="JC.selected = JC.jobs[$index]">
+        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="item.active" ng-click="JC.changeSelected($index)">
             <div layout="row">
                 <img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label}}" />
                 <div class="md-list-item-text" layout="column">
@@ -52,7 +52,7 @@
 <md-content>
     <md-subheader class="md-no-sticky">{{_('Disabled Tasks')}}</md-subheader>
         <md-list class="md-dense" flex>
-        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="!item.active" ng-click="JC.selected = JC.jobs[$index]; JC.toggleList()">
+        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="!item.active" ng-click="JC.changeSelected($index)">
             <div layout="row">
                 <img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label[0] + item.label[1]}}" />
                 <div class="md-list-item-text" layout="column">

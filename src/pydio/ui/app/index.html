@@ -82,7 +82,7 @@
         <md-sidenav  ng-click="JC.toggleList()" md-component-id="left" class="md-whiteframe-z2" >
           <md-list>
               <md-list-item>
-                  <md-button ng-init="showAllJobs = false" ng-click="showAllJobs = !showAllJobs" aria-label="Home"><i class="fa fa-home"></i></md-button>
+                  <md-button ng-init="showAllJobs = false" ng-click="showAllJobs=!showAllJobs; showGeneralSettings=false" aria-label="Home"><i class="fa fa-home"></i></md-button>
               </md-list-item>
               <md-list-item ng-repeat="it in JC.jobs" layout="row">
                   <md-button ng-click="JC.selectJob(it)" ng-class="{'selected' : it === JC.selected }" style="display: table;">
