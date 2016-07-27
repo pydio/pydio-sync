@@ -183,6 +183,10 @@ class ContinuousDiffMerger(threading.Thread):
     def handle_transfer_callback_event(self, sender, change):
         self.processing_signals[change['target']] = change
         self.global_progress["queue_bytesize"] -= change['bytes_sent']
+        # The following 3 lines are a dirty fix, only working for one file at a time size relaining... Better than NaN  
+        if self.global_progress["queue_bytesize"] < 0:
+            self.global_progress["queue_bytesize"] = abs(self.global_progress["queue_bytesize"])
+        self.global_progress["queue_bytesize"] = max(change['total_size'] - change['total_bytes_sent'], self.global_progress["queue_bytesize"])
         self.global_progress["queue_done"] += float(change['bytes_sent']) / float(change["total_size"])
 
     @pydio_profile
