@@ -51,10 +51,11 @@
                     </md-slider-container>
                 </div>
 
-                    <p class="small" style="margin-top:2%;">{{_('Date on which last update check happened')}}</p>
+                    <!-- OLD <p class="small" style="margin-top:2%;">{{_('Date on which last update check happened')}}</p> -->
                     <div class="input-group" style="text-align:left;">
                         <span class="input-group-addon">{{_('Last update check was on: ')}}</span><span class="input-group-addon"></span>
-                        <span class="input-group-addon">{{general_configs_data.update_info.last_update_date | date}}</span>
+                        <!-- OLD <span class="input-group-addon">{{general_configs_data.update_info.last_update_date | date}}</span>-->
+                        <md-datepicker ng-model="general_configs_data.update_info.last_update_date_FORMATTED" md-placeholder="Check date" disabled></md-datepicker>
                     </div>
             </div>
         </div>
@@ -127,21 +128,38 @@
             <div class="well">
                 <p  class="small">{{_('You can change the name of log file here.')}}</p>
                 <div class="input-group">
-                    <span class="input-group-addon" style="min-width:150px;">{{_('File Name')}}</span>
-                    <input type="text" ng-model="general_configs_data.log_configuration.log_file_name" class="form-control" >
+                    <!-- <span class="input-group-addon" style="min-width:150px;">{{_('File Name')}}</span>
+                     <input type="text" ng-model="general_configs_data.log_configuration.log_file_name" class="form-control">-->
+                    <md-input-container class="md-block" flex-gt-sm>
+                        <label>{{_('File Name')}}</label>
+                        <input ng-model="general_configs_data.log_configuration.log_file_name">
+                    </md-input-container>
                 </div>
 
                 <p class="small" style="margin-top:2%;">{{_('Limit the number of log files to be stored locally.')}}</p>
                 <div class="input-group">
-                    <span class="input-group-addon" style="min-width:150px;">{{_('Number of log files')}}</span>
-                    <input type="number" ng-model="general_configs_data.log_configuration.handlers.file.backupCount" class="form-control" min="0" max="1000000">
+                    <!--<span class="input-group-addon" style="min-width:150px;">{{_('Number of log files')}}</span>
+                    <input type="number" ng-model="general_configs_data.log_configuration.handlers.file.backupCount" class="form-control" min="0" max="1000000">-->
+                    <md-input-container class="md-block" flex-gt-sm>
+                        <label>{{_('Number of log files')}}</label>
+                        <input type="number" min="0" max="1000000" ng-model="general_configs_data.log_configuration.handlers.file.backupCount">
+                    </md-input-container>
                 </div>
 
                 <p class="small" style="margin-top:2%;">{{_('Set restrictions on log file size here.')}}</p>
-                <div class="input-group">
-                        <span class="input-group-addon" style="min-width:150px;">{{general_configs_data.log_configuration.handlers.file.maxBytes | bytes}}</span>
-                    <input type="number" ng-model="general_configs_data.log_configuration.handlers.file.maxBytes" class="form-control" min="0" max="1000000000000000">
-                </div>
+                    <!--<span class="input-group-addon" style="min-width:150px;">{{general_configs_data.log_configuration.handlers.file.maxBytes | bytes}}</span>
+                    <input type="number" ng-model="general_configs_data.log_configuration.handlers.file.maxBytes" class="form-control" min="0" max="1000000000000000">-->
+                    <md-input-container class="md-block" flex-gt-sm>
+                        <label>{{general_configs_data.log_configuration.handlers.file.maxBytes | bytes}}</label>
+                        <br >
+                        <md-slider-container>
+                        <md-icon>data_usage</md-icon>
+                        <md-slider ng-model="general_configs_data.log_configuration.handlers.file.maxBytes" min="100" max="1000000000" aria-label="Log file size" flex></md-slider>
+                        <md-input-container>
+                            <input type="number" min="100" max="1000000000000" ng-model="general_configs_data.log_configuration.handlers.file.maxBytes" aria-label="Log file size" aria-controls="Log file size">
+                        </md-input-container>
+                    </md-slider-container>
+                    </md-input-container>
 
                 <p class="small" style="margin-top:2%;">{{_('Enhance the log details as you need them.')}}</p>
                 <!-- TODO check that it works in other languages -->
@@ -185,8 +203,12 @@
         <h4 style="margin-top:10px;">{{_('Max wait time for local db access')}}</h4>
         <p>{{_('If you encounter database locked error try increasing this value')}}</p>
         <div class="input-group">
-            <span class="input-group-addon">{{_('Timeout in seconds')}}</span>
-            <input type="number" min="5" max="1000000" ng-model="general_configs_data.max_wait_time_for_local_db_access" class="form-control" >
+            <!--<span class="input-group-addon">{{_('Timeout in seconds')}}</span>
+            <input type="number" min="5" max="1000000" ng-model="general_configs_data.max_wait_time_for_local_db_access" class="form-control">-->
+            <md-input-container class="md-block" flex-gt-sm>
+                        <label>{{_('Timeout in seconds')}}</label>
+                        <input type="number" min="5" max="1000000" ng-model="general_configs_data.max_wait_time_for_local_db_access">
+            </md-input-container>
         </div>
         <h4 style="margin-top:10px;">{{_('Set Language')}}</h4>
         <p>{{_("If you don't want the system's language to be used, manually set it to something else")}}</p>
@@ -213,7 +235,7 @@
         <md-input-container layout="row">
             <span flex></span>
             <md-button ng-click="JC.toggleGeneralSettings()"><md-icon>keyboard_arrow_left</md-icon></md-button>
-            <md-button ng-click="SaveGeneralConfig()" class="md-raised md-primary">{{_('Update Settings')}}</md-button>
+            <md-button ng-click="SC.SaveGeneralConfig()" class="md-raised md-primary">{{_('Update Settings')}}</md-button>
         </md-input-container>
     </div>
 </div>

@@ -203,7 +203,7 @@ class GlobalConfigManager:
                 }
             },
             "update_info": {
-                "enable_update_check": "true",
+                "enable_update_check": "True",
                 "update_check_frequency_days": 1,
                 "last_update_date": 0
             },

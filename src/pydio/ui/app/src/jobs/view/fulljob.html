@@ -76,23 +76,31 @@
     </div>
 
     <div ng-if="currentNavItem == 'settings'">
-        <!--{{JC.selected}}-->
+        <!-- --
+        {{JC.selected}}
+        <!-- -->
         <md-input-container class="md-block" flex-gt-xs>
             <label>Remote Server</label>
             <input ng-model="JC.selected.server">
         </md-input-container>
-        <md-input-container class="md-block" flex-gt-xs>
-            <label>Login</label>
-            <input ng-model="JC.selected.user">
-        </md-input-container>
+        <div layout="row">
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Login</label>
+                <input ng-model="JC.selected.user">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Password</label>
+                <input type="password" ng-model="JC.selected.password">
+            </md-input-container>
+        </div>
         <div layout-gt-sm="row">
-        <md-input-container class="md-block" flex-gt-xs>
-            <label>Local Folder</label>
-            <input ng-model="JC.selected.directory">
-        </md-input-container>
-        <md-input-container class="md-block" flex-gt-xs>
-            <md-button>CHOOSE</md-button>
-        </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <label>Local Folder</label>
+                <input ng-model="JC.selected.directory">
+            </md-input-container>
+            <md-input-container class="md-block" flex-gt-xs>
+                <md-button>CHOOSE</md-button>
+            </md-input-container>
         </div>
         <div layout-gt-sm="row">
         <md-input-container class="md-block" flex-gt-xs>
