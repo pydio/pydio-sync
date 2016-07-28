@@ -23,15 +23,6 @@
         // Load the general config from agent (http://localhost:5556/general_configs)
         var general_configs_data = GeneralConfigs.query({},
             function (){
-                // patch the update status to a boolean instead of string
-                /* should be fixed now, delete me soon
-                if(typeof(general_configs_data.update_info.enable_update_check) === "string"){
-                    if(general_configs_data.update_info.enable_update_check === "true"){
-                        general_configs_data.update_info.enable_update_check = true;
-                    } else {
-                        general_configs_data.update_info.enable_update_check = false;
-                    }
-                } */
                 // patch the date to get a nice display
                 general_configs_data.update_info.last_update_date_FORMATTED = new Date(general_configs_data.update_info.last_update_date);
                 $scope.general_configs_data = general_configs_data;
