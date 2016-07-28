@@ -11,8 +11,6 @@
     <!-- <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'> -->
     <link rel="stylesheet" href="../node_modules/angular-material/angular-material.css"/>
     <link rel="stylesheet" href="assets/app.css"/>
-    <link rel="stylesheet" href="assets/font-awesome-4.6.3/css/font-awesome.min.css"/>
-
     <style type="text/css">
         /**
          * Hide when Angular is not yet loaded and initialized
@@ -94,8 +92,8 @@
                   </md-button>
               </md-list-item>
           </md-list>
-          <md-button class="md-fab md-mini" aria-label="Add Sync Task" style="margin-left: 80%;" ng-init="showNewTask=false" ng-click="JC.newSyncTask();">
-              <i class="fa fa-plus" aria-hidden="true"></i>
+          <md-button class="md-fab md-mini" aria-label="Add Sync Task" style="margin-left: 80%;" ng-init="showNewTask=false;" ng-click="JC.newSyncTask();">
+              <md-icon aria-hidden="true">add</md-icon>
           </md-button>
         </md-sidenav>
         <span ng-hide="showNewTask || showAllJobs || showGeneralSettings">

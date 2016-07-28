@@ -27,7 +27,7 @@
                 <md-icon md-svg-icon="{{jl.selected.avatar}}" class="avatar"></md-icon>
                 <div layout="column">
                     <h3>{{JC.selected.label}}</h3>
-                    <p>{{JC.selected.last_event.message}}</p>
+                    <p ng-if="JC.selected.last_event.message == 'Synchronized'"> <i class="material-icons" style="vertical-align: text-bottom;">check_circle</i>&nbsp;{{_('Synchronised')}}</p>
                 </div>
           </div>
           <!-- ><md-button class="share" md-no-ink ng-click="ul.makeContact(ul.selected)" aria-label="Share with {{ ul.selected.name }}">
@@ -76,18 +76,19 @@
     </div>
 
     <div ng-if="currentNavItem == 'settings'">
+        <!--{{JC.selected}}-->
         <md-input-container class="md-block" flex-gt-xs>
             <label>Remote Server</label>
-            <input ng-model="job.server">
+            <input ng-model="JC.selected.server">
         </md-input-container>
         <md-input-container class="md-block" flex-gt-xs>
             <label>Login</label>
-            <input ng-model="job.login">
+            <input ng-model="JC.selected.user">
         </md-input-container>
         <div layout-gt-sm="row">
         <md-input-container class="md-block" flex-gt-xs>
             <label>Local Folder</label>
-            <input ng-model="job.local_folder">
+            <input ng-model="JC.selected.directory">
         </md-input-container>
         <md-input-container class="md-block" flex-gt-xs>
             <md-button>CHOOSE</md-button>
@@ -96,7 +97,7 @@
         <div layout-gt-sm="row">
         <md-input-container class="md-block" flex-gt-xs>
             <label>Workspace</label>
-            <input ng-model="job.remote_workspace">
+            <input ng-model="JC.selected.workspace">
         </md-input-container>
         <md-input-container class="md-block" flex-gt-xs>
             <md-button>CHOOSE</md-button>
@@ -110,14 +111,11 @@
     </div>
     <div ng-if="currentNavItem == 'advanced'">
         <md-input-container class="md-block" flex-gt-xs>
-            <md-button class="md-raised md-warn">DELETE SYNC TASK</md-button>
-        </md-input-container>
-        <md-input-container class="md-block" flex-gt-xs>
             <h3>Synchronization Direction</h3>
             <p>
             By default, modifications from both sides (computer & server) are propagated to the other side.
             </p>
-            <md-radio-group ng-model="job.direction">
+            <md-radio-group ng-model="JC.selected.direction">
                 <md-radio-button value="up">Upload only (computer to server)</md-radio-button>
                 <md-radio-button value="bi">Bi-directional (default value)</md-radio-button>
                 <md-radio-button value="down">Download only (server to computer)</md-radio-button>
@@ -126,13 +124,18 @@
         <md-input-container class="md-block" flex-gt-xs>
             <h3>Synchronization Frequency</h3>
             <p>By default, changes are propagated in real-time, but for some usecases it can be handy to disable real-time and switch to less frequent checks.</p>
-            <md-radio-group ng-model="job.frequency">
+            <md-radio-group ng-model="JC.selected.frequency">
                 <md-radio-button value="auto">Automatically (real-time)</md-radio-button>
                 <md-radio-button value="manual">Manually (you trigger the sync)</md-radio-button>
                 <md-radio-button value="time">At a given time of day</md-radio-button>
                 <md-radio-button value="interval">Every x min</md-radio-button>
             </md-radio-group>
         </md-input-container>
+
+        <md-input-container class="md-block" flex-gt-xs>
+            <md-button class="md-raised md-warn">DELETE SYNC TASK</md-button>
+        </md-input-container>
+
         <div layout-gt-sm="row">
             <span flex></span>
                 <md-button onclick="alert('doRevert')">REVERT</md-button>

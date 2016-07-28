@@ -1,11 +1,16 @@
 <md-content ng-controller="SettingsController as SC" class="md-padding">
-<h1 class="generalConfigHeader" ng-value="GetGeneralConfigsDetails()">
-    {{_('General configurations page')}}
+<h1 class="generalConfigHeader" ng-value="GetGeneralConfigsDetails()" layout="row">
+    <div ng-show="!showAboutPage">
+    {{_('General configurations page')}}</div>
+    <div ng-show="showAboutPage">
+    {{_('About PydioSync')}}</div>
     <span flex></span>
-    <div class="pull-right">
+    <div>
         <md-button type="button" ng-click="showAboutPage=!showAboutPage;" class="md-raised">{{_('About')}}</md-button>
     </div>
     </h1>
+    <!--{{general_configs_data}}-->
+
 <div ng-hide="showAboutPage" ng-init="showAboutPage = false">
 
     <div  style="margin: 15% 1%;">
@@ -36,7 +41,14 @@
                 <p class="small" style="margin-top:2%;">{{_('Set the update check frequency (here 1 means update check only once a day, default value 0 means it check for update each time agent establishes a new connection with UI) ')}}</p>
                 <div class="input-group">
                     <span class="input-group-addon" >{{_('Update check frequency in days')}}</span>
-                    <input type="number" min="0" max="1000000" ng-model="general_configs_data.update_info.update_check_frequency_days" class="form-control" >
+                    <!--<input type="number" min="0" max="1000000" ng-model="general_configs_data.update_info.update_check_frequency_days" class="form-control" >-->
+                    <md-slider-container ng-disabled="!general_configs_data.update_info.enable_update_check">
+                        <md-icon>update</md-icon>
+                        <md-slider ng-model="general_configs_data.update_info.update_check_frequency_days" min="0" max="365" aria-label="Update frequency" flex></md-slider>
+                        <md-input-container>
+                            <input flex type="number" ng-model="general_configs_data.update_info.update_check_frequency_days" min="0" max="365" aria-label="Update frequency" aria-controls="Update frequency">
+                        </md-input-container>
+                    </md-slider-container>
                 </div>
 
                     <p class="small" style="margin-top:2%;">{{_('Date on which last update check happened')}}</p>
@@ -134,11 +146,10 @@
                 <p class="small" style="margin-top:2%;">{{_('Enhance the log details as you need them.')}}</p>
                 <!-- TODO check that it works in other languages -->
                 <md-radio-group layout="row" ng-model="general_configs_data.log_configuration.root.level">
-                  <md-radio-button value="Info" class="md-primary">{{_('Info')}}</md-radio-button>
-                  <md-radio-button value="Debug"> {{_('Debug')}} </md-radio-button>
-                  <md-radio-button value="Warning">{{_('Warning')}}</md-radio-button>
+                  <md-radio-button value="INFO" class="md-primary">{{_('Info')}}</md-radio-button>
+                  <md-radio-button value="DEBUG"> {{_('Debug')}} </md-radio-button>
+                  <md-radio-button value="WARNING">{{_('Warning')}}</md-radio-button>
                 </md-radio-group>
-                <p>DEBUG selected Value: <span class="radioValue">{{ general_configs_data.log_configuration.root.level }}</span> </p>
                 <!-- OLD STUFF
                 <div>
                     <div class="advanced_radio_box"
@@ -194,9 +205,16 @@
         </div>
     </div>
     </div>
-    <div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: center; background-color: #77b8e2;">
-    <a href="#" title="Cancel"><span class="glyphicon glyphicon-arrow-left" style="color: white;font-size: 27px;position: absolute;left: 10px;top: 13px;"></span></a>
-    <md-button type="button" ng-click="SaveGeneralConfig()" class="btn btn-info" style="width: 40%;margin:0 1%;">{{_('Update Settings')}}</md-button>
+    <!-- OLD <div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: center; background-color: #77b8e2;">
+        <a href="#" title="Cancel"><md-icon>keyboard_arrow_left</md-icon></a>
+        <md-button ng-click="SaveGeneralConfig()" class="btn btn-info" style="width: 40%;margin:0 1%;">{{_('Update Settings')}}</md-button>
+    </div> -->
+    <div  class="navbar-inverse navbar-fixed-bottom">
+        <md-input-container layout="row">
+            <span flex></span>
+            <md-button ng-click="JC.toggleGeneralSettings()"><md-icon>keyboard_arrow_left</md-icon></md-button>
+            <md-button ng-click="SaveGeneralConfig()" class="md-raised md-primary">{{_('Update Settings')}}</md-button>
+        </md-input-container>
     </div>
 </div>
 

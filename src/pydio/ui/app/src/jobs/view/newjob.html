@@ -64,13 +64,13 @@
     </div>
 
     <div ng-show="step === 'step4'">
-        {{step}}
-        <p>Sync is now ready to launch: please verify the parameters and click on start. You can change these parameters later as well.</p>
         <md-card>
             <md-card-header>
                 <md-card-avatar>
                     <!--<i class="fa fa-menu" aria-hidden="true"></i>-->
                     <i class="material-icons" aria-hidden="true">list</i>
+                    <p>{{_('Sync is now ready to launch: please verify the parameters and click on start. You can change these parameters later as well.')}}</p>
+
                 </md-card-avatar>
                 <md-card-header-text>
                     <span class="md-title">{{NJC.job.label}}</span>
@@ -114,7 +114,7 @@
                     </md-input-container>
                 </div>
                 <center>
-                    <md-button md-no-ink>DISPLAY ADVANCED PARAMETERS</md-button>
+                    <md-button md-no-ink>{{_('DISPLAY ADVANCED PARAMETERS')}}</md-button>
                 </center>
             </md-card-content>
         </md-card>

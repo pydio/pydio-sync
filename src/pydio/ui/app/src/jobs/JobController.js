@@ -39,6 +39,8 @@
     self.makeContact  = makeContact;
     self.newSyncTask = newSyncTask;
     self.changeSelected = changeSelected;
+    self.toggleGeneralSettings = toggleGeneralSettings;
+
     // Load all jobs
     self.syncing = jobService.syncing;
     self.history = jobService.history;
@@ -109,14 +111,28 @@
     }
     jobService.currentNavItem = 'history';
     function newSyncTask(){
-        $log.debug('test');
         $scope.showNewTask = !$scope.showNewTask;
+        $scope.showAllJobs = false;
+        $scope.showGeneralSettings = false;
     }
-    window.onload = function (){ toggleSideNav(); }
+    window.onload = function (){
+        //toggleSideNav();
+        if ($scope.jobs.length == 1)
+            changeSelected(0);
+        else $scope.showAllJobs = true;
+    }
 
+    /**
+        $scope toggles, bad practice probably
+    */
     function changeSelected(item){
         self.selected = self.jobs[item];
-        $scope.showAllJobs = false;
+        if($scope.showAllJobs)
+            $scope.showAllJobs = false;
+    }
+
+    function toggleGeneralSettings(){
+        $scope.showGeneralSettings = !$scope.showGeneralSettings;
     }
   }
 })();
