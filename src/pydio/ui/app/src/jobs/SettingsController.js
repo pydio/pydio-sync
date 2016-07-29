@@ -32,7 +32,7 @@
         function SaveGeneralConfig() {
             delete general_configs_data.update_info.last_update_date_FORMATTED; // "unpatch" the date
             general_configs_data.$save();
-            if (typeof($scope.ui_config) !== "undefined"){
+            if (typeof($scope.ui_config) !== "undefined"){ // TODO: check proxy congig is still working
                 if($scope.ui_config.login_mode === 'alias') {
                     // if proxy part is not really modified, then don't update the existing proxy settings
                     if( ($scope.proxies.http.url != "" && $scope.proxies.https.url != "") && (
