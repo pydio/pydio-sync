@@ -80,6 +80,7 @@
     function selectUser ( user ) {
       $scope.showAllJobs = false;
       self.selected = angular.isNumber(user) ? $scope.jobs[user] : user;
+      $scope.selected = self.selected; // hack to pass info around...
     }
 
     /**
@@ -126,9 +127,7 @@
         $scope toggles, bad practice probably
     */
     function changeSelected(item){
-        self.selected = self.jobs[item];
-        if($scope.showAllJobs)
-            $scope.showAllJobs = false;
+        selectUser(item);
     }
 
     function toggleGeneralSettings(){
