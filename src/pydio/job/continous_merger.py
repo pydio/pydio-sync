@@ -135,7 +135,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.watcher_first_run = True
         # TODO: TO BE LOADED FROM CONFIG
         self.storage_watcher = job_config.label.startswith('LSYNC')
-
+        self.wait_for_changes = False  # True when no changes detected in last cycle, can be used to disable websockets
         self.marked_for_snapshot_pathes = []
         self.processing = False  # indicates whether changes are being processed
 
@@ -501,6 +501,7 @@ class ContinuousDiffMerger(threading.Thread):
                     self.processing = False
                     logging.info('No changes detected in ' + self.job_config.id)
                     self.update_min_seqs_from_store()
+                    self.wait_for_changes = True
                     self.exit_loop_clean(self.logger)
                     very_first = False
                     #logging.info("CheckSync of " + self.job_config.id)
@@ -769,8 +770,25 @@ class ContinuousDiffMerger(threading.Thread):
     @pydio_profile
     def load_remote_changes_in_store(self, seq_id, store):
         last_seq = self.sdk.changes_stream(seq_id, store.flatten_and_store)
-        """try:
-            self.sdk.websocket_send()
-        except Exception as e:
-            logging.exception(e)"""
+        if self.wait_for_changes:
+            timereq = time.time()
+            try:
+                if self.sdk.waiter is None:
+                    self.sdk.websocket_connect(last_seq, str(self.job_config.id))
+
+                if self.sdk.waiter and self.sdk.waiter.ws.connected:
+                    self.sdk.waiter.should_fetch_changes = False
+                    while not self.sdk.waiter.should_fetch_changes and not self.interrupt:
+                        time.sleep(2)
+                        # these break only after one run
+                        if self.local_seq != self.db_handler.get_max_seq():
+                            # There was a local change
+                            break
+                        if not self.sdk.waiter.ws.connected:
+                            # websocket disconnected
+                            break
+            except Exception as e:
+                logging.exception(e)
+            if time.time() - timereq > 10:  # if last_seq was updated more than 10s ago, update it
+                last_seq = self.sdk.changes_stream(seq_id, store.flatten_and_store)
         return last_seq
