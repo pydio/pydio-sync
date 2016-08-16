@@ -137,3 +137,11 @@ span.name {
 .alljob-divider {
     left: 100px !important;
 }
+
+.change-history-icon {
+    vertical-align: text-bottom;
+    color: rgb(80, 80, 80);
+}
+.history-more-info{
+    padding: 20px;
+}

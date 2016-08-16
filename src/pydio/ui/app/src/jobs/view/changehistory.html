@@ -14,28 +14,34 @@
             </md-list>
         </md-content>
         <md-content flex layout-padding>
-            <md-list class="md-dense" flex>
+            <md-list class="md-dense">
                 <md-subheader class="md-no-sticky">{{_('Last synchronized files')}}</md-subheader>
-                <md-list-item class="md-3-line" ng-repeat="item in logs">
+                <md-list-item class="md-1-line" ng-repeat="item in logs" ng-if="item.type != 'sync'">
                     <!--<img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.filename}}" />-->
-                    <div class="md-list-item-text" layout="column">
-                        <h3>{{ item.filename }}</h3>
-                        <!--<h4>{{ item.what }}</h4>-->
-                        <p>{{ item.notes }}</p>
-                        <p>{{ item.message }}</p>
-                        <p>{{ item.status }}</p>
+                    <div class="md-list-item-text" layout="row">
+                        <!--<h3>{{ item.filename }}</h3>
+                        <h4>{{ item.what }}</h4>
+                        <p>{{ item.notes }}</p>-->
+                        <span ng-click="showChangeDetails(item, $event)" style="cursor: pointer;">
+                            <md-tooltip md-direction="right">
+                                    <md-icon>history</md-icon>
+                                    <span> &nbsp; {{ item.date | thedatefilter }}</span>
+                            </md-tooltip>
+                            <i class="material-icons change-history-icon" ng-if="item.type == 'remote'">cloud_upload</i> <!--file_upload-->
+                            <i class="material-icons change-history-icon" ng-if="item.type == 'local'">cloud_download</i> <!--file_download-->
+                            &nbsp;
+                            {{ item.message }}
+                        </span>
+                        <md-icon class="md-secondary" ng-click="openFile(item, $event)">open_in_new</md-icon>
+                        <!--<p>{{ item.status }}</p>-->
                     </div>
                 </md-list-item>
             </md-list>
         </md-content>
-    a
-    --
+    <!--
     {{ selected }}
-    __
-    --
     {{logs}}
-    <md-button ng-click="hc.loadLogs()">Yolo</md-button>
-
+    -->
 
 <p ng-if="running.tasks.total" class="lead">Currently processing {{running.tasks.total}} tasks ({{running.global|number:0}}% completed)</p>
 <table ng-if="running.tasks.total" class="table">
@@ -92,7 +98,7 @@
         </tbody>
     </table>
 </div>
-
+<!--
 <h4>Logs</h4>
 <p class="lead">Previous operations</p>
 <table class="table">
@@ -117,3 +123,4 @@
     </tbody>
 </table>
 </div>
+-->

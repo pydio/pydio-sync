@@ -1,19 +1,19 @@
 <md-content class="md-padding">
     <div layout="row">
     <span flex></span>
-        <div style="padding:0 5px;" ng-if="!JC.selected.active">
+        <div style="padding:0 5px;" ng-show="!JC.selected.active" ng-click="applyCmd('enable');">
             <i class="material-icons">play_arrow</i>
             <md-tooltip md-direction="bottom">
                 Start
             </md-tooltip>
         </div>
-        <div style="padding:0 5px;" ng-if="JC.selected.active">
+        <div style="padding:0 5px;" ng-show="JC.selected.active">
             <i class="material-icons">pause</i>
             <md-tooltip md-direction="bottom">
                 Pause
             </md-tooltip>
         </div>
-        <div style="padding:0 5px;" ng-if="JC.selected.active">
+        <div style="padding:0 5px;" ng-show="JC.selected.active" ng-click="applyCmd('disable'); JC.showJobs()">
             <!--<i class="fa fa-stop" aria-hidden="true"></i>-->
             <i class="material-icons">stop</i>
             <md-tooltip md-direction="bottom">
@@ -24,10 +24,13 @@
 
     <md-content flex id="content">
           <div layout="row">
-                <md-icon md-svg-icon="{{jl.selected.avatar}}" class="avatar"></md-icon>
+                <!--<md-icon md-svg-icon="{{jl.selected.avatar}}" class="avatar"></md-icon>-->
+                <md-button class="md-fab md-primary alljob-control" aria-label="dummy" ng-disabled="true">
+                    {{ JC.selected.workspace | twoLetters }}
+                </md-button>
                 <div layout="column">
                     <h3>{{JC.selected.label}}</h3>
-                    <p ng-if="JC.selected.last_event.message == 'Synchronized'"> <i class="material-icons" style="vertical-align: text-bottom;">check_circle</i>&nbsp;{{_('Synchronised')}}</p>
+                    <p ng-if="JC.selected.last_event.message == 'Synchronized'"> <i class="material-icons" style="vertical-align: middle;font-size:15px;">check_circle</i>&nbsp;{{_('Synchronised')}}</p>
                 </div>
           </div>
           <!-- ><md-button class="share" md-no-ink ng-click="ul.makeContact(ul.selected)" aria-label="Share with {{ ul.selected.name }}">
@@ -37,9 +40,9 @@
     </md-content>
     <!-- NAVBAR -->
     <md-nav-bar md-selected-nav-item="currentNavItem"  ng-init="currentNavItem= 'history'" nav-bar-aria-label="navigation links">
-        <md-nav-item md-nav-click="goto('history')" name="history">LAST ACTIONS</md-nav-item>
-      <md-nav-item md-nav-click="goto('settings')" name="settings">SETTINGS</md-nav-item>
-      <md-nav-item md-nav-click="goto('advanced')" name="advanced">ADVANCED</md-nav-item>
+        <md-nav-item md-nav-click="goto('history')" name="history">{{_('LAST ACTIONS')}}</md-nav-item>
+      <md-nav-item md-nav-click="goto('settings')" name="settings">{{_('SETTINGS')}}</md-nav-item>
+      <md-nav-item md-nav-click="goto('advanced')" name="advanced">{{_('ADVANCED')}}</md-nav-item>
       <!-- these require actual routing with ui-router or ng-route, so they won't work in the demo
       <md-nav-item md-nav-sref="app.page4" name="page4">Page Four</md-nav-item>
       <md-nav-item md-nav-href="#page5" name="page5">Page Five</md-nav-item>
@@ -55,74 +58,74 @@
         {{JC.selected}}
         <!-- -->
         <md-input-container class="md-block" flex-gt-xs>
-            <label>Remote Server</label>
+            <label>{{_('Remote Server')}}</label>
             <input ng-model="JC.selected.server">
         </md-input-container>
         <div layout="row">
             <md-input-container class="md-block" flex-gt-xs>
-                <label>Login</label>
+                <label>{{_('Login')}}</label>
                 <input ng-model="JC.selected.user">
             </md-input-container>
             <md-input-container class="md-block" flex-gt-xs>
-                <label>Password</label>
+                <label>{{_('Password')}}</label>
                 <input type="password" ng-model="JC.selected.password">
             </md-input-container>
         </div>
         <div layout-gt-sm="row">
             <md-input-container class="md-block" flex-gt-xs>
-                <label>Local Folder</label>
+                <label>{{_('Local Folder')}}</label>
                 <input ng-model="JC.selected.directory">
             </md-input-container>
             <md-input-container class="md-block" flex-gt-xs>
-                <md-button>CHOOSE</md-button>
+                <md-button>{{_('CHOOSE')}}</md-button>
             </md-input-container>
         </div>
         <div layout-gt-sm="row">
         <md-input-container class="md-block" flex-gt-xs>
-            <label>Workspace</label>
+            <label>{{_('Workspace')}}</label>
             <input ng-model="JC.selected.workspace">
         </md-input-container>
         <md-input-container class="md-block" flex-gt-xs>
-            <md-button>CHOOSE</md-button>
+            <md-button>{{_('CHOOSE')}}</md-button>
         </md-input-container>
         </div>
         <div layout-gt-sm="row">
                 <span flex></span>
-                <md-button>REVERT</md-button>
-                <md-button class="md-raised md-primary">SAVE</md-button>
+                <md-button>{{_('REVERT')}}</md-button>
+                <md-button class="md-raised md-primary">{{_('SAVE')}}</md-button>
         </div>
     </div>
     <div ng-if="currentNavItem == 'advanced'">
         <md-input-container class="md-block" flex-gt-xs>
-            <h3>Synchronization Direction</h3>
+            <h3>{{_('Synchronization Direction')}}</h3>
             <p>
-            By default, modifications from both sides (computer & server) are propagated to the other side.
+            {{_('By default, modifications from both sides (computer & server) are propagated to the other side.')}}
             </p>
             <md-radio-group ng-model="JC.selected.direction">
-                <md-radio-button value="up">Upload only (computer to server)</md-radio-button>
-                <md-radio-button value="bi">Bi-directional (default value)</md-radio-button>
-                <md-radio-button value="down">Download only (server to computer)</md-radio-button>
+                <md-radio-button value="up">{{_('Upload only (computer to server)')}}</md-radio-button>
+                <md-radio-button value="bi">{{_('Bi-directional (default value)')}}</md-radio-button>
+                <md-radio-button value="down">{{_('Download only (server to computer)')}}</md-radio-button>
             </md-radio-group>
         </md-input-container>
         <md-input-container class="md-block" flex-gt-xs>
-            <h3>Synchronization Frequency</h3>
-            <p>By default, changes are propagated in real-time, but for some usecases it can be handy to disable real-time and switch to less frequent checks.</p>
+            <h3>{{_('Synchronization Frequency')}}</h3>
+            <p>{{_('By default, changes are propagated in real-time, but for some usecases it can be handy to disable real-time and switch to less frequent checks.')}}</p>
             <md-radio-group ng-model="JC.selected.frequency">
-                <md-radio-button value="auto">Automatically (real-time)</md-radio-button>
-                <md-radio-button value="manual">Manually (you trigger the sync)</md-radio-button>
-                <md-radio-button value="time">At a given time of day</md-radio-button>
-                <md-radio-button value="interval">Every x min</md-radio-button>
+                <md-radio-button value="auto">{{_('Automatically (real-time)')}}</md-radio-button>
+                <md-radio-button value="manual">{{_('Manually (you trigger the sync)')}}</md-radio-button>
+                <md-radio-button value="time">{{_('At a given time of day')}}</md-radio-button>
+                <md-radio-button value="interval">{{_('Every x min')}}</md-radio-button>
             </md-radio-group>
         </md-input-container>
 
         <md-input-container class="md-block" flex-gt-xs>
-            <md-button class="md-raised md-warn">DELETE SYNC TASK</md-button>
+            <md-button class="md-raised md-warn">{{_('DELETE SYNC TASK')}}</md-button>
         </md-input-container>
 
         <div layout-gt-sm="row">
             <span flex></span>
-                <md-button onclick="alert('doRevert')">REVERT</md-button>
-                <md-button class="md-raised md-primary" onclick="alert('doSave');">SAVE</md-button>
+                <md-button onclick="alert('doRevert')">{{_('REVERT')}}</md-button>
+                <md-button class="md-raised md-primary" onclick="alert('doSave');">{{_('SAVE')}}</md-button>
         </div>
     </div>
     <!-- DEBUG {{JC.selected}} -->

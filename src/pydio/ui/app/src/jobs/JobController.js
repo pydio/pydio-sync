@@ -17,8 +17,32 @@
             return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
         }
         })
+       .filter('twoLetters', function(){
+            // Fancy two letter somewhat random extractor my-files -> MF
+            return function(input){
+                if(typeof(input) === "undefined")
+                    return "?¿"
+                var output;
+                var pos = input.indexOf('-')
+                if ( pos > -1 && input.length > pos+1){
+                    output = (input[0] + input[pos+1]).toUpperCase()
+                } else {
+                    if (input.length >= 2)
+                        output = input.substr(0, 2).toUpperCase()
+                    else
+                        output = input.substr(0, 2).toUpperCase()
+                }
+                return output
+            }
+       })
+       .factory('Commands', ['$resource',
+            function($resource){
+                return $resource('/cmd/:cmd/:job_id', {}, {
+                    query: {method:'GET', params:{job_id:''}, isArray:true}
+                });
+            }])
        .controller('JobController', [
-          'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', 'Jobs',
+          'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', 'Jobs', 'Commands',
           JobController
        ])
 
@@ -29,12 +53,12 @@
    * @param avatarsService
    * @constructor
    */
-  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, Jobs ) {
+  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, Jobs, Commands ) {
     $scope._ = window.translate;
     var self = this;
 
     self.selected     = null;
-    self.selectJob   = selectUser;
+    self.selectJob   = selectJob;
     self.toggleList   = toggleSideNav;
     self.makeContact  = makeContact;
     self.newSyncTask = newSyncTask;
@@ -77,12 +101,14 @@
      * Select the current avatars
      * @param menuId
      */
-    function selectUser ( user ) {
+    function selectJob ( user ) {
       $scope.showAllJobs = false;
       self.selected = angular.isNumber(user) ? $scope.jobs[user] : user;
       $scope.selected = self.selected; // hack to pass info around...
     }
-
+    self.showJobs = function(){
+        $scope.showAllJobs = true;
+    }
     /**
      * Show the Contact view in the bottom sheet
      */
@@ -127,11 +153,19 @@
         $scope toggles, bad practice probably
     */
     function changeSelected(item){
-        selectUser(item);
+        selectJob(item);
     }
 
     function toggleGeneralSettings(){
         $scope.showGeneralSettings = !$scope.showGeneralSettings;
+    }
+
+    $scope.applyCmd = function(cmd){
+        Commands.query({cmd:cmd, job_id:$scope.selected.id}, function(){
+            var newJobs = Jobs.query({}, function(){
+                $scope.jobs = newJobs;
+            });
+        });
     }
   }
 })();

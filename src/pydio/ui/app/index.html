@@ -70,7 +70,7 @@
           <i class="material-icons" style="padding-top: 25px" ng-click="showGeneralSettings = !showGeneralSettings">settings</i>
           <!--<i class="fa fa-cog" style="padding-top: 25px;" ng-click="showGeneralSettings = !showGeneralSettings; "></i>-->
           <md-tooltip md-direction="bottom">
-              General Settings
+              {{_('General Settings')}}
           </md-tooltip>
       </div>
     </md-toolbar>
@@ -85,7 +85,7 @@
               <md-list-item ng-repeat="it in JC.jobs" layout="row">
                   <md-button ng-click="JC.selectJob(it)" ng-class="{'selected' : it === JC.selected }" style="display: table;">
                     <div style="display: table-cell">
-                        <i style="vertical-align: middle;" class="material-icons" ng-if="it.state.global.queue_done == 0">check_circle</i>
+                        <i style="vertical-align: middle; font-size:17px;" class="material-icons" ng-if="it.state.global.queue_done == 0">check_circle</i>
                         <md-progress-circular ng-if="it.state.global.queue_done > 0" md-mode="determinate" value="{{it.state.global.queue_done}}" md-diameter="30" style="display: table-cell;"></md-progress-circular>
                     </div>
                     <div style="display: table-cell;  padding-left: 10px;">{{it.label}}</div>
