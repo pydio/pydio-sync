@@ -62,7 +62,8 @@ class ChangeHistory():
         self.job_config = job_config
 
     def insert_change(self, change):
-        self.cursor.execute("INSERT INTO changes (seq_id, node_path, location, type, source, target, content, md5,"
+        if change is not None:
+            self.cursor.execute("INSERT INTO changes (seq_id, node_path, location, type, source, target, content, md5,"
                               " bytesize, status, last_try) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                               (change.change['row_id'], change.change['node']['node_path'], change.change['location'], change.change['type'],
                               change.change['source'], change.change['target'], change.change['content'],
