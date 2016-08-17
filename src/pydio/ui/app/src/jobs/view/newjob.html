@@ -1,78 +1,98 @@
 <md-content ng-controller="NewJobController as NJC" class="md-padding" ng-init="step='step1'">
+    <md-progress-linear md-mode="indeterminate" ng-show="loading"></md-progress-linear>
     <md-toolbar md-scroll-shrink>
-        <div class="md-toolbar-tools">Create a new Synchronization</div>
+        <div class="md-toolbar-tools">{{_('Create a new Synchronization')}}</div>
     </md-toolbar>
-    <div ng-show="step === 'step1'">
-        <h3>1. Configure Connection</h3>
-        <p>Connectez vous au serveur avec la même URL que celle que vous utilisez pour accéder à Pydio via un navigateur web, par exemple http://mondomaine.com/pydio</p>
+    <md-content ng-show="step === 'step1'" layout-padding>
+        <h3>{{_('1. Configure Connection')}}</h3>
+        <p>{{_('Connectez vous au serveur avec la même URL que celle que vous utilisez pour accéder à Pydio via un navigateur web, par exemple http://mondomaine.com/pydio')}}</p>
         <div layout-padding ng-cloak>
           <md-content class="md-no-momentum">
             <md-input-container class="md-icon-float md-block">
               <!-- Use floating label instead of placeholder -->
               <!--<label><i class="fa fa-server" aria-hidden="true"></i> Remote Server</label>-->
-              <label><i class="material-icons" aria-hidden="true">dns</i> Remote Server</label>
+              <label><i class="material-icons" aria-hidden="true">dns</i>&nbsp;{{_('Remote Server')}}</label>
               <input ng-model="NJC.job.server" type="text"/>
             </md-input-container>
             </md-content>
             <md-content layout-gt-sm="row" layout-padding>
                   <md-input-container>
                       <!--<label><i class="fa fa-user" aria-hidden="true"></i> Login</label>-->
-                      <label><i class="material-icons" aria-hidden="true">account_circle</i> Login</label>
+                      <label><i class="material-icons" aria-hidden="true">account_circle</i>&nbsp;{{_('Login')}}</label>
                     <input ng-model="NJC.job.user"/>
                   </md-input-container>
                   <md-input-container>
                       <!--<label><i class="fa fa-lock" aria-hidden="true"></i> Password</label>-->
-                      <label><i class="material-icons" aria-hidden="true">lock</i> Password</label>
+                      <label><i class="material-icons" aria-hidden="true">lock</i>&nbsp;{{_('Password')}}</label>
                     <input ng-model="NJC.job.password" type="password"/>
                   </md-input-container>
             </md-content>
-            <p ng-click="NJC.showURLTip($event)">Tip: how do I find my server URL?</p>
+            <p ng-click="NJC.showURLTip($event)">{{_('Tip: how do I find my server URL?')}}</p>
         </div>
         <!--{{showNewTask}} {{NJC}} -->
-            <md-content layout-gt-sm="row" layout-padding>
-                <md-button ng-click="JC.newSyncTask();">CANCEL</md-button>
-                <md-button class="md-primary" ng-click="step='step2'">CONNECT</md-button>
+            <md-content layout="row">
+                <span flex></span>
+                <md-content layout="column">
+                    <md-checkbox ng-model="NJC.job.trust_ssl" ng-init="NJC.job.trust_ssl = false" aria-label="SSL">
+                        {{_('Bypass SSL certificate verification.')}}
+                    </md-checkbox>
+                    <md-content layout="row">
+                        <md-button ng-click="JC.newSyncTask();">{{_('CANCEL')}}</md-button>
+                        <md-button class="md-primary" ng-click="NJC.loadWorkspaces()">{{_('CONNECT')}}</md-button>
+                    </md-content>
+                </md-content>
             </md-content>
-    </div>
-    <div ng-show="step === 'step2'">
-        <h3>2. Select a workspace</h3>
-        <p>Welcome, you are now connected to Pydio Corprodate (http://server.pydio.com/)! Please pick a workspace and eventually a sub-folder that will be synced to your local computer.</p>
-        <h4>Your workspaces</h4>
+    </md-content>
+    <div ng-show="step === 'step2'" layout-padding>
+        <h3>{{_('2. Select a workspace')}}</h3>
+        <p>{{_('Welcome, you are now connected to Pydio Corporate (http://server.pydio.com/)! Please pick a workspace and eventually a sub-folder that will be synced to your local computer.')}}</p>
+        <!--<md-autocomplete
+                placeholder="{{_('Choose a workspace')}}"
+                md-items="item in NJC.job.repositories"
+                md-item-text="item.label"
+        ></md-autocomplete>-->
+        <md-input-container style="margin-top: 50px">
+            <label>{{_('Choose a workspace')}}</label>
+            <md-select ng-model="NJC.job.workspace" style="min-width:242px">
+              <md-optgroup label="Workspaces">
+                <md-option ng-value="item" ng-repeat="item in NJC.job.repositories">{{item.label}}</md-option>
+              </md-optgroup>
+            </md-select>
+      </md-input-container>
         <br>
-        LIST
-        <br>
-        <md-content layout-gt-sm="row" layout-padding>
-            <md-button ng-click="step='step1'">&lt; BACK</md-button>
-            <md-button class="md-primary" ng-click="step='step3'">NEXT &gt;</md-button>
+        <md-content layout="row" layout-padding>
+            <span flex></span>
+            <md-button ng-click="step='step1'">&lt; {{_('BACK')}}</md-button>
+            <md-button class="md-primary" ng-click="step='step3'">{{_('NEXT')}} &gt;</md-button>
         </md-content>
     </div>
-    <div ng-show="step === 'step3'">
-        <h3>3. Select a local folder</h3>
-        <p>The content of My Files / Subfolder will be synced against the following folder on your computer. It will be created by default, or you can change its location.</p>
+    <div ng-show="step === 'step3'" layout-padding>
+        <h3>{{_('3. Select a local folder')}}</h3>
+        <p>{{_('The content of My Files / Subfolder will be synced against the following folder on your computer. It will be created by default, or you can change its location.')}}</p>
         <md-content layout-gt-sm="row" layout-padding>
               <md-input-container>
                   <!--<label><i class="fa fa-folder" aria-hidden="true"></i> Local Folder</label>-->
-                  <label><i class="material-icons" aria-hidden="true">folder</i> Local Folder</label>
+                  <label><i class="material-icons" aria-hidden="true">folder</i>&nbsp;{{_('Local Folder')}}</label>
                 <input ng-model="NJC.job.local_folder">
               </md-input-container>
-            <md-button ng-click="step='step3'">CHANGE</md-button>
+            <md-button ng-click="NJC.showFolderPicker($event)">{{_('CHANGE')}}</md-button>
         </md-content>
-        <md-content layout-gt-sm="row" layout-padding>
+        <md-content layout="row" layout-padding>
+            <span flex></span>
             <md-button ng-click="step='step2'">&lt;</md-button>
-            <md-button class="md-primary" ng-click="step='step4'">REVIEW PARAMETERS</md-button>
+            <md-button class="md-primary" ng-click="step='step4'">{{_('REVIEW PARAMETERS')}}</md-button>
         </md-content>
     </div>
 
-    <div ng-show="step === 'step4'">
+    <div ng-show="step === 'step4'" layout-padding>
         <md-card>
             <md-card-header>
                 <md-card-avatar>
                     <!--<i class="fa fa-menu" aria-hidden="true"></i>-->
                     <i class="material-icons" aria-hidden="true">list</i>
-                    <p>{{_('Sync is now ready to launch: please verify the parameters and click on start. You can change these parameters later as well.')}}</p>
-
                 </md-card-avatar>
                 <md-card-header-text>
+                    <p>{{_('Sync is now ready to launch: please verify the parameters and click on start. You can change these parameters later as well.')}}</p>
                     <span class="md-title">{{NJC.job.label}}</span>
                     <span class="md-subhead">{{NJC.job.remote_workspace}}</span>
                 </md-card-header-text>
@@ -92,24 +112,28 @@
             -->
             <md-card-content>
                 <md-input-container class="md-block" flex-gt-xs>
-                    <label>Remote Server</label>
+                    <label>{{_('Remote Server')}}</label>
                     <input ng-model="NJC.job.remote_folder" disabled>
                 </md-input-container>
                 <md-input-container class="md-block" flex-gt-xs>
-                    <label>Remote Workspace</label>
-                    <input ng-model="NJC.job.workspace" disabled>
+                    <label>{{_('Remote Workspace')}}</label>
+                    <input ng-model="NJC.job.workspace.label" disabled>
                 </md-input-container>
                 <md-input-container class="md-block" flex-gt-xs>
-                    <label>Local Folder</label>
+                    <label>{{_('Local Folder')}}</label>
                     <input ng-model="NJC.job.local_folder" disabled>
                 </md-input-container>
                 <div layout-gt-sm="row">
                     <md-input-container class="md-block" flex-gt-xs>
-                        <label>Data Size</label>
+                        <label>{{_('Data Local')}}</label>
                         <input ng-model="NJC.job.total_size" disabled>
                     </md-input-container>
                     <md-input-container class="md-block" flex-gt-xs>
-                        <label>Estimated Time</label>
+                        <label>{{_('Data Remote')}}</label>
+                        <input ng-model="NJC.job.total_size" disabled>
+                    </md-input-container>
+                    <md-input-container class="md-block" flex-gt-xs>
+                        <label>{{_('Estimated Time')}}</label>
                         <input ng-model="NJC.job.eta" disabled>
                     </md-input-container>
                 </div>
@@ -118,9 +142,10 @@
                 </center>
             </md-card-content>
         </md-card>
-        <md-content layout-gt-sm="row" layout-padding>
-            <md-button ng-click="step='step2'">&lt; BACK</md-button>
-            <md-button class="md-raised md-primary" ng-click="step='step4'">SAVE AND LAUNCH</md-button>
+        <md-content layout="row" md-layout="padding">
+            <span flex></span>
+            <md-button ng-click="step='step2'">&lt; {{_('BACK')}}</md-button>
+            <md-button class="md-raised md-primary" ng-click="step='step4'">{{_('SAVE AND LAUNCH')}}</md-button>
         </md-content>
 
     </div>

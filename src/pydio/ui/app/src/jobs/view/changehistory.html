@@ -24,7 +24,7 @@
                         <p>{{ item.notes }}</p>-->
                         <span ng-click="showChangeDetails(item, $event)" style="cursor: pointer;">
                             <md-tooltip md-direction="right">
-                                    <md-icon>history</md-icon>
+                                    <md-icon style="color: white;">history</md-icon>
                                     <span> &nbsp; {{ item.date | thedatefilter }}</span>
                             </md-tooltip>
                             <i class="material-icons change-history-icon" ng-if="item.type == 'remote'">cloud_upload</i> <!--file_upload-->
