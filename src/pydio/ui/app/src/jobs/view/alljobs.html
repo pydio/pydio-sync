@@ -4,8 +4,11 @@
         <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="item.active" ng-click="JC.changeSelected($index)">
             <div layout="row">
                 <!--<img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label}}" />-->
-                <md-button class="md-fab md-primary alljob-control" aria-label="Pause">
+                <md-button class="md-fab md-primary alljob-control" aria-label="Pause" ng-show="item.running" ng-click="applyCmdToJob('pause', jobs[$index])">
                     <md-icon>pause</md-icon>
+                </md-button>
+                <md-button class="md-fab md-primary alljob-control" aria-label="Play" ng-show="!item.running" ng-click="applyCmdToJob('resume', jobs[$index])">
+                    <md-icon>play_arrow</md-icon>
                 </md-button>
                 <div class="md-list-item-text" layout="column">
                     <h3>{{ item.label }}</h3>
@@ -14,33 +17,33 @@
             </div>
             <span flex></span>
             <md-menu md-position-mode="target-right target" >
-                <md-button aria-label="Open Sync menu" class="md-icon-button" ng-click="$mdOpenMenu($event)">
+                <md-button aria-label="Open Sync menu" class="md-icon-button" ng-click="$mdOpenMenu($event); menuOpened = true">
                     <i md-menu-origin class="material-icons" style="margin-top:10px;">more_vert</i>
                 </md-button>
                 <md-menu-content width="4">
                     <md-menu-item>
-                        <md-button ng-click="ctrl.announceClick($index)">
+                        <md-button ng-click="JC.menuClick($index, 'info')">
                         <div layout="row" flex>
                             <p flex>{{_('More info...')}}</p>
                         </div>
                         </md-button>
                     </md-menu-item>
                     <md-menu-item>
-                        <md-button ng-click="ctrl.announceClick($index)">
+                        <md-button ng-click="JC.menuClick($index, 'pause')">
                         <div layout="row" flex>
                             <p flex>{{_('Pause')}}</p>
                          </div>
                         </md-button>
                     </md-menu-item>
                     <md-menu-item>
-                        <md-button ng-click="ctrl.announceClick($index)">
+                        <md-button ng-click="JC.menuClick($index, 'stop')">
                         <div layout="row" flex>
                             <p flex>{{_('Stop')}}</p>
                         </div>
                     </md-button>
                     </md-menu-item>
                     <md-menu-item>
-                        <md-button ng-click="ctrl.announceClick($index)">
+                        <md-button ng-click="JC.menuClick($index, 'settings')">
                         <div layout="row" flex>
                             <p flex>{{_('Settings')}}</p>
                         </div>
@@ -66,7 +69,7 @@
         <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="!item.active" ng-click="JC.changeSelected($index)">
             <div layout="row">
                 <!--<img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label[0] + item.label[1]}}" />-->
-                <md-button class="md-fab md-primary alljob-control" aria-label="Play">
+                <md-button class="md-fab md-primary alljob-control" aria-label="Play" ng-click="applyCmdToJob('enable', jobs[$index])">
                     <md-icon>play_arrow</md-icon>
                 </md-button>
                 <div class="md-list-item-text" layout="column">
@@ -75,19 +78,19 @@
             </div>
             <span flex></span>
             <md-menu md-position-mode="target-right target" >
-                <md-button aria-label="Open Sync menu" class="md-icon-button" ng-click="$mdOpenMenu($event)">
+                <md-button aria-label="Open Sync menu" class="md-icon-button" ng-click="$mdOpenMenu($event); menuOpened = true">
                     <i md-menu-origin class="material-icons" style="margin-top:10px;">more_vert</i>
                 </md-button>
                 <md-menu-content width="4">
                     <md-menu-item>
-                        <md-button ng-click="ctrl.announceClick($index)">
+                        <md-button ng-click="JC.menuClick($index, 'info')">
                         <div layout="row" flex>
                             <p flex>{{_('More info...')}}</p>
                         </div>
                         </md-button>
                     </md-menu-item>
                     <md-menu-item>
-                        <md-button ng-click="ctrl.announceClick($index)">
+                        <md-button ng-click="JC.menuClick($index, 'start')">
                         <div layout="row" flex>
                             <p flex>{{_('Start')}}</p>
                          </div>
@@ -95,7 +98,7 @@
                     </md-menu-item>
                     </md-menu-item>
                     <md-menu-item>
-                        <md-button ng-click="ctrl.announceClick($index)">
+                        <md-button ng-click="JC.menuClick($index, 'settings')">
                         <div layout="row" flex>
                             <p flex>{{_('Settings')}}</p>
                         </div>

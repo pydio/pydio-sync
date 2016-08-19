@@ -7,6 +7,12 @@
                     query: {method:'GET', params:{job_id:''}, isArray:true}
                 });
         }])
+        .factory('JobsWithId', ['$resource',
+            function($resource){
+                return $resource('/jobs/:job_id', {}, {
+                    query: {method:'GET', params:{job_id:'',with_id:true}}
+                });
+        }])
         .filter('bytes', function() {
         return function(bytes, precision) {
             if (bytes == 0) return bytes;
@@ -42,7 +48,7 @@
                 });
             }])
        .controller('JobController', [
-          'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', 'Jobs', 'Commands',
+          'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast','Jobs', 'Commands', 'JobsWithId',
           JobController
        ])
 
@@ -53,7 +59,7 @@
    * @param avatarsService
    * @constructor
    */
-  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, Jobs, Commands ) {
+  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, Jobs, Commands, JobsWithId ) {
     $scope._ = window.translate;
     var self = this;
 
@@ -71,7 +77,29 @@
     $scope.pathes = {};
     $scope.jobs = Jobs.query();
     self.jobs = $scope.jobs;
+    $scope.menuOpened = false;
 
+    var t0;
+    (function tickJobs() {
+        var tmpJobs = Jobs.query(function(){
+                    $scope.error = null;
+                    // TODO: Merge new jobs events instead of replacing all jobs, to avoid flickering.
+                    if ($scope.menuOpened){
+                        self.jobs = tmpJobs;
+                        $scope.jobs = tmpJobs;
+                    }
+                }, function(response){
+                    if(!response.status){
+                        $scope.error = window.translate('Ooops, cannot contact agent! Make sure it is running correctly, process will try to reconnect in 20s');
+                        $mdToast.show(
+                          $mdToast.simple()
+                            .textContent($scope.error)
+                            .hideDelay(3000)
+                        );
+                    }
+                });
+        t0 = $timeout(tickJobs, 2000);
+    })()
     /*
     self.jobList        = [ ];
     jobService.loadJobList().then(
@@ -101,13 +129,15 @@
      * Select the current avatars
      * @param menuId
      */
-    function selectJob ( user ) {
-      $scope.showAllJobs = false;
-      self.selected = angular.isNumber(user) ? $scope.jobs[user] : user;
-      $scope.selected = self.selected; // hack to pass info around...
+    function selectJob ( job ) {
+        $scope.currentNavItem = 'history';
+        $scope.showAllJobs = false;
+        self.selected = angular.isNumber(job) ? $scope.jobs[job] : job;
+        $scope.selected = self.selected; // hack to pass info around...
     }
+
     self.showJobs = function(){
-        $scope.showAllJobs = true;
+        $scope.showAllJobs = true
     }
     /**
      * Show the Contact view in the bottom sheet
@@ -138,14 +168,14 @@
     }
     jobService.currentNavItem = 'history';
     function newSyncTask(){
-        $scope.showNewTask = !$scope.showNewTask;
-        $scope.showAllJobs = false;
-        $scope.showGeneralSettings = false;
+        $scope.showNewTask = !$scope.showNewTask
+        $scope.showAllJobs = false
+        $scope.showGeneralSettings = false
     }
     window.onload = function (){
         //toggleSideNav();
         if ($scope.jobs.length == 1)
-            changeSelected(0);
+            changeSelected(0)
         else $scope.showAllJobs = true;
     }
 
@@ -153,19 +183,64 @@
         $scope toggles, bad practice probably
     */
     function changeSelected(item){
-        selectJob(item);
+        selectJob(item)
     }
 
     function toggleGeneralSettings(){
-        $scope.showGeneralSettings = !$scope.showGeneralSettings;
+        $scope.showGeneralSettings = !$scope.showGeneralSettings
     }
 
     $scope.applyCmd = function(cmd){
+        // uses global variable $scope.selected
         Commands.query({cmd:cmd, job_id:$scope.selected.id}, function(){
             var newJobs = Jobs.query({}, function(){
-                $scope.jobs = newJobs;
+                $scope.jobs = newJobs
             });
         });
+    }
+
+    $scope.applyCmdToJob = function(cmd, job){
+        Commands.query({cmd:cmd, job_id:job.id}, function(){
+            var newJobs = Jobs.query({}, function(){
+                $scope.jobs = newJobs
+            });
+        });
+        console.log($scope.jobs)
+    }
+
+    self.menuClick = function(index, action){
+        $scope.selected = $scope.jobs[index]
+        $scope.menuOpened = false
+        self.selected = $scope.selected
+        switch (action){
+            case 'info':
+                console.log('info ' + index)
+                $scope.showNewTask = false
+                $scope.showAllJobs = false
+                $scope.showGeneralSettings = false
+                $scope.currentNavItem = 'history';
+
+            break
+            case 'start':
+                console.log('start ' + index)
+                $scope.applyCmd('enable')
+            break
+            case 'stop':
+                console.log('stop ' + index)
+                $scope.applyCmd('disable')
+            break
+            case 'settings':
+                console.log('settings ' + index)
+                $scope.showNewTask = false
+                $scope.showAllJobs = false
+                $scope.showGeneralSettings = false
+                $scope.currentNavItem = "settings"
+            break
+            case 'pause':
+                console.log('pause ' + index)
+                $scope.applyCmd('pause')
+
+        }
     }
   }
 })();

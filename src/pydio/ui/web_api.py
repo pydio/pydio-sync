@@ -546,6 +546,12 @@ class JobManager(Resource):
             if request.path == '/jobs-status':
                 response = {'is_connected_to_internet': connection_helper.internet_ok, 'jobs': json_jobs}
                 return response
+            if "with_id" in request.args:
+                # returns easier to parse jobs than an array
+                ret = {}
+                for i in json_jobs:
+                    ret[i["id"]] = i
+                return ret
             return json_jobs
         logging.info("Requiring job %s" % job_id)
         data = JobConfig.encoder(jobs[job_id])
