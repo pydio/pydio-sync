@@ -1,0 +1,37 @@
+<div ng-class="{'list-group-item-success':NJC.job.remote_folder == data['@filename']}" ng-mouseenter="showNewFolder=true" ng-mouseleave="showNewFolder=false" ng-init="showNewFolder=false" style="padding: 5px;border-radius: 3px;">
+
+    <span style="cursor: pointer;" ng-click="NJC.job.remote_folder=data['@filename'];">
+        <md-icon ng-show="NJC.job.remote_folder != data['@filename']">check_box_outline_blank</md-icon>
+        <md-icon ng-show="NJC.job.remote_folder == data['@filename']">check_box</md-icon>
+    </span>
+    <span ng-if="!data['PydioSyncNewNode']" style="cursor: pointer;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]; NJC.displaySubFolders(data['@filename']);">
+        <md-icon ng-show="pathes[data['@filename']] && data.tree">folder_open</md-icon>
+        <md-icon ng-show="!pathes[data['@filename']] || !data.tree">folder</md-icon>
+    </span>
+    <span ng-if="data['PydioSyncNewNode']" style="cursor: pointer;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']];">
+        <md-icon ng-show="pathes[data['@filename']] && data.tree">folder_open</md-icon>
+        <md-icon ng-show="!pathes[data['@filename']] || !data.tree">folder</md-icon>
+    </span>
+    &nbsp;&nbsp;
+    <span ng-if="!data['PydioSyncNewNode']" style="cursor: pointer;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]" ng-bind="data['@text']"></span>
+    <!--<input type="text" ng-if="data['PydioSyncNewNode']" ng-keyup="NJC.doneWithEnter($event, 'step3')" ng-attr-required="data['PydioSyncNewNode']" style="min-width:220px; color:#555555;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]" ng-model="NJC.job.new_remote_folder['@text']">-->
+    <input ng-if="data['PydioSyncNewNode']" ng-keyup="NJC.doneWithEnter($event, 'step3')" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]" ng-model="NJC.job.new_remote_folder['@text']" placeholder="Untitled Folder">
+    <md-icon ng-show="showNewFolder && !data['PydioSyncNewNode']" style="margin-right: 2px; cursor: pointer;" ng-click="
+        NJC.newFolder(data);
+        pathes[data['@filename']] = true;">create_new_folder</md-icon>
+</div>
+<!-- Want to loose the div in the repeat as well -->
+<div ng-hide="!pathes[data['@filename']]" style="padding-left:25px;">
+    <ng-include
+            ng-if="data.tree && data.tree.length > 0"
+            onload="data = child"
+            ng-repeat="child in data.tree"
+            src="'./src/jobs/view/tree_node.html'"/>
+</div>
+<!-- unused? Left here just in case it's due to some legacy something -->
+<div ng-hide="!pathes[data['@filename']]" style="padding-left:25px; background-color: red;">
+    <ng-include
+            ng-if="data.tree && data.tree['@text']"
+            onload="data = data.tree"
+            src="'./src/jobs/view/tree_node.html'"/>
+</div>

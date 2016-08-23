@@ -48,7 +48,7 @@
                 });
             }])
        .controller('JobController', [
-          'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast','Jobs', 'Commands', 'JobsWithId',
+          'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', 'Jobs', 'Commands', 'JobsWithId',
           JobController
        ])
 
@@ -59,7 +59,7 @@
    * @param avatarsService
    * @constructor
    */
-  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, Jobs, Commands, JobsWithId ) {
+  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId ) {
     $scope._ = window.translate;
     var self = this;
 
@@ -77,19 +77,23 @@
     $scope.pathes = {};
     $scope.jobs = Jobs.query();
     self.jobs = $scope.jobs;
-    $scope.menuOpened = false;
+
+    self.menuOpened = false;
+    $scope.$on('$mdMenuClose', function(){ self.menuOpened = false});
 
     var t0;
     (function tickJobs() {
         var tmpJobs = Jobs.query(function(){
+                    console.log('tick')
                     $scope.error = null;
                     // TODO: Merge new jobs events instead of replacing all jobs, to avoid flickering.
-                    if ($scope.menuOpened){
+                    if ( !self.menuOpened ){
+                        console.log('refresh')
                         self.jobs = tmpJobs;
                         $scope.jobs = tmpJobs;
                     }
                 }, function(response){
-                    if(!response.status){
+                    if( !response.status ){
                         $scope.error = window.translate('Ooops, cannot contact agent! Make sure it is running correctly, process will try to reconnect in 20s');
                         $mdToast.show(
                           $mdToast.simple()
@@ -210,7 +214,7 @@
 
     self.menuClick = function(index, action){
         $scope.selected = $scope.jobs[index]
-        $scope.menuOpened = false
+        self.menuOpened = false
         self.selected = $scope.selected
         switch (action){
             case 'info':
@@ -241,6 +245,59 @@
                 $scope.applyCmd('pause')
 
         }
+    }
+
+    self.showWorkspacePicker = function(){
+        $scope.loading = true;
+        if(!self.selected.password) {
+            return;
+        }
+        self.job.workspace = '';
+        Ws.get({
+            job_id:'request',
+            url:self.selected.server,
+            user:self.selected.user,
+            password:self.selected.password,
+            trust_ssl:self.selected.trust_ssl?'true':'false'
+        }, function(response){
+            if(response.application_title){
+                self.selected.application_title = response.application_title;
+            }
+            if(response.user_display_name){
+                self.selected.user_display_name = response.user_display_name;
+            }
+            var ret = [] // clean up response
+            for (var i in response.repositories.repo){
+                if (typeof(response.repositories.repo[i]["@repositorySlug"]) !== "undefined" && response.repositories.repo[i]["@meta_syncable_REPO_SYNCABLE"] === "true" ){
+                    ret.push(response.repositories.repo[i])
+                }
+            }
+            self.selected.repositories = ret;
+            $scope.loading = false;
+            $scope.step = 'step2';
+        }, function(resp){
+            console.log(resp)
+            if(resp.data && resp.data.error){
+                $scope.error = resp.data.error;
+            } else {
+                $scope.error = "Connection problem"
+            }
+            $mdToast.show({
+                  hideDelay   : 9000,
+                  position    : 'bottom right',
+                  controller  : self,
+                  template    : '<md-toast><span class="md-toast-text" style="color:red" flex>' + $scope.error + '</span></md-toast>'
+            });
+            $scope.loading = false;
+        });
+        $mdDialog.show(
+            $mdDialog.alert()
+            .clickOutsideToClose(true)
+            .title('Choose a workspace')
+            .textContent('<md-select>Select workspace<md-select>')
+            .ariaLabel('Select workspace')
+            .ok('Ok...')
+        )
     }
   }
 })();

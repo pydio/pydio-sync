@@ -24,13 +24,13 @@
                   <md-input-container>
                       <!--<label><i class="fa fa-lock" aria-hidden="true"></i> Password</label>-->
                       <label><i class="material-icons" aria-hidden="true">lock</i>&nbsp;{{_('Password')}}</label>
-                    <input ng-model="NJC.job.password" type="password"/>
+                    <input ng-model="NJC.job.password" ng-keyup="NJC.doneWithEnter($event, 'step2')" type="password"/>
                   </md-input-container>
             </md-content>
             <p ng-click="NJC.showURLTip($event)">{{_('Tip: how do I find my server URL?')}}</p>
         </div>
         <!--{{showNewTask}} {{NJC}} -->
-            <md-content layout="row">
+            <md-content layout="row" style="margin-bottom:50px">
                 <span flex></span>
                 <md-content layout="column">
                     <md-checkbox ng-model="NJC.job.trust_ssl" ng-init="NJC.job.trust_ssl = false" aria-label="SSL">
@@ -51,15 +51,28 @@
                 md-items="item in NJC.job.repositories"
                 md-item-text="item.label"
         ></md-autocomplete>-->
-        <md-input-container style="margin-top: 50px">
-            <label>{{_('Choose a workspace')}}</label>
-            <md-select ng-model="NJC.job.workspace" style="min-width:242px">
-              <md-optgroup label="Workspaces">
-                <md-option ng-value="item" ng-repeat="item in NJC.job.repositories">{{item.label}}</md-option>
-              </md-optgroup>
-            </md-select>
-      </md-input-container>
-        <br>
+        <md-content layout="column">
+            <md-input-container style="margin-top: 50px">
+                <label>{{_('Choose a workspace')}}</label>
+                <md-select ng-model="NJC.job.workspace" style="min-width:242px">
+                  <md-optgroup label="Workspaces">
+                    <md-option ng-value="item" ng-repeat="item in NJC.job.repositories">{{item.label}}</md-option>
+                  </md-optgroup>
+                </md-select>
+            </md-input-container>
+            <md-content layout-padding>
+                <md-checkbox ng-model="singleFolder" ng-show="NJC.job.workspace != ''" ng-click="NJC.loadFolders()">{{_('Sync only a subfolder')}}</md-checkbox>
+                <md-content ng-show="singleFolder">
+                    <!--{{NJC.folders}}
+                    {{NJC.job}}-->
+                <ng-include
+                        ng-repeat="child in NJC.folders"
+                        src="'./src/jobs/view/tree_node.html'"
+                        onload="data = child;job = job"/>
+                </md-content>
+            </md-content>
+
+        </md-content>
         <md-content layout="row" layout-padding>
             <span flex></span>
             <md-button ng-click="step='step1'">&lt; {{_('BACK')}}</md-button>

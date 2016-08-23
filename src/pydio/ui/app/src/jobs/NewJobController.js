@@ -11,11 +11,24 @@
                 }}
             });
         }])
-    .controller('NewJobController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', 'Ws', NewJobController]);
+    .factory('Folders', ['$resource',
+        function($resource){
+            return $resource('/folders/:job_id/', {}, {
+                query: {method:'GET', params:{
+                    job_id:'',
+                    url   :'',
+                    ws    :'',
+                    user  :'',
+                    password:'',
+                    subdir:''
+                }, isArray:true}
+            });
+        }])
+    .controller('NewJobController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', 'Ws', 'Folders', NewJobController]);
     /**
      * Controller for new jobs
      */
-    function NewJobController(jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $mdToast, Ws){
+    function NewJobController(jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $mdToast, Ws, Folders){
         // JS methods need to be exposed...
         var self = this;
         self.toggleNewJobConfig = toggleNewJobConfig;
@@ -29,6 +42,27 @@
         self.job.remote_folder = "/";
         self.job.total_size = 12002020;
         self.job.eta = 111232123;
+
+        self.loadFolders = function(){
+            $scope.loading = true;
+            self.folders = Folders.query({
+                job_id:'request',
+                url:self.job.server,
+                user:self.job.user,
+                password:self.job.password,
+                trust_ssl:self.job.trust_ssl?'true':'false',
+                ws:self.job.workspace['@repositorySlug']
+            }, function(resp){
+                if(resp[0] && resp[0].error){
+                    self.toastError(resp[0].error);
+                }
+                $scope.loading = false;
+            }, function(resp){
+                $scope.loading = false;
+                self.toastError(window.translate('Error while loading folders!'));
+            })
+        }
+
         function showURLTip (ev) {
             var titleMessage = '<h2 style="padding: 10px;">How can I find my server URL?</h2>'
             var subMessage = '<p style="padding: 10px;">The server URL is the adress that you can see in your browser when accessing Pydio via the web. It starts with http or https depending on your server configuration. If you are logged in Pydio and you see the last part of the URL starting with "ws-", remove this part and only keep the beginning (see image below).</p>'
@@ -45,6 +79,7 @@
             //$scope.job.$save()
             console.log(self.job)
         }
+
         self.loadWorkspaces = function(){
             $scope.loading = true;
             if(self.job.id == 'new' && !self.job.password) {
@@ -74,18 +109,13 @@
                 $scope.loading = false;
                 $scope.step = 'step2';
             }, function(resp){
-                console.log(resp)
+                var error;
                 if(resp.data && resp.data.error){
-                    $scope.error = resp.data.error;
+                    error = resp.data.error;
                 } else {
-                    $scope.error = "Connection problem"
+                    error = "Connection problem"
                 }
-                $mdToast.show({
-                      hideDelay   : 9000,
-                      position    : 'bottom right',
-                      controller  : this,
-                      template    : '<md-toast><span class="md-toast-text" style="color:red" flex>' + $scope.error + '</span></md-toast>'
-                });
+                self.toastError(error)
                 $scope.loading = false;
             });
         };
@@ -107,5 +137,175 @@
               self.job.local_folder = 'You didn\'t name your dog.';
             });
         };
+
+        self.clearNewFolder = function(){
+            // the following block should be factored into a clean function. #RefactorMe
+            if(typeof(self.job) !== "undefined" && typeof(self.job.new_remote_folder) !== "undefined"){ // delete if exists
+                var path = self.job.new_remote_folder['@filename'];
+                if (path[0]== "/") // remove leading /
+                    path = path.substr(1, path.length);
+                var pathitems = path.split("/");
+                var nextnode = {};
+                for (var j in pathitems) {
+                    pathitems[j] = "/" + pathitems[j];
+                    if (j > 0) {
+                        pathitems[j] = pathitems[j-1] + pathitems[j];
+                        for (var i in nextnode['tree']){
+                            if (typeof(nextnode['tree'][i]) !== "undefined" && pathitems[j] == nextnode['tree'][i]['@filename']){
+                                if (pathitems.length-1 == j){
+                                    nextnode['tree'].splice(i, 1);
+                                } else {
+                                    nextnode = nextnode['tree'][i];
+                                }
+                            }
+                        }
+                    } else {
+                        var exit = false;
+                        for (var i in self.folders) { // find root
+                            if (self.folders[i]['@filename'] == pathitems[0]) {
+                                if (pathitems.length == 1){
+                                    console.log("DELETE")
+                                    self.folders[i]['tree'].splice(self.folders[i]['tree'].indexOf(self.job.new_remote_folder), 1);
+                                    exit = true;
+                                } else {
+                                    nextnode = self.folders[i];
+                                }
+                                break;
+                            }
+                        }
+                        if (exit)
+                            break;
+                    }
+                }
+            }
+            self.job.new_remote_folder = undefined;
+        }
+
+        self.newFolder = function (data){
+            self.clearNewFolder();
+            self.job.new_remote_folder = {'@filename':data['@filename'] + '/untitled folder', '@text': 'untitled folder', 'PydioSyncNewNode': true};
+            // the following block should be factored into a clean function. #RefactorMe
+            var path = data['@filename'];
+            if (path[0]== "/") // remove leading /
+                path = path.substr(1, path.length);
+            var pathitems = path.split("/");
+            var nextnode = {};
+            for (var j in pathitems) {
+                pathitems[j] = "/" + pathitems[j];
+                if (j > 0) {
+                    pathitems[j] = pathitems[j-1] + pathitems[j];
+                    for (var i in nextnode['tree']){
+                        if (typeof(nextnode['tree']) !== "undefined" && typeof(nextnode['tree'][i]) !== "undefined" && pathitems[j] == nextnode['tree'][i]['@filename']){
+                            //console.log(nextnode['tree'][i]);
+                            if (pathitems.length-1 == j){
+                                if (typeof(nextnode['tree'][i]['tree']) === "undefined" || typeof(nextnode['tree'][i]['tree']) == Boolean){
+                                    nextnode['tree'][i]['tree'] = [];
+                                }
+                                nextnode['tree'][i]['tree'].push(self.job.new_remote_folder);
+                            } else {
+                                nextnode = nextnode['tree'][i];
+                            }
+                        }
+                    }
+                } else {
+                    var exit = false;
+                    for (var i in self.folders) { // find root
+                        if (self.folders[i]['@filename'] == pathitems[0]) {
+                            if (pathitems.length == 1){
+                                if (typeof(self.folders[i]['tree']) === "undefined" || typeof(self.folders[i]) == Boolean){
+                                    self.folders[i]['tree'] = [];
+                                }
+                                self.folders[i]['tree'].push(self.job.new_remote_folder);
+                                exit = true;
+                            } else {
+                                nextnode = self.folders[i];
+                            }
+                            break;
+                        }
+                    }
+                    if (exit)
+                        break;
+                }
+            }
+        }
+
+        self.displaySubFolders = function(path){
+            /* path subfolder name to refresh how to get the parent's ?
+            */
+            //console.log('Fetch ls ' + path);
+            $scope.loading = true;
+            var subfolders = Folders.query({
+                job_id:'request',
+                url:self.job.server,
+                user:self.job.user,
+                password:self.job.password,
+                trust_ssl:self.job.trust_ssl?'true':'false',
+                ws:self.job.workspace['@repositorySlug'],
+                subdir:path
+            }, function(resp){
+                console.log(resp)
+                if(resp[0] && resp[0].error){
+                     self.toastError(resp[0].error);
+                }
+                $scope.loading = false;
+                // insert the tree where it belongs... Replace an array inside an array of maps
+                // the following block should be factored into a clean function. #RefactorMe
+                if (path[0]== "/") // remove leading /
+                    path = path.substr(1, path.length);
+                var pathitems = path.split("/");
+                var nextnode = {};
+                for (var j in pathitems) {
+                    pathitems[j] = "/" + pathitems[j];
+                    if (j > 0) {
+                        pathitems[j] = pathitems[j-1] + pathitems[j];
+                        for (var i in nextnode['tree']){
+                            if (typeof(nextnode['tree']) !== "undefined" && typeof(nextnode['tree'][i]) !== "undefined" && pathitems[j] == nextnode['tree'][i]['@filename']){
+                                console.log(nextnode['tree'][i]);
+                                if (pathitems.length-1 == j){
+                                    nextnode['tree'][i]['tree'] = subfolders;
+                                } else {
+                                    nextnode = nextnode['tree'][i];
+                                }
+                            }
+                        }
+                    } else {
+                        var exit = false;
+                        for (var i in self.folders) { // find root
+                            if (self.folders[i]['@filename'] == pathitems[0]) {
+                                if (pathitems.length == 1){
+                                    self.folders[i]['tree'] = subfolders;
+                                    exit = true;
+                                } else {
+                                    nextnode = self.folders[i];
+                                }
+                                break;
+                            }
+                        }
+                        if (exit)
+                            break;
+                    }
+                }
+            }, function(resp){
+                $scope.loading = false;
+                self.toastError(window.translate('Error while loading folders!'));
+            });
+        }
+
+
+
+        self.toastError = function ( error ){
+            $mdToast.show({
+                      hideDelay   : 9000,
+                      position    : 'bottom right',
+                      controller  : this,
+                      template    : '<md-toast><span class="md-toast-text" style="color:red" flex>' + error + '</span></md-toast>'
+                });
+        }
+        self.doneWithEnter = function(ev, step){
+            if (ev.keyCode == 13)
+                $scope.step = step;
+        }
     }
+
 })();
+

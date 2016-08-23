@@ -80,13 +80,13 @@
         <md-sidenav  ng-click="JC.toggleList()" md-component-id="left" class="md-whiteframe-z2" >
           <md-list>
               <md-list-item>
-                  <md-button ng-init="showAllJobs = false" ng-click="showAllJobs=!showAllJobs; showGeneralSettings=false" aria-label="Home"><i class="fa fa-home"></i></md-button>
+                  <md-button ng-init="showAllJobs = false" ng-click="showAllJobs=!showAllJobs; showGeneralSettings=false" aria-label="Home"><i class="material-icons">home</i></md-button>
               </md-list-item>
               <md-list-item ng-repeat="it in JC.jobs" layout="row">
                   <md-button ng-click="JC.selectJob(it)" ng-class="{'selected' : it === JC.selected }" style="display: table;">
                     <div style="display: table-cell">
                         <!--<i style="vertical-align: middle; font-size:17px;" class="material-icons" ng-if="it.state.global.queue_done == 0">check_circle</i>-->
-                        <i style="vertical-align: middle; font-size:17px;" class="material-icons" ng-if="it.running">sync</i>
+                        <i style="vertical-align: middle; font-size:17px;" class="material-icons" ng-if="it.running && it.state.global.queue_done <= 0">sync</i>
                         <md-progress-circular ng-if="it.state.global.queue_done > 0" md-mode="determinate" value="{{it.state.global.queue_done}}" md-diameter="30" style="display: table-cell;"></md-progress-circular>
                     </div>
                     <div style="display: table-cell;  padding-left: 10px;">{{it.label}}</div>
@@ -98,13 +98,13 @@
           </md-button>
         </md-sidenav>
         <span ng-hide="showNewTask || showAllJobs || showGeneralSettings">
-            <ng-include src="'./src/jobs/view/fulljob.html'">
+            <ng-include src="'./src/jobs/view/fulljob.html'"/>
         </span>
         <span ng-show="showNewTask && !showAllJobs && !showGeneralSettings">
-            <ng-include src="'./src/jobs/view/newjob.html'">
+            <ng-include src="'./src/jobs/view/newjob.html'"/>
         </span>
-        <span ng-show="showAllJobs && !showGeneralSettings">
-            <ng-include src="'./src/jobs/view/alljobs.html'">
+        <span ng-show="showAllJobs && !showGeneralSettings && !showNewTask">
+            <ng-include src="'./src/jobs/view/alljobs.html'"/>
         </span>
         <span ng-show="showGeneralSettings">
             <ng-include src="'./src/jobs/view/general_configs.html'">
