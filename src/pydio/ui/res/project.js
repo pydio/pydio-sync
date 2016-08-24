@@ -832,6 +832,34 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 $location.path('/');
             }
         };
+        $scope.checkTask = function(){
+            // checks that a similar task doesn't already exist
+            for (task in $scope.jobs){
+                if ( ($scope.jobs[task]['remote_folder'] === $scope.job['remote_folder'] || $scope.jobs[task]['remote_folder'] + "/" === $scope.job['remote_folder'] ||
+                     $scope.jobs[task]['remote_folder'] === $scope.job['remote_folder'] + "/") &&
+                     $scope.jobs[task]['user'] === $scope.job['user'] &&
+                     ($scope.jobs[task]['directory'] === $scope.job['directory'] || $scope.jobs[task]['directory'] +"/" === $scope.job['directory'] || $scope.jobs[task]['directory'] === $scope.job['directory'] +"/") &&
+                     ($scope.jobs[task]['server'] === $scope.job['server'] || $scope.jobs[task]['server'] +"/" === $scope.job['server'] || $scope.jobs[task]['server'] === $scope.job['server'] +"/") &&
+                     $scope.jobs[task]['workspace'] === $scope.job['workspace']
+                    ){
+                        $scope.checkTaskFailed = true;
+                        return false;
+
+                    }
+            }
+            $scope.checkTaskFailed = false;
+            return true;
+        }
+
+        $scope.checkTaskFolder = function(){
+            // check that a task with the same local folder doesn't exist
+            for (task in $scope.jobs){
+                if ($scope.jobs[task]['directory'] === $scope.job['directory'] || $scope.jobs[task]['directory'] +"/" === $scope.job['directory'] || $scope.jobs[task]['directory'] === $scope.job['directory'] +"/")
+                    return false;
+            }
+            return true;
+        }
+
         $scope.triggerResync = function () {
             $scope.job.resynctimeout = 10;
             $scope.resynctimer = setInterval(function () {
