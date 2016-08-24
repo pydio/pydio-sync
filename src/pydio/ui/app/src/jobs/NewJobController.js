@@ -31,6 +31,17 @@
     function NewJobController(jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $mdToast, Ws, Folders){
         // JS methods need to be exposed...
         var self = this;
+
+        $scope.hide = function() {
+          $mdDialog.hide();
+        };
+        $scope.cancel = function() {
+          $mdDialog.cancel();
+        };
+        $scope.answer = function(answer) {
+          $mdDialog.hide(answer);
+        };
+        $scope._ = window.translate;
         self.toggleNewJobConfig = toggleNewJobConfig;
         self.showURLTip = showURLTip;
 

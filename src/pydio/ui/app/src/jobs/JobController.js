@@ -67,13 +67,13 @@
     self.selectJob   = selectJob;
     self.toggleList   = toggleSideNav;
     self.makeContact  = makeContact;
-    self.newSyncTask = newSyncTask;
     self.changeSelected = changeSelected;
     self.toggleGeneralSettings = toggleGeneralSettings;
 
     // Load all jobs
     self.syncing = jobService.syncing;
     self.history = jobService.history;
+    jobService.currentNavItem = 'history';
     $scope.pathes = {};
     $scope.jobs = Jobs.query();
     self.jobs = $scope.jobs;
@@ -84,23 +84,19 @@
     var t0;
     (function tickJobs() {
         var tmpJobs = Jobs.query(function(){
-                    console.log('tick')
                     $scope.error = null;
                     // TODO: Merge new jobs events instead of replacing all jobs, to avoid flickering.
                     if ( !self.menuOpened ){
-                        console.log('refresh')
                         self.jobs = tmpJobs;
                         $scope.jobs = tmpJobs;
                     }
                 }, function(response){
-                    if( !response.status ){
                         $scope.error = window.translate('Ooops, cannot contact agent! Make sure it is running correctly, process will try to reconnect in 20s');
                         $mdToast.show(
                           $mdToast.simple()
                             .textContent($scope.error)
                             .hideDelay(3000)
                         );
-                    }
                 });
         t0 = $timeout(tickJobs, 2000);
     })()
@@ -170,12 +166,23 @@
           };
         }
     }
-    jobService.currentNavItem = 'history';
-    function newSyncTask(){
-        $scope.showNewTask = !$scope.showNewTask
-        $scope.showAllJobs = false
-        $scope.showGeneralSettings = false
-    }
+
+
+    self.newSyncTask = function (ev){
+        $mdDialog.show({
+            controller: 'NewJobController',
+            controllerAs: 'NJC',
+            templateUrl: './src/jobs/view/temp.html',
+            parent: angular.element(document.body),
+            targetEvent: ev,
+            clickOutsideToClose:true
+        })
+        .then(function(answer) {
+            $scope.status = 'You said the information was "' + answer + '".';
+        }, function() {
+            $scope.status = 'You cancelled the dialog.';
+        });
+    };
     window.onload = function (){
         //toggleSideNav();
         if ($scope.jobs.length == 1)
