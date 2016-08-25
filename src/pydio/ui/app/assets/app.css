@@ -145,3 +145,9 @@ span.name {
 .history-more-info{
     padding: 20px;
 }
+.login-icons {
+    padding-top: 8px;
+    color: rgb(80, 80, 80);
+    font-size: 18px !important;
+    height: 18px;
+}

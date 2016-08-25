@@ -812,6 +812,8 @@ class ShareManager(Resource):
 
             if args['action'] == 'share':
                 relative_path = os.path.normpath(job.remote_folder + "/" + args["relative_path"]).replace('\\', '/')
+                relative_path = unicodedata.normalize('NFC', relative_path)
+                args['path'] = unicodedata.normalize('NFC', args['path'])
                 # Check if the shared link is already present
                 check_res = remote_instance.check_share_link(
                     relative_path
