@@ -803,7 +803,7 @@ class ShareManager(Resource):
                 )
                 return {"link": res}
             else:
-                res = remote_instance.unshare(job.remote_folder + "/" + args["path"])
+                res = remote_instance.unshare((job.remote_folder + "/" + args["path"]).replace('\\', '/'))
                 return {"response": res, "existingLinkFlag": "false"}
 
 class ShareLinkManager(Resource):
