@@ -24,11 +24,11 @@
                 }, isArray:true}
             });
         }])
-    .controller('NewJobController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', 'Ws', 'Folders', NewJobController]);
+    .controller('NewJobController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', 'Ws', 'Folders', 'Jobs', NewJobController]);
     /**
      * Controller for new jobs
      */
-    function NewJobController(jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $mdToast, Ws, Folders){
+    function NewJobController( jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $mdToast, Ws, Folders, Jobs ){
         // JS methods need to be exposed...
         var self = this;
 
@@ -43,16 +43,28 @@
         };
         $scope._ = window.translate;
         self.toggleNewJobConfig = toggleNewJobConfig;
-        self.showURLTip = showURLTip;
 
-        self.job = {};
+        self.job = new Jobs();
+        self.job.id              = 'new';
+        self.job.frequency       = 'auto'; // auto, manual, time
+        self.job.solve           = 'both'; // both, manual, local, remote
+        self.job.direction       = 'bi'; // up, bi, down
+        self.job.label           = 'New Job';
+        self.job.hide_up_dir     = 'false'; // to hide buttons in gui
+        self.job.hide_bi_dir     = 'false';  // to hide buttons in gui
+        self.job.hide_down_dir   = 'false';  // to hide buttons in gui
+        self.job.timeout         = '20';
+        self.job.__type__        = 'JobConfig';
         self.job.user = "pydio";
         self.job.password = "pydiopassword";
         self.job.server = "https://localhost:7443/";
-        self.job.local_folder = "/Users/thomas/Pydio/tests/oneMoreTest";
+        self.job.directory = "/Users/thomas/Pydio/tests/oneMoreTest";
         self.job.remote_folder = "/";
-        self.job.total_size = 12002020;
-        self.job.eta = 111232123;
+        self.job.total_size = 12002020; // TODO LULZ never gonna happen
+        self.job.eta = 111232123; // TODO LULZ never gonna happen
+
+        self.checkedTaskFailed = false;
+        self.checkedTaskFolder = true;
 
         self.loadFolders = function(){
             $scope.loading = true;
@@ -65,7 +77,8 @@
                 ws:self.job.workspace['@repositorySlug']
             }, function(resp){
                 if(resp[0] && resp[0].error){
-                    self.toastError(resp[0].error);
+                    self.error = error;
+                    //self.toastError(resp[0].error);
                 }
                 $scope.loading = false;
             }, function(resp){
@@ -74,15 +87,6 @@
             })
         }
 
-        function showURLTip (ev) {
-            var titleMessage = '<h2 style="padding: 10px;">How can I find my server URL?</h2>'
-            var subMessage = '<p style="padding: 10px;">The server URL is the adress that you can see in your browser when accessing Pydio via the web. It starts with http or https depending on your server configuration. If you are logged in Pydio and you see the last part of the URL starting with "ws-", remove this part and only keep the beginning (see image below).</p>'
-            var img = '<md-content flex layout-padding><img class="img-thumbnail" src="assets/images/ServerURL.png" alt="Server url help" style="max-width: 400px; max-height: 400px;"></md-content>'
-            $mdDialog.show({
-                template: titleMessage + img + subMessage,
-                clickOutsideToClose: true
-            });
-        };
         function toggleNewJobConfig(){
             $scope.showNewTask = !$scope.showNewTask; // doesn't work, wrong scope
         }
@@ -94,7 +98,7 @@
         self.loadWorkspaces = function(){
             $scope.loading = true;
             if(self.job.id == 'new' && !self.job.password) {
-                return;
+                return false;
             }
             self.job.workspace = '';
             Ws.get({
@@ -118,7 +122,7 @@
                 }
                 self.job.repositories = ret;
                 $scope.loading = false;
-                $scope.step = 'step2';
+                $scope.selectedTab = 1;
             }, function(resp){
                 var error;
                 if(resp.data && resp.data.error){
@@ -126,26 +130,10 @@
                 } else {
                     error = "Connection problem"
                 }
-                self.toastError(error)
+                self.error = error;
+                //self.toastError(error)
+                $scope.SSL_failed = true;
                 $scope.loading = false;
-            });
-        };
-
-        self.showFolderPicker = function (ev){
-            console.log('yolo')
-            // Appending dialog to document.body to cover sidenav in docs app
-            var confirm = $mdDialog.prompt()
-              .title('Path to an existing folder on your computer')
-              .textContent('')
-              .placeholder('')
-              .ariaLabel('Path to folder')
-              .targetEvent(ev)
-              .ok('Choose')
-              .clickOutsideToClose('true');
-            $mdDialog.show(confirm).then(function(result) {
-              self.job.local_folder = result;
-            }, function() {
-              self.job.local_folder = 'You didn\'t name your dog.';
             });
         };
 
@@ -239,13 +227,13 @@
                 }
             }
         }
-
+        $scope.pathes = {}
         self.displaySubFolders = function(path){
             /* path subfolder name to refresh how to get the parent's ?
             */
             //console.log('Fetch ls ' + path);
             $scope.loading = true;
-            var subfolders = Folders.query({
+             var subfolders = Folders.query({
                 job_id:'request',
                 url:self.job.server,
                 user:self.job.user,
@@ -308,13 +296,87 @@
             $mdToast.show({
                       hideDelay   : 9000,
                       position    : 'bottom right',
-                      controller  : this,
-                      template    : '<md-toast><span class="md-toast-text" style="color:red" flex>' + error + '</span></md-toast>'
+                      controller  : function(){},
+                      template    : '<md-toast><span class="md-toast-text" style="" flex>' + error + '</span></md-toast>'
                 });
         }
-        self.doneWithEnter = function(ev, step){
+        self.doneWithEnter = function(ev){
             if (ev.keyCode == 13)
-                $scope.step = step;
+                $scope.selectedTab = Math.min(3, $scope.selectedTab + 1);
+
+            if ($scope.selectedTab === 1){
+                console.log('DA FU CK LOAD YES')
+                self.loadWorkspaces();
+                }
+
+
+        }
+        self.checkTask = function(){
+            console.log('Check task')
+            checkTaskMore()
+            checkTaskFolder()
+        }
+
+        //$scope.$on('$scope.selectedTab == 3', self.checkTask()); // doesn't seem to work
+
+        function checkTaskMore(){
+            // checks that a similar task doesn't already exist
+            if ($scope.selectedTab == 3){
+                    var jobs = Jobs.query();
+                    for (var task in jobs){
+                        if ( (jobs[task]['remote_folder'] === self.job['remote_folder'] || jobs[task]['remote_folder'] + "/" === self.job['remote_folder'] ||
+                             jobs[task]['remote_folder'] === self.job['remote_folder'] + "/") &&
+                             jobs[task]['user'] === self.job['user'] &&
+                             (jobs[task]['directory'] === self.job['directory'] || jobs[task]['directory'] +"/" === self.job['directory'] || jobs[task]['directory'] === self.job['directory'] +"/") &&
+                             (jobs[task]['server'] === self.job['server'] || jobs[task]['server'] +"/" === self.job['server'] || jobs[task]['server'] === self.job['server'] +"/") &&
+                             jobs[task]['workspace'] === self.job['workspace']
+                            ){
+                                self.checkedTaskFailed = true;
+                                console.log('SIMILARITY PROBLEM')
+                                console.log(jobs[task])
+                                return
+                            }
+                    }
+                    self.checkedTaskFailed = false;
+            }
+        }
+
+        function checkTaskFolder(){
+            if ($scope.selectedTab == 3){
+                    var jobs = Jobs.query({}, function(){
+                    console.log(jobs)
+                    // check that a task with the same local folder doesn't exist
+                    for (var task in jobs){
+                        if(jobs[task].__type__ === "JobConfig"){
+                            console.log("CHECKING " + jobs[task]['directory'] + " " + self.job['directory'])
+                            if (jobs[task]['directory'] === self.job['directory'] || jobs[task]['directory'] +"/" === self.job['directory'] || jobs[task]['directory'] === self.job['directory'] +"/"){
+                                self.checkedTaskFolder = false;
+                                console.log('FOLDER PROBLEM')
+                                console.log(jobs[task]['id'] + " " + jobs[task]['directory'] + " " + self.job['directory'])
+                                return
+                            }
+                        }
+                    }
+                    self.checkedTaskFolder = true;
+                    });
+            }
+        }
+
+        self.openDirChooser = function(ev){
+            var res;
+            if(!window.PydioQtFileDialog) {
+                res = window.prompt(window.translate('Full path to the local folder'));
+            }else{
+                res = window.PydioQtFileDialog.getPath();
+            }
+            self.job.directory = res;
+        }
+        self.addTask = function(){
+            self.checkTask()
+            if (!self.checkedTaskFailed && !self.savedJOB){
+                self.savedJOB = true;
+                self.job.$save()
+            }
         }
     }
 

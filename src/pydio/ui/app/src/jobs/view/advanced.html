@@ -1,0 +1,87 @@
+<md-input-container class="md-block" flex-gt-xs>
+        <h3>{{_('Synchronization Direction')}}</h3>
+        <div layout-padding>
+            <p>
+                {{_('By default, modifications from both sides (computer & server) are propagated to the other side.')}}
+            </p>
+            <div layout="row">
+                <md-radio-group ng-model="JC.selected.direction">
+                    <md-radio-button value="up">{{_('Upload only (computer to server)')}}</md-radio-button>
+                    <md-radio-button value="bi">{{_('Bi-directional (default value)')}}</md-radio-button>
+                    <md-radio-button value="down">{{_('Download only (server to computer)')}}</md-radio-button>
+                </md-radio-group>
+            </div>
+        </div>
+</md-input-container>
+<md-input-container class="md-block" flex-gt-xs>
+        <h3>{{_('Synchronization Frequency')}}</h3>
+        <div layout-padding>
+            <p>{{_('By default, changes are propagated in real-time, but for some usecases it can be handy to disable real-time and switch to less frequent checks.')}}</p>
+            <div layout="row">
+                <md-radio-group ng-model="JC.selected.frequency">
+                    <md-radio-button value="auto">{{_('Automatically (real-time)')}}</md-radio-button>
+                    <md-radio-button value="manual">{{_('Manually (you trigger the sync)')}}</md-radio-button>
+                    <md-radio-button value="time">{{_('At a given time of day')}}</md-radio-button>
+                    <!-- TODO <md-radio-button value="interval">{{_('Every x min')}}</md-radio-button>-->
+                </md-radio-group>
+                <div ng-if="JC.selected.frequency=='time'" style="margin-left:20px; margin-top:2em;">
+                    <md-input-container>
+                        <input style="width:40px;" type="number" min="0" max="23" ng-model="JC.selected.start_time.h" />
+                    </md-input-container>
+                    <span>:</span>
+                    <md-input-container>
+                        <input style="width:40px;" type="number" min="0" max="59" step="1" ng-model="JC.selected.start_time.m" />
+                    </md-input-container>
+                </div>
+            </div>
+        </div>
+</md-input-container>
+<div layout="column">
+    <md-input-container>
+        <h3>{{_('Connection settings')}}</h3>
+        <div layout-padding>
+            <div>
+            <md-input-container class="md-block">
+                <md-tooltip>{{_('Increase the timeout in case of slow responsive server')}}</md-tooltip>
+                <label>{{_('Timeout in seconds')}}</label>
+                <input type="number" min="1" max="3600" step="1" ng-model="JC.selected.timeout">
+            </md-input-container>
+            </div>
+            <div>
+                <md-input-container class="md-block">
+                    <md-tooltip>{{_('You can increase or reduce the number of concurrent connections.')}}</md-tooltip>
+                    <label>{{_('Concurrent connections')}}</label>
+                    <input type="number" ng-model="JC.selected.poolsize" min="1" max="99" required ng-style="
+                    job.poolsize <= 4 && {'background-color': 'LightGreen'} ||
+                    job.poolsize <= 8 && job.poolsize > 4 && {'background-color': 'LightSalmon'} ||
+                    job.poolsize > 8 && {'background-color': 'FireBrick'}">
+                </md-input-container>
+            </div>
+        </div>
+    </md-input-container>
+    <!-- TODO
+    <div>
+        <md-input-container class="md-block" flex-gt-sm>
+                <label>{{_('Sync interval')}}</label>
+                <input name="pollInterval" ng-model="JC.selected.interval" placeholder="10" md-maxlength="5">
+        </md-input-container>
+    </div>
+        -->
+    <md-input-container>
+        <h3>{{_('Include/Exclude from Sync')}}</h3>
+        <div layout-padding>
+            <div>
+                <md-input-container class="md-block">
+                    <label>{{_('Synchronise, use a list of files or patterns to include in the sync')}}</label>
+                    <input type="text" ng-model="JC.selected.filters.includes">
+                </md-input-container>
+            </div>
+            <div>
+                <md-input-container class="md-block">
+                    <label>{{_('Do not synchronise, list of files or patterns to exclude from sync')}}</label>
+                    <input type="text" ng-model="JC.selected.filters.excludes">
+                </md-input-container>
+            </div>
+        </div>
+    </md-input-container>
+</div>

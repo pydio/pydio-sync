@@ -28,14 +28,22 @@
                     $scope.error = null;
                     // TODO: Merge new log events instead of replacing all logs, to avoid flickering.
                     $scope.logs = all.logs;
-                    $scope.running = all.running;
+                    if(all.running.tasks){
+                        console.log(all.running.tasks.current)
+                        $scope.running = all.running;
+                    }
+                    if(typeof(all.running) !== 'undefined' && typeof(all.running.current) !== 'undefined'){
+                        if(all.running["current"].length > 0)
+                            console.log(all)
+                    }
                 }, function(response){
                     if(!response.status){
                         $scope.error = window.translate('Ooops, cannot contact agent! Make sure it is running correctly, process will try to reconnect in 20s');
                     }
+                    console.log(response)
                 });
             }
-            t0 = $timeout(tickLog, 2000);
+            t0 = $timeout(tickLog, 500);
         })();
 
         /*(function tickConflict() {

@@ -153,7 +153,8 @@ class PydioApi(Api):
                     '/node_modules/angular-resource/angular-resource.min.js',
                     '/node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2',
                     '/node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff',
-                    '/node_modules/material-design-icons/iconfont/MaterialIcons-Regular.ttf'
+                    '/node_modules/material-design-icons/iconfont/MaterialIcons-Regular.ttf',
+                    '/app/assets/moment-with-locales.js'
                 ]
         # a map 'dep_path' -> function to serve it
         self.app.serv_deps = {}

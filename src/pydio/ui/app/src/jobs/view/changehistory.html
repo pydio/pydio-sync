@@ -1,18 +1,48 @@
 <div ng-controller="HistoryController as hc">
-        {{running}}
+ <!-- {{ running }}
+    <br>
+    <br>--<br>
+    {{ JC.selected }}-->
     <md-content flex layout-padding>
-            <md-list class="md-dense" flex>
-                <md-subheader class="md-no-sticky">{{_('Currently in Sync')}}</md-subheader>
-                <md-list-item class="md-3-line" ng-repeat="item in running">
-                    <!--<img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.filename}}" />-->
-                    <div class="md-list-item-text" layout="column">
-                        <h3>{{ item.filename }}</h3>
-                        <!--<h4>{{ item.what }}</h4>-->
-                        <p>{{ item.notes }}</p>
-                    </div>
-                </md-list-item>
-            </md-list>
-        </md-content>
+            <div ng-show="running.tasks && running.tasks.total">
+            <span style="font-size: 1.2em;">{{_('Status')}}: {{_('syncing')}}</span>
+            <br>{{_('Size')}}: {{running.global.queue_bytesize | bytes}} -
+            {{_('Estimated time')}}: {{running.global.eta | seconds}}
+            <!--{{_('Status')}}: {{_('syncing')}}-->
+        </div>
+        <md-list class="md-dense" flex>
+            <md-subheader class="md-no-sticky" >
+                <span ng-show="running.tasks.total === 0">{{_('Currently in Sync')}}</span>
+                <span ng-show="running.tasks.total > 0" class="lead">{{_('Currently processing ')}}{{running.tasks.current.length}} {{_(' tasks (')}} {{JC.selected.progress | number:0}}{{_('% completed)')}}</span>
+            </md-subheader>
+            <md-list-item class="md-3-line" ng-if="running.tasks.total === 0" layout-padding>
+                <p>{{_('NONE')}}</p>
+            </md-list-item>
+            <md-list-item class="md-3-line" ng-repeat="item in running.tasks.current">
+                <div class="md-list-item-text" layout="row">
+                        <h3><i class="material-icons change-history-icon" ng-if="item.node.type === 'delete'">delete</i>
+                        <i class="material-icons change-history-icon" ng-if="item.node.type !== 'delete' && item.node.location == 'remote'">cloud_download</i> <!--file_download-->
+                        <i class="material-icons change-history-icon" ng-if="item.node.type !== 'delete' && item.node.location == 'local'">cloud_upload</i> <!--file_upload-->
+                        &nbsp;
+                        {{ item.node.node_path }}</h3>
+                        <h4> {{item.node.bytesize }} - {{ item.node.bytes_sent }} -- {{ item.bytes_sent }} --- {{ item.node.total_bytes_sent }}</h4>
+                        <md-progress-circular md-mode="determinate" value="{{100*(item.node.bytesize/item.bytes_sent)}}"></md-progress-circular>
+                        <p>{{ item.node.row_id }}</p>
+                </div>
+                <!--<p>{{item}}</p>-->
+            </md-list-item>
+        </md-list>
+    </md-content>
+
+        <table ng-show="running.tasks.total > 0" class="table">
+
+            <tr ng-show="running.tasks.total > 5">
+                <td>{{running.tasks.total - 5}} more ... </td>
+            </tr>
+            </tbody>
+        </table>
+
+
         <md-content flex layout-padding>
             <md-list class="md-dense">
                 <md-subheader class="md-no-sticky">{{_('Last synchronized files')}}</md-subheader>
@@ -27,8 +57,9 @@
                                     <md-icon style="color: white;">history</md-icon>
                                     <span> &nbsp; {{ item.date | thedatefilter }}</span>
                             </md-tooltip>
-                            <i class="material-icons change-history-icon" ng-if="item.type == 'remote'">cloud_upload</i> <!--file_upload-->
-                            <i class="material-icons change-history-icon" ng-if="item.type == 'local'">cloud_download</i> <!--file_download-->
+                            <i class="material-icons change-history-icon" ng-if="item.action == 'delete'">delete</i>
+                            <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'remote'">cloud_upload</i> <!--file_upload-->
+                            <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'local'">cloud_download</i> <!--file_download-->
                             &nbsp;
                             {{ item.message }}
                         </span>
@@ -43,35 +74,7 @@
     {{logs}}
     -->
 
-<p ng-if="running.tasks.total" class="lead">Currently processing {{running.tasks.total}} tasks ({{running.global|number:0}}% completed)</p>
-<table ng-if="running.tasks.total" class="table">
-    <thead>
-    <tr>
-        <th>Direction</th>
-        <th>Type</th>
-        <th>File</th>
-        <th>Progress</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr ng-if="running.tasks.total" ng-repeat="task in running.tasks.current">
-        <td>{{task.direction=='remote'?'Down':'Up'}}</td>
-        <td>{{task.type}}</td>
-        <td>{{task.target && task.target != 'NULL'?task.target:task.source}}</td>
-        <td ng-if="!task.progress">Queued</td>
-        <td ng-if="task.progress">
-            <div class="progress progress-striped active">
-                <div class="progress-bar" role="progressbar" aria-valuenow="{{task.progress | number:0}}" aria-valuemin="0" aria-valuemax="100" style="width: {{task.progress | number:0}}%;">
-                    {{task.progress | number:0}}%
-                </div>
-            </div>
-        </td>
-    </tr>
-    <tr ng-if="running.tasks.total > 5">
-        <td>{{running.tasks.total - 5}} more ... </td>
-    </tr>
-    </tbody>
-</table>
+
 
 
 <div ng-if="conflicts">

@@ -8,19 +8,43 @@
                 });
         }])
         .factory('JobsWithId', ['$resource',
+            // get the jobs in a nice map[job_id] -> job
             function($resource){
                 return $resource('/jobs/:job_id', {}, {
                     query: {method:'GET', params:{job_id:'',with_id:true}}
                 });
         }])
+        .filter('moment', function(){
+            return function(time_string){
+                if(window.PydioEnvLanguages && window.PydioEnvLanguages.length){
+                    moment.locale(window.PydioEnvLanguages[0]);
+                }else if(navigator.browserLanguage || navigator.language){
+                    moment.locale(navigator.browserLanguage?navigator.browserLanguage:navigator.language);
+                }
+                return moment(time_string).fromNow();
+            }
+        })
         .filter('bytes', function() {
-        return function(bytes, precision) {
-            if (bytes == 0) return bytes;
-            if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return bytes;
-            if (typeof precision === 'undefined') precision = 1;
-            var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
-                number = Math.floor(Math.log(bytes) / Math.log(1024));
-            return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
+            return function(bytes, precision) {
+                if (bytes == 0) return bytes;
+                if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return bytes;
+                if (typeof precision === 'undefined') precision = 1;
+                var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
+                    number = Math.floor(Math.log(bytes) / Math.log(1024));
+                return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
+            }
+        })
+        .filter('seconds', function(){
+
+        return function(sec){
+            if (sec == -1) return 'N/A';
+            if (isNaN(parseFloat(sec)) || !isFinite(sec)) return sec;
+            var d=new Date(0,0,0, 0, 0, Math.round(sec));
+            if(d.getHours() || d.getMinutes()){
+                return (d.getHours() ? d.getHours()+'h ' : '')+ (d.getMinutes() ? d.getMinutes()+'min ':'');
+            }else{
+                return d.getSeconds() + 's';
+            }
         }
         })
        .filter('twoLetters', function(){
@@ -60,26 +84,48 @@
    * @constructor
    */
   function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId ) {
+    window.translate = function(string){
+        var lang;
+        if(window.PydioLangs){
+            if(window.PydioEnvLanguages && window.PydioEnvLanguages.length && window.PydioLangs[window.PydioEnvLanguages[0]]){
+                lang = window.PydioEnvLanguages[0];
+            }else{
+                var test = navigator.browserLanguage?navigator.browserLanguage:navigator.language;
+                if(test && window.PydioLangs[test]) lang = test;
+            }
+            if(lang && window.PydioLangs[lang][string]){
+                string = window.PydioLangs[lang][string];
+            }
+
+        }
+        var i = 1;
+        while(string.indexOf('%'+i) > -1 && arguments.length > i){
+            string = string.replace('%'+i, arguments[i]);
+            i++;
+        }
+        return string;
+    }
+
     $scope._ = window.translate;
     var self = this;
 
     self.selected     = null;
-    self.selectJob   = selectJob;
     self.toggleList   = toggleSideNav;
     self.makeContact  = makeContact;
-    self.changeSelected = changeSelected;
     self.toggleGeneralSettings = toggleGeneralSettings;
 
     // Load all jobs
     self.syncing = jobService.syncing;
     self.history = jobService.history;
-    jobService.currentNavItem = 'history';
+    self.currentNavItem = 'history';
     $scope.pathes = {};
     $scope.jobs = Jobs.query();
     self.jobs = $scope.jobs;
 
     self.menuOpened = false;
     $scope.$on('$mdMenuClose', function(){ self.menuOpened = false});
+
+    self.fake_data = {"tasks":{"current":[{"node":{"bytesize":100000000,"mtime":1467037750,"md5":"5bf234610827e29cb0436122415d4821","node_path":"/JENE/omg/jaja/lefile100MB"},"target":"/JENE/omg/jaja/lefile100MB","total_size":100001132,"bytesize":100000000,"bytes_sent":40,"content":1,"source":"NULL","total_bytes_sent":48367468,"location":"local","progress":3,"row_id":166,"type":"create","md5":"5bf234610827e29cb0436122415d4821"}],"total":5},"global":{"total_time":5.003995,"last_transfer_rate":24365888.264299262,"status_indexing":0,"queue_bytesize":-3280,"queue_start_time":2.774535,"eta":-0.000021983704444345575,"queue_length":5,"queue_done":5.0000219662499905}}
 
     var t0;
     (function tickJobs() {
@@ -89,6 +135,17 @@
                     if ( !self.menuOpened ){
                         self.jobs = tmpJobs;
                         $scope.jobs = tmpJobs;
+                        if(self.selected && self.selected.state){
+                            for (var i in self.jobs){
+                                if(self.jobs[i].id === self.selected.id){
+                                    self.selected.state = self.jobs[i].state;
+                                }
+                            }
+                            self.selected.progress = 100 * parseFloat(self.selected.state.global.queue_done) / parseFloat(self.selected.state.global.queue_length)
+                        }
+                        /*for (var index in self.jobs)
+                            if (self.jobs[index].id === self.selected.id)
+                                console.log(self.jobs[index].state)*/
                     }
                 }, function(response){
                         $scope.error = window.translate('Ooops, cannot contact agent! Make sure it is running correctly, process will try to reconnect in 20s');
@@ -129,9 +186,10 @@
      * Select the current avatars
      * @param menuId
      */
-    function selectJob ( job ) {
+    self.selectJob = function selectJob ( job ) {
         $scope.currentNavItem = 'history';
         $scope.showAllJobs = false;
+        $scope.showGeneralSettings = false;
         self.selected = angular.isNumber(job) ? $scope.jobs[job] : job;
         $scope.selected = self.selected; // hack to pass info around...
     }
@@ -172,7 +230,7 @@
         $mdDialog.show({
             controller: 'NewJobController',
             controllerAs: 'NJC',
-            templateUrl: './src/jobs/view/temp.html',
+            templateUrl: './src/jobs/view/newjob.html',
             parent: angular.element(document.body),
             targetEvent: ev,
             clickOutsideToClose:true
@@ -186,16 +244,10 @@
     window.onload = function (){
         //toggleSideNav();
         if ($scope.jobs.length == 1)
-            changeSelected(0)
+            self.selectJob(0)
         else $scope.showAllJobs = true;
     }
 
-    /**
-        $scope toggles, bad practice probably
-    */
-    function changeSelected(item){
-        selectJob(item)
-    }
 
     function toggleGeneralSettings(){
         $scope.showGeneralSettings = !$scope.showGeneralSettings
@@ -216,7 +268,7 @@
                 $scope.jobs = newJobs
             });
         });
-        console.log($scope.jobs)
+        //console.log($scope.jobs)
     }
 
     self.menuClick = function(index, action){
@@ -229,8 +281,7 @@
                 $scope.showNewTask = false
                 $scope.showAllJobs = false
                 $scope.showGeneralSettings = false
-                $scope.currentNavItem = 'history';
-
+                self.currentNavItem = 'history';
             break
             case 'start':
                 console.log('start ' + index)
@@ -245,7 +296,7 @@
                 $scope.showNewTask = false
                 $scope.showAllJobs = false
                 $scope.showGeneralSettings = false
-                $scope.currentNavItem = "settings"
+                self.currentNavItem = "settings"
             break
             case 'pause':
                 console.log('pause ' + index)
@@ -292,8 +343,8 @@
             $mdToast.show({
                   hideDelay   : 9000,
                   position    : 'bottom right',
-                  controller  : self,
-                  template    : '<md-toast><span class="md-toast-text" style="color:red" flex>' + $scope.error + '</span></md-toast>'
+                  controller  : function(){},
+                  template    : '<md-toast><span class="md-toast-text" style="" flex>' + $scope.error + '</span></md-toast>'
             });
             $scope.loading = false;
         });
@@ -306,5 +357,62 @@
             .ok('Ok...')
         )
     }
-  }
+
+    self.showConfirmDelete = function(ev) {
+        // Appending dialog to document.body to cover sidenav in docs app
+        var confirm = $mdDialog.confirm()
+              .title(window.translate('Are you sure you want to delete this synchro?'))
+              .textContent(window.translate('Only PydioSync internal files will be deleted. None of your files.'))
+              .ariaLabel('Confirm Delete')
+              .targetEvent(ev)
+              .ok(window.translate('DELETE'))
+              .cancel(window.translate('CANCEL'));
+        $mdDialog.show(confirm).then(function() {
+            // DO DELETE
+            Jobs.delete({job_id:self.selected.id},function(){
+                $scope.showAllJobs = true;
+            });
+        }, function() {
+            // CANCEL
+        });
+    };
+
+    self.showConfirmResync = function(ev) {
+        // Appending dialog to document.body to cover sidenav in docs app
+        var confirm = $mdDialog.confirm()
+              .title(window.translate('Are you sure you want to do a Resync?'))
+              .textContent(window.translate('Resyncing consists in scanning all your local files as well as list all the files in your workspace.'))
+              .ariaLabel('Confirm Resync')
+              .targetEvent(ev)
+              .ok(window.translate('RESYNC'))
+              .cancel(window.translate('CANCEL'));
+        $mdDialog.show(confirm).then(function() {
+            Commands.query({cmd:"resync", job_id:self.selected.id}, function(){
+                //console.log("THIS WILL RESYNC")
+                $location.path('/')
+            });
+        }, function() {
+            // CANCEL
+        });
+    };
+
+    self.revertJob = function (){
+        var orig = JobsWithId.query({}, function(){
+            self.selected = orig[self.selected.id] })
+    }
+
+    self.doSave = function(){
+        self.selected.$save();
+    }
+
+    $scope.$watch(self.selected, function() { console.log('Modified') }, true);
+    self.showTodo = function(content){
+        $mdToast.show({
+                          hideDelay   : 3000,
+                          position    : 'bottom right',
+                          controller  : function(){},
+                          template    : '<md-toast><span class="md-toast-text" style="color:yellow" flex>' + content + '</span></md-toast>'
+                    });
+        }
+    }
 })();

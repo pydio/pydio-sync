@@ -1,7 +1,7 @@
 <!--{{ showAllJobs }}-->
 <md-content>
     <md-list class="md-dense" flex>
-        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="item.active" ng-click="JC.changeSelected($index)">
+        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="item.active" ng-click="JC.selectJob($index)">
             <div layout="row">
                 <!--<img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label}}" />-->
                 <md-button class="md-fab md-primary alljob-control" aria-label="Pause" ng-show="item.running" ng-click="applyCmdToJob('pause', jobs[$index])">
@@ -59,14 +59,14 @@
     <span flex></span>
     <md-button class="md-fab md-mini" aria-label="Add Sync Task" ng-init="showNewTask=false;" ng-click="JC.newSyncTask($event);">
               <md-icon aria-hidden="true">add</md-icon>
-        <md-tooltip md-direction="left">Create a new sync task</md-tooltip>
+        <md-tooltip md-direction="left">{{_('Create a new sync task')}}</md-tooltip>
     </md-button>
     <span style="width:42px;"></span>
 </md-content>
 <md-content>
     <md-subheader class="md-no-sticky">{{_('Disabled Tasks')}}</md-subheader>
         <md-list class="md-dense" flex>
-        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="!item.active" ng-click="JC.changeSelected($index)">
+        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="!item.active" ng-click="JC.selectJob($index)">
             <div layout="row">
                 <!--<img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label[0] + item.label[1]}}" />-->
                 <md-button class="md-fab md-primary alljob-control" aria-label="Play" ng-click="applyCmdToJob('enable', jobs[$index])">

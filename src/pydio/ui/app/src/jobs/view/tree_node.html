@@ -15,7 +15,7 @@
     &nbsp;&nbsp;
     <span ng-if="!data['PydioSyncNewNode']" style="cursor: pointer;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]" ng-bind="data['@text']"></span>
     <!--<input type="text" ng-if="data['PydioSyncNewNode']" ng-keyup="NJC.doneWithEnter($event, 'step3')" ng-attr-required="data['PydioSyncNewNode']" style="min-width:220px; color:#555555;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]" ng-model="NJC.job.new_remote_folder['@text']">-->
-    <input ng-if="data['PydioSyncNewNode']" ng-keyup="NJC.doneWithEnter($event, 'step3')" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]" ng-model="NJC.job.new_remote_folder['@text']" placeholder="Untitled Folder">
+    <input ng-if="data['PydioSyncNewNode']" ng-keyup="NJC.doneWithEnter($event)" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]" ng-model="NJC.job.new_remote_folder['@text']" placeholder="Untitled Folder">
     <md-icon ng-show="showNewFolder && !data['PydioSyncNewNode']" style="margin-right: 2px; cursor: pointer;" ng-click="
         NJC.newFolder(data);
         pathes[data['@filename']] = true;">create_new_folder</md-icon>

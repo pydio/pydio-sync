@@ -67,11 +67,11 @@
       <h1 ng-click="showGeneralSettings = false; showNewTask = false; showAllJobs = true;">PydioSync</h1>
       <span flex></span>
       <div style="margin-right: 2%;"ng-init="showGeneralSettings = false">
-          <i class="material-icons" style="padding-top: 25px" ng-click="showGeneralSettings = !showGeneralSettings">settings</i>
+          <div style="padding-top: 22px"><i class="material-icons"  ng-click="showGeneralSettings = !showGeneralSettings">settings</i>
           <!--<i class="fa fa-cog" style="padding-top: 25px;" ng-click="showGeneralSettings = !showGeneralSettings; "></i>-->
           <md-tooltip md-direction="bottom">
               {{_('General Settings')}}
-          </md-tooltip>
+          </md-tooltip></div>
       </div>
     </md-toolbar>
 
@@ -123,7 +123,7 @@
     <script type="text/javascript" src="./src/jobs/SettingsController.js"></script>
     <script type="text/javascript" src="./src/jobs/JobService.js"></script>
     <script type="text/javascript" src="./src/jobs/HistoryController.js"></script>
-
+    <script type="text/javascript" src="./assets/moment-with-locales.js"></script>
     <script type="text/javascript">
 
           angular
