@@ -123,6 +123,7 @@
     self.jobs = $scope.jobs;
 
     self.menuOpened = false;
+    $scope.application_title = window.translate("PydioSync"); // TODO: FETCH ME BABY
     $scope.$on('$mdMenuClose', function(){ self.menuOpened = false});
 
     self.fake_data = {"tasks":{"current":[{"node":{"bytesize":100000000,"mtime":1467037750,"md5":"5bf234610827e29cb0436122415d4821","node_path":"/JENE/omg/jaja/lefile100MB"},"target":"/JENE/omg/jaja/lefile100MB","total_size":100001132,"bytesize":100000000,"bytes_sent":40,"content":1,"source":"NULL","total_bytes_sent":48367468,"location":"local","progress":3,"row_id":166,"type":"create","md5":"5bf234610827e29cb0436122415d4821"}],"total":5},"global":{"total_time":5.003995,"last_transfer_rate":24365888.264299262,"status_indexing":0,"queue_bytesize":-3280,"queue_start_time":2.774535,"eta":-0.000021983704444345575,"queue_length":5,"queue_done":5.0000219662499905}}
@@ -398,7 +399,8 @@
 
     self.revertJob = function (){
         var orig = JobsWithId.query({}, function(){
-            self.selected = orig[self.selected.id] })
+            self.selected = orig[self.selected.id]
+        })
     }
 
     self.doSave = function(){
@@ -414,5 +416,36 @@
                           template    : '<md-toast><span class="md-toast-text" style="color:yellow" flex>' + content + '</span></md-toast>'
                     });
         }
-    }
+
+    var tm;
+    (function checkModified(){
+        if(typeof($scope.isModified) === "undefined")
+            $scope.isModified = false;
+        if (self.jobs && self.currentNavItem && self.currentNavItem === 'settings'){
+            var foundJob = false;
+            var nowModified = false;
+            for(var i in self.jobs){
+                if(self.jobs[i].id === self.selected.id){
+                    foundJob = true;
+                    var names = ['label', 'server', 'user', 'password', 'directory', 'workspace', 'frequency', 'timeout', 'poolsize', 'direction'];
+                    for (var a in names){
+                        if(self.jobs[i][names[a]] !== self.selected[names[a]]){
+                            //console.log(b + " - " + self.jobs[i][names[a]] + " " + self.selected[names[a]])
+                            nowModified = true;
+                        }
+                    }
+                }
+                if(foundJob){
+                    if(nowModified)
+                        $scope.isModified = true;
+                    if($scope.isModified && !nowModified){
+                        $scope.isModified = false;
+                    }
+                    break;
+                }
+            }
+        }
+        tm = $timeout(checkModified, 700);
+    })()
+  } // End of Controller
 })();

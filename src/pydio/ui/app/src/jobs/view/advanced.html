@@ -1,6 +1,5 @@
-<md-input-container class="md-block" flex-gt-xs>
-        <h3>{{_('Synchronization Direction')}}</h3>
-        <div layout-padding>
+<h3>{{_('Synchronization Direction')}}</h3>
+<md-input-container class="md-block" flex-gt-xs layout-padding>
             <p>
                 {{_('By default, modifications from both sides (computer & server) are propagated to the other side.')}}
             </p>
@@ -11,11 +10,9 @@
                     <md-radio-button value="down">{{_('Download only (server to computer)')}}</md-radio-button>
                 </md-radio-group>
             </div>
-        </div>
 </md-input-container>
-<md-input-container class="md-block" flex-gt-xs>
-        <h3>{{_('Synchronization Frequency')}}</h3>
-        <div layout-padding>
+<h3>{{_('Synchronization Frequency')}}</h3>
+<md-input-container class="md-block" flex-gt-xs layout-padding>
             <p>{{_('By default, changes are propagated in real-time, but for some usecases it can be handy to disable real-time and switch to less frequent checks.')}}</p>
             <div layout="row">
                 <md-radio-group ng-model="JC.selected.frequency">
@@ -34,12 +31,9 @@
                     </md-input-container>
                 </div>
             </div>
-        </div>
 </md-input-container>
-<div layout="column">
-    <md-input-container>
-        <h3>{{_('Connection settings')}}</h3>
-        <div layout-padding>
+<h3>{{_('Connection settings')}}</h3>
+    <md-input-container layout-padding>
             <div>
             <md-input-container class="md-block">
                 <md-tooltip>{{_('Increase the timeout in case of slow responsive server')}}</md-tooltip>
@@ -57,7 +51,6 @@
                     job.poolsize > 8 && {'background-color': 'FireBrick'}">
                 </md-input-container>
             </div>
-        </div>
     </md-input-container>
     <!-- TODO
     <div>
@@ -67,9 +60,8 @@
         </md-input-container>
     </div>
         -->
-    <md-input-container>
-        <h3>{{_('Include/Exclude from Sync')}}</h3>
-        <div layout-padding>
+<h3>{{_('Include/Exclude from Sync')}}</h3>
+    <md-input-container layout-padding>
             <div>
                 <md-input-container class="md-block">
                     <label>{{_('Synchronise, use a list of files or patterns to include in the sync')}}</label>
@@ -82,6 +74,4 @@
                     <input type="text" ng-model="JC.selected.filters.excludes">
                 </md-input-container>
             </div>
-        </div>
     </md-input-container>
-</div>

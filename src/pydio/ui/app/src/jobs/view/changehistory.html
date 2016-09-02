@@ -3,7 +3,7 @@
     <br>
     <br>--<br>
     {{ JC.selected }}-->
-    <md-content flex layout-padding>
+    <md-content flex layout-padding ng-show="running.tasks && running.tasks.total != 0">
             <div ng-show="running.tasks && running.tasks.total">
             <span style="font-size: 1.2em;">{{_('Status')}}: {{_('syncing')}}</span>
             <br>{{_('Size')}}: {{running.global.queue_bytesize | bytes}} -
@@ -15,9 +15,6 @@
                 <span ng-show="running.tasks.total === 0">{{_('Currently in Sync')}}</span>
                 <span ng-show="running.tasks.total > 0" class="lead">{{_('Currently processing ')}}{{running.tasks.current.length}} {{_(' tasks (')}} {{JC.selected.progress | number:0}}{{_('% completed)')}}</span>
             </md-subheader>
-            <md-list-item class="md-3-line" ng-if="running.tasks.total === 0" layout-padding>
-                <p>{{_('NONE')}}</p>
-            </md-list-item>
             <md-list-item class="md-3-line" ng-repeat="item in running.tasks.current">
                 <div class="md-list-item-text" layout="row">
                         <h3><i class="material-icons change-history-icon" ng-if="item.node.type === 'delete'">delete</i>
@@ -46,17 +43,17 @@
         <md-content flex layout-padding>
             <md-list class="md-dense">
                 <md-subheader class="md-no-sticky">{{_('Last synchronized files')}}</md-subheader>
-                <md-list-item class="md-1-line" ng-repeat="item in logs" ng-if="item.type != 'sync'">
+                <md-list-item class="md-1-line" ng-repeat="item in logs" ng-if="item.type != 'sync'" layout-padding>
                     <!--<img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.filename}}" />-->
                     <div class="md-list-item-text" layout="row">
                         <!--<h3>{{ item.filename }}</h3>
                         <h4>{{ item.what }}</h4>
                         <p>{{ item.notes }}</p>-->
                         <span ng-click="showChangeDetails(item, $event)" style="cursor: pointer;">
-                            <md-tooltip md-direction="right">
+                            <!--<md-tooltip md-direction="right">
                                     <md-icon style="color: white;">history</md-icon>
                                     <span> &nbsp; {{ item.date | thedatefilter }}</span>
-                            </md-tooltip>
+                            </md-tooltip>-->
                             <i class="material-icons change-history-icon" ng-if="item.action == 'delete'">delete</i>
                             <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'remote'">cloud_upload</i> <!--file_upload-->
                             <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'local'">cloud_download</i> <!--file_download-->
