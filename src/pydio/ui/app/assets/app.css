@@ -1,13 +1,12 @@
-html, body {
+html,
+body {
   font-family: 'Roboto', sans-serif;
-  font-size:14px;
-  height:100%;
+  font-size: 14px;
+  height: 100%;
   margin: 0px;
   padding: 0px;
 }
-
 /* Toolbar area */
-
 .menu {
   background-color: transparent;
   border: none;
@@ -15,41 +14,30 @@ html, body {
   margin: 16px;
   width: 36px;
 }
-
-
 md-toolbar h3 {
   margin: auto;
   font-weight: 500;
 }
-
 /* Sidenav area */
-
 md-list-item > button {
-  width:100%;
-  text-align:left !important;
+  width: 100%;
+  text-align: left !important;
 }
-
-  md-list .md-button.selected {
-    color: #03a9f4;
-  }
-
-  md-sidenav  md-list {
-    padding: 0px 0px 8px 0px;
-  }
-
-
+md-list .md-button.selected {
+  color: #03a9f4;
+}
+md-sidenav md-list {
+  padding: 0px 0px 8px 0px;
+}
 /* Primary content area */
-
 #content {
   overflow: hidden;
 }
-
-#content  {
+#content {
   padding-left: 40px;
   padding-right: 40px;
   padding-top: 5px;
 }
-
 #content .md-button.share {
   background-color: transparent;
   border: none;
@@ -60,49 +48,39 @@ md-list-item > button {
   top: 10px;
   right: 25px;
 }
-
 #content md-icon.avatar {
   margin-top: 10px;
 }
-
 #content .md-button.share > md-icon {
-  fill:black;
-  width:36px;
-  height:36px;
+  fill: black;
+  width: 36px;
+  height: 36px;
 }
-
 md-button.menuBtn > md-icon {
-  fill:white;
-  width:24px;
-  height:24px;
+  fill: white;
+  width: 24px;
+  height: 24px;
 }
-
 #content .md-button.share:active > md-icon {
   background-color: #dadada;
   border-radius: 75%;
-  padding:4px;
+  padding: 4px;
   transition: all 100ms ease-out 30ms;
 }
-
 #content img {
   display: block;
   height: auto;
   max-width: 500px;
 }
-
 /* Utils */
-
 .content-wrapper {
   position: relative;
 }
-
 /* Typography support coming in 0.8.0 */
-
 md-toolbar h1 {
   font-size: 1.250em;
   font-weight: 400;
 }
-
 .avatar {
   position: relative;
   width: 128px;
@@ -113,41 +91,105 @@ md-toolbar h1 {
   overflow: hidden;
   margin: 0px;
   vertical-align: middle;
-  zoom:0.70;
+  zoom: 0.70;
   transform: translateZ(0);
-  -webkit-transform: scale(0.70);
-  -moz-transform:scale(0.70);
+  -webkit-transform: scale(0.7);
+  -moz-transform: scale(0.7);
 }
-
-
-md-bottom-sheet  md-icon {
-  margin-right:20px;
+md-bottom-sheet md-icon {
+  margin-right: 20px;
 }
-
 span.name {
   font-weight: bold;
-  font-size:1.1em;
-  padding-left:5px;
+  font-size: 1.1em;
+  padding-left: 5px;
 }
-
 .alljob-control {
-    margin-right: 20px;
+  margin-right: 20px;
 }
-
 .alljob-divider {
-    left: 100px !important;
+  left: 100px !important;
 }
-
 .change-history-icon {
-    vertical-align: text-bottom;
-    color: rgb(80, 80, 80);
+  vertical-align: text-bottom;
+  color: #505050;
 }
-.history-more-info{
-    padding: 20px;
+.history-more-info {
+  padding: 20px;
 }
-.login-icons {
-    padding-top: 8px;
-    color: rgb(80, 80, 80);
-    font-size: 18px !important;
-    height: 18px;
+/* START REWORKING 'SETTINGS' PANEL */
+.text-label-ellipsis {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+md-toolbar.md-default-theme:not(.md-menu-toolbar),
+md-toolbar:not(.md-menu-toolbar) {
+  background-color: #0288d1;
+}
+#full-job-toolbar button.alljob-control {
+  background-color: white;
+  min-width: 56px;
+}
+#full-job-toolbar div.full-job-title {
+  flex: 1;
+  color: white;
+  width: calc(30%);
+}
+#full-job-toolbar div.full-job-title h3 {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+}
+#full-job-toolbar div.full-job-title div.full-job-status {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+#full-job-toolbar div.full-job-toolbar-controls {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.87);
+  top: -41px;
+  right: 51px;
+  z-index: 1000;
+}
+#full-job-toolbar div.full-job-toolbar-controls span.tb-button {
+  cursor: pointer;
+  transition: color 550ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;
+}
+#full-job-toolbar div.full-job-toolbar-controls span.tb-button:hover {
+  color: white;
+}
+#full-job-toolbar md-nav-bar .md-button._md-nav-button.md-unselected {
+  color: rgba(255, 255, 255, 0.87);
+}
+#full-job-toolbar md-nav-bar md-nav-ink-bar {
+  bottom: -1px;
+}
+#settingsForm {
+  padding: 16px;
+}
+#settingsForm md-input-container {
+  margin: 7px 0px;
+}
+#settingsForm div.section-title,
+#settingsForm h3 {
+  margin: 10px 0 20px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.53);
+  font-weight: 600;
+}
+#settingsForm md-icon.login-icons {
+  color: rgba(0, 0, 0, 0.33);
+  font-size: 20px !important;
+  height: 18px;
+  left: 4px !important;
+}
+#settingsForm div.section-advanced {
+  padding: 0 4px;
+}
+#settingsForm div.section-advanced p.legend {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.43);
 }

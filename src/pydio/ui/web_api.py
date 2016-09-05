@@ -175,7 +175,7 @@ class PydioApi(Api):
 
     #@authDB.requires_auth #FIXME: RuntimeError: working outside of request context
     def gen_serv_dep(self, path):
-        fp = 'ui' + path  # doesn't work with os.path.join...
+        fp = str(Path(__file__).parent.parent) + '/ui' + path
         with open(fp) as f:
                 content = f.read()
         if path.endswith('.css'):
