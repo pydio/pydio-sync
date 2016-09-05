@@ -62,7 +62,7 @@
     <md-toolbar layout="row">
       <h1 ng-click="showGeneralSettings = false; showNewTask = false; showAllJobs = true;" style="cursor:pointer; padding-left:16px;">{{application_title}}</h1>
         <span flex></span>
-      <div style="margin-right: 2%; padding-right:12px;" ng-init="showGeneralSettings = false">
+      <div style="margin-right: 2%; padding-right:12px;" ng-show="showNewTask || showAllJobs || showGeneralSettings" ng-init="showGeneralSettings = false">
           <div style="padding-top: 22px"><md-icon style="cursor:pointer" ng-click="showGeneralSettings = !showGeneralSettings">settings</md-icon>
           <!--<i class="fa fa-cog" style="padding-top: 25px;" ng-click="showGeneralSettings = !showGeneralSettings; "></i>-->
           <md-tooltip md-direction="bottom">
@@ -127,7 +127,7 @@
               .config(function($mdThemingProvider ){
 
                       $mdThemingProvider.theme('default')
-                          .primaryPalette('indigo')
+                          .primaryPalette('blue', {'default': '600'})
                           .accentPalette('orange');
 
               });
