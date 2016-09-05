@@ -835,12 +835,12 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         $scope.checkTask = function(){
             // checks that a similar task doesn't already exist
             for (task in $scope.jobs){
-                if ( ($scope.jobs[task]['remote_folder'] === $scope.job['remote_folder'] || $scope.jobs[task]['remote_folder'] + "/" === $scope.job['remote_folder'] ||
-                     $scope.jobs[task]['remote_folder'] === $scope.job['remote_folder'] + "/") &&
-                     $scope.jobs[task]['user'] === $scope.job['user'] &&
-                     ($scope.jobs[task]['directory'] === $scope.job['directory'] || $scope.jobs[task]['directory'] +"/" === $scope.job['directory'] || $scope.jobs[task]['directory'] === $scope.job['directory'] +"/") &&
-                     ($scope.jobs[task]['server'] === $scope.job['server'] || $scope.jobs[task]['server'] +"/" === $scope.job['server'] || $scope.jobs[task]['server'] === $scope.job['server'] +"/") &&
-                     $scope.jobs[task]['workspace'] === $scope.job['workspace']
+                if ( ($scope.jobs[task]['remote_folder'].replace('\\', '/') === $scope.job['remote_folder'].replace('\\', '/') || $scope.jobs[task]['remote_folder'].replace('\\', '/') + "/" === $scope.job['remote_folder'].replace('\\', '/') ||
+                     $scope.jobs[task]['remote_folder'].replace('\\', '/') === $scope.job['remote_folder'].replace('\\', '/') + "/") &&
+                     $scope.jobs[task]['user'].replace('\\', '/') === $scope.job['user'].replace('\\', '/') &&
+                     ($scope.jobs[task]['directory'].replace('\\', '/') === $scope.job['directory'].replace('\\', '/') || $scope.jobs[task]['directory'].replace('\\', '/') +"/" === $scope.job['directory'].replace('\\', '/') || $scope.jobs[task]['directory'].replace('\\', '/') === $scope.job['directory'].replace('\\', '/') +"/") &&
+                     ($scope.jobs[task]['server'].replace('\\', '/') === $scope.job['server'].replace('\\', '/') || $scope.jobs[task]['server'].replace('\\', '/') +"/" === $scope.job['server'].replace('\\', '/') || $scope.jobs[task]['server'].replace('\\', '/') === $scope.job['server'].replace('\\', '/') +"/") &&
+                     $scope.jobs[task]['workspace'].replace('\\', '/') === $scope.job['workspace'].replace('\\', '/')
                     ){
                         $scope.checkTaskFailed = true;
                         return false;
