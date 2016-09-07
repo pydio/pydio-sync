@@ -60,7 +60,8 @@
   <body ng-app="starterApp" layout="column" ng-controller="JobController as JC" ng-cloak>
 
     <md-toolbar layout="row">
-      <h1 ng-click="showGeneralSettings = false; showNewTask = false; showAllJobs = true;" style="cursor:pointer; padding-left:16px;">{{application_title}}</h1>
+        <md-icon style="padding-left:16px; cursor:pointer" ng-hide="showNewTask || showAllJobs || showGeneralSettings" ng-click="showGeneralSettings = false; showNewTask = false; showAllJobs = true;">arrow_back</md-icon>
+      <h1 ng-show="showNewTask || showAllJobs || showGeneralSettings" ng-click="showGeneralSettings = false; showNewTask = false; showAllJobs = true;" style="cursor:pointer; padding-left:16px;">{{application_title}}</h1>
         <span flex></span>
       <div style="margin-right: 2%; padding-right:12px;" ng-show="showNewTask || showAllJobs || showGeneralSettings" ng-init="showGeneralSettings = false">
           <div style="padding-top: 22px"><md-icon style="cursor:pointer" ng-click="showGeneralSettings = !showGeneralSettings">settings</md-icon>
