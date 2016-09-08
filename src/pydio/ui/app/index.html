@@ -60,6 +60,7 @@
   <body ng-app="starterApp" layout="column" ng-controller="JobController as JC" ng-cloak>
 
     <md-toolbar layout="row">
+        <!-- <md-button onclick="window.location.reload(true)">FORCE RELOAD</md-button> -->
         <md-icon style="padding-left:16px; cursor:pointer" ng-hide="showNewTask || showAllJobs || showGeneralSettings" ng-click="showGeneralSettings = false; showNewTask = false; showAllJobs = true;">arrow_back</md-icon>
       <h1 ng-show="showNewTask || showAllJobs || showGeneralSettings" ng-click="showGeneralSettings = false; showNewTask = false; showAllJobs = true;" style="cursor:pointer; padding-left:16px;">{{application_title}}</h1>
         <span flex></span>
@@ -135,6 +136,7 @@
     </script>
     <script src="i18n.js"></script>
     <script type="text/javascript">_ = window.translate</script>
+    <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
 
   </body>
 </html>

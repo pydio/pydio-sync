@@ -43,7 +43,7 @@
                     console.log(response)
                 });
             }
-            t0 = $timeout(tickLog, 500);
+            t0 = $timeout(tickLog, 1500);
         })();
 
         /*(function tickConflict() {

@@ -698,6 +698,7 @@ class ContinuousDiffMerger(threading.Thread):
             except RequestException as ree:
                 logging.error(ree.message)
                 self.logger.log_state(_('Cannot resolve domain!'), 'error')
+                self.sleep_offline()
             except Exception as e:
                 if not (e.message.lower().count('[quota limit reached]') or e.message.lower().count('[file permissions]')):
                     logging.exception('Unexpected Error: %s' % e.message)

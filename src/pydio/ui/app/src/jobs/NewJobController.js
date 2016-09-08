@@ -348,7 +348,7 @@
                     // check that a task with the same local folder doesn't exist
                     for (var task in jobs){
                         if(jobs[task].__type__ === "JobConfig"){
-                            console.log("CHECKING " + jobs[task]['directory'] + " " + self.job['directory'])
+                            //console.log("CHECKING " + jobs[task]['directory'] + " " + self.job['directory'])
                             if (jobs[task]['directory'] === self.job['directory'] || jobs[task]['directory'] +"/" === self.job['directory'] || jobs[task]['directory'] === self.job['directory'] +"/"){
                                 self.checkedTaskFolder = false;
                                 console.log('FOLDER PROBLEM')
@@ -362,15 +362,6 @@
             }
         }
 
-        self.openDirChooser = function(ev){
-            var res;
-            if(!window.PydioQtFileDialog) {
-                res = window.prompt(window.translate('Full path to the local folder'));
-            }else{
-                res = window.PydioQtFileDialog.getPath();
-            }
-            self.job.directory = res;
-        }
         self.addTask = function(){
             self.checkTask()
             if (!self.checkedTaskFailed && !self.savedJOB){
@@ -378,7 +369,46 @@
                 self.job.$save()
             }
         }
+
+
+    /* JS to Qt */
+    if (typeof(qt) !== 'undefined'){
+        new QWebChannel(qt.webChannelTransport, function(channel) {
+            self.pydiouijs = channel.objects.pydiouijs;
+            self.PydioQtFileDialog = channel.objects.PydioQtFileDialog;
+        })
+    } else { self.error2 = "UN DE FI NED"; }
+
+    self.doStuff = function(){
+        console.log('Trying to talk to Qt')
+        if(self.pydiouijs.jsTrigger)
+            self.pydiouijs.jsTrigger(2);
+
+        self.PydioQtFileDialog.getDirectory();
+        self.job.directory = window.PydioDirectory;
     }
 
+     self.openDirChooser = function(ev){
+        var res;
+        if(!self.PydioQtFileDialog) {
+            res = window.prompt(window.translate('Full path to the local folder'));
+        }else{
+            res = self.PydioQtFileDialog.getPath(); /* Execution of this function in Qt is asynchronous... See polling below */
+        }
+        self.job.directory = res;
+        var pollres;
+        function pollResult(){
+            // poll for Folder selection finished
+            if(typeof(self.job.directory) === "undefined"){
+                self.PydioQtFileDialog.getDirectory()
+                self.job.directory = window.PydioDirectory
+                pollres = $timeout(pollResult, 700)
+            }
+        }
+        pollResult()
+
+     }
+
+     }
 })();
 
