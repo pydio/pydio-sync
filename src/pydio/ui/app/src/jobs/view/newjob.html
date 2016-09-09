@@ -24,9 +24,9 @@
                                     <label>{{_('Remote Server')}}</label>
                                     <md-icon class="login-icons" aria-hidden="true">dns</md-icon>
                                     <input ng-model="NJC.job.server" type="text"/>
-                                    <div style="display:inline-block" ng-hide="NJC.job.server.startsWith('https')">
-                                        <md-icon  class="login-icons" aria-hidden="true" style="color: orange">warning</md-icon>&nbsp;&nbsp;
-                                        <md-tooltip>{{_('If possible use HTTPS for security.')}}</md-tooltip>
+                                    <div class="hint" ng-hide="NJC.job.server.startsWith('https')">
+                                        <md-icon aria-hidden="true" style="font-size: 20px !important;height: 18px;color: orange">warning</md-icon>
+                                        {{_('If possible use HTTPS for security.')}}
                                     </div>
                                 </md-input-container>
                             </md-content>
@@ -101,14 +101,14 @@
                             </md-input-container>
                             <md-content layout-padding>
                                 <md-checkbox ng-model="singleFolder" ng-show="NJC.job.workspace != ''" ng-click="NJC.loadFolders()">{{_('Sync only a subfolder')}}</md-checkbox>
-                                <md-card ng-show="singleFolder">
+                                <div ng-show="singleFolder">
                                     <!--{{ NJC.folders }}
                                     {{NJC.job}}-->
                                     <ng-include
                                         ng-repeat="child in NJC.folders"
                                         src="'./src/jobs/view/tree_node.html'"
                                         onload="data = child;job = job"/>
-                                </md-card>
+                                </div>
                             </md-content>
                         </md-content>
                         <md-content layout="row" layout-padding>
@@ -141,17 +141,8 @@
 
                  <md-tab label="{{_('Review Sync Task Parameters')}}" name="step4" ng-disabled="selectedTab < 3">
                     <md-content class="md-padding">
-                        <md-card>
-                            <md-card-header>
-                                <md-card-avatar>
-                                    <!--<i class="fa fa-menu" aria-hidden="true"></i>-->
-                                    <i class="material-icons login-icons" style="padding-top:20px;" aria-hidden="true">line_weight</i>
-                                </md-card-avatar>
-                                <md-card-header-text>
-                                    <p>{{_('Sync is now ready to launch: please verify the parameters and click on start. You can change these parameters later as well.')}}</p>
-                                </md-card-header-text>
-                            </md-card-header>
-                            <md-card-content>
+                        <div>
+                                <p>{{_('Sync is now ready to launch: please verify the parameters and click on start. You can change these parameters later as well.')}}</p>
                                 <md-input-container class="md-block md-icon-float">
                                     <label>{{_('Label')}}</label>
                                     <md-icon class="login-icons" aria-hidden="true">label</md-icon>
@@ -226,21 +217,18 @@
                                         </md-card-actions>
                                     </md-card>
                                 </div>
-                                <center>
-                                    <md-button md-no-ink ng-click="showAdvancedParameters = !showAdvancedParameters">{{_('ADVANCED PARAMETERS')}}</md-button>
-                                    <md-card ng-show="showAdvancedParameters">
-                                        <!--<md-card-title>
-                                            <md-card-title-text>
-                                                <span class="md-subhead">{{_('ADVANCED PARAMETERS')}}</span>
-                                            </md-card-title-text>
-                                        </md-card-title>-->
-                                        <md-card-content>
-                                            <ng-include src="'./src/jobs/view/advanced.html'"/>
-                                        </md-card-content>
-                                    </md-card>
-                                </center>
-                            </md-card-content>
-                        </md-card>
+                                <md-button md-no-ink ng-click="showAdvancedParameters = !showAdvancedParameters">{{_('ADVANCED PARAMETERS')}}</md-button>
+                                <div ng-show="showAdvancedParameters">
+                                    <!--<md-card-title>
+                                        <md-card-title-text>
+                                            <span class="md-subhead">{{_('ADVANCED PARAMETERS')}}</span>
+                                        </md-card-title-text>
+                                    </md-card-title>-->
+                                    <md-card-content>
+                                        <ng-include src="'./src/jobs/view/advanced.html'"/>
+                                    </md-card-content>
+                                </div>
+                        </div>
                         <md-content layout="row" md-layout="padding">
                             <span flex></span>
                             <md-button ng-click="selectedTab = selectedTab - 1">&lt; {{_('BACK')}}</md-button>

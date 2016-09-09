@@ -70,5 +70,14 @@
             }
             location.reload();
         }
+
+        self.openLogs = function(){
+            if(!self.PydioQtFileDialog)
+                alert("Can't open logs without Qt.");
+            else {
+                self.PydioQtFileDialog.openLogs();
+            }
+
+        }
     }
 })();

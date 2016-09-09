@@ -231,7 +231,7 @@
         $mdDialog.show({
             controller: 'NewJobController',
             controllerAs: 'NJC',
-            templateUrl: './src/jobs/view/newjob.html',
+            templateUrl: './src/jobs/view/newjob.html?i='+Math.floor(Math.random()*10000), // TODO: tricks the cache (REMOVE ME)
             parent: angular.element(document.body),
             targetEvent: ev,
             clickOutsideToClose:true
@@ -309,6 +309,8 @@
     self.showWorkspacePicker = function(){
         $scope.loading = true;
         if(!self.selected.password) {
+            self.toastError(window.translate('You must provide your password.'))
+            $scope.loading = false;
             return;
         }
         self.job.workspace = '';
@@ -447,5 +449,50 @@
         }
         tm = $timeout(checkModified, 700);
     })()
+
+    /* JS - Qt interactions */
+    if (typeof(qt) !== 'undefined'){
+        new QWebChannel(qt.webChannelTransport, function(channel) {
+            self.pydiouijs = channel.objects.pydiouijs; // useful for debug
+            self.PydioQtFileDialog = channel.objects.PydioQtFileDialog;
+        })
+    }
+    self.openDirChooser = function(ev){
+        var res;
+        if(!self.PydioQtFileDialog) {
+            res = window.prompt(window.translate('Full path to the local folder'));
+        }else{
+            res = self.PydioQtFileDialog.getPath(); /* Execution of this function in Qt is asynchronous... See polling below */
+        }
+        self.selected.directory = res;
+        var pollres;
+        function pollResult(){
+            // poll for Folder selection finished
+            if(typeof(self.selected.directory) === "undefined"){
+                self.PydioQtFileDialog.getDirectory()
+                self.selected.directory = window.PydioDirectory
+                pollres = $timeout(pollResult, 700)
+            }
+        }
+        pollResult()
+
+     }
+
+    self.toastError = function ( error ){
+        $mdToast.show({
+                  hideDelay   : 4000,
+                  position    : 'bottom right',
+                  controller  : function(){},
+                  template    : '<md-toast><span class="md-toast-text" style="" flex>' + error + '</span></md-toast>'
+            });
+    }
+
+    self.openFolder = function(dir){
+        if(!self.PydioQtFileDialog) {
+            self.showTodo(window.translate('Open dir'));
+        } else {
+            self.PydioQtFileDialog.openUrl(dir+'/')
+        }
+    }
   } // End of Controller
 })();

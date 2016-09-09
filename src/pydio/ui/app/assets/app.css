@@ -151,7 +151,7 @@ md-toolbar:not(.md-menu-toolbar) {
   position: absolute;
   color: rgba(255, 255, 255, 0.87);
   top: -41px;
-  right: 51px;
+  right: 16px;
   z-index: 1000;
 }
 #full-job-toolbar div.full-job-toolbar-controls span.tb-button {
@@ -192,6 +192,25 @@ md-toolbar:not(.md-menu-toolbar) {
 #settingsForm div.section-advanced p.legend {
   font-size: 12px;
   color: rgba(0, 0, 0, 0.43);
+}
+#settings-toolbar {
+  background-color: #0288d1;
+}
+#settings-toolbar md-tabs .md-tab {
+  color: red;
+}
+#settings-toolbar h1 {
+  padding-left: 16px;
+}
+#settings-toolbar h2 {
+  padding-left: 16px;
+  margin: 10px 0 20px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.53);
+  font-weight: 600;
+}
+#settings-toolbar div.pad-me {
+  margin-left: 20px;
 }
 .login-icons {
   color: rgba(0, 0, 0, 0.33);

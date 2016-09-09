@@ -1,14 +1,17 @@
-<md-content ng-controller="SettingsController as SC" class="md-padding">
-    <h1 class="generalConfigHeader" ng-value="GetGeneralConfigsDetails()" layout="row">
-        {{_('General configurations page')}}
-        <span flex></span>
-    </h1>
+<div ng-controller="SettingsController as SC" id="settings-toolbar">
+    <md-toolbar>
+        <h1 class="generalConfigHeader" ng-value="GetGeneralConfigsDetails()" layout="row">
+            {{_('General configurations page')}}
+        </h1>
+        <md-nav-bar md-selected-nav-item="SC.currentNavItem" ng-init="SC.currentNavItem = 'settings'" nav-bar-aria-label="navigation links">
+            <md-nav-item md-nav-click="goto('settings')" name="settings">{{_('SETTINGS')}}</md-nav-item>
+            <md-nav-item md-nav-click="goto('about')" name="about">{{_('ABOUT')}}</md-nav-item>
+        </md-nav-bar>
+    </md-toolbar>
     <!--{{general_configs_data}}-->
-<md-content>
-    <md-tabs md-dynamic-height md-border-bottom>
-        <md-tab label="{{_('SETTINGS')}}">
+<md-content ng-show="SC.currentNavItem === 'settings'" >
             <h2>{{_('Update settings')}}</h2>
-            <md-content layout-padding>
+
                 <!--
                     <div class="pull-right">
                     <div class="btn-group">
@@ -17,14 +20,15 @@
                     </div>
                     </div>
                 -->
-                <div layout-gt-sm="row">
+            <div class="pad-me">
+                <div layout="row">
                     {{_('Enable / Disable update here.')}}
                     <span flex></span>
                     <md-switch ng-model="general_configs_data.update_info.enable_update_check" aria-label="Update"></md-switch>
                 </div>
 
                 <div ng-show="general_configs_data.update_info.enable_update_check" style="margin-top:5%;">
-                    <p class="small" style="margin-top:2%;">{{_('Set the update check frequency (here 1 means update check only once a day, default value 0 means it check for update each time agent establishes a new connection with UI) ')}}</p>
+                    <p style="margin-top:2%;">{{_('Set the update check frequency (here 1 means update check only once a day, default value 0 means it check for update each time agent establishes a new connection with UI) ')}}</p>
                     <div class="input-group">
                         <span class="input-group-addon" >{{_('Update check frequency in days')}}</span>
                         <!--<input type="number" min="0" max="1000000" ng-model="general_configs_data.update_info.update_check_frequency_days" class="form-control" >-->
@@ -44,11 +48,12 @@
                         <md-datepicker ng-model="general_configs_data.update_info.last_update_date_FORMATTED" md-placeholder="Check date" disabled></md-datepicker>
                     </div>
                 </div>
-            </md-content>
+            </div>
             <div ng-show="ui_config.login_mode === 'alias'" ng-value="proxies">
                 <h2>{{_('Proxy settings')}}</h2>
+                <!-- TODO: CHECK LAYOUT -->
                 <div ng-show="general_configs_show_proxy_settings">
-                    <md-content flex layout-padding>
+
                             <div class="pull-right">
                                 <div class="btn-group">
                                     <md-switch ng-model="proxies.https.active" aria-label="Proxy"</md-switch>
@@ -89,24 +94,28 @@
                                     </form>
                                 </div>
                             </div>
-                    </md-content>
+
                 </div>
             </div>
             <h2>{{_('Log settings')}}</h2>
-            <md-content layout-padding>
-                <p  class="small">{{_('You can change the name of the log file here.')}}</p>
+            <div class="pad-me">
+                <div layout="row">
+                    <span flex></span>
+                    <md-button class="md-raised" ng-click="SettingsController.openLogs()">{{_('OPEN LOGS')}}</md-button>
+                </div>
+                <p>{{_('You can change the name of the log file here.')}}</p>
                 <md-input-container class="md-block" flex-gt-sm>
                     <label>{{_('File Name')}}</label>
                     <input ng-model="general_configs_data.log_configuration.log_file_name">
                 </md-input-container>
 
-                <p class="small" style="margin-top:2%;">{{_('Limit the number of log files to be stored locally.')}}</p>
+                <p style="margin-top:2%;">{{_('Limit the number of log files to be stored locally.')}}</p>
                 <md-input-container class="md-block" flex-gt-sm>
                     <label>{{_('Number of log files')}}</label>
                     <input type="number" min="0" max="1000000" ng-model="general_configs_data.log_configuration.handlers.file.backupCount">
                 </md-input-container>
 
-                    <p class="small" style="margin-top:2%;">{{_('Set restrictions on log file size here.')}}</p>
+                    <p style="margin-top:2%;">{{_('Set restrictions on log file size here.')}}</p>
                     <!--<span class="input-group-addon" style="min-width:150px;">{{general_configs_data.log_configuration.handlers.file.maxBytes | bytes}}</span>
                     <input type="number" ng-model="general_configs_data.log_configuration.handlers.file.maxBytes" class="form-control" min="0" max="1000000000000000">-->
                     <md-input-container class="md-block" flex-gt-sm>
@@ -121,7 +130,7 @@
                         </md-slider-container>
                     </md-input-container>
 
-                    <p class="small" style="margin-top:2%;">{{_('Enhance the log details as you need them.')}}</p>
+                    <p style="margin-top:2%;">{{_('Enhance the log details as you need them.')}}</p>
                     <!-- TODO check that it works in other languages -->
                     <md-radio-group layout="row" ng-model="general_configs_data.log_configuration.root.level">
                         <md-radio-button value="INFO" class="md-primary">{{_('Info')}}</md-radio-button>
@@ -147,31 +156,31 @@
                         </div>
                     </div>
                     -->
-            </md-content>
+            </div>
             <h2>{{_('Other settings')}}</h2>
-            <md-content layout-padding>
-                <h4 style="margin-top:10px;">{{_('Max wait time for local db access')}}</h4>
-                <p>{{_('If you encounter database locked error try increasing this value')}}</p>
-                <md-input-container class="md-block" flex-gt-sm>
-                    <label>{{_('Timeout in seconds')}}</label>
-                    <input type="number" min="5" max="1000000" ng-model="general_configs_data.max_wait_time_for_local_db_access">
-                </md-input-container>
-                <h4 style="margin-top:10px;">{{_('Set Language')}}</h4>
-                <p>{{_("If you don't want the system's language to be used, manually set it to something else")}}</p>
-                <div class="input-group">
-                    <span class="input-group-addon">{{_('Language ')}}</span>
-                    <md-select ng-model="general_configs_data.language" class="form-control">
-                        <md-optgroup>
-                            <label>{{_('Language')}}</label>
-                            <md-option value="de">Deutsch</md-option>
-                            <md-option value="en">English</md-option>
-                            <md-option value="fr">Français</md-option>
-                            <md-option value="it">Italiano</md-option>
-                            <md-option value="nl">Nederlands</md-option>
-                        </md-optgroup>
-                    </md-select>
+                <div class="pad-me">
+                    <h4 style="margin-top:10px;">{{_('Max wait time for local db access')}}</h4>
+                    <p>{{_('If you encounter database locked error try increasing this value')}}</p>
+                    <md-input-container class="md-block" flex-gt-sm>
+                        <label>{{_('Timeout in seconds')}}</label>
+                        <input type="number" min="5" max="1000000" ng-model="general_configs_data.max_wait_time_for_local_db_access">
+                    </md-input-container>
+                    <h4 style="margin-top:10px;">{{_('Set Language')}}</h4>
+                    <p>{{_("If you don't want the system's language to be used, manually set it to something else")}}</p>
+                    <div class="input-group">
+                        <span class="input-group-addon">{{_('Language ')}}</span>
+                        <md-select ng-model="general_configs_data.language" class="form-control">
+                            <md-optgroup>
+                                <label>{{_('Language')}}</label>
+                                <md-option value="de">Deutsch</md-option>
+                                <md-option value="en">English</md-option>
+                                <md-option value="fr">Français</md-option>
+                                <md-option value="it">Italiano</md-option>
+                                <md-option value="nl">Nederlands</md-option>
+                            </md-optgroup>
+                        </md-select>
+                    </div>
                 </div>
-            </md-content>
             <!-- OLD <div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: center; background-color: #77b8e2;">
                 <a href="#" title="Cancel"><md-icon>keyboard_arrow_left</md-icon></a>
                 <md-button ng-click="SaveGeneralConfig()" class="btn btn-info" style="width: 40%;margin:0 1%;">{{_('Update Settings')}}</md-button>
@@ -181,12 +190,8 @@
                 <md-button ng-click="JC.toggleGeneralSettings()"><md-icon>keyboard_arrow_left</md-icon></md-button>
                 <md-button ng-click="SC.SaveGeneralConfig()" class="md-raised md-primary">{{_('SAVE SETTINGS')}}</md-button>
              </md-input-container>
-        </md-tab>
-        <md-tab label="{{_('About PydioSync')}}">
-            <md-content>
-                <div ng-include="'./about.html'"></div>
-            </md-content>
-        </md-tab>
-    </md-tabs>
     </md-content>
-</md-content>
+    <md-content ng-show="SC.currentNavItem === 'about'">
+        <div ng-include="'./about.html'" class="pad-me"></div>
+    </md-content>
+</div>

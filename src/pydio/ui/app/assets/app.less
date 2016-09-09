@@ -184,7 +184,7 @@ md-toolbar.md-default-theme:not(.md-menu-toolbar), md-toolbar:not(.md-menu-toolb
         position: absolute;
         color: @light-white;
         top: -41px;
-        right: 51px;
+        right: 16px;
         z-index: 1000;
 
         span.tb-button{
@@ -235,6 +235,26 @@ md-toolbar.md-default-theme:not(.md-menu-toolbar), md-toolbar:not(.md-menu-toolb
         }
     }
 
+}
+
+#settings-toolbar{
+    background-color: @primary_color;
+    md-tabs .md-tab {
+        color:red;
+    }
+    h1 {
+        padding-left: 16px;
+    }
+    h2 {
+        padding-left: 16px;
+        margin: 10px 0 20px;
+        font-size: 14px;
+        color: rgba(0,0,0,0.53);
+        font-weight: 600;
+    }
+    div.pad-me {
+        margin-left: 20px;
+    }
 }
 
 .login-icons {

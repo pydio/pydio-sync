@@ -42,6 +42,9 @@
                 <md-tooltip md-direction="bottom" style="font-size:12px;">{{_('Rescan local files and compare with the server')}}</md-tooltip>
             </span>
         </div>
+        <!-- ng-show="JC.selected.progress > 0" class="md-accent"-->
+        <md-progress-circular  md-diameter="56" style="display: float; position:absolute; z-index:20; left:24px; top: 6px" md-mode="determinate" value="{{JC.selected.progress|number:0}}"></md-progress-circular>
+        <p>{{JC.selected.progress|number:0}}</p>
     </div>
     <!-- ><md-button class="share" md-no-ink ng-click="ul.makeContact(ul.selected)" aria-label="Share with {{ ul.selected.name }}">
       <md-icon md-svg-icon="share"></md-icon>
@@ -56,6 +59,7 @@
         <md-nav-item md-nav-href="#page5" name="page5">Page Five</md-nav-item>
         -->
     </md-nav-bar>
+    <md-progress-linear md-mode="indeterminate" ng-show="loading"></md-progress-linear>
 </md-toolbar>
 
 <div ng-show="JC.currentNavItem == 'history'">
@@ -76,17 +80,19 @@
         <div>
             <md-input-container class="md-block md-icon-float">
                 <label>{{_('Label')}}</label>
-                <md-icon aria-hidden="true" class="login-icons">label</md-icon>
+                <md-icon aria-hidden="true" class="login-icons" style="cursor:default">label</md-icon>
                 <input type="text" ng-model="JC.selected.label">
             </md-input-container>
             <md-input-container class="md-block md-icon-float">
                 <label>{{_('Remote Server')}}</label>
-                <md-icon class="login-icons" style="cursor:pointer" aria-hidden="true" ng-click="JC.showTodo('Open URL')">dns</md-icon>
+                <!--<a href="{{self.selected.server}}" target="_blank"></a>-->
+                <a href="{{JC.selected.server}}" target="_blank" id="server_link"></a>
+                <md-icon class="login-icons" style="cursor:pointer" aria-hidden="true" onclick="document.getElementById('server_link').click()">dns</md-icon>
                 <input type="text" ng-model="JC.selected.server">
             </md-input-container>
             <md-input-container class="md-block" md-no-float>
                 <label>{{_('Login')}}</label>
-                <md-icon class="login-icons" aria-hidden="true">account_circle</md-icon>
+                <md-icon class="login-icons" aria-hidden="true" style="cursor:default">account_circle</md-icon>
                 <input type="text" ng-model="JC.selected.user">
             </md-input-container>
             <md-input-container class="md-block" md-no-float>
@@ -97,17 +103,17 @@
             <div style="display:flex;">
                 <md-input-container style="flex:1;">
                     <label>{{_('Local Folder')}}</label>
-                    <md-icon class="login-icons" style="cursor:pointer" aria-hidden="true" ng-click="JC.showTodo('Open folder')">folder</md-icon>
+                    <md-icon class="login-icons" style="cursor:pointer" aria-hidden="true" ng-click="JC.openFolder(JC.selected.directory)">folder</md-icon>
                     <input ng-model="JC.selected.directory">
                 </md-input-container>
                 <div class="chooser-button">
-                    <md-button class="md-raised" style="display:inline-block;">{{_('CHOOSE')}}</md-button>
+                    <md-button class="md-raised" style="display:inline-block;" ng-click="JC.openDirChooser($event)">{{_('CHOOSE')}}</md-button>
                 </div>
             </div>
             <div style="display:flex;">
                 <md-input-container class="md-block" style="flex:1;">
                     <label>{{_('Workspace')}}</label>
-                    <md-icon class="login-icons" aria-hidden="true">work</md-icon>
+                    <md-icon class="login-icons" aria-hidden="true" style="cursor:default">work</md-icon>
                     <input ng-model="JC.selected.workspace">
                 </md-input-container>
                 <div class="chooser-button">
