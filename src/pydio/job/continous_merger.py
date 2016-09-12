@@ -425,6 +425,7 @@ class ContinuousDiffMerger(threading.Thread):
                         continue
                     except Exception as e:
                         logging.exception(e)
+                        self.sleep_offline()
                     if not self.sdk.check_basepath():
                         log = _('Cannot find remote folder, maybe it was renamed? Sync cannot start, please check the configuration.')
                         logging.error(log)
