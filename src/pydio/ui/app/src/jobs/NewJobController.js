@@ -300,21 +300,24 @@
                       template    : '<md-toast><span class="md-toast-text" style="" flex>' + error + '</span></md-toast>'
                 });
         }
+
         self.doneWithEnter = function(ev){
-            if (ev.keyCode == 13)
+            if (ev.keyCode == 13 && $scope.selectedTab !== 0)
                 $scope.selectedTab = Math.min(3, $scope.selectedTab + 1);
-
-            if ($scope.selectedTab === 1){
-                console.log('DA FU CK LOAD YES')
-                self.loadWorkspaces();
-                }
-
-
+            if (ev.keyCode == 13 && $scope.selectedTab === 0){
+                // trigger the behavior of the button, because of the scope and $apply can't actually call the JS
+                $timeout(function(){
+                    angular.element(document.getElementById("connect_button")).triggerHandler('click');
+                }, 1)
+            }
         }
+
         self.checkTask = function(){
-            console.log('Check task')
+            //console.log('Check task')
+
             checkTaskMore()
             checkTaskFolder()
+            angular.element(document.getElementById("newjoblabel")).triggerHandler('focus');
         }
 
         //$scope.$on('$scope.selectedTab == 3', self.checkTask()); // doesn't seem to work
@@ -366,7 +369,9 @@
             self.checkTask()
             if (!self.checkedTaskFailed && !self.savedJOB){
                 self.savedJOB = true;
+                self.job.workspace = self.job.workspace['@repositorySlug'];
                 self.job.$save()
+                $scope.hide()
             }
         }
 

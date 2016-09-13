@@ -67,7 +67,7 @@
     <p class="legend">
         {{_('Manually include or exclude a set of files. You can use patterns like *.extension, /folder/*, etc...')}}
     </p>
-    <md-input-container layout="row">
+    <div layout="row">
         <md-input-container class="md-block" style="flex:1">
             <label>{{_('Synchronise, use a list of files or patterns to include in the sync')}}</label>
             <input type="text" ng-model="JC.selected.filters.includes">
@@ -76,5 +76,5 @@
             <label>{{_('Do not synchronise, list of files or patterns to exclude from sync')}}</label>
             <input type="text" ng-model="JC.selected.filters.excludes">
         </md-input-container>
-    </md-input-container>
+    </div>
 </div>

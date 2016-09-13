@@ -8,14 +8,20 @@
             query: {method:'GET', params:{job_id:''}, isArray:false}
         });
     }])
+  .factory('Conflicts', ['$resource',
+    function($resource){
+        return $resource('/jobs/:job_id/conflicts', {}, {
+            query: {method:'GET', params:{job_id:''}, isArray:true}
+            });
+    }])
   .filter('thedatefilter', function() {
     return function(input){
         return input.replace(/\..*/, '')
     }
   })
-  .controller('HistoryController', ['$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', 'Logs', HistoryController]);
+  .controller('HistoryController', ['$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', 'Logs', 'Conflicts', HistoryController]);
 
-  function HistoryController( $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, Logs){
+  function HistoryController( $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, Logs, Conflicts ){
        var self = this;
        //self.selected = $scope.selected;
         //self.loadLogs = loadLogs;
@@ -43,15 +49,18 @@
                     console.log(response)
                 });
             }
-            t0 = $timeout(tickLog, 1500);
+            t0 = $timeout(tickLog, 4000);
         })();
 
-        /*(function tickConflict() {
-        var conflicts = Conflicts.query({job_id:$scope.selected.id}, function(){
-            $scope.conflicts = conflicts;
-            t1 = $timeout(tickConflict, 3000);
-        });
-        })();*/
+        (function tickConflict() {
+            if($scope.selected && $scope.selected.id){
+                var conflicts = Conflicts.query({job_id:$scope.selected.id}, function(){
+                    $scope.conflicts = conflicts;
+                    t1 = $timeout(tickConflict, 3000);
+                });
+            }
+        })();
+
         $scope.$on('$destroy', function(){
             $timeout.cancel(t0);
             $timeout.cancel(t1);
@@ -76,6 +85,18 @@
                 .ok('Ok...')
             );
         }
+
+        $scope.solveConflict = function(nodeId, status){
+            $scope.conflict_solver.current = null;
+            var appToAll = $scope.conflict_solver.applyToAll;
+            angular.forEach($scope.conflicts, function(conflict){
+                if(!appToAll && conflict.node_id != nodeId) return;
+                if(appToAll && conflict.status.indexOf('SOLVED:') === 0) return;
+                conflict.status = status;
+                conflict.job_id = $scope.opened_logs_panel;
+                conflict.$save();
+            });
+        };
 
   }
 })();

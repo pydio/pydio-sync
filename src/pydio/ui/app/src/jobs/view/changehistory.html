@@ -3,6 +3,40 @@
     <br>
     <br>--<br>
     {{ JC.selected }}-->
+    <md-content ng-show="conflict_solver.current">
+        <h4>{{_('Conflicts detected')}}</h4>
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true" ng-click="conflict_solver.current=false">&times;</button>
+        {{_('An element named %1 was modified on both the server and on your local computer. Select how you want to solve this conflicting case:', conflict_solver.current.node_path)}}
+        <div style="text-align: center; margin: 20px 0 0;">
+            <span ng-click="conflict_solver.applyToAll=!conflict_solver.applyToAll;"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!conflict_solver.applyToAll,'glyphicon-ok':conflict_solver.applyToAll}"></span> <label >{{_('Apply to all conflicts')}}</label></span>
+            <div class="btn btn-group">
+                <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPLOCAL');" class="btn btn-default" tabindex="0">{{_('Mine')}}</a>
+                <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPBOTH');" class="btn btn-default" tabindex="0">{{_('Both Versions')}}</a>
+                <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPREMOTE');" class="btn btn-default" tabindex="0">{{_('Theirs')}}</a>
+            </div>
+        </div>
+        <p class="lead">{{_('There are some conflicts, synchro is currently stopped.')}}</p>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Status</th>
+                <th>File</th>
+                <th>Solve Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="conflict in conflicts">
+                <td>{{conflict.status}}</td>
+                <td>{{conflict.node_path}}</td>
+                <td>
+                    <a style="cursor: pointer;" ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEPLOCAL')">Keep my version</a> |
+                    <a style="cursor: pointer;" ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEPREMOTE')">Override with remote version</a> |
+                    <a style="cursor: pointer;" ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEPBOTH')">Keep both</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </md-content>
     <md-content flex layout-padding ng-show="running.tasks && running.tasks.total != 0">
             <div ng-show="running.tasks && running.tasks.total">
             <span style="font-size: 1.2em;">{{_('Status')}}: {{_('syncing')}}</span>
@@ -73,30 +107,7 @@
 
 
 
-<div ng-if="conflicts">
-    <h4>Conflicts</h4>
-    <p class="lead">There are some conflicts, synchro is currently stopped</p>
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Status</th>
-            <th>File</th>
-            <th>Solve Action</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr ng-repeat="conflict in conflicts">
-            <td>{{conflict.status}}</td>
-            <td>{{conflict.node_path}}</td>
-            <td>
-                <a style="cursor: pointer;" ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEPLOCAL')">Keep my version</a> |
-                <a style="cursor: pointer;" ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEPREMOTE')">Override with remote version</a> |
-                <a  style="cursor: pointer;" ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEPBOTH')">Keep both</a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+
 <!--
 <h4>Logs</h4>
 <p class="lead">Previous operations</p>

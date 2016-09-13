@@ -212,6 +212,10 @@ md-toolbar:not(.md-menu-toolbar) {
 #settings-toolbar div.pad-me {
   margin-left: 20px;
 }
+#settings-toolbar md-input-container {
+  /* CHECK*/
+  margin: 7px 0px;
+}
 .login-icons {
   color: rgba(0, 0, 0, 0.33);
   font-size: 20px !important;
