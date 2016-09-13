@@ -139,7 +139,9 @@
                         if(self.selected && self.selected.state){
                             for (var i in self.jobs){
                                 if(self.jobs[i].id === self.selected.id){
-                                    self.selected.state = self.jobs[i].state;
+                                    // update some fields to the selected job, not all fields can be merge (at least during job settings edit)
+                                    self.selected.state = self.jobs[i].state
+                                    self.selected.last_event = self.jobs[i].last_event
                                 }
                             }
                             self.selected.progress = 100 * parseFloat(self.selected.state.global.queue_done) / parseFloat(self.selected.state.global.queue_length)
