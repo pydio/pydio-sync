@@ -49,7 +49,7 @@ try:
     from pydio.job.localdb import LocalDbHandler, SqlEventHandler
     from pydio.utils.global_config import ConfigManager, GlobalConfigManager
     from pydio.utils.functions import connection_helper
-    from pydio.sdkremote.exceptions import ProcessException, InterruptException, PydioSdkDefaultException
+    from pydio.sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException
     from pydio.sdkremote.remote import PydioSdk
     from pydio.sdklocal.local import SystemSdk
     from pydio.utils.check_sync import SyncChecker

@@ -24,11 +24,11 @@
                 }, isArray:true}
             });
         }])
-    .controller('NewJobController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', 'Ws', 'Folders', 'Jobs', NewJobController]);
+    .controller('NewJobController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', 'Ws', 'Folders', 'Jobs', 'SelectedJobService', NewJobController]);
     /**
      * Controller for new jobs
      */
-    function NewJobController( jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $mdToast, Ws, Folders, Jobs ){
+    function NewJobController( jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $mdToast, Ws, Folders, Jobs, SelectedJobService ){
         // JS methods need to be exposed...
         var self = this;
 
@@ -66,6 +66,7 @@
         self.checkedTaskFailed = false;
         self.checkedTaskFolder = true;
 
+        $scope.SelectedJob = SelectedJobService.job;
         self.loadFolders = function(){
             $scope.loading = true;
             self.folders = Folders.query({

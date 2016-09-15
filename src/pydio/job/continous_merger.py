@@ -34,7 +34,7 @@ try:
     from pydio.job.local_watcher import LocalWatcher
     from pydio.job.change_stores import SqliteChangeStore
     from pydio.job.EventLogger import EventLogger
-    from pydio.sdkremote.exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException
+    from pydio.sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException
     from pydio.sdkremote.remote import PydioSdk
     from pydio.sdklocal.local import SystemSdk
     from pydio.utils.functions import connection_helper
@@ -52,7 +52,7 @@ except ImportError:
     from job.change_stores import SqliteChangeStore
     from job.EventLogger import EventLogger
     from job.local_watcher import LocalWatcher
-    from sdkremote.exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException
+    from sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException
     from sdkremote.remote import PydioSdk
     from sdklocal.local import SystemSdk
     from utils.functions import connection_helper

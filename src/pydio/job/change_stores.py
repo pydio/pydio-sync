@@ -27,12 +27,12 @@ import math
 import time
 import random
 try:
-    from pydio.sdkremote.exceptions import InterruptException
+    from pydio.sdkremote.pydio_exceptions import InterruptException
     from pydio.utils.pydio_profiler import pydio_profile
     from pydio.utils.global_config import GlobalConfigManager
     from pydio.job.change_history import ChangeHistory
 except ImportError:
-    from sdkremote.exceptions import InterruptException
+    from sdkremote.pydio_exceptions import InterruptException
     from utils.pydio_profiler import pydio_profile
     from utils.global_config import GlobalConfigManager
     from job.change_history import ChangeHistory

@@ -1,6 +1,10 @@
 (function(){
 
   angular.module('jobs', ['ngResource'])
+        .service('SelectedJobService', function () {
+            var job;
+            return job;
+        })
         .factory('Jobs', ['$resource',
             function($resource){
                 return $resource('/jobs/:job_id/', {}, {
@@ -72,8 +76,7 @@
                 });
             }])
        .controller('JobController', [
-          'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', 'Jobs', 'Commands', 'JobsWithId',
-          JobController
+          'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', JobController
        ])
 
   /**
@@ -83,7 +86,7 @@
    * @param avatarsService
    * @constructor
    */
-  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId ) {
+  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId, SelectedJobService ) {
     window.translate = function(string){
         var lang;
         if(window.PydioLangs){
@@ -109,9 +112,10 @@
     $scope._ = window.translate;
     var self = this;
 
-    self.selected     = null;
-    self.toggleList   = toggleSideNav;
-    self.makeContact  = makeContact;
+    SelectedJobService.job = null;
+    $scope.selected = SelectedJobService;
+    self.toggleList = toggleSideNav;
+    self.makeContact = makeContact;
     self.toggleGeneralSettings = toggleGeneralSettings;
 
     // Load all jobs
@@ -136,19 +140,23 @@
                     if ( !self.menuOpened ){
                         self.jobs = tmpJobs;
                         $scope.jobs = tmpJobs;
-                        if(self.selected && self.selected.state){
+                        if(SelectedJobService.job && SelectedJobService.job.state){
                             for (var i in self.jobs){
-                                if(self.jobs[i].id === self.selected.id){
+                                if(self.jobs[i].id === SelectedJobService.job.id){
                                     // update some fields to the selected job, not all fields can be merge (at least during job settings edit)
-                                    self.selected.state = self.jobs[i].state
-                                    self.selected.last_event = self.jobs[i].last_event
+                                    SelectedJobService.job.state = self.jobs[i].state
+                                    SelectedJobService.job.last_event = self.jobs[i].last_event
+                                    SelectedJobService.job.running = self.jobs[i].running
+                                    /* // merges everything -> bug when editing
+                                    for (var field in self.jobs[i]){
+                                        if (['$get', '$save', '$query', '$remove', '$delete', 'toJSON'].indexOf(field) === -1)
+                                            SelectedJobService.job[field] = self.jobs[i][field]
+                                    }
+                                    */
                                 }
                             }
-                            self.selected.progress = 100 * parseFloat(self.selected.state.global.queue_done) / parseFloat(self.selected.state.global.queue_length)
+                            SelectedJobService.job.progress = 100 * parseFloat(SelectedJobService.job.state.global.queue_done) / parseFloat(SelectedJobService.job.state.global.queue_length)
                         }
-                        /*for (var index in self.jobs)
-                            if (self.jobs[index].id === self.selected.id)
-                                console.log(self.jobs[index].state)*/
                     }
                 }, function(response){
                         $scope.error = window.translate('Ooops, cannot contact agent! Make sure it is running correctly, process will try to reconnect in 20s');
@@ -160,20 +168,7 @@
                 });
         t0 = $timeout(tickJobs, 2000);
     })()
-    /*
-    self.jobList        = [ ];
-    jobService.loadJobList().then(
-        function( jobList ) {
-            self.jobList    = [].concat(jobList);
-            self.selected = jobList[0];
-        }
-    );
-    jobService.loadAllJobs().then(
-        function(jobs){
-            self.jobs = jobs;
-        }
-    );
-    */
+
     // *********************************
     // Internal methods
     // *********************************
@@ -190,11 +185,10 @@
      * @param menuId
      */
     self.selectJob = function selectJob ( job ) {
-        $scope.currentNavItem = 'history';
+        self.currentNavItem = 'history';
         $scope.showAllJobs = false;
         $scope.showGeneralSettings = false;
-        self.selected = angular.isNumber(job) ? $scope.jobs[job] : job;
-        $scope.selected = self.selected; // hack to pass info around...
+        SelectedJobService.job = angular.isNumber(job) ? $scope.jobs[job] : job;
     }
 
     self.showJobs = function(){
@@ -257,8 +251,7 @@
     }
 
     $scope.applyCmd = function(cmd){
-        // uses global variable $scope.selected
-        Commands.query({cmd:cmd, job_id:$scope.selected.id}, function(){
+        Commands.query({cmd:cmd, job_id:SelectedJobService.job.id}, function(){
             var newJobs = Jobs.query({}, function(){
                 $scope.jobs = newJobs
             });
@@ -275,9 +268,8 @@
     }
 
     self.menuClick = function(index, action){
-        $scope.selected = $scope.jobs[index]
+        SelectedJobService.job = $scope.jobs[index]
         self.menuOpened = false
-        self.selected = $scope.selected
         switch (action){
             case 'info':
                 console.log('info ' + index)
@@ -310,7 +302,7 @@
 
     self.showWorkspacePicker = function(){
         $scope.loading = true;
-        if(!self.selected.password) {
+        if(!SelectedJobService.job.password) {
             self.toastError(window.translate('You must provide your password.'))
             $scope.loading = false;
             return;
@@ -318,16 +310,16 @@
         self.job.workspace = '';
         Ws.get({
             job_id:'request',
-            url:self.selected.server,
-            user:self.selected.user,
-            password:self.selected.password,
-            trust_ssl:self.selected.trust_ssl?'true':'false'
+            url:SelectedJobService.job.server,
+            user:SelectedJobService.job.user,
+            password:SelectedJobService.job.password,
+            trust_ssl:SelectedJobService.job.trust_ssl?'true':'false'
         }, function(response){
             if(response.application_title){
-                self.selected.application_title = response.application_title;
+                SelectedJobService.job.application_title = response.application_title;
             }
             if(response.user_display_name){
-                self.selected.user_display_name = response.user_display_name;
+                SelectedJobService.job.user_display_name = response.user_display_name;
             }
             var ret = [] // clean up response
             for (var i in response.repositories.repo){
@@ -335,7 +327,7 @@
                     ret.push(response.repositories.repo[i])
                 }
             }
-            self.selected.repositories = ret;
+            SelectedJobService.job.repositories = ret;
             $scope.loading = false;
             $scope.step = 'step2';
         }, function(resp){
@@ -374,7 +366,7 @@
               .cancel(window.translate('CANCEL'));
         $mdDialog.show(confirm).then(function() {
             // DO DELETE
-            Jobs.delete({job_id:self.selected.id},function(){
+            Jobs.delete({job_id:SelectedJobService.job.id},function(){
                 $scope.showAllJobs = true;
             });
         }, function() {
@@ -392,7 +384,7 @@
               .ok(window.translate('RESYNC'))
               .cancel(window.translate('CANCEL'));
         $mdDialog.show(confirm).then(function() {
-            Commands.query({cmd:"resync", job_id:self.selected.id}, function(){
+            Commands.query({cmd:"resync", job_id:SelectedJobService.job.id}, function(){
                 //console.log("THIS WILL RESYNC")
                 $location.path('/')
             });
@@ -403,15 +395,14 @@
 
     self.revertJob = function (){
         var orig = JobsWithId.query({}, function(){
-            self.selected = orig[self.selected.id]
+            SelectedJobService.job = orig[SelectedJobService.job.id]
         })
     }
 
     self.doSave = function(){
-        self.selected.$save();
+        SelectedJobService.job.$save();
     }
 
-    $scope.$watch(self.selected, function() { console.log('Modified') }, true);
     self.showTodo = function(content){
         $mdToast.show({
                           hideDelay   : 3000,
@@ -429,11 +420,11 @@
             var foundJob = false;
             var nowModified = false;
             for(var i in self.jobs){
-                if(self.jobs[i].id === self.selected.id){
+                if(self.jobs[i].id === SelectedJobService.job.id){
                     foundJob = true;
                     var names = ['label', 'server', 'user', 'password', 'directory', 'workspace', 'frequency', 'timeout', 'poolsize', 'direction'];
                     for (var a in names){
-                        if(self.jobs[i][names[a]] !== self.selected[names[a]]){
+                        if(self.jobs[i][names[a]] !== SelectedJobService.job[names[a]]){
                             //console.log(b + " - " + self.jobs[i][names[a]] + " " + self.selected[names[a]])
                             nowModified = true;
                         }
@@ -466,13 +457,13 @@
         }else{
             res = self.PydioQtFileDialog.getPath(); /* Execution of this function in Qt is asynchronous... See polling below */
         }
-        self.selected.directory = res;
+        SelectedJobService.job.directory = res;
         var pollres;
         function pollResult(){
             // poll for Folder selection finished
-            if(typeof(self.selected.directory) === "undefined"){
+            if(typeof(SelectedJobService.job.directory) === "undefined"){
                 self.PydioQtFileDialog.getDirectory()
-                self.selected.directory = window.PydioDirectory
+                SelectedJobService.job.directory = window.PydioDirectory
                 pollres = $timeout(pollResult, 700)
             }
         }
@@ -496,5 +487,6 @@
             self.PydioQtFileDialog.openUrl(dir+'/')
         }
     }
+
   } // End of Controller
 })();

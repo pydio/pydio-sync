@@ -1,35 +1,34 @@
 <md-toolbar id="full-job-toolbar">
     <div layout="row" style="padding-right:20px; padding-left:16px">
-        <!--<md-icon md-svg-icon="{{jl.selected.avatar}}" class="avatar"></md-icon>-->
         <md-button class="md-fab alljob-control" aria-label="startstop" ng-disabled="false">
-            <div style="padding:0 5px;" ng-show="!JC.selected.running && JC.selected.active" ng-click="applyCmd('resume'); JC.selected.running = !JC.selected.running">
+            <div style="padding:0 5px;" ng-show="!selected.job.running && selected.job.active" ng-click="applyCmd('resume'); selected.job.running = !selected.job.running">
                 <md-icon>play_arrow</md-icon>
                 <md-tooltip md-direction="bottom">
                     {{_('Start')}}
                 </md-tooltip>
             </div>
-            <div style="padding:0 5px;" ng-show="!JC.selected.running && !JC.selected.active" ng-click="applyCmd('enable'); JC.selected.running = !JC.selected.running">
+            <div style="padding:0 5px;" ng-show="!selected.job.running && !selected.job.active" ng-click="applyCmd('enable'); selected.job.running = !selected.job.running">
                 <md-icon >play_arrow</md-icon>
                 <md-tooltip md-direction="bottom">
                     {{_('Enable')}}
                 </md-tooltip>
             </div>
-            <div style="padding:0 5px;" ng-show="JC.selected.running">
-                <md-icon ng-click="applyCmd('pause'); ; JC.selected.running = !JC.selected.running">pause</md-icon>
+            <div style="padding:0 5px;" ng-show="selected.job.running">
+                <md-icon ng-click="applyCmd('pause'); ; selected.job.running = !selected.job.running">pause</md-icon>
                 <md-tooltip md-direction="bottom">
                     {{_('Pause')}}
                 </md-tooltip>
             </div>
         </md-button>
         <div class="full-job-title" style="cursor: default">
-            <h3>{{JC.selected.label}}</h3>
+            <h3>{{selected.job.label}}</h3>
             <div class="full-job-status">
-                <div ng-show="JC.selected.last_event.message == 'Synchronized'"> <i class="material-icons" style="vertical-align: middle;font-size:15px;">check_circle</i>&nbsp;{{_('Synchronised')}}</div>
-                <div ng-show="JC.selected.last_event.message !== 'Synchronized'">{{JC.selected.last_event.message}}</div>
+                <div ng-show="selected.job.last_event.message == 'Synchronized'"> <i class="material-icons" style="vertical-align: middle;font-size:15px;">check_circle</i>&nbsp;{{_('Synchronised')}}</div>
+                <div ng-show="selected.job.last_event.message !== 'Synchronized'">{{selected.job.last_event.message}}</div>
             </div>
         </div>
         <div class="full-job-toolbar-controls">
-            <span class="tb-button" ng-show="JC.selected.active" ng-click="applyCmd('disable'); JC.showJobs()">
+            <span class="tb-button" ng-show="selected.job.active" ng-click="applyCmd('disable'); JC.showJobs()">
                 <i class="material-icons">stop</i>
                 <md-tooltip md-direction="bottom">{{_('Stop')}}</md-tooltip>
             </span>
@@ -42,17 +41,17 @@
                 <md-tooltip md-direction="bottom" style="font-size:12px;">{{_('Rescan local files and compare with the server')}}</md-tooltip>
             </span>
         </div>
-        <!-- ng-show="JC.selected.progress > 0" class="md-accent"-->
-        <md-progress-circular  ng-show="JC.selected.progress > 0" md-diameter="56" style="display: float; position:absolute; z-index:20; left:24px; top: 6px" md-mode="determinate" value="{{JC.selected.progress|number:0}}"></md-progress-circular>
+        <!-- ng-show="selected.job.progress > 0" class="md-accent"-->
+        <md-progress-circular  ng-show="selected.job.progress > 0" md-diameter="56" style="display: float; position:absolute; z-index:20; left:24px; top: 6px" md-mode="determinate" value="{{selected.job.progress|number:0}}"></md-progress-circular>
     </div>
-    <!-- ><md-button class="share" md-no-ink ng-click="ul.makeContact(ul.selected)" aria-label="Share with {{ ul.selected.name }}">
+    <!-- ><md-button class="share" md-no-ink ng-click="ul.makeContact(ul.selected.job)" aria-label="Share with {{ ul.selected.job.name }}">
       <md-icon md-svg-icon="share"></md-icon>
     </md-button>
     -->
     <!-- NAVBAR -->
     <md-nav-bar md-selected-nav-item="JC.currentNavItem" nav-bar-aria-label="navigation links">
-        <md-nav-item md-nav-click="goto('history')" name="history">{{_('LAST ACTIONS')}}</md-nav-item>
-        <md-nav-item md-nav-click="goto('settings')" name="settings">{{_('SETTINGS')}}</md-nav-item>
+        <md-nav-item md-nav-sref="JC.currentNavItem" name="history">{{_('LAST ACTIONS')}}</md-nav-item>
+        <md-nav-item md-nav-sref="JC.currentNavItem" name="settings">{{_('SETTINGS')}}</md-nav-item>
         <!-- these require actual routing with ui-router or ng-route, so they won't work in the demo
         <md-nav-item md-nav-sref="app.page4" name="page4">Page Four</md-nav-item>
         <md-nav-item md-nav-href="#page5" name="page5">Page Five</md-nav-item>
@@ -67,7 +66,7 @@
 
 <div ng-show="JC.currentNavItem == 'settings'">
     <!-- --
-    {{JC.selected}}
+    {{selected.job}}
     <!-- -->
     <div layout="row" ng-show="isModified" style="background-color: rgb(229,229,229)">
               <span flex></span> <!-- TODO: Only show when modified -->
@@ -80,32 +79,32 @@
             <md-input-container class="md-block md-icon-float">
                 <label>{{_('Label')}}</label>
                 <md-icon aria-hidden="true" class="login-icons" style="cursor:default">label</md-icon>
-                <input type="text" ng-model="JC.selected.label">
+                <input type="text" ng-model="selected.job.label">
             </md-input-container>
             <md-input-container class="md-block md-icon-float">
                 <label>{{_('Remote Server')}}</label>
-                <!--<a href="{{self.selected.server}}" target="_blank"></a>-->
-                <a href="{{JC.selected.server}}" target="_blank" id="server_link"></a>
+                <!--<a href="{{self.selected.job.server}}" target="_blank"></a>-->
+                <a href="{{selected.job.server}}" target="_blank" id="server_link"></a>
                 <md-icon class="login-icons" style="cursor:pointer" aria-hidden="true" onclick="document.getElementById('server_link').click()">dns</md-icon>
-                <input type="text" ng-model="JC.selected.server">
+                <input type="text" ng-model="selected.job.server">
             </md-input-container>
             <md-input-container class="md-block" md-no-float>
                 <label>{{_('Login')}}</label>
                 <md-icon class="login-icons" aria-hidden="true" style="cursor:default">account_circle</md-icon>
-                <input type="text" ng-model="JC.selected.user">
+                <input type="text" ng-model="selected.job.user">
             </md-input-container>
             <md-input-container class="md-block" md-no-float>
                 <label>{{_('Password')}}</label>
                 <md-icon class="login-icons" aria-hidden="true">lock</md-icon>
-                <input type="password" ng-model="JC.selected.password">
+                <input type="password" ng-model="selected.job.password">
             </md-input-container>
             <div style="display:flex;">
                 <md-input-container style="flex:1;">
                     <label>{{_('Local Folder')}}</label>
-                    <md-icon class="login-icons" style="cursor:pointer" aria-hidden="true" ng-click="JC.openFolder(JC.selected.directory)">folder</md-icon>
-                    <input ng-model="JC.selected.directory">
+                    <md-icon class="login-icons" style="cursor:pointer" aria-hidden="true" ng-click="JC.openFolder(selected.job.directory)">folder</md-icon>
+                    <input ng-model="selected.job.directory">
                 </md-input-container>
-                <div class="chooser-button">
+                <div>
                     <md-button class="md-raised" style="display:inline-block;" ng-click="JC.openDirChooser($event)">{{_('CHOOSE')}}</md-button>
                 </div>
             </div>
@@ -113,9 +112,9 @@
                 <md-input-container class="md-block" style="flex:1;">
                     <label>{{_('Workspace')}}</label>
                     <md-icon class="login-icons" aria-hidden="true" style="cursor:default">work</md-icon>
-                    <input ng-model="JC.selected.workspace">
+                    <input ng-model="selected.job.workspace">
                 </md-input-container>
-                <div class="chooser-button">
+                <div>
                     <md-button class="md-raised" ng-click="JC.showWorkspacePicker()">{{_('CHOOSE')}}</md-button>
                 </div>
             </div>
@@ -126,6 +125,6 @@
     </md-content>
 
 </div>
-<!-- DEBUG {{JC.selected}} -->
+<!-- DEBUG {{selected.job}} -->
 </md-content>
 

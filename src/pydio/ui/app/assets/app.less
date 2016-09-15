@@ -139,7 +139,8 @@ span.name {
 }
 
 .change-history-icon {
-    vertical-align: text-bottom;
+    font-size: 10px;
+    height: 10px;
     color: rgb(80, 80, 80);
 }
 .history-more-info{
@@ -171,6 +172,10 @@ md-toolbar.md-default-theme:not(.md-menu-toolbar), md-toolbar:not(.md-menu-toolb
         flex:1;
         color: white;
         width: calc(100% - 70px);
+        span:focus {
+            outline: none;
+            border: 0;
+        }
         h3{
             .text-label-ellipsis;
             width: 100%;
@@ -266,3 +271,8 @@ md-toolbar.md-default-theme:not(.md-menu-toolbar), md-toolbar:not(.md-menu-toolb
         height: 18px;
         left: 4px !important;
     }
+
+h1, md-icon:focus{ /* Fix for the weird blue highlight, place me in a smaller scope someday */
+    outline: none;
+    border: 0;
+}
