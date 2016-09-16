@@ -425,6 +425,7 @@ class ContinuousDiffMerger(threading.Thread):
                         continue
                     except Exception as e:
                         logging.exception(e)
+                        self.sleep_offline()
                     if not self.sdk.check_basepath():
                         log = _('Cannot find remote folder, maybe it was renamed? Sync cannot start, please check the configuration.')
                         logging.error(log)
@@ -703,6 +704,7 @@ class ContinuousDiffMerger(threading.Thread):
             except RequestException as ree:
                 logging.error(ree.message)
                 self.logger.log_state(_('Cannot resolve domain!'), 'error')
+                self.sleep_offline()
             except Exception as e:
                 if not (e.message.lower().count('[quota limit reached]') or e.message.lower().count('[file permissions]')):
                     logging.exception('Unexpected Error: %s' % e.message)
