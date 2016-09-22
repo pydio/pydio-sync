@@ -25,7 +25,6 @@ import logging
 import fnmatch
 import math
 import time
-import random
 try:
     from pydio.sdkremote.pydio_exceptions import InterruptException
     from pydio.utils.pydio_profiler import pydio_profile
@@ -47,7 +46,7 @@ class SqliteChangeStore():
     conn = None
     DEBUG = False
 
-    def __init__(self, filename, includes, excludes, poolsize=4, local_sdk=None, remote_sdk=None, job_config=None):
+    def __init__(self, filename, includes, excludes, poolsize=4, local_sdk=None, remote_sdk=None, job_config=None, db_handler=None):
         self.db = filename
         self.includes = includes
         self.excludes = excludes
@@ -63,7 +62,7 @@ class SqliteChangeStore():
         self.pendingoperations = []
         self.maxpoolsize = poolsize
         self.failingchanges = {}  # keep track of failing changes
-        self.change_history = ChangeHistory(self.db[:self.db.rfind("/")] + "/history.sqlite", self.local_sdk, self.remote_sdk, job_config)
+        self.change_history = ChangeHistory(self.db[:self.db.rfind("/")] + "/history.sqlite", self.local_sdk, self.remote_sdk, job_config, db_handler)
         self.job_config = job_config
 
     def open(self):
@@ -212,7 +211,10 @@ class SqliteChangeStore():
                             if i.change is not None and hasattr(i.change, 'status'):
                                 i.change.status = "FAILED"
                                 self.change_history.insert_change(i)
-                        else:
+                        elif i.status == "FAILED":
+                            self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
+                            self.change_history.insert_change(i)
+                            """ Because of consolidation this is no longer useful
                             class Failchange:
                                 pass
                             if i.change['row_id'] not in self.failingchanges:
@@ -228,6 +230,7 @@ class SqliteChangeStore():
                                         del self.failingchanges[i.change['row_id']]
                                     else:
                                         self.failingchanges[i.change['row_id']].fail += 1
+                            """
                         pool.remove(i)
                         i.join()
                         #logging.info("Change done " + str(i))

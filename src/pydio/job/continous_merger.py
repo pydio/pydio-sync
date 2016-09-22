@@ -448,7 +448,7 @@ class ContinuousDiffMerger(threading.Thread):
                         writewait += .5
                     time.sleep(writewait)
                 # Load local and/or remote changes, depending on the direction
-                self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'], self.job_config.poolsize, local_sdk=self.system, remote_sdk=self.sdk, job_config=self.job_config)
+                self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'], self.job_config.poolsize, local_sdk=self.system, remote_sdk=self.sdk, job_config=self.job_config, db_handler=self.db_handler)
                 self.current_store.open()
                 try:
                     if self.job_config.direction != 'up':

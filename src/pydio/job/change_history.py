@@ -35,7 +35,7 @@ class ChangeHistory():
     Writing should only be done by the owner thread, reading can be done by anyone but in order to avoid db lock
     it should be done carefully.
     """
-    def __init__(self, filename, local_sdk, remote_sdk, job_config):
+    def __init__(self, filename, local_sdk, remote_sdk, job_config, db_handler):
         """
         :param filename: the sqlite file name to store data in
         :param sdk: a remote Pydio SDK
@@ -60,6 +60,7 @@ class ChangeHistory():
         self.remote_sdk = remote_sdk
         self.local_sdk = local_sdk
         self.job_config = job_config
+        self.db_handler = db_handler
 
     def insert_change(self, change):
         self.cursor.execute("INSERT INTO changes (seq_id, node_path, location, type, source, target, content, md5,"
@@ -158,9 +159,8 @@ class ChangeHistory():
                     'node': node
                 }
                 # serialize success
-                # current_store DAFUQ
-                logging.info("Reprocessing " + str(change))
-                processor = ChangeProcessor(change, None, self.job_config, self.local_sdk, self.remote_sdk, None, None)
+                logging.info("Should reprocess " + str(change))
+                processor = ChangeProcessor(change, None, self.job_config, self.local_sdk, self.remote_sdk, self.db_handler, None)
                 processor.process_change()
                 # TODO handle output of tried change
                 cursor = self.conn.cursor()
