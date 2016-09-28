@@ -19,19 +19,23 @@
         return input.replace(/\..*/, '')
     }
   })
+  .filter('basename', function(){
+        return function(path){
+            return path.split(/[\\/]/).pop();
+        }
+    })
   .controller('HistoryController', ['$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', 'Logs', 'Conflicts', 'SelectedJobService', HistoryController]);
 
   function HistoryController( $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, Logs, Conflicts, SelectedJobService ){
 
     var self = this;
-    //self.loadLogs = loadLogs;
-    $scope.selected = SelectedJobService.job;
     $scope.logs = undefined;
     var t0;
     var t1;
 
     (function tickLog() {
         if(SelectedJobService.job){
+            $scope.selected = SelectedJobService.job;
             var all = Logs.query({job_id:SelectedJobService.job.id}, function(){
                 $scope.error = null;
                 // TODO: Merge new log events instead of replacing all logs, to avoid flickering.
@@ -55,12 +59,15 @@
     })();
 
     (function tickConflict() {
+        console.log('Tick conflict');
         if(SelectedJobService.job && SelectedJobService.job.id){
             var conflicts = Conflicts.query({job_id:SelectedJobService.job.id}, function(){
+                console.log('Yala ');
+                console.log(conflicts);
                 $scope.conflicts = conflicts;
-                t1 = $timeout(tickConflict, 3000);
             });
         }
+        t1 = $timeout(tickConflict, 3000);
     })();
 
     $scope.$on('$destroy', function(){

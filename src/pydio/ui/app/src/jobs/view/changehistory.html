@@ -1,40 +1,44 @@
 <div ng-controller="HistoryController as hc">
- <!-- {{ running }}
-    <br>
-    <br>--<br>
-    {{ JC.selected }}-->
-    <md-content ng-show="conflict_solver.current">
-        <h4>{{_('Conflicts detected')}}</h4>
-        <button type="button" class="close" data-dismiss="alert" aria-hidden="true" ng-click="conflict_solver.current=false">&times;</button>
-        {{_('An element named %1 was modified on both the server and on your local computer. Select how you want to solve this conflicting case:', conflict_solver.current.node_path)}}
-        <div style="text-align: center; margin: 20px 0 0;">
-            <span ng-click="conflict_solver.applyToAll=!conflict_solver.applyToAll;"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!conflict_solver.applyToAll,'glyphicon-ok':conflict_solver.applyToAll}"></span> <label >{{_('Apply to all conflicts')}}</label></span>
-            <div class="btn btn-group">
-                <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPLOCAL');" class="btn btn-default" tabindex="0">{{_('Mine')}}</a>
-                <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPBOTH');" class="btn btn-default" tabindex="0">{{_('Both Versions')}}</a>
-                <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPREMOTE');" class="btn btn-default" tabindex="0">{{_('Theirs')}}</a>
-            </div>
+    <md-content ng-show="conflicts.length">
+        <md-subheader class="section-title">{{_('Conflicts')}}</md-subheader>
+        <div layout="row">
+            <span flex></span>
+            <md-checkbox ng-model="conflict_solver.applyToAll" ng-init="conflict_solver.applyToAll = false">{{_('Apply to all conflicts')}}</md-checkbox>
+            <div style="width:17px;"></div>
         </div>
-        <p class="lead">{{_('There are some conflicts, synchro is currently stopped.')}}</p>
-        <table class="table">
-            <thead>
-            <tr>
-                <th>Status</th>
-                <th>File</th>
-                <th>Solve Action</th>
+        <table style="width: 100%; padding-left:17px">
+            <tr ng-show="conflict_solver.applyToAll">
+                <td></td>
+                <td></td>
+            <td style="text-align:center">
+                {{_('APPLY TO ALL')}}
+            </td>
             </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="conflict in conflicts">
-                <td>{{conflict.status}}</td>
-                <td>{{conflict.node_path}}</td>
-                <td>
-                    <a style="cursor: pointer;" ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEPLOCAL')">Keep my version</a> |
-                    <a style="cursor: pointer;" ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEPREMOTE')">Override with remote version</a> |
-                    <a style="cursor: pointer;" ng-click="solveConflict(conflict.node_id, 'SOLVED:KEEPBOTH')">Keep both</a>
+            <tr ng-show="conflict_solver.applyToAll">
+                <td></td>
+                <td></td>
+                <td style="text-align:center">
+                    <md-button class="md-raised" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPLOCAL');">{{_('Mine')}}</md-button>
+                    <md-button class="md-raised" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPBOTH');">{{_('Both Versions')}}</md-button>
+                    <md-button class="md-raised" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPREMOTE');">{{_('Theirs')}}</md-button>
                 </td>
             </tr>
-            </tbody>
+            <tr ng-repeat="conflict in conflicts">
+                <td style="padding:2px 0;">{{conflict.node_path | basename}}</td>
+                <td style="color: rgb(80,80,80); cursor:pointer" ng-click="openFile({'target':selected.directory+conflict.node_path}, $event)">{{selected.directory}}{{conflict.node_path}}</td>
+                <td style="text-align:center">
+                    <div ng-show="!conflict_solver.applyToAll">
+                        <md-button class="md-raised" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPLOCAL');">{{_('Mine')}}</md-button>
+                        <md-button class="md-raised" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPBOTH');">{{_('Both Versions')}}</md-button>
+                        <md-button class="md-raised" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPREMOTE');">{{_('Theirs')}}</md-button>
+                    </div>
+                </td>
+
+                <!--<td style="text-align: right;padding:2px 0;">
+                    <md-button ng-show="conflict.status.indexOf('SOLVED:') === -1" ng-click="conflict_solver.current=conflict">{{_('Solve Conflict')}}</md-button>
+                    <span ng-show="conflict.status.indexOf('SOLVED:') === 0" class="small">{{_('Solved')}}</span>
+                </td>-->
+            </tr>
         </table>
     </md-content>
     <md-content flex layout-padding ng-show="running.tasks && running.tasks.total != 0">
@@ -47,7 +51,7 @@
         <md-list class="md-dense" flex>
             <md-subheader class="md-no-sticky" >
                 <span ng-show="running.tasks.total === 0">{{_('Currently in Sync')}}</span>
-                <span ng-show="running.tasks.total > 0" class="lead">{{_('Currently processing ')}}{{running.tasks.current.length}} {{_(' tasks (')}} {{selected.job.progress | number:0}}{{_('% completed)')}}</span>
+                <span ng-show="running.tasks.total > 0" class="lead">{{_('Currently processing ')}}{{running.tasks.current.length}} {{_(' tasks (')}} {{selected.progress | number:0}}{{_('% completed)')}}</span>
             </md-subheader>
             <md-list-item class="md-2-line" ng-repeat="item in running.tasks.current">
                 {{item}}

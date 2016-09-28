@@ -371,6 +371,8 @@
             if (!self.checkedTaskFailed && !self.savedJOB){
                 self.savedJOB = true;
                 self.job.workspace = self.job.workspace['@repositorySlug'];
+                delete self.job.compute_sizes;
+                delete self.job.id;
                 self.job.$save()
                 $scope.hide()
             }
