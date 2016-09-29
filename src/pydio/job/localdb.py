@@ -578,6 +578,22 @@ class LocalDbHandler():
             time.sleep(.2)
             return self.list_non_idle_nodes()
 
+    def get_max_seq(self):
+        """
+        :return: the max_id from index
+        """
+        try:
+            conn = sqlite3.connect(self.db, timeout=self.timeout)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+            res = c.execute("SELECT MAX(seq) FROM ajxp_changes").fetchone()[0]
+            c.close()
+            return res
+        except sqlite3.OperationalError:
+            time.sleep(.2)
+            return self.get_max_seq()
+
+
 class SqlEventHandler(FileSystemEventHandler):
     """reading = False
     last_write_time = 0
