@@ -95,6 +95,7 @@
         );
     }
 
+    $scope.conflict_solver = {current:false,applyToAll:false}
     $scope.solveConflict = function(nodeId, status){
         $scope.conflict_solver.current = null;
         var appToAll = $scope.conflict_solver.applyToAll;
@@ -102,7 +103,7 @@
             if(!appToAll && conflict.node_id != nodeId) return;
             if(appToAll && conflict.status.indexOf('SOLVED:') === 0) return;
             conflict.status = status;
-            conflict.job_id = $scope.opened_logs_panel;
+            conflict.job_id = selected.id;
             conflict.$save();
         });
     };
