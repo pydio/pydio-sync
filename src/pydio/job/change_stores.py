@@ -286,6 +286,7 @@ class SqliteChangeStore():
                 logging.info("@@@@@@@@@@@ Interrupted @@@@@@@@@@")
             except Exception as e:
                 logging.exception(e)
+                time.sleep(1)
         try:
             self.conn.commit()
         except Exception as e:
