@@ -34,7 +34,7 @@ try:
     from pydio.job.local_watcher import LocalWatcher
     from pydio.job.change_stores import SqliteChangeStore
     from pydio.job.EventLogger import EventLogger
-    from pydio.sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException
+    from pydio.sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException, PydioSdkBasicAuthException
     from pydio.sdkremote.remote import PydioSdk
     from pydio.sdklocal.local import SystemSdk
     from pydio.utils.functions import connection_helper
@@ -52,7 +52,7 @@ except ImportError:
     from job.change_stores import SqliteChangeStore
     from job.EventLogger import EventLogger
     from job.local_watcher import LocalWatcher
-    from sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException
+    from sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException, PydioSdkBasicAuthException
     from sdkremote.remote import PydioSdk
     from sdklocal.local import SystemSdk
     from utils.functions import connection_helper
@@ -474,6 +474,11 @@ class ContinuousDiffMerger(threading.Thread):
                     self.logger.log_state(error, "wait")
                     self.sleep_offline()
                     continue
+                except PydioSdkBasicAuthException as e:
+                    self.logger.log_state(_('Authentication Error'), 'error')
+                    self.logger.log_notif(_('Authentication Error'), 'error')
+                    self.sleep_offline()
+                    continue
                 except Exception as e:
                     error = 'Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer)
                     logging.exception(e)
@@ -704,6 +709,10 @@ class ContinuousDiffMerger(threading.Thread):
             except RequestException as ree:
                 logging.error(ree.message)
                 self.logger.log_state(_('Cannot resolve domain!'), 'error')
+                self.sleep_offline()
+            except PydioSdkBasicAuthException as e:
+                self.logger.log_state(_('Authentication Error'), 'error')
+                self.logger.log_notif(_('Authentication Error'), 'error')
                 self.sleep_offline()
             except Exception as e:
                 if not (e.message.lower().count('[quota limit reached]') or e.message.lower().count('[file permissions]')):

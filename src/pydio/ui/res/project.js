@@ -835,17 +835,19 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
         $scope.checkTask = function(){
             // checks that a similar task doesn't already exist
             for (task in $scope.jobs){
-                if ( ($scope.jobs[task]['remote_folder'].replace('\\', '/') === $scope.job['remote_folder'].replace('\\', '/') || $scope.jobs[task]['remote_folder'].replace('\\', '/') + "/" === $scope.job['remote_folder'].replace('\\', '/') ||
-                     $scope.jobs[task]['remote_folder'].replace('\\', '/') === $scope.job['remote_folder'].replace('\\', '/') + "/") &&
-                     $scope.jobs[task]['user'].replace('\\', '/') === $scope.job['user'].replace('\\', '/') &&
-                     ($scope.jobs[task]['directory'].replace('\\', '/') === $scope.job['directory'].replace('\\', '/') || $scope.jobs[task]['directory'].replace('\\', '/') +"/" === $scope.job['directory'].replace('\\', '/') || $scope.jobs[task]['directory'].replace('\\', '/') === $scope.job['directory'].replace('\\', '/') +"/") &&
-                     ($scope.jobs[task]['server'].replace('\\', '/') === $scope.job['server'].replace('\\', '/') || $scope.jobs[task]['server'].replace('\\', '/') +"/" === $scope.job['server'].replace('\\', '/') || $scope.jobs[task]['server'].replace('\\', '/') === $scope.job['server'].replace('\\', '/') +"/") &&
-                     $scope.jobs[task]['workspace'].replace('\\', '/') === $scope.job['workspace'].replace('\\', '/')
-                    ){
-                        $scope.checkTaskFailed = true;
-                        return false;
+                if($scope.jobs[task].__type__ === "JobConfig"){
+                    if ( ((typeof($scope.jobs[task]['remote_folder']) === "undefined") || ($scope.jobs[task]['remote_folder'].replace('\\', '/') === $scope.job['remote_folder'].replace('\\', '/') || $scope.jobs[task]['remote_folder'].replace('\\', '/') + "/" === $scope.job['remote_folder'].replace('\\', '/') ||
+                         ( $scope.jobs[task]['remote_folder'].replace('\\', '/') === $scope.job['remote_folder'].replace('\\', '/') + "/")) )&&
+                         ( $scope.jobs[task]['user'].replace('\\', '/') === $scope.job['user'].replace('\\', '/') )&&
+                         ($scope.jobs[task]['directory'].replace('\\', '/') === $scope.job['directory'].replace('\\', '/') || $scope.jobs[task]['directory'].replace('\\', '/') +"/" === $scope.job['directory'].replace('\\', '/') || $scope.jobs[task]['directory'].replace('\\', '/') === $scope.job['directory'].replace('\\', '/') +"/") &&
+                         ($scope.jobs[task]['server'].replace('\\', '/') === $scope.job['server'].replace('\\', '/') || $scope.jobs[task]['server'].replace('\\', '/') +"/" === $scope.job['server'].replace('\\', '/') || $scope.jobs[task]['server'].replace('\\', '/') === $scope.job['server'].replace('\\', '/') +"/") &&
+                         $scope.jobs[task]['workspace'].replace('\\', '/') === $scope.job['workspace'].replace('\\', '/')
+                        ){
+                            $scope.checkTaskFailed = true;
+                            return false;
 
-                    }
+                        }
+                }
             }
             $scope.checkTaskFailed = false;
             return true;
