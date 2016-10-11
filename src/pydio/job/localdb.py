@@ -588,6 +588,8 @@ class LocalDbHandler():
             c = conn.cursor()
             res = c.execute("SELECT MAX(seq) FROM ajxp_changes").fetchone()[0]
             c.close()
+            if res is None:
+                res = 0
             return res
         except sqlite3.OperationalError:
             time.sleep(.2)
