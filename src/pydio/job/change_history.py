@@ -161,10 +161,10 @@ class ChangeHistory():
                 # serialize success
                 logging.info("Should reprocess " + str(change))
                 processor = ChangeProcessor(change, None, self.job_config, self.local_sdk, self.remote_sdk, self.db_handler, None)
-                processor.process_change()
+                #processor.process_change()
                 # TODO handle output of tried change
-                cursor = self.conn.cursor()
-                cursor.execute("UPDATE changes SET status = ?, last_try = ? WHERE seq_id = ?", ('SUCCESS', int(time.time()), failed_change['seq_id']))
+                #cursor = self.conn.cursor()
+                #cursor.execute("UPDATE changes SET status = ?, last_try = ? WHERE seq_id = ?", ('SUCCESS', int(time.time()), failed_change['seq_id']))
             except Exception as e:
                 logging.exception(e)
         try:
