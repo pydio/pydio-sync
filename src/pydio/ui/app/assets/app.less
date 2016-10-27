@@ -138,15 +138,6 @@ span.name {
     left: 100px !important;
 }
 
-.change-history-icon {
-    font-size: 10px;
-    height: 10px;
-    color: rgb(80, 80, 80);
-}
-.history-more-info{
-    padding: 20px;
-}
-
 /* START REWORKING 'SETTINGS' PANEL */
 
 @primary_color: #0288D1;
@@ -162,6 +153,46 @@ md-toolbar.md-default-theme:not(.md-menu-toolbar), md-toolbar:not(.md-menu-toolb
     background-color: @primary_color;
 }
 
+div.change-history-line{
+
+    display: flex;
+    border-bottom: 1px solid #ececec;
+    padding: 10px;
+
+    .change-history-text{
+        .text-label-ellipsis;
+        flex: 1;
+        padding: 4px;
+        font-size: 13px;
+    }
+
+    .change-history-icon {
+        color: white;
+        background-color: rgba(0, 0, 0, 0.43);
+        border-radius: 50%;
+        height: 30px;
+        width: 30px;
+        text-align: center;
+        box-sizing: border-box;
+        padding: 7px;
+        font-size: 15px;
+        margin-top: -2px;
+        margin-right: 8px;
+    }
+
+    md-icon.md-secondary.material-icons{
+        font-size: 15px;
+        color: rgba(0, 0, 0, 0.33);
+        cursor: pointer;
+        padding-top: 6px;
+    }
+}
+
+.history-more-info{
+    padding: 20px;
+}
+
+
 #full-job-toolbar {
 
     button.alljob-control{
@@ -172,6 +203,7 @@ md-toolbar.md-default-theme:not(.md-menu-toolbar), md-toolbar:not(.md-menu-toolb
         flex:1;
         color: white;
         width: calc(100% - 70px);
+        padding-top: 6px;
         span:focus {
             outline: none;
             border: 0;
@@ -182,6 +214,10 @@ md-toolbar.md-default-theme:not(.md-menu-toolbar), md-toolbar:not(.md-menu-toolb
         }
         div.full-job-status{
             .text-label-ellipsis;
+            font-size: 15px;
+            i.material-icons{
+                font-size: 12px;
+            }
         }
     }
     div.full-job-toolbar-controls{
@@ -219,24 +255,26 @@ md-toolbar.md-default-theme:not(.md-menu-toolbar), md-toolbar:not(.md-menu-toolb
     }
 
     div.section-title, h3{
-        margin: 10px 0 20px;
-        font-size: 14px;
-        color: rgba(0,0,0,0.53);
-        font-weight: 600;
+        margin: 20px 0 20px;
+        font-size: 19px;
+        color: rgba(0,0,0,0.73);
+        font-weight: 400;
     }
 
     md-icon.login-icons {
-        color: rgba(0,0,0,0.33);
+        color: rgba(254, 181, 88, 0.65);
         font-size: 20px !important;
         height: 18px;
         left: 4px !important;
     }
 
     div.section-advanced {
-        padding: 0 4px;
         p.legend{
-            font-size: 12px;
+            font-size: 13px;
             color: rgba(0,0,0,0.43);
+        }
+        md-radio-group{
+            margin-left: 5px;
         }
     }
 

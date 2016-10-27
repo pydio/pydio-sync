@@ -110,14 +110,6 @@ span.name {
 .alljob-divider {
   left: 100px !important;
 }
-.change-history-icon {
-  font-size: 10px;
-  height: 10px;
-  color: #505050;
-}
-.history-more-info {
-  padding: 20px;
-}
 /* START REWORKING 'SETTINGS' PANEL */
 .text-label-ellipsis {
   text-overflow: ellipsis;
@@ -128,6 +120,41 @@ md-toolbar.md-default-theme:not(.md-menu-toolbar),
 md-toolbar:not(.md-menu-toolbar) {
   background-color: #0288d1;
 }
+div.change-history-line {
+  display: flex;
+  border-bottom: 1px solid #ececec;
+  padding: 10px;
+}
+div.change-history-line .change-history-text {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  flex: 1;
+  padding: 4px;
+  font-size: 13px;
+}
+div.change-history-line .change-history-icon {
+  color: white;
+  background-color: rgba(0, 0, 0, 0.43);
+  border-radius: 50%;
+  height: 30px;
+  width: 30px;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 7px;
+  font-size: 15px;
+  margin-top: -2px;
+  margin-right: 8px;
+}
+div.change-history-line md-icon.md-secondary.material-icons {
+  font-size: 15px;
+  color: rgba(0, 0, 0, 0.33);
+  cursor: pointer;
+  padding-top: 6px;
+}
+.history-more-info {
+  padding: 20px;
+}
 #full-job-toolbar button.alljob-control {
   background-color: white;
   min-width: 56px;
@@ -136,6 +163,7 @@ md-toolbar:not(.md-menu-toolbar) {
   flex: 1;
   color: white;
   width: calc(30%);
+  padding-top: 6px;
 }
 #full-job-toolbar div.full-job-title span:focus {
   outline: none;
@@ -151,6 +179,10 @@ md-toolbar:not(.md-menu-toolbar) {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  font-size: 15px;
+}
+#full-job-toolbar div.full-job-title div.full-job-status i.material-icons {
+  font-size: 12px;
 }
 #full-job-toolbar div.full-job-toolbar-controls {
   position: absolute;
@@ -180,23 +212,23 @@ md-toolbar:not(.md-menu-toolbar) {
 }
 #settingsForm div.section-title,
 #settingsForm h3 {
-  margin: 10px 0 20px;
-  font-size: 14px;
-  color: rgba(0, 0, 0, 0.53);
-  font-weight: 600;
+  margin: 20px 0 20px;
+  font-size: 19px;
+  color: rgba(0, 0, 0, 0.73);
+  font-weight: 400;
 }
 #settingsForm md-icon.login-icons {
-  color: rgba(0, 0, 0, 0.33);
+  color: rgba(254, 181, 88, 0.65);
   font-size: 20px !important;
   height: 18px;
   left: 4px !important;
 }
-#settingsForm div.section-advanced {
-  padding: 0 4px;
-}
 #settingsForm div.section-advanced p.legend {
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(0, 0, 0, 0.43);
+}
+#settingsForm div.section-advanced md-radio-group {
+  margin-left: 5px;
 }
 #settings-toolbar {
   background-color: #0288d1;

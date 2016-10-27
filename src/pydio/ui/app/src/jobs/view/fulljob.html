@@ -23,7 +23,7 @@
         <div class="full-job-title" style="cursor: default">
             <h3>{{selected.job.label}}</h3>
             <div class="full-job-status">
-                <div ng-show="selected.job.last_event.message == 'Synchronized'"> <i class="material-icons" style="vertical-align: middle;font-size:15px;">check_circle</i>&nbsp;{{_('Synchronised')}}</div>
+                <div ng-show="selected.job.last_event.message == 'Synchronized'"> <i class="material-icons">check_circle</i>&nbsp;{{_('Synchronised')}}</div>
                 <div ng-show="selected.job.last_event.message !== 'Synchronized'">{{selected.job.last_event.message}}</div>
             </div>
         </div>
@@ -74,8 +74,8 @@
               <md-button class="md-raised md-primary" ng-click="JC.doSave();">{{_('SAVE')}}</md-button>
     </div>
     <md-content id="settingsForm">
-        <div class="section-title">{{_('Sync task settings')}}</div>
-        <div>
+        <div class="section-title" style="margin-top:10px;">{{_('Sync task settings')}}</div>
+        <div style="margin-top:30px;">
             <md-input-container class="md-block md-icon-float">
                 <label>{{_('Label')}}</label>
                 <md-icon aria-hidden="true" class="login-icons" style="cursor:default">label</md-icon>

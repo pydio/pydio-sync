@@ -81,30 +81,17 @@
         <md-content flex>
             <md-list class="md-dense">
                 <md-subheader class="md-no-sticky">{{_('Last synchronized files')}}</md-subheader>
-                <md-list-item class="md-1-line" ng-repeat="item in logs" ng-if="item.type != 'sync'">
-                    <!--<img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.filename}}" />-->
-                    <span class="md-list-item-text" layout="row">
-                        <!--<h3>{{ item.filename }}</h3>
-                        <h4>{{ item.what }}</h4>
-                        <p>{{ item.notes }}</p>-->
-                        <div ng-click="showChangeDetails(item, $event)" style="cursor: pointer; display: inline-block;white-space:nowrap; overflow-y:hidden; overflow-x: scroll; width:400px; height:30px;">
-                            <span>
-                                <!--<md-tooltip md-direction="right">
-                                        <md-icon style="color: white;">history</md-icon>
-                                        <span> &nbsp; {{ item.date | thedatefilter }}</span>
-                                </md-tooltip>-->
-                                <i class="material-icons change-history-icon" ng-if="item.action == 'delete'">delete</i>
-                                <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'remote'">cloud_upload</i> <!--file_upload-->
-                                <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'local'">cloud_download</i> <!--file_download-->
-                            </span>
-                            <span style="vertical-align: 5px; padding-left: 5px;">
-                                {{ item.message }}
-                            </span>
-                        </div>
-                        <md-icon class="md-secondary" ng-click="openFile(item, $event)">open_in_new</md-icon>
-                        <!--<p>{{ item.status }}</p>-->
+                <div class="change-history-line" ng-repeat="item in logs" ng-if="item.type != 'sync'">
+                    <span>
+                        <i class="material-icons change-history-icon" ng-if="item.action == 'delete'">delete</i>
+                        <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'remote'">cloud_upload</i> <!--file_upload-->
+                        <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'local'">cloud_download</i> <!--file_download-->
                     </span>
-                </md-list-item>
+                    <span class="change-history-text" ng-click="showChangeDetails(item, $event)">
+                        {{ item.message }}
+                    </span>
+                    <md-icon class="md-secondary" ng-click="openFile(item, $event)">open_in_new</md-icon>
+                </div>
             </md-list>
         </md-content>
     <!--
