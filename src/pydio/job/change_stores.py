@@ -92,6 +92,7 @@ class SqliteChangeStore():
             self.conn.commit()
         except sqlite3.OperationalError as oe:
             # Catch Database locked errors and try again
+            logging.info("Could not open SqliteChangeStore in " + self.db[:self.db.rfind("/")])
             logging.exception(oe)
             time.sleep(.5)
             self.open()
