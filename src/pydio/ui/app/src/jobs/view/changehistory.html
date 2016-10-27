@@ -54,18 +54,28 @@
                 <span ng-show="running.tasks.total > 0" class="lead">{{_('Currently processing ')}}{{running.tasks.current.length}} {{_(' tasks (')}} {{selected.progress | number:0}}{{_('% completed)')}}</span>
             </md-subheader>
             <md-list-item class="md-2-line" ng-repeat="item in running.tasks.current">
-                {{item}}
                 <div class="md-list-item-text" layout="row">
-                        <h3><i class="material-icons change-history-icon" ng-if="item.node.type === 'delete'">delete</i>
-                        <md-icon class="change-history-icon" ng-if="item.node.type !== 'delete' && item.node.location == 'remote'">cloud_download</md-icon> <!--file_download-->
-                        <md-icon class="change-history-icon" ng-if="item.node.type !== 'delete' && item.node.location == 'local'">cloud_upload</md-icon> <!--file_upload-->
-                        </h3>
-                        <h4>{{ item.node.node_path }}</h4>
-                        <h4>{{item.node.bytesize }} - {{ item.node.bytes_sent }} -- {{ item.bytes_sent }} --- {{ item.node.total_bytes_sent }}</h4>
                         <md-progress-circular md-mode="determinate" md-diameter="20px" value="{{100*(item.node.bytesize/item.bytes_sent)}}"></md-progress-circular>
+                        &nbsp;
+                        <md-icon class="change-history-icon" ng-if="item.node.md5 == 'directory'">folder</md-icon>
+                        <md-icon class="change-history-icon" ng-if="item.node.md5 != 'directory'">file</md-icon>
+                        &nbsp;
+                        <!-- INFO UNAVAILABLE
+                        <h3><i class="material-icons change-history-icon" ng-if="item.node.type === 'delete'">delete</i>
+                        <md-icon class="change-history-icon" ng-if="item.node.type !== 'delete' && item.node.location == 'remote'">cloud_download</md-icon>
+                        <md-icon class="change-history-icon" ng-if="item.node.type !== 'delete' && item.node.location == 'local'">cloud_upload</md-icon>
+                        </h3> -->
+                        <h4>{{ item.node.node_path }}</h4>
+                        &nbsp;
+                        <h4>{{ item.node.bytesize | bytes:1}}</h4>
+                        <!-- <h4>{{item.node.bytesize }} - {{ item.node.bytes_sent }} -- {{ item.bytes_sent }} --- {{ item.node.total_bytes_sent }}</h4>-->
+
                 </div>
                 <!--<p>{{item}}</p>-->
             </md-list-item>
+            <br>
+                {{running.tasks.current[0]}}
+            <br>
         </md-list>
     </md-content>
 
@@ -77,10 +87,12 @@
             </tbody>
         </table>
 
-
         <md-content flex>
             <md-list class="md-dense">
                 <md-subheader class="md-no-sticky">{{_('Last synchronized files')}}</md-subheader>
+                <div style="width:100px; height:100px; margin: 20px 0 0 50%" ng-show="!logs.length">
+                    <md-progress-circular md-mode="indeterminate" md-diameter="40px" ></md-progress-circular>
+                </div>
                 <div class="change-history-line" ng-repeat="item in logs" ng-if="item.type != 'sync'">
                     <span>
                         <i class="material-icons change-history-icon" ng-if="item.action == 'delete'">delete</i>
