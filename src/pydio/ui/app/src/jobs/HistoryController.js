@@ -24,6 +24,16 @@
             return path.split(/[\\/]/).pop();
         }
     })
+  .filter('bytes', function() {
+    return function(bytes, precision) {
+        if (bytes == 0) return bytes;
+        if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return bytes;
+        if (typeof precision === 'undefined') precision = 1;
+        var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
+            number = Math.floor(Math.log(bytes) / Math.log(1024));
+        return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
+    }
+  })
   .controller('HistoryController', ['$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', 'Logs', 'Conflicts', 'SelectedJobService', HistoryController]);
 
   function HistoryController( $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, Logs, Conflicts, SelectedJobService ){
@@ -42,7 +52,9 @@
                 $scope.logs = all.logs;
                 if(all.running.tasks){
                     console.log(all.running.tasks.current)
-                    $scope.running = all.running;
+                    // REMOVE ME FOR PROD
+                    if (all.running.tasks.current.length != 0)
+                        $scope.running = all.running;
                 }
                 if(typeof(all.running) !== 'undefined' && typeof(all.running.current) !== 'undefined'){
                     if(all.running["current"].length > 0)
