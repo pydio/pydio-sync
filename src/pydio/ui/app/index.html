@@ -65,8 +65,7 @@
       <h1 ng-show="showNewTask || showAllJobs || showGeneralSettings" ng-click="showGeneralSettings = false; showNewTask = false; showAllJobs = true;" style="cursor:pointer; padding-left:16px;">{{application_title}}</h1>
         <span flex></span>
       <div style="margin-right:28px;" ng-show="showNewTask || showAllJobs || showGeneralSettings" ng-init="showGeneralSettings = false">
-          <div style="padding-top: 22px"><md-icon style="cursor:pointer" ng-click="showGeneralSettings = !showGeneralSettings">settings</md-icon>
-          <!--<i class="fa fa-cog" style="padding-top: 25px;" ng-click="showGeneralSettings = !showGeneralSettings; "></i>-->
+          <div style="padding-top: 19px"><md-icon style="cursor:pointer" ng-click="showGeneralSettings = !showGeneralSettings">settings</md-icon>
           <md-tooltip md-direction="bottom">
               {{_('General Settings')}}
           </md-tooltip></div>

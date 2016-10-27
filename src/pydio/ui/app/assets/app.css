@@ -123,7 +123,7 @@ md-toolbar:not(.md-menu-toolbar) {
 div.change-history-line {
   display: flex;
   border-bottom: 1px solid #ececec;
-  padding: 10px;
+  padding: 10px 10px 10px 16px;
 }
 div.change-history-line .change-history-text {
   text-overflow: ellipsis;
@@ -151,6 +151,8 @@ div.change-history-line md-icon.md-secondary.material-icons {
   color: rgba(0, 0, 0, 0.33);
   cursor: pointer;
   padding-top: 6px;
+  padding-right: 4px;
+  padding-left: 8px;
 }
 .history-more-info {
   padding: 20px;
@@ -198,6 +200,14 @@ div.change-history-line md-icon.md-secondary.material-icons {
 #full-job-toolbar div.full-job-toolbar-controls span.tb-button:hover {
   color: white;
 }
+#full-job-toolbar div.full-job-toolbar-controls span.tb-button .icon-stop,
+#full-job-toolbar div.full-job-toolbar-controls span.tb-button .icon-sync,
+#full-job-toolbar div.full-job-toolbar-controls span.tb-button .icon-delete {
+  font-size: 20px;
+  border-radius: 50%;
+  padding: 6px;
+  color: white;
+}
 #full-job-toolbar md-nav-bar .md-button._md-nav-button.md-unselected {
   color: rgba(255, 255, 255, 0.87);
 }
@@ -230,6 +240,23 @@ div.change-history-line md-icon.md-secondary.material-icons {
 #settingsForm div.section-advanced md-radio-group {
   margin-left: 5px;
 }
+#settingsForm div.conflict-auto-more,
+#settingsForm div.trigger-time-more {
+  margin-left: 8px;
+  border-left: 2px dotted #feb558;
+  padding-left: 18px;
+}
+#settingsForm div.conflict-auto-more md-select,
+#settingsForm div.trigger-time-more md-select {
+  margin: 10px 0 0 0;
+  width: 97%;
+}
+#settingsForm div.conflict-auto-more div.conflict-more-legend,
+#settingsForm div.trigger-time-more div.conflict-more-legend {
+  padding-top: 20px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.43);
+}
 #settings-toolbar {
   background-color: #0288d1;
 }
@@ -252,6 +279,28 @@ div.change-history-line md-icon.md-secondary.material-icons {
 #settings-toolbar md-input-container {
   /* CHECK*/
   margin: 7px 0px;
+}
+.jobslist button.alljob-control {
+  min-width: 56px;
+}
+.jobslist .md-list-item-inner .layout-row {
+  overflow: hidden;
+}
+.jobslist .joblist-item h3 {
+  font-size: 17px !important;
+  line-height: 1.2em !important;
+}
+.jobslist .joblist-item h4 {
+  font-size: 13px !important;
+  line-height: 16px !important;
+  color: rgba(0, 0, 0, 0.53) !important;
+  white-space: normal !important;
+}
+.jobslist.disabled-jobs md-list-item {
+  opacity: 0.53;
+}
+.jobslist.disabled-jobs md-list-item:hover {
+  opacity: 1;
 }
 .login-icons {
   color: rgba(0, 0, 0, 0.33);

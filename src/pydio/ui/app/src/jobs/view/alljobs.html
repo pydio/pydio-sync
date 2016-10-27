@@ -1,7 +1,7 @@
 <!--{{ showAllJobs }}-->
 <md-content>
     <md-subheader class="md-no-sticky" ng-show="jobs.length > 1">{{_('Active Tasks')}}</md-subheader>
-    <md-list class="md-dense" flex>
+    <md-list class="md-dense jobslist" flex>
         <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="item.active" ng-click="JC.selectJob($index)">
             <div layout="row">
                 <!--<img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label}}" />-->
@@ -11,7 +11,7 @@
                 <md-button class="md-fab md-primary alljob-control" aria-label="Play" ng-show="!item.running" ng-click="applyCmdToJob('resume', jobs[$index])">
                     <md-icon>play_arrow</md-icon>
                 </md-button>
-                <div class="md-list-item-text" layout="column">
+                <div class="md-list-item-text joblist-item" layout="column">
                     <h3>{{ item.label }}</h3>
                     <h4 style="overflow: ellipsis">{{ item.last_event.message }}</h4>
                 </div>
@@ -66,14 +66,14 @@
 </md-content>
 <md-content>
     <md-subheader class="md-no-sticky">{{_('Disabled Tasks')}}</md-subheader>
-        <md-list class="md-dense" flex>
+    <md-list class="md-dense jobslist disabled-jobs" flex>
         <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="!item.active" ng-click="JC.selectJob($index)">
             <div layout="row">
                 <!--<img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label[0] + item.label[1]}}" />-->
                 <md-button class="md-fab md-primary alljob-control" aria-label="Play" ng-click="applyCmdToJob('enable', jobs[$index])">
                     <md-icon>play_arrow</md-icon>
                 </md-button>
-                <div class="md-list-item-text" layout="column">
+                <div class="md-list-item-text joblist-item" layout="column">
                     <h3>{{ item.label }}</h3>
                 </div>
             </div>

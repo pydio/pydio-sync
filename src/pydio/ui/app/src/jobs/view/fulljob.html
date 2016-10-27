@@ -28,17 +28,17 @@
             </div>
         </div>
         <div class="full-job-toolbar-controls">
+            <span class="tb-button"  ng-click="JC.showConfirmResync()">
+                <i class="material-icons icon-sync">sync</i>
+                <md-tooltip md-direction="bottom" style="font-size:12px;">{{_('Rescan local files and compare with the server')}}</md-tooltip>
+            </span>
             <span class="tb-button" ng-show="selected.job.active" ng-click="applyCmd('disable'); JC.showJobs()">
-                <i class="material-icons">stop</i>
+                <i class="material-icons icon-stop">stop</i>
                 <md-tooltip md-direction="bottom">{{_('Stop')}}</md-tooltip>
             </span>
             <span class="tb-button" ng-click="JC.showConfirmDelete()">
-                <i class="material-icons" >delete</i>
+                <i class="material-icons icon-delete" >delete</i>
                 <md-tooltip md-direction="bottom">{{_('Delete')}}</md-tooltip>
-            </span>
-            <span class="tb-button"  ng-click="JC.showConfirmResync()">
-                <i class="material-icons">sync</i>
-                <md-tooltip md-direction="bottom" style="font-size:12px;">{{_('Rescan local files and compare with the server')}}</md-tooltip>
             </span>
         </div>
         <!-- ng-show="selected.job.progress > 0" class="md-accent"-->

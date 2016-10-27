@@ -14,22 +14,22 @@
 <h3>{{_('Synchronization Frequency')}}</h3>
 <div class="section-advanced">
     <p class="legend">{{_('By default, changes are propagated in real-time, but for some usecases it can be handy to disable real-time and switch to less frequent checks.')}}</p>
-    <div layout="row">
+    <div>
         <md-radio-group ng-model="selected.job.frequency">
             <md-radio-button value="auto">{{_('Automatically (real-time)')}}</md-radio-button>
             <md-radio-button value="manual">{{_('Manually (you trigger the sync)')}}</md-radio-button>
             <md-radio-button value="time">{{_('At a given time of day')}}</md-radio-button>
             <!-- TODO <md-radio-button value="interval">{{_('Every x min')}}</md-radio-button>-->
+            <div ng-show="selected.job.frequency=='time'" class="trigger-time-more">
+                <md-input-container>
+                    <input style="width:40px;" type="number" min="0" max="23" ng-model="selected.job.start_time.h" />
+                </md-input-container>
+                <span>:</span>
+                <md-input-container>
+                    <input style="width:40px;" type="number" min="0" max="59" step="1" ng-model="selected.job.start_time.m" />
+                </md-input-container>
+            </div>
         </md-radio-group>
-        <div ng-show="selected.job.frequency=='time'" style="margin-left:20px; margin-top:2em;">
-            <md-input-container>
-                <input style="width:40px;" type="number" min="0" max="23" ng-model="selected.job.start_time.h" />
-            </md-input-container>
-            <span>:</span>
-            <md-input-container>
-                <input style="width:40px;" type="number" min="0" max="59" step="1" ng-model="selected.job.start_time.m" />
-            </md-input-container>
-        </div>
     </div>
 </div>
 <div style="clear: left;" ng-hide="selected.job.direction=='up'">
@@ -37,37 +37,23 @@
 <div class="section-advanced">
     <p class="legend">{{_('When files were modified on both the server and your computer at the same time, a conflict is detected.')}}</p>
     <md-radio-group ng-model="conflict_mode" ng-class="{'disable':selected.job.solve === 'both'}" ng-init="conflict_mode = selected.job.solve === 'manual' ? 'auto':'manual'">
-        <md-radio-button value="auto" class="md-align-top-left" ng-click="selected.job.solve = 'both';" style="outline: none;border: 0;"><span>{{_('Automatic')}}</span><br/>
+        <md-radio-button value="manual" ng-click="selected.job.solve = 'manual'" style="outline: none;border: 0;">{{_('Solve conflicts manually')}}</md-radio-button>
+        <md-radio-button value="auto" class="md-align-top-left" ng-click="selected.job.solve = 'both';" style="outline: none;border: 0;">{{_('Automatic')}}</md-radio-button>
+        <div ng-show="conflict_mode=='auto'" class="conflict-auto-more">
             <span>{{_('With the default keep-both behavior conflicting files will be copied on your local sync. Which version is to be kept?')}}</span>
-        </md-radio-button>
-        <!--
-            <div layout="row" style="padding:0 27px;" ng-show="conflict_mode=='auto'">
-                 <md-button class="md-raised" ng-class="{'md-primary': selected.job.solve === 'both'}" ng-click="selected.job.solve = 'both';$event.stopPropagation()">{{_('Keep both')}}</md-button>
-                 <md-button class="md-raised" ng-class="{'md-primary': selected.job.solve === 'local'}" ng-click="selected.job.solve = 'local';$event.stopPropagation()" ng-hide="job.direction=='down'">{{_('Prefer local')}}</md-button>
-                 <md-button class="md-raised" ng-class="{'md-primary': selected.job.solve === 'remote'}" ng-click="selected.job.solve = 'remote';$event.stopPropagation()">{{_('Prefer remote')}}</md-button>
-        </div>
-        <div style="padding-left:27px; padding-bottom:20px" ng-show="conflict_mode=='auto'">
-            <md-radio-group ng-model="selected.job.solve" layout="row">
-                 <md-radio-button value="both">{{_('Keep both')}}</md-radio-button>
-                 <md-radio-button value="local" ng-hide="job.direction=='down'">{{_('Prefer local')}}</md-radio-button>
-                 <md-radio-button value="remote">{{_('Prefer remote')}}</md-radio-button>
-            </md-radio-group>
-        </div>-->
-        <div layout="row">
-            <md-select style="width:160px; padding: 0 27px" ng-model="selected.job.solve" ng-show="conflict_mode=='auto'">
+            <md-select ng-model="selected.job.solve">
               <md-optgroup label="{{_('Resolution scheme')}}">
                   <md-option value="both">{{_('Keep both')}}</md-option>
                   <md-option value="local" ng-hide="job.direction=='down'">{{_('Prefer local')}}</md-option>
                   <md-option value="remote">{{_('Prefer remote')}}</md-option>
               </md-optgroup>
             </md-select>
-            <div style="padding-top: 20px;">
+            <div class="conflict-more-legend">
                 <span ng-show="selected.job.solve == 'both'">{{_('The local file is renamed to a new file with a dot and your username. The common version is that of the server.')}}</span>
                 <span ng-show="selected.job.solve == 'local'">{{_('In this mode the local version is kept and pushed to the server.')}}</span>
                 <span ng-show="selected.job.solve == 'remote'">{{_('In this mode the local version is lost.')}}</span>
             </div>
         </div>
-        <md-radio-button value="manual" ng-click="selected.job.solve = 'manual'" style="outline: none;border: 0;">{{_('Solve conflicts manually')}}</md-radio-button>
     </md-radio-group>
 </div>
 </div>

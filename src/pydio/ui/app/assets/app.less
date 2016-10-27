@@ -157,7 +157,7 @@ div.change-history-line{
 
     display: flex;
     border-bottom: 1px solid #ececec;
-    padding: 10px;
+    padding: 10px 10px 10px 16px;
 
     .change-history-text{
         .text-label-ellipsis;
@@ -185,6 +185,8 @@ div.change-history-line{
         color: rgba(0, 0, 0, 0.33);
         cursor: pointer;
         padding-top: 6px;
+        padding-right: 4px;
+        padding-left: 8px;
     }
 }
 
@@ -234,6 +236,12 @@ div.change-history-line{
             &:hover{
                 color: white;
             }
+            .icon-stop, .icon-sync, .icon-delete {
+                font-size: 20px;
+                border-radius: 50%;
+                padding: 6px;
+                color: white;
+            }
         }
     }
     md-nav-bar{
@@ -278,6 +286,21 @@ div.change-history-line{
         }
     }
 
+    div.conflict-auto-more, div.trigger-time-more{
+        margin-left: 8px;
+        border-left: 2px dotted #feb558;
+        padding-left: 18px;
+        md-select{
+            margin: 10px 0 0 0;
+            width: 97%;
+        }
+        div.conflict-more-legend{
+            padding-top: 20px;
+            font-size: 13px;
+            color: rgba(0,0,0,0.43);
+        }
+    }
+
 }
 
 #settings-toolbar{
@@ -302,6 +325,39 @@ div.change-history-line{
         margin: 7px 0px;
     }
 }
+
+.jobslist{
+    button.alljob-control{
+        min-width: 56px;
+    }
+
+    .md-list-item-inner .layout-row{
+        overflow: hidden;
+    }
+
+    .joblist-item{
+        h3{
+            font-size: 17px !important;
+            line-height: 1.2em !important;
+        }
+        h4{
+            font-size: 13px !important;
+            line-height: 16px !important;
+            color: rgba(0,0,0,0.53) !important;
+            white-space: normal !important;
+        }
+    }
+
+    &.disabled-jobs{
+        md-list-item{
+            opacity: 0.53;
+            &:hover{
+                opacity: 1;
+            }
+        }
+    }
+}
+
 
 .login-icons {
         color: rgba(0,0,0,0.33);
