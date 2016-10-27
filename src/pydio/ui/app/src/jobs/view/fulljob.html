@@ -60,11 +60,11 @@
     <md-progress-linear md-mode="indeterminate" ng-show="loading"></md-progress-linear>
 </md-toolbar>
 
-<div ng-show="JC.currentNavItem == 'history'">
+<div ng-show="JC.currentNavItem == 'history'" class="full-job-scroller">
     <ng-include src="'./src/jobs/view/changehistory.html'"></ng-include>
 </div>
 
-<div ng-show="JC.currentNavItem == 'settings'">
+<div ng-show="JC.currentNavItem == 'settings'" class="full-job-scroller">
     <!-- --
     {{selected.job}}
     <!-- -->

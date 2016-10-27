@@ -153,6 +153,18 @@ md-toolbar.md-default-theme:not(.md-menu-toolbar), md-toolbar:not(.md-menu-toolb
     background-color: @primary_color;
 }
 
+div.full-job-status-running{
+    text-align: center;
+    padding: 10px 20px;
+    background-color: #E1F5FE;
+    color: #01579B;
+}
+
+div.full-job-scroller{
+    height: ~"calc(100% - 116px)";
+    overflow-y: scroll;
+}
+
 div.change-history-line{
 
     display: flex;
@@ -180,6 +192,14 @@ div.change-history-line{
         margin-right: 8px;
     }
 
+    span.progress-cell, span.empty-cell{
+        display: inline-block;
+        width: 35px;
+        md-progress-circular {
+            margin: 3px 5px;
+        }
+    }
+
     md-icon.md-secondary.material-icons{
         font-size: 15px;
         color: rgba(0, 0, 0, 0.33);
@@ -204,7 +224,7 @@ div.change-history-line{
     div.full-job-title{
         flex:1;
         color: white;
-        width: calc(100% - 70px);
+        width: ~"calc(100% - 70px)";
         padding-top: 6px;
         span:focus {
             outline: none;
@@ -270,7 +290,7 @@ div.change-history-line{
     }
 
     md-icon.login-icons {
-        color: rgba(254, 181, 88, 0.65);
+        color: rgba(0,0,0,0.53);
         font-size: 20px !important;
         height: 18px;
         left: 4px !important;

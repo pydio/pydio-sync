@@ -120,6 +120,16 @@ md-toolbar.md-default-theme:not(.md-menu-toolbar),
 md-toolbar:not(.md-menu-toolbar) {
   background-color: #0288d1;
 }
+div.full-job-status-running {
+  text-align: center;
+  padding: 10px 20px;
+  background-color: #E1F5FE;
+  color: #01579B;
+}
+div.full-job-scroller {
+  height: calc(100% - 116px);
+  overflow-y: scroll;
+}
 div.change-history-line {
   display: flex;
   border-bottom: 1px solid #ececec;
@@ -146,6 +156,15 @@ div.change-history-line .change-history-icon {
   margin-top: -2px;
   margin-right: 8px;
 }
+div.change-history-line span.progress-cell,
+div.change-history-line span.empty-cell {
+  display: inline-block;
+  width: 35px;
+}
+div.change-history-line span.progress-cell md-progress-circular,
+div.change-history-line span.empty-cell md-progress-circular {
+  margin: 3px 5px;
+}
 div.change-history-line md-icon.md-secondary.material-icons {
   font-size: 15px;
   color: rgba(0, 0, 0, 0.33);
@@ -164,7 +183,7 @@ div.change-history-line md-icon.md-secondary.material-icons {
 #full-job-toolbar div.full-job-title {
   flex: 1;
   color: white;
-  width: calc(30%);
+  width: calc(100% - 70px);
   padding-top: 6px;
 }
 #full-job-toolbar div.full-job-title span:focus {
@@ -228,7 +247,7 @@ div.change-history-line md-icon.md-secondary.material-icons {
   font-weight: 400;
 }
 #settingsForm md-icon.login-icons {
-  color: rgba(254, 181, 88, 0.65);
+  color: rgba(0, 0, 0, 0.53);
   font-size: 20px !important;
   height: 18px;
   left: 4px !important;

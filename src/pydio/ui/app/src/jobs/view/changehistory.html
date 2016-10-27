@@ -41,103 +41,59 @@
             </tr>
         </table>
     </md-content>
-    <md-content flex layout-padding ng-show="running.tasks && running.tasks.total != 0">
-            <div ng-show="running.tasks && running.tasks.total">
-            <span style="font-size: 1.2em;">{{_('Status')}}: {{_('syncing')}}</span>
-            <br>{{_('Size')}}: {{running.global.queue_bytesize | bytes}} -
-            {{_('Estimated time')}}: {{running.global.eta | seconds}}
-            <!--{{_('Status')}}: {{_('syncing')}}-->
+    <md-content>
+        <div ng-show="running.tasks && running.tasks.total" class="full-job-status-running">
+            {{_('Status')}}: {{_('syncing')}} - {{_('Size')}}: {{running.global.queue_bytesize | bytes}} - {{_('Estimated time')}}: {{running.global.eta | seconds}}
         </div>
+    </md-content>
+    <md-content flex ng-show="running.tasks && running.tasks.total != 0">
         <md-list class="md-dense" flex>
             <md-subheader class="md-no-sticky" >
-                <span ng-show="running.tasks.total === 0">{{_('Currently in Sync')}}</span>
-                <span ng-show="running.tasks.total > 0" class="lead">{{_('Currently processing ')}}{{running.tasks.current.length}} {{_(' tasks (')}} {{selected.progress | number:0}}{{_('% completed)')}}</span>
+                {{_('Currently processing ')}}{{running.tasks.current.length}} {{_(' tasks (')}} {{selected.progress | number:0}}{{_('% completed)')}}
             </md-subheader>
-            <md-list-item class="md-2-line" ng-repeat="item in running.tasks.current">
-                <div class="md-list-item-text" layout="row">
-                        <md-progress-circular md-mode="determinate" md-diameter="20px" value="{{100*(item.node.bytesize/item.bytes_sent)}}"></md-progress-circular>
-                        &nbsp;
-                        <md-icon class="change-history-icon" ng-if="item.node.md5 == 'directory'">folder</md-icon>
-                        <md-icon class="change-history-icon" ng-if="item.node.md5 != 'directory'">file</md-icon>
-                        &nbsp;
-                        <!-- INFO UNAVAILABLE
-                        <h3><i class="material-icons change-history-icon" ng-if="item.node.type === 'delete'">delete</i>
-                        <md-icon class="change-history-icon" ng-if="item.node.type !== 'delete' && item.node.location == 'remote'">cloud_download</md-icon>
-                        <md-icon class="change-history-icon" ng-if="item.node.type !== 'delete' && item.node.location == 'local'">cloud_upload</md-icon>
-                        </h3> -->
-                        <h4>{{ item.node.node_path }}</h4>
-                        &nbsp;
-                        <h4>{{ item.node.bytesize | bytes:1}}</h4>
-                        <!-- <h4>{{item.node.bytesize }} - {{ item.node.bytes_sent }} -- {{ item.bytes_sent }} --- {{ item.node.total_bytes_sent }}</h4>-->
+            <div class="change-history-line" ng-repeat="item in running.tasks.current">
+                <span class="progress-cell" ng-if="item.node.bytesize">
+                    <md-progress-circular md-mode="determinate" md-diameter="20px" value="{{100*(item.node.bytes_sent/item.bytesize)}}"></md-progress-circular>
+                </span>
+                <i class="material-icons change-history-icon" ng-if="item.type == 'delete'">delete</i>
+                <span class="change-history-text">
+                    <span ng-if="item.node.node_path">
+                        {{ item.node.node_path }}
+                        <span ng-if="item.node.bytesize"> - {{ item.node.bytesize | bytes:1}}</span>
+                    </span>
+                    <span ng-if="!item.node.node_path">{{item.source}}</span>
+                </span>
+            </div>
+            <div ng-show="running.tasks.total > 5" class="change-history-line">
+                <span class="empty-cell"></span>
+                <span class="change-history-text" style="opacity: 0.5; font-style: italic;">
+                    {{running.tasks.total - 5}} more ...
+                </span>
+            </div>
+        </md-list>
 
-                </div>
-                <!--<p>{{item}}</p>-->
-            </md-list-item>
-            <br>
-                {{running.tasks.current[0]}}
-            <br>
+    </md-content>
+<!--
+    {{running.tasks}}
+-->
+    <md-content flex>
+        <md-list class="md-dense">
+            <md-subheader class="md-no-sticky">{{_('Last synchronized files')}}</md-subheader>
+            <div style="width:100px; height:100px; margin: 20px 0 0 50%" ng-show="!logs.length">
+                <md-progress-circular md-mode="indeterminate" md-diameter="40px" ></md-progress-circular>
+            </div>
+            <div class="change-history-line" ng-repeat="item in logs" ng-if="item.type != 'sync'">
+                <span>
+                    <i class="material-icons change-history-icon" ng-if="item.action == 'delete'">delete</i>
+                    <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'remote'">cloud_upload</i> <!--file_upload-->
+                    <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'local'">cloud_download</i> <!--file_download-->
+                </span>
+                <span class="change-history-text" ng-click="showChangeDetails(item, $event)">
+                    {{ item.message }}
+                </span>
+                <md-icon class="md-secondary" ng-click="openFile(item, $event)">open_in_new</md-icon>
+            </div>
         </md-list>
     </md-content>
 
-        <table ng-show="running.tasks.total > 0" class="table">
-
-            <tr ng-show="running.tasks.total > 5">
-                <td>{{running.tasks.total - 5}} more ... </td>
-            </tr>
-            </tbody>
-        </table>
-
-        <md-content flex>
-            <md-list class="md-dense">
-                <md-subheader class="md-no-sticky">{{_('Last synchronized files')}}</md-subheader>
-                <div style="width:100px; height:100px; margin: 20px 0 0 50%" ng-show="!logs.length">
-                    <md-progress-circular md-mode="indeterminate" md-diameter="40px" ></md-progress-circular>
-                </div>
-                <div class="change-history-line" ng-repeat="item in logs" ng-if="item.type != 'sync'">
-                    <span>
-                        <i class="material-icons change-history-icon" ng-if="item.action == 'delete'">delete</i>
-                        <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'remote'">cloud_upload</i> <!--file_upload-->
-                        <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'local'">cloud_download</i> <!--file_download-->
-                    </span>
-                    <span class="change-history-text" ng-click="showChangeDetails(item, $event)">
-                        {{ item.message }}
-                    </span>
-                    <md-icon class="md-secondary" ng-click="openFile(item, $event)">open_in_new</md-icon>
-                </div>
-            </md-list>
-        </md-content>
-    <!--
-    {{ selected }}
-    {{logs}}
-    -->
-
-
-
-
-
-<!--
-<h4>Logs</h4>
-<p class="lead">Previous operations</p>
-<table class="table">
-    <thead>
-    <tr>
-        <th></th>
-        <th>Date</th>
-        <th>Action</th>
-        <th>File / Folder</th>
-        <th>Status</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr ng-repeat="log in logs">
-        <td ng-if="log[1] == 'remote'"><span class="glyphicon glyphicon-cloud-upload"></span></td>
-        <td ng-if="log[1] == 'local'"><span class="glyphicon glyphicon-cloud-download"></span></td>
-        <td>{{log[7]}}</td>
-        <td>{{log[5]}}</td>
-        <td>{{log[4] && log[4]!=NULL ? log[4]:log[3]}}</td>
-        <td>{{log[6] == 'undefined' ? 'OK' : log[6]}}</td>
-    </tr>
-    </tbody>
-</table>
 </div>
--->
