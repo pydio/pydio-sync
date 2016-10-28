@@ -246,6 +246,12 @@ div.change-history-line md-icon.md-secondary.material-icons {
   color: rgba(0, 0, 0, 0.73);
   font-weight: 400;
 }
+#settingsForm.general_configs h3 {
+  margin: 30px 0 30px;
+}
+#settingsForm.general_configs h4 {
+  color: rgba(0, 0, 0, 0.43);
+}
 #settingsForm md-icon.login-icons {
   color: rgba(0, 0, 0, 0.53);
   font-size: 20px !important;
@@ -256,22 +262,31 @@ div.change-history-line md-icon.md-secondary.material-icons {
   font-size: 13px;
   color: rgba(0, 0, 0, 0.43);
 }
+#settingsForm div.section-advanced p.legend-small {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.54);
+  font-weight: 400;
+  margin: 0;
+}
 #settingsForm div.section-advanced md-radio-group {
   margin-left: 5px;
 }
 #settingsForm div.conflict-auto-more,
-#settingsForm div.trigger-time-more {
+#settingsForm div.trigger-time-more,
+#settingsForm div.enable_update_more {
   margin-left: 8px;
   border-left: 2px dotted #feb558;
   padding-left: 18px;
 }
 #settingsForm div.conflict-auto-more md-select,
-#settingsForm div.trigger-time-more md-select {
+#settingsForm div.trigger-time-more md-select,
+#settingsForm div.enable_update_more md-select {
   margin: 10px 0 0 0;
   width: 97%;
 }
 #settingsForm div.conflict-auto-more div.conflict-more-legend,
-#settingsForm div.trigger-time-more div.conflict-more-legend {
+#settingsForm div.trigger-time-more div.conflict-more-legend,
+#settingsForm div.enable_update_more div.conflict-more-legend {
   padding-top: 20px;
   font-size: 13px;
   color: rgba(0, 0, 0, 0.43);

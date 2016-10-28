@@ -25,7 +25,11 @@
             function (){
                 // patch the date to get a nice display
                 general_configs_data.update_info.last_update_date_FORMATTED = new Date(general_configs_data.update_info.last_update_date);
+                if(general_configs_data.update_info.enable_update_check === 'true') {
+                    general_configs_data.update_info.enable_update_check = true;
+                }
                 $scope.general_configs_data = general_configs_data;
+                // path value
             }
         );
         // Post the modified general config to agent
