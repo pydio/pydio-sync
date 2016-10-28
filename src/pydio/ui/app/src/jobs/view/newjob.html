@@ -15,6 +15,7 @@
                 <md-tab class="login-icons" label="{{_('1. Configure Connection')}}" name="step1">
 
                     <md-content class="" style="padding: 16px;">
+                        <h3>{{_('1. Configure Connection')}}</h3>
                         <p>{{_('Connect to the server with the same URL as the one you would use to access through a web browser, e.g. http://mydomain.com/pydio.')}}</p>
 
                         <div class="error-block" ng-show="NJC.error">
@@ -26,8 +27,7 @@
                                 <md-icon class="login-icons" aria-hidden="true">dns</md-icon>
                                 <input ng-model="NJC.job.server" type="text" md-autofocus="selectedTab === 0"/>
                                 <div class="hint" ng-hide="NJC.job.server.startsWith('https')">
-                                    <md-icon aria-hidden="true" style="font-size: 20px !important;height: 18px;color: orange">warning</md-icon>
-                                    {{_('If possible use HTTPS for security.')}}
+                                    <md-icon aria-hidden="true">warning</md-icon> {{_('If possible use HTTPS for security.')}}
                                 </div>
                             </md-input-container>
                             <md-input-container class="md-block">
@@ -43,19 +43,17 @@
 
                         </div>
 
-                        <p ng-click="showURLTip = !showURLTip">{{_('Tip: how do I find my server URL?')}}</p>
-                    </md-content>
-                    <!--{{showNewTask}} {{NJC}} -->
-                    <md-content style="padding-bottom:50px">
+                        <p ng-click="showURLTip = !showURLTip" style="cursor: pointer;">{{_('Tip: how do I find my server URL?')}}</p>
                         <md-checkbox style="margin-left:16px" ng-model="NJC.job.trust_ssl" ng-init="NJC.job.trust_ssl = false" ng-show="SSL_failed" aria-label="SSL">
                             {{_('Trust SSL certificate.')}}
                         </md-checkbox>
-                        <!--<span flex></span>-->
-                        <md-content layout="row" style="float:right; margin-right:16px">
+                        <md-content class="bottom-buttons">
                             <md-button ng-click="cancel()">{{_('CANCEL')}}</md-button>
                             <md-button id="connect_button" class="md-primary" ng-click="NJC.loadWorkspaces(); goto('step2')">{{_('CONNECT')}}</md-button>
                         </md-content>
+
                     </md-content>
+
 
                     <md-card ng-show="showURLTip" class="tip-my-url">
                         <md-card-title>
@@ -75,6 +73,7 @@
 
                 <md-tab label="{{_('2. Select a workspace')}}" name="step2" ng-disabled="selectedTab < 1">
                     <md-content class="md-padding">
+                        <h3>{{_('2. Select a workspace')}}</h3>
                         <p>{{_('Welcome, you are now connected to ')}}<em>{{NJC.job.server}}</em>{{('. Please pick a workspace and optionally a sub-folder that will be synced to your local computer.')}}</p>
                         <md-content>
                             <md-input-container>
@@ -98,8 +97,7 @@
                                 </div>
                             </md-card>
                         </md-content>
-                        <md-content layout="row" layout-padding>
-                            <span flex></span>
+                        <md-content class="bottom-buttons">
                             <md-button ng-click="selectedTab = selectedTab - 1">&lt; {{_('BACK')}}</md-button>
                             <md-button class="md-primary" ng-click="selectedTab = selectedTab + 1" ng-disabled="NJC.job.workspace == ''">{{_('NEXT')}} &gt;</md-button>
                         </md-content>
@@ -108,6 +106,7 @@
 
                 <md-tab label="{{_('3. Select a local folder')}}" name="step3" ng-disabled="selectedTab < 2">
                     <md-content class="md-padding">
+                        <h3>{{_('3. Select a local folder')}}</h3>
                         <p>{{_('The content of My Files / Subfolder will be synced against the following folder on your computer. It will be created by default, or you can change its location.')}}</p>
                         <md-content style="display:flex;">
                             <md-input-container class="md-icon-float md-block" style="flex:1;">
@@ -120,8 +119,7 @@
                                 <md-button class="md-raised" style="display:inline-block;" ng-click="NJC.openDirChooser($event)">CHOOSE</md-button>
                             </div>
                         </md-content>
-                        <md-content layout="row" layout-padding>
-                            <span flex></span>
+                        <md-content class="bottom-buttons">
                             <md-button ng-click="selectedTab = selectedTab - 1">&lt; {{_('BACK')}}</md-button>
                             <md-button class="md-primary" ng-click="selectedTab = selectedTab + 1; NJC.checkTask();">{{_('REVIEW PARAMETERS')}}</md-button>
                         </md-content>
@@ -130,6 +128,7 @@
 
                 <md-tab label="{{_('Review Sync Task Parameters')}}" name="step4" ng-disabled="selectedTab < 3 || NJC.job.directory.length < 1">
                     <md-content class="md-padding">
+                        <h3>{{_('Review Sync Task Parameters')}}</h3>
                         <p>{{_('Sync is now ready to launch: please verify the parameters and click on start. You can change these parameters later as well.')}}</p>
                         <div style="margin-top: 30px;">
                             <md-input-container class="md-block md-icon-float">
@@ -213,8 +212,7 @@
                                 </md-card-content>
                             </div>
                         </div>
-                        <md-content layout="row" md-layout="padding">
-                            <span flex></span>
+                        <md-content class="bottom-buttons">
                             <md-button ng-click="selectedTab = selectedTab - 1">&lt; {{_('BACK')}}</md-button>
                             <md-button class="md-raised md-primary" ng-click="NJC.addTask()" ng-disabled="NJC.checkedTaskFailed">{{_('SAVE AND LAUNCH')}}</md-button>
                         </md-content>

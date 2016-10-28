@@ -1,35 +1,35 @@
 <!DOCTYPE html>
 <html lang="en" >
-  <head>
-    <title>PydioSync</title>
+    <head>
+        <title>PydioSync</title>
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="">
-    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="description" content="">
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
 
-    <!-- <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'> -->
-    <link rel="stylesheet" href="../node_modules/angular-material/angular-material.css"/>
-    <link rel="stylesheet" href="assets/app.css"/>
-    <style type="text/css">
-        /**
-         * Hide when Angular is not yet loaded and initialized
-         */
-        [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
-          display: none !important;
-        }
-        @font-face {
+        <!-- <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'> -->
+        <link rel="stylesheet" href="../node_modules/angular-material/angular-material.css"/>
+        <link rel="stylesheet" href="assets/app.css"/>
+        <style type="text/css">
+            /**
+            * Hide when Angular is not yet loaded and initialized
+            */
+            [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+            display: none !important;
+            }
+            @font-face {
             font-family: 'Material Icons';
             font-style: normal;
             font-weight: 400;
             src: url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.eot); /* For IE6-8 */
             src: local('Material Icons'),
-                local('MaterialIcons-Regular'),
-                url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2) format('woff2'),
-                url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff) format('woff'),
-                url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.ttf) format('truetype');
-        }
-        .material-icons {
+            local('MaterialIcons-Regular'),
+            url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2) format('woff2'),
+            url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff) format('woff'),
+            url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.ttf) format('truetype');
+            }
+            .material-icons {
             font-family: 'Material Icons';
             font-weight: normal;
             font-style: normal;
@@ -52,59 +52,61 @@
 
             /* Support for IE. */
             font-feature-settings: 'liga';
-        }
-    </style>
+            }
+        </style>
 
-  </head>
+    </head>
 
-  <body ng-app="starterApp" layout="column" ng-controller="JobController as JC" ng-cloak>
+    <body ng-app="starterApp" layout="column" ng-controller="JobController as JC" ng-cloak>
 
-    <md-toolbar layout="row">
-        <!-- <md-button onclick="window.location.reload(true)">FORCE RELOAD</md-button> -->
-        <md-icon style="width:30px; padding-left:16px; cursor:pointer" ng-hide="showNewTask || showAllJobs || showGeneralSettings" ng-click="showGeneralSettings = false; showNewTask = false; showAllJobs = true;">arrow_back</md-icon>
-      <h1 ng-show="showNewTask || showAllJobs || showGeneralSettings" ng-click="showGeneralSettings = false; showNewTask = false; showAllJobs = true;" style="cursor:pointer; padding-left:16px;">{{application_title}}</h1>
-        <span flex></span>
-      <div style="margin-right:28px;" ng-show="showNewTask || showAllJobs || showGeneralSettings" ng-init="showGeneralSettings = false">
-          <div style="padding-top: 19px"><md-icon style="cursor:pointer" ng-click="showGeneralSettings = !showGeneralSettings">settings</md-icon>
-          <md-tooltip md-direction="bottom">
-              {{_('General Settings')}}
-          </md-tooltip></div>
-      </div>
-    </md-toolbar>
+    <div>
+        <md-toolbar layout="row">
+            <md-icon style="width:50px; padding-left:16px; cursor:pointer" ng-hide="showAllJobs && !showGeneralSettings" ng-click="showGeneralSettings = false; showAllJobs = true;">arrow_back</md-icon>
+            <h1 ng-show="showAllJobs && !showGeneralSettings" ng-click="showGeneralSettings = false; showAllJobs = true;" style="cursor:pointer; padding-left:16px;">{{application_title}}</h1>
+            <h1 ng-show="showGeneralSettings">{{_('General configurations page')}}</h1>
+            <span flex></span>
+            <div style="margin-right:28px;" ng-show="showAllJobs && !showGeneralSettings" ng-init="showGeneralSettings = false">
+                <div style="padding-top: 19px"><md-icon style="cursor:pointer" ng-click="showGeneralSettings = !showGeneralSettings">settings</md-icon>
+                    <md-tooltip md-direction="bottom">
+                        {{_('General configurations page')}}
+                    </md-tooltip></div>
+            </div>
+        </md-toolbar>
+        <span ng-hide="showAllJobs || showGeneralSettings" style="height: 100%;">
+            <ng-include src="'./src/jobs/view/fulljob_toolbar.html'"/>
+        </span>
+    </div>
 
     <div flex layout="column">
-    <!-- md-is-locked-open="$mdMedia('gt-md')" -->
+        <!-- md-is-locked-open="$mdMedia('gt-md')" -->
         <md-sidenav  ng-click="JC.toggleList()" md-component-id="left" class="md-whiteframe-z2" >
-          <md-list>
-              <md-list-item>
-                  <md-button ng-init="showAllJobs = false" ng-click="showAllJobs=!showAllJobs; showGeneralSettings=false" aria-label="Home"><i class="material-icons">home</i></md-button>
-              </md-list-item>
-              <md-list-item ng-repeat="it in JC.jobs" layout="row">
-                  <md-button ng-click="JC.selectJob(it)" ng-class="{'selected' : it === JC.selected }" style="display: table;">
-                    <div style="display: table-cell">
-                        <!--<i style="vertical-align: middle; font-size:17px;" class="material-icons" ng-if="it.state.global.queue_done == 0">check_circle</i>-->
-                        <i style="vertical-align: middle; font-size:17px;" class="material-icons" ng-if="it.running && it.state.global.queue_done <= 0">sync</i>
-                        <md-progress-circular ng-if="it.state.global.queue_done > 0" md-mode="determinate" value="{{it.state.global.queue_done}}" md-diameter="30" style="display: table-cell;"></md-progress-circular>
-                    </div>
-                    <div style="display: table-cell;  padding-left: 10px;">{{it.label}}</div>
-                  </md-button>
-              </md-list-item>
-          </md-list>
-          <md-button class="md-fab md-mini" aria-label="Add Sync Task" style="margin-left: 80%;" ng-init="showNewTask=false;" ng-click="JC.newSyncTask($event);">
-              <md-icon aria-hidden="true">add</md-icon>
-          </md-button>
+            <md-list>
+                <md-list-item>
+                    <md-button ng-init="showAllJobs = false" ng-click="showAllJobs=!showAllJobs; showGeneralSettings=false" aria-label="Home"><i class="material-icons">home</i></md-button>
+                </md-list-item>
+                <md-list-item ng-repeat="it in JC.jobs" layout="row">
+                    <md-button ng-click="JC.selectJob(it)" ng-class="{'selected' : it === JC.selected }" style="display: table;">
+                        <div style="display: table-cell">
+                            <!--<i style="vertical-align: middle; font-size:17px;" class="material-icons" ng-if="it.state.global.queue_done == 0">check_circle</i>-->
+                            <i style="vertical-align: middle; font-size:17px;" class="material-icons" ng-if="it.running && it.state.global.queue_done <= 0">sync</i>
+                            <md-progress-circular ng-if="it.state.global.queue_done > 0" md-mode="determinate" value="{{it.state.global.queue_done}}" md-diameter="30" style="display: table-cell;"></md-progress-circular>
+                        </div>
+                        <div style="display: table-cell;  padding-left: 10px;">{{it.label}}</div>
+                    </md-button>
+                </md-list-item>
+            </md-list>
+            <md-button class="md-fab md-mini" aria-label="Add Sync Task" style="margin-left: 80%;"  ng-click="JC.newSyncTask($event);">
+                <md-icon aria-hidden="true">add</md-icon>
+            </md-button>
         </md-sidenav>
-        <span ng-hide="showNewTask || showAllJobs || showGeneralSettings" style="height: 100%;">
+        <span ng-hide="showAllJobs || showGeneralSettings" style="height: 100%;">
             <ng-include src="'./src/jobs/view/fulljob.html'"/>
         </span>
-        <!--<span ng-show="showNewTask && !showAllJobs && !showGeneralSettings">
-            <ng-include src="'./src/jobs/view/newjob.html'"/>
-        </span>-->
-        <span ng-show="showAllJobs && !showGeneralSettings && !showNewTask">
+        <span ng-show="showAllJobs && !showGeneralSettings">
             <ng-include src="'./src/jobs/view/alljobs.html'"/>
         </span>
-        <span ng-show="showGeneralSettings">
-            <ng-include src="'./src/jobs/view/general_configs.html'">
+        <span ng-show="showGeneralSettings" style="height: 100%;">
+            <ng-include src="'./src/jobs/view/general_configs.html'"/>
         </span>
     </div>
 
@@ -123,19 +125,19 @@
     <script type="text/javascript" src="./assets/moment-with-locales.js"></script>
     <script type="text/javascript">
 
-          angular
-              .module('starterApp', ['ngMaterial', 'jobs'])
-              .config(function($mdThemingProvider ){
+              angular
+                  .module('starterApp', ['ngMaterial', 'jobs'])
+                  .config(function($mdThemingProvider ){
 
-                      $mdThemingProvider.theme('default')
-                          .primaryPalette('blue', {'default': '600'})
-                          .accentPalette('orange');
+                          $mdThemingProvider.theme('default')
+                              .primaryPalette('blue', {'default': '600'})
+                              .accentPalette('orange');
 
-              });
-    </script>
+                  });
+        </script>
     <script src="i18n.js"></script>
     <script type="text/javascript">_ = window.translate</script>
     <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
 
-  </body>
+    </body>
 </html>

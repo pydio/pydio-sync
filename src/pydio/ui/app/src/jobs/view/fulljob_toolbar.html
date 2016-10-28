@@ -1,0 +1,56 @@
+<md-toolbar id="full-job-toolbar">
+    <div layout="row" style="padding-right:20px; padding-left:16px">
+        <md-button class="md-fab alljob-control" aria-label="startstop" ng-disabled="false">
+            <div style="padding:0 5px;" ng-show="!selected.job.running && selected.job.active" ng-click="applyCmd('resume'); selected.job.running = !selected.job.running">
+                <md-icon>play_arrow</md-icon>
+                <md-tooltip md-direction="bottom">
+                    {{_('Start')}}
+                </md-tooltip>
+            </div>
+            <div style="padding:0 5px;" ng-show="!selected.job.running && !selected.job.active" ng-click="applyCmd('enable'); selected.job.running = !selected.job.running">
+                <md-icon >play_arrow</md-icon>
+                <md-tooltip md-direction="bottom">
+                    {{_('Enable')}}
+                </md-tooltip>
+            </div>
+            <div style="padding:0 5px;" ng-show="selected.job.running">
+                <md-icon ng-click="applyCmd('pause'); ; selected.job.running = !selected.job.running">pause</md-icon>
+                <md-tooltip md-direction="bottom">
+                    {{_('Pause')}}
+                </md-tooltip>
+            </div>
+        </md-button>
+        <div class="full-job-title" style="cursor: default">
+            <h3>{{selected.job.label}}</h3>
+            <div class="full-job-status">
+                <div ng-show="selected.job.last_event.message == 'Synchronized'"> <i class="material-icons">check_circle</i>&nbsp;{{_('Synchronised')}}</div>
+                <div ng-show="selected.job.last_event.message !== 'Synchronized'">{{selected.job.last_event.message}}</div>
+            </div>
+        </div>
+        <div class="full-job-toolbar-controls">
+            <span class="tb-button"  ng-click="JC.showConfirmResync()">
+                <i class="material-icons icon-sync">sync</i>
+                <md-tooltip md-direction="bottom" style="font-size:12px;">{{_('Rescan local files and compare with the server')}}</md-tooltip>
+            </span>
+            <span class="tb-button" ng-show="selected.job.active" ng-click="applyCmd('disable'); JC.showJobs()">
+                <i class="material-icons icon-stop">stop</i>
+                <md-tooltip md-direction="bottom">{{_('Stop')}}</md-tooltip>
+            </span>
+            <span class="tb-button" ng-click="JC.showConfirmDelete()">
+                <i class="material-icons icon-delete" >delete</i>
+                <md-tooltip md-direction="bottom">{{_('Delete')}}</md-tooltip>
+            </span>
+        </div>
+        <md-progress-circular  ng-show="selected.job.progress > 0" md-diameter="56" style="display: float; position:absolute; z-index:20; left:24px; top: 6px" md-mode="determinate" value="{{selected.job.progress|number:0}}"></md-progress-circular>
+    </div>
+    <!-- ><md-button class="share" md-no-ink ng-click="ul.makeContact(ul.selected.job)" aria-label="Share with {{ ul.selected.job.name }}">
+      <md-icon md-svg-icon="share"></md-icon>
+    </md-button>
+    -->
+    <!-- NAVBAR -->
+    <md-nav-bar md-selected-nav-item="JC.currentNavItem" nav-bar-aria-label="navigation links">
+        <md-nav-item md-nav-sref="JC.currentNavItem" name="history">{{_('LAST ACTIONS')}}</md-nav-item>
+        <md-nav-item md-nav-sref="JC.currentNavItem" name="settings">{{_('SETTINGS')}}</md-nav-item>
+    </md-nav-bar>
+    <md-progress-linear md-mode="indeterminate" ng-show="loading"></md-progress-linear>
+</md-toolbar>

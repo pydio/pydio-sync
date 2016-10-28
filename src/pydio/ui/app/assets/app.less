@@ -161,7 +161,7 @@ div.full-job-status-running{
 }
 
 div.full-job-scroller{
-    height: ~"calc(100% - 116px)";
+    height: 100%;
     overflow-y: scroll;
 }
 
@@ -392,6 +392,11 @@ h1, md-icon:focus{ /* Fix for the weird blue highlight, place me in a smaller sc
 }
 
 .new-job-form{
+
+    md-tabs-wrapper{
+        display: none;
+    }
+
     .tip-my-url{
         position: absolute;
         top: 0;
@@ -418,9 +423,40 @@ h1, md-icon:focus{ /* Fix for the weird blue highlight, place me in a smaller sc
     .md-padding{
         padding: 16px;
     }
+
+    h3{
+        font-weight: 300;
+        font-size: 24px;
+        color: #9e9e9e;
+        margin: 5px 0;
+    }
+    .bottom-buttons{
+        margin-top: 16px;
+        margin-right: 16px;
+        text-align: right;
+    }
+    .hint{
+        font-size: 10px;
+        color: rgba(0,0,0,0.53);
+        md-icon{
+            font-size: 17px !important;
+            height: 21px;
+            color: orange !important;
+            min-width: 13px !important;
+            margin: 0;
+            width: 17px;
+            min-height: 20px;
+        }
+    }
+
 }
 
 md-dialog{
     max-width: 85%;
     max-height: 90%;
+    md-toolbar{
+        h2{
+            font-size: 16px;
+        }
+    }
 }
