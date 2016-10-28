@@ -42,6 +42,15 @@
     $scope.logs = undefined;
     var t0;
     var t1;
+    var t2;
+
+    (function tickSelected(){
+        // invalidate logs when current selected job changes
+        if ($scope.selected !== SelectedJobService.job)
+            $scope.logs = undefined;
+        t2 = $timeout(tickSelected, 100);
+    }
+    )();
 
     (function tickLog() {
         if(SelectedJobService.job){

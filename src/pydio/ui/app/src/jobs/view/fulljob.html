@@ -40,10 +40,10 @@
                 <md-input-container style="flex:1;">
                     <label>{{_('Local Folder')}}</label>
                     <md-icon class="login-icons" style="cursor:pointer" aria-hidden="true" ng-click="JC.openFolder(selected.job.directory)">folder</md-icon>
-                    <input ng-model="selected.job.directory">
+                    <input ng-model="selected.job.directory" disabled>
                 </md-input-container>
                 <div>
-                    <md-button class="md-raised" style="display:inline-block;" ng-click="JC.openDirChooser($event)">{{_('CHOOSE')}}</md-button>
+                    <md-button class="md-raised" style="display:inline-block;" ng-click="JC.openFolder(selected.job.directory)">{{_('OPEN')}}</md-button>
                 </div>
             </div>
             <div style="display:flex;">
