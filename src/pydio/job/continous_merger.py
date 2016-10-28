@@ -651,7 +651,7 @@ class ContinuousDiffMerger(threading.Thread):
                         self.marked_for_snapshot_pathes = list(set(self.current_store.find_modified_parents()) - set(self.marked_for_snapshot_pathes))
                     if not self.processing:
                         self.processing = True
-                        for i in self.current_store.process_changes_with_callback(processor_callback, processor_callback2):
+                        for i in self.current_store.process_changes_with_callback(processor_callback, processor_callback2, self):
                             if self.interrupt:
                                 raise InterruptException
                             #logging.info("Updating seqs")

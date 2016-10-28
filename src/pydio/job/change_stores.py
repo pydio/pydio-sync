@@ -112,7 +112,7 @@ class SqliteChangeStore():
         return count[0]
 
     @pydio_profile
-    def process_changes_with_callback(self, callback, callback2):
+    def process_changes_with_callback(self, callback, callback2, continuous_merger):
         c = self.conn.cursor()
 
         res = c.execute('SELECT * FROM ajxp_changes WHERE md5="directory" AND location="local" '
@@ -256,7 +256,8 @@ class SqliteChangeStore():
                         continue
                     else:
                         # waiting for changes to be processed
-                        time.sleep(.02)
+                        time.sleep(.1)
+                        continuous_merger.update_current_tasks()
                     if output and output.isAlive():
                         pool.append(output)
                     try:
