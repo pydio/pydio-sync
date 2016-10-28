@@ -76,7 +76,7 @@
                 });
             }])
        .controller('JobController', [
-          'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', JobController
+          'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', 'Ws', JobController
        ])
 
   /**
@@ -86,7 +86,7 @@
    * @param avatarsService
    * @constructor
    */
-  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId, SelectedJobService ) {
+  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId, Ws, SelectedJobService ) {
     window.translate = function(string){
         var lang;
         if(window.PydioLangs){
@@ -307,7 +307,7 @@
             $scope.loading = false;
             return;
         }
-        self.job.workspace = '';
+        
         Ws.get({
             job_id:'request',
             url:SelectedJobService.job.server,
