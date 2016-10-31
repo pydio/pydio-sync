@@ -406,6 +406,7 @@
 
     var tm;
     (function checkModified(){
+        // display SAVE REVERT when necessary
         if(typeof($scope.isModified) === "undefined")
             $scope.isModified = false;
         if (self.jobs && self.currentNavItem && self.currentNavItem === 'settings'){
@@ -414,7 +415,8 @@
             for(var i in self.jobs){
                 if(self.jobs[i].id === SelectedJobService.job.id){
                     foundJob = true;
-                    var names = ['label', 'server', 'user', 'password', 'directory', 'workspace', 'frequency', 'timeout', 'poolsize', 'direction'];
+                    // add field names here to check
+                    var names = ['label', 'server', 'user', 'password', 'directory', 'workspace', 'frequency', 'timeout', 'poolsize', 'direction', 'solve'];
                     for (var a in names){
                         if(self.jobs[i][names[a]] !== SelectedJobService.job[names[a]]){
                             //console.log(b + " - " + self.jobs[i][names[a]] + " " + self.selected[names[a]])
