@@ -36,7 +36,7 @@
 <h3>{{_('Conflicts')}}</h3>
 <div class="section-advanced">
     <p class="legend">{{_('When files were modified on both the server and your computer at the same time, a conflict is detected.')}}</p>
-    <md-radio-group ng-model="conflict_mode" ng-class="{'disable':selected.job.solve === 'both'}" ng-init="conflict_mode = selected.job.solve === 'manual' ? 'auto':'manual'">
+    <md-radio-group ng-model="conflict_mode" ng-class="{'disable':selected.job.solve === 'both'}" ng-init="conflict_mode = selected.job.solve === 'manual' ? 'manual':'auto'">
         <md-radio-button value="manual" ng-click="selected.job.solve = 'manual'" style="outline: none;border: 0;">{{_('Solve conflicts manually')}}</md-radio-button>
         <md-radio-button value="auto" class="md-align-top-left" ng-click="selected.job.solve = 'both';" style="outline: none;border: 0;">{{_('Automatic')}}</md-radio-button>
         <div ng-show="conflict_mode=='auto'" class="conflict-auto-more">

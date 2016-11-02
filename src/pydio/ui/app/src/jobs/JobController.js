@@ -86,7 +86,7 @@
    * @param avatarsService
    * @constructor
    */
-  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId, Ws, SelectedJobService ) {
+  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId, SelectedJobService, Ws ) {
     window.translate = function(string){
         var lang;
         if(window.PydioLangs){
@@ -189,6 +189,7 @@
         $scope.showAllJobs = false;
         $scope.showGeneralSettings = false;
         SelectedJobService.job = angular.isNumber(job) ? $scope.jobs[job] : job;
+        SelectedJobService.job.repositories = [{"label": SelectedJobService.job.workspace}];
     }
 
     self.showJobs = function(){
@@ -307,7 +308,7 @@
             $scope.loading = false;
             return;
         }
-        
+
         Ws.get({
             job_id:'request',
             url:SelectedJobService.job.server,
@@ -329,7 +330,6 @@
             }
             SelectedJobService.job.repositories = ret;
             $scope.loading = false;
-            $scope.step = 'step2';
         }, function(resp){
             console.log(resp)
             if(resp.data && resp.data.error){
@@ -345,14 +345,6 @@
             });
             $scope.loading = false;
         });
-        $mdDialog.show(
-            $mdDialog.alert()
-            .clickOutsideToClose(true)
-            .title('Choose a workspace')
-            .textContent('<md-select>Select workspace<md-select>')
-            .ariaLabel('Select workspace')
-            .ok('Ok...')
-        )
     }
 
     self.showConfirmDelete = function(ev) {
@@ -414,6 +406,7 @@
 
     var tm;
     (function checkModified(){
+        // display SAVE REVERT when necessary
         if(typeof($scope.isModified) === "undefined")
             $scope.isModified = false;
         if (self.jobs && self.currentNavItem && self.currentNavItem === 'settings'){
@@ -422,7 +415,8 @@
             for(var i in self.jobs){
                 if(self.jobs[i].id === SelectedJobService.job.id){
                     foundJob = true;
-                    var names = ['label', 'server', 'user', 'password', 'directory', 'workspace', 'frequency', 'timeout', 'poolsize', 'direction'];
+                    // add field names here to check
+                    var names = ['label', 'server', 'user', 'password', 'directory', 'workspace', 'frequency', 'timeout', 'poolsize', 'direction', 'solve'];
                     for (var a in names){
                         if(self.jobs[i][names[a]] !== SelectedJobService.job[names[a]]){
                             //console.log(b + " - " + self.jobs[i][names[a]] + " " + self.selected[names[a]])

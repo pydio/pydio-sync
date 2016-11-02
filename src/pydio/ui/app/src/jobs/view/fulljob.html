@@ -50,11 +50,18 @@
                 <md-input-container class="md-block" style="flex:1;">
                     <label>{{_('Workspace')}}</label>
                     <md-icon class="login-icons" aria-hidden="true" style="cursor:default">work</md-icon>
-                    <input ng-model="selected.job.workspace">
+                    <!--<input ng-show="selected.job.workspace != ''" ng-model="selected.job.workspace" disabled>-->
+                    <md-select ng-model="selected.job.workspace" ng-click="selected.job.workspace = '';JC.showWorkspacePicker()" style="min-width:310px;">
+                    <md-optgroup label="Workspaces">
+                        <md-option>{{selected.job.workspace}}</md-option>
+                        <md-option ng-value="item" ng-repeat="item in selected.job.repositories">{{item.label}}</md-option>
+                    </md-optgroup>
+                </md-select>
                 </md-input-container>
-                <div>
-                    <md-button class="md-raised" ng-click="JC.showWorkspacePicker()">{{_('CHOOSE')}}</md-button>
-                </div>
+
+                <!-- <div>
+                    <md-button class="md-raised" ng-click="selected.job.workspace = '';JC.showWorkspacePicker()">{{_('CHOOSE')}}</md-button>
+                </div> -->
             </div>
         </div>
         <div style="padding-top:0;">
