@@ -8,8 +8,9 @@
         <meta name="description" content="">
         <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
 
-        <!-- <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'> -->
-        <link rel="stylesheet" href="../node_modules/angular-material/angular-material.css"/>
+        <link rel="stylesheet" href="assets/angular-material.min.css"/>
+        <link rel="stylesheet" href="assets/md/material-icons.css"/>
+        <link rel="stylesheet" href="assets/Roboto/roboto.css"/>
         <link rel="stylesheet" href="assets/app.css"/>
         <style type="text/css">
             /**
@@ -17,45 +18,6 @@
             */
             [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
             display: none !important;
-            }
-            @font-face {
-                font-family: 'Material Icons';
-                font-style: normal;
-                font-weight: 400;
-                src: url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.eot); /* For IE6-8 */
-                src: local('Material Icons'),
-                local('MaterialIcons-Regular'),
-                url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2) format('woff2'),
-                url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff) format('woff'),
-                url(../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.ttf) format('truetype');
-            }
-            @font-face {
-                font-family: "Roboto";
-                src: url('assets/Roboto/Roboto-Regular.ttf');
-            }
-            .material-icons {
-                font-family: 'Material Icons';
-                font-weight: normal;
-                font-style: normal;
-                font-size: 24px;  /* Preferred icon size */
-                display: inline-block;
-                line-height: 1;
-                text-transform: none;
-                letter-spacing: normal;
-                word-wrap: normal;
-                white-space: nowrap;
-                direction: ltr;
-
-                /* Support for all WebKit browsers. */
-                -webkit-font-smoothing: antialiased;
-                /* Support for Safari and Chrome. */
-                text-rendering: optimizeLegibility;
-
-                /* Support for Firefox. */
-                -moz-osx-font-smoothing: grayscale;
-
-                /* Support for IE. */
-                font-feature-settings: 'liga';
             }
         </style>
 
@@ -114,18 +76,14 @@
         </span>
     </div>
 
-    <script type="text/javascript" src="../node_modules/angular/angular.js"></script>
-    <script type="text/javascript" src="../node_modules/angular-animate/angular-animate.js"></script>
-    <script type="text/javascript" src="../node_modules/angular-aria/angular-aria.js"></script>
-    <script type="text/javascript" src="../node_modules/angular-material/angular-material.js"></script>
-    <script type="text/javascript" src="../node_modules/angular-resource/angular-resource.min.js"></script>
+    <script type="text/javascript" src="bundle.min.js"></script>
 
-    <script type="text/javascript" src="./src/jobs/Jobs.js"></script>
     <script type="text/javascript" src="./src/jobs/JobController.js"></script>
     <script type="text/javascript" src="./src/jobs/NewJobController.js"></script>
     <script type="text/javascript" src="./src/jobs/SettingsController.js"></script>
     <script type="text/javascript" src="./src/jobs/JobService.js"></script>
     <script type="text/javascript" src="./src/jobs/HistoryController.js"></script>
+
     <script type="text/javascript" src="./assets/moment-with-locales.js"></script>
     <script type="text/javascript">
 
