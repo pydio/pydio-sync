@@ -145,15 +145,11 @@ class PydioApi(Api):
         self.app.add_url_rule('/streamlifesign', 'streamlifesign', self.stream_life_sign)
         # Add the static deps here, beware they aren't basic protected
         deps = [
-                    '/node_modules/angular-material/angular-material.css',
-                    '/node_modules/angular/angular.js',
-                    '/node_modules/angular-aria/angular-aria.js',
-                    '/node_modules/angular-material/angular-material.js',
-                    '/node_modules/angular-animate/angular-animate.js',
-                    '/node_modules/angular-resource/angular-resource.min.js',
-                    '/node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2',
-                    '/node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff',
-                    '/node_modules/material-design-icons/iconfont/MaterialIcons-Regular.ttf',
+                    '/app/assets/angular-material.min.css',
+                    '/app/bundle.min.js',
+                    '/app/assets/md/MaterialIcons-Regular.woff2',
+                    '/app/assets/md/MaterialIcons-Regular.woff',
+                    '/app/assets/md/MaterialIcons-Regular.ttf',
                     '/app/assets/moment-with-locales.js',
                     '/app/assets/Roboto/Roboto-Regular.ttf'
                 ]
@@ -163,12 +159,6 @@ class PydioApi(Api):
             self.app.serv_deps[d] = self.gen_serv_dep(d)
         for d in deps:
             self.app.add_url_rule(d, d, self.app.serv_deps[d])
-        """
-        self.app.serve_material_css = self.serve_dep('/node_modules/angular-material/angular-material.css')
-        self.app.serve_angular = self.serve_dep('/node_modules/angular/angular.js')
-        self.app.serve_animate = self.serve_dep('/node_modules/angular-animate/angular-animate.js')
-        self.app.serve_aria = self.serve_dep('/node_modules/angular-aria/angular-aria.js')
-        """
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
