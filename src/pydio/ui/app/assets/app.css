@@ -407,6 +407,6 @@ md-dialog md-toolbar h2 {
   font-size: 16px;
 }
 .conflict-button {
-  width: 100px;
-  font-size: 12px;
+  /* width: 100px; */
+  font-size: 10px;
 }
