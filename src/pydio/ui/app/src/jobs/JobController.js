@@ -115,7 +115,6 @@
     SelectedJobService.job = null;
     $scope.selected = SelectedJobService;
     self.toggleList = toggleSideNav;
-    self.makeContact = makeContact;
     self.toggleGeneralSettings = toggleGeneralSettings;
 
     // Load all jobs
@@ -180,10 +179,6 @@
       $mdSidenav('left').toggle();
     }
 
-    /**
-     * Select the current avatars
-     * @param menuId
-     */
     self.selectJob = function selectJob ( job ) {
         self.currentNavItem = 'history';
         $scope.showAllJobs = false;
@@ -195,34 +190,6 @@
     self.showJobs = function(){
         $scope.showAllJobs = true
     }
-    /**
-     * Show the Contact view in the bottom sheet
-     */
-    function makeContact(selectedUser) {
-
-        $mdBottomSheet.show({
-          controllerAs  : "vm",
-          templateUrl   : './src/users/view/listjob.html',
-          controller    : [ '$mdBottomSheet', JobListController],
-          parent        : angular.element(document.getElementById('content'))
-        }).then(function(clickedItem) {
-          $log.debug( clickedItem.name + ' clicked!');
-        });
-
-        /**
-         * User ContactSheet controller
-         */
-        function JobListController( $mdBottomSheet ) {
-          this.user = selectedUser;
-          this.contactUser = function(action) {
-            // The actually contact process has not been implemented...
-            // so just hide the bottomSheet
-
-            $mdBottomSheet.hide(action);
-          };
-        }
-    }
-
 
     self.newSyncTask = function (ev){
         $mdDialog.show({
@@ -481,6 +448,18 @@
             self.PydioQtFileDialog.openUrl(dir+'/')
         }
     }
+
+    $scope.showErrorMessage = function(ev, message) {
+        $mdDialog.show(
+          $mdDialog.alert()
+            .clickOutsideToClose(true)
+            .title(window.translate('There was an Error'))
+            .textContent(message)
+            .ariaLabel('Error Message')
+            .ok('OK')
+            .targetEvent(ev)
+        );
+  };
 
   } // End of Controller
 })();

@@ -233,6 +233,15 @@ div.change-history-line md-icon.md-secondary.material-icons {
 #full-job-toolbar md-nav-bar md-nav-ink-bar {
   bottom: -1px;
 }
+#full-job-toolbar .warning md-icon {
+  font-size: 17px !important;
+  height: 21px;
+  color: orange !important;
+  min-width: 13px !important;
+  margin: 0;
+  width: 17px;
+  min-height: 20px;
+}
 #settingsForm {
   padding: 16px;
 }
