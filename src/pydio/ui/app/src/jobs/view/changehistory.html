@@ -69,6 +69,9 @@
             <div style="width:100px; height:100px; margin: 20px 0 0 50%" ng-show="!logs.length">
                 <md-progress-circular md-mode="indeterminate" md-diameter="40px" ></md-progress-circular>
             </div>
+            <div style="padding-left:42px;" ng-show="logs.length==1">
+                {{_('No history available')}}
+            </div>
             <div class="change-history-line" ng-repeat="item in logs" ng-if="item.type != 'sync'">
                 <span>
                     <i class="material-icons change-history-icon" ng-if="item.action == 'delete'">delete</i>

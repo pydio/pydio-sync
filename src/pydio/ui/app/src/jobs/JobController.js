@@ -358,8 +358,11 @@
     };
 
     self.revertJob = function (){
+        // query and restore values from configs.json
         var orig = JobsWithId.query({}, function(){
-            SelectedJobService.job = orig[SelectedJobService.job.id]
+            for (var a in EDITABLE_FIELDS){
+                SelectedJobService.job[EDITABLE_FIELDS[a]] = orig[SelectedJobService.job.id][EDITABLE_FIELDS[a]]
+            }
         })
     }
 
@@ -375,7 +378,8 @@
                           template    : '<md-toast><span class="md-toast-text" style="color:yellow" flex>' + content + '</span></md-toast>'
                     });
         }
-
+    // add field names here to check
+    var EDITABLE_FIELDS = ['label', 'server', 'user', 'password', 'directory', 'workspace', 'frequency', 'timeout', 'poolsize', 'direction', 'solve', 'trust_ssl'];
     var tm;
     (function checkModified(){
         // display SAVE REVERT when necessary
@@ -387,10 +391,8 @@
             for(var i in self.jobs){
                 if(self.jobs[i].id === SelectedJobService.job.id){
                     foundJob = true;
-                    // add field names here to check
-                    var names = ['label', 'server', 'user', 'password', 'directory', 'workspace', 'frequency', 'timeout', 'poolsize', 'direction', 'solve', 'trust_ssl'];
-                    for (var a in names){
-                        if(self.jobs[i][names[a]] !== SelectedJobService.job[names[a]]){
+                    for (var a in EDITABLE_FIELDS){
+                        if(self.jobs[i][EDITABLE_FIELDS[a]] !== SelectedJobService.job[EDITABLE_FIELDS[a]]){
                             //console.log(b + " - " + self.jobs[i][names[a]] + " " + self.selected[names[a]])
                             nowModified = true;
                         }

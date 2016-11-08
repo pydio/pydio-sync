@@ -79,6 +79,9 @@
         </md-input-container>
     </div>
 </div>
+<md-chips ng-show="selected.job.state.websocket">
+    <md-chip style="font-size:10px">{{_('WS')}}:&nbsp;{{_('Active')}}</md-chip>
+</md-chips>
 <!-- TODO
 <div>
     <md-input-container class="md-block" flex-gt-sm>

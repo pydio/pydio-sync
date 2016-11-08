@@ -25,8 +25,8 @@
                 <md-icon class="login-icons" style="cursor:pointer" aria-hidden="true" onclick="document.getElementById('server_link').click()">dns</md-icon>
                 <input type="text" ng-model="selected.job.server">
             </md-input-container>
-            <div ng-show="selected.job.server.startsWith('https')" style="padding-left:39px; margin-top:-20px;">
-                <md-checkbox ng-model="selected.job.trust_ssl" aria-label="Trust SSL">{{_('Trust SSL')}}</md-checkbox>
+            <div ng-show="selected.job.server.startsWith('https')" style="padding-left:39px; margin-top:-20px;" >
+                <md-checkbox ng-model="selected.job.trust_ssl" aria-label="Trust SSL" class="ssl">{{_('Trust SSL')}}</md-checkbox>
                 <md-tooltip>{{_('You can disable SSL checks for testing.')}}</md-tooltip>
             </div>
             <md-input-container class="md-block" md-no-float>

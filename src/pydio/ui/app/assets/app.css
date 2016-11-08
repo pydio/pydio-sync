@@ -267,6 +267,9 @@ div.change-history-line md-icon.md-secondary.material-icons {
   height: 18px;
   left: 4px !important;
 }
+#settingsForm md-checkbox.ssl {
+  transform: scale(0.8);
+}
 #settingsForm div.section-advanced p.legend {
   font-size: 13px;
   color: rgba(0, 0, 0, 0.43);

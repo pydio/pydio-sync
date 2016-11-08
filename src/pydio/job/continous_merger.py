@@ -278,6 +278,9 @@ class ContinuousDiffMerger(threading.Thread):
             'current': self.current_tasks
         }
 
+    def get_websocket_status(self):
+        return self.sdk.waiter and self.sdk.waiter.ws.connected
+
     @pydio_profile
     def compute_queue_bytesize(self):
         """
