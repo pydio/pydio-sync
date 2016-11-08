@@ -23,7 +23,7 @@
         <div class="full-job-title" style="cursor: default">
             <h3>{{selected.job.label}}</h3>
             <div class="full-job-status">
-                <div ng-show="selected.job.last_event.message == 'Synchronized'"> <i class="material-icons" style="color:rgb(0,150,136)">check_circle</i>&nbsp;{{_('Synchronised')}}</div>
+                <div ng-show="selected.job.running && selected.job.last_event.message == 'Synchronized'"> <i class="material-icons" style="color:rgb(0,150,136)">check_circle</i>&nbsp;{{_('Synchronised')}}</div>
                 <div ng-show="selected.job.last_event.message !== 'Synchronized'" ng-click="showErrorMessage($event, selected.job.last_event.message)" style="cursor:pointer">
                     <span class="warning" ng-show="selected.job.last_event.message.toLocaleLowerCase().indexOf('error') > -1">
                         <md-icon aria-hidden="true">warning</md-icon>&nbsp;

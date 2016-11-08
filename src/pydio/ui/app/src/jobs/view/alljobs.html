@@ -29,10 +29,17 @@
                         </div>
                         </md-button>
                     </md-menu-item>-->
-                    <md-menu-item>
+                    <md-menu-item ng-show="jobs[$index].running">
                         <md-button ng-click="JC.menuClick($index, 'pause')">
                         <div layout="row" flex>
                             <p flex>{{_('Pause')}}</p>
+                         </div>
+                        </md-button>
+                    </md-menu-item>
+                    <md-menu-item ng-show="!jobs[$index].running">
+                        <md-button ng-click="JC.menuClick($index, 'resume')">
+                        <div layout="row" flex>
+                            <p flex>{{_('Resume')}}</p>
                          </div>
                         </md-button>
                     </md-menu-item>

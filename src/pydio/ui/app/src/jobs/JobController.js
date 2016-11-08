@@ -139,7 +139,7 @@
                     if ( !self.menuOpened ){
                         self.jobs = tmpJobs;
                         $scope.jobs = tmpJobs;
-                        if(SelectedJobService.job && SelectedJobService.job.state){
+                        if(SelectedJobService.job){
                             for (var i in self.jobs){
                                 if(self.jobs[i].id === SelectedJobService.job.id){
                                     // update some fields to the selected job, not all fields can be merge (at least during job settings edit)
@@ -152,9 +152,10 @@
                                             SelectedJobService.job[field] = self.jobs[i][field]
                                     }
                                     */
+                                    if (SelectedJobService.job.running && SelectedJobService.job.state)
+                                        SelectedJobService.job.progress = 100 * parseFloat(SelectedJobService.job.state.global.queue_done) / parseFloat(SelectedJobService.job.state.global.queue_length)
                                 }
                             }
-                            SelectedJobService.job.progress = 100 * parseFloat(SelectedJobService.job.state.global.queue_done) / parseFloat(SelectedJobService.job.state.global.queue_length)
                         }
                     }
                 }, function(response){
@@ -249,6 +250,10 @@
             case 'start':
                 console.log('start ' + index)
                 $scope.applyCmd('enable')
+            break
+            case 'resume':
+                console.log('resume ' + index)
+                $scope.applyCmd('resume')
             break
             case 'stop':
                 console.log('stop ' + index)
@@ -383,7 +388,7 @@
                 if(self.jobs[i].id === SelectedJobService.job.id){
                     foundJob = true;
                     // add field names here to check
-                    var names = ['label', 'server', 'user', 'password', 'directory', 'workspace', 'frequency', 'timeout', 'poolsize', 'direction', 'solve'];
+                    var names = ['label', 'server', 'user', 'password', 'directory', 'workspace', 'frequency', 'timeout', 'poolsize', 'direction', 'solve', 'trust_ssl'];
                     for (var a in names){
                         if(self.jobs[i][names[a]] !== SelectedJobService.job[names[a]]){
                             //console.log(b + " - " + self.jobs[i][names[a]] + " " + self.selected[names[a]])
@@ -429,7 +434,6 @@
             }
         }
         pollResult()
-
      }
 
     self.toastError = function ( error ){

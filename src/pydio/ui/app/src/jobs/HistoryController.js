@@ -80,11 +80,9 @@
     })();
 
     (function tickConflict() {
-        console.log('Tick conflict');
+
         if(SelectedJobService.job && SelectedJobService.job.id){
             var conflicts = Conflicts.query({job_id:SelectedJobService.job.id}, function(){
-                console.log('Yala ');
-                console.log(conflicts);
                 $scope.conflicts = conflicts;
             });
         }

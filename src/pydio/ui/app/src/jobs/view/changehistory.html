@@ -11,7 +11,7 @@
                 </td>
             </tr>
             <tr ng-repeat="conflict in conflicts">
-                <td style="color: rgb(80,80,80); cursor:pointer" ng-click="openFile({'target':selected.directory+conflict.node_path}, $event)">{{conflict.node_path}}</td>
+                <td style="color: rgb(80,80,80); cursor:pointer" ng-click="JC.openFolder({'target':selected.directory+conflict.node_path}, $event)">{{conflict.node_path}}</td>
                 <td>
                     <md-button class="md-raised conflict-button" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPLOCAL');" ng-disabled="conflict_solver.applyToAll">{{_('Mine')}}</md-button>
                     </td>
