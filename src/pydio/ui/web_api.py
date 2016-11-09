@@ -145,6 +145,7 @@ class PydioApi(Api):
         self.app.add_url_rule('/streamlifesign', 'streamlifesign', self.stream_life_sign)
         # Add the static deps here, beware they aren't basic protected
         deps = [
+                    '/app/assets/angular-material.min.css'
                     '/app/bundle.min.js',
                     '/app/assets/md/MaterialIcons-Regular.woff2',
                     '/app/assets/md/MaterialIcons-Regular.woff',
