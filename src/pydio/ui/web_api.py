@@ -144,6 +144,7 @@ class PydioApi(Api):
         self.app.add_url_rule('/checksync', 'checksync', self.check_sync)
         self.app.add_url_rule('/streamlifesign', 'streamlifesign', self.stream_life_sign)
         # Add the static deps here, beware they aren't basic protected
+        """
         deps = [
                     '/app/assets/angular-material.min.css',
                     '/app/bundle.min.js',
@@ -159,6 +160,7 @@ class PydioApi(Api):
             self.app.serv_deps[d] = self.gen_serv_dep(d)
         for d in deps:
             self.app.add_url_rule(d, d, self.app.serv_deps[d])
+        """
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
