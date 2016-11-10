@@ -121,7 +121,7 @@
                         </md-content>
                         <md-content class="bottom-buttons">
                             <md-button ng-click="selectedTab = selectedTab - 1">&lt; {{_('BACK')}}</md-button>
-                            <md-button class="md-primary" ng-click="selectedTab = selectedTab + 1; NJC.checkTask();">{{_('REVIEW PARAMETERS')}}</md-button>
+                            <md-button class="md-primary" ng-click="selectedTab = selectedTab + 1; NJC.checkTask(); selected.job = NJC.job">{{_('REVIEW PARAMETERS')}}</md-button>
                         </md-content>
                     </md-content>
                 </md-tab>
