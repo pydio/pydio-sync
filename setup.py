@@ -43,19 +43,16 @@ setup_kwargs = {
 
     "package_data": {
         'pydio': ['res/*.sql',
-                  'ui/res/*.html',
-                  'ui/res/images/*.png',
-                  'ui/res/angularjs/*.js',
-                  'ui/res/*.js',
-                  'ui/res/bootstrap/css/*.css',
-                  'ui/res/bootstrap/css/*.css.map',
-                  'ui/res/bootstrap/fonts/*.svg',
-                  'ui/res/bootstrap/fonts/roboto-font/*.woff',
-                  'ui/res/bootstrap/fonts/roboto-font/*.woff2',
-                  'ui/res/bootstrap/fonts/*.eot',
-                  'ui/res/bootstrap/fonts/*.woff',
-                  'ui/res/bootstrap/fonts/*.ttf',
-                  'ui/res/bootstrap/js/*.js']
+                  'ui/app/*.html',
+                  'ui/app/*.js',
+                  'ui/app/assets/*.js',
+                  'ui/app/assets/*.css',
+                  'ui/app/assets/images/*.png',
+                  'ui/app/src/jobs/view/*.html',
+                  'ui/app/src/jobs/*.js',
+                  'ui/app/assets/md/material-icons.css',
+                  'ui/app/assets/Roboto/roboto.css',
+                  ]
     },
 
     # metadata for upload to PyPI
