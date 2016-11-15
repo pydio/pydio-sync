@@ -153,12 +153,20 @@ class PydioApi(Api):
         deps = [
                     '/app/assets/angular-material.min.css',
                     '/app/bundle.min.js',
+                    '/app/assets/app.css',
                     '/app/assets/md/MaterialIcons-Regular.woff2',
                     '/app/assets/md/MaterialIcons-Regular.woff',
                     '/app/assets/md/MaterialIcons-Regular.ttf',
+                    '/app/assets/md/material-icons.css'
                     '/app/assets/moment-with-locales.js',
                     '/app/assets/Roboto/Roboto-Regular.ttf',
-                    '/app/index.html'
+                    '/app/assets/Roboto/roboto.css',
+                    '/app/index.html',
+                    '/app/about.html',
+                    '/app/src/jobs/JobController.js',
+                    '/app/src/jobs/NewJobController.js',
+                    '/app/src/jobs/SettingsContontroller.js',
+                    '/app/src/jobs/JobService.js',
                 ]
         # a map 'dep_path' -> function to serve it
         self.app.serv_deps = {}
@@ -166,14 +174,12 @@ class PydioApi(Api):
             self.app.serv_deps[d] = self.gen_serv_dep(d)
         for d in deps:
             self.app.add_url_rule(d, d, self.app.serv_deps[d])
-        logging.info(str(Path(__file__).parent) + '/app/assets')
-        logging.info(os.listdir(str(Path(__file__).parent)))
         logging.info(str(Path(__file__).parent) + '/app')
         logging.info(os.listdir(str(Path(__file__).parent) + '/app'))
         logging.info(str(Path(__file__).parent) + '/app/assets')
         logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets'))
-        logging.info(str(Path(__file__).parent) + '/app/src')
-        logging.info(os.listdir(str(Path(__file__).parent) + '/app/src'))
+        logging.info(str(Path(__file__).parent) + '/app/src/jobs')
+        logging.info(os.listdir(str(Path(__file__).parent) + '/app/src/jobs'))
         logging.info(str(Path(__file__).parent) + '/app/assets/md')
         logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets/md'))
         if EndpointResolver:
