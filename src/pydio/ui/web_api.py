@@ -115,7 +115,7 @@ class PydioApi(Api):
             static_folder = str(self.real_static_folder)
         else:
             logging.info('NOT FROZEN ' + str(Path(__file__).parent / 'app'))
-            logging.info(self.real_static_folder)
+            logging.info(Path(__file__).parent)
             self.real_static_folder = Path(__file__).parent / 'app'
             static_folder = 'app'
 
@@ -166,7 +166,16 @@ class PydioApi(Api):
             self.app.serv_deps[d] = self.gen_serv_dep(d)
         for d in deps:
             self.app.add_url_rule(d, d, self.app.serv_deps[d])
-
+        logging.info(str(Path(__file__).parent) + '/app/assets')
+        logging.info(os.listdir(str(Path(__file__).parent)))
+        logging.info(str(Path(__file__).parent) + '/app')
+        logging.info(os.listdir(str(Path(__file__).parent) + '/app'))
+        logging.info(str(Path(__file__).parent) + '/app/assets')
+        logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets'))
+        logging.info(str(Path(__file__).parent) + '/app/src')
+        logging.info(os.listdir(str(Path(__file__).parent) + '/app/src'))
+        logging.info(str(Path(__file__).parent) + '/app/assets/md')
+        logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets/md'))
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
@@ -174,10 +183,6 @@ class PydioApi(Api):
 
     #@authDB.requires_auth #FIXME: RuntimeError: working outside of request context
     def gen_serv_dep(self, path):
-        logging.info(os.listdir(str(Path(__file__).parent)))
-        logging.info(os.listdir(str(Path(__file__).parent) + '/app'))
-        logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets'))
-        logging.info(os.listdir(str(Path(__file__).parent) + '/app/src'))
         fp = str(Path(__file__).parent) + path
         with open(fp) as f:
                 content = f.read()
