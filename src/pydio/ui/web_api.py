@@ -109,14 +109,19 @@ class PydioApi(Api):
         authDB.add_user(user, password)
         self.running = False
         if getattr(sys, 'frozen', False):
+            logging.info('FROZEN ' + str(Path(sys._MEIPASS) / 'ui' / 'app'))
             self.real_static_folder = Path(sys._MEIPASS) / 'ui' / 'app'
+            logging.info(self.real_static_folder)
             static_folder = str(self.real_static_folder)
         else:
+            logging.info('NOT FROZEN ' + str(Path(__file__).parent / 'app'))
+            logging.info(self.real_static_folder)
             self.real_static_folder = Path(__file__).parent / 'app'
             static_folder = 'app'
 
         logging.debug('Starting Flask server with following static folder : '+ static_folder)
         self.app = Flask(__name__, static_folder=static_folder, static_url_path='/app')
+
         self.app.logger.setLevel(logging.ERROR)
         l = logging.getLogger("werkzeug")
         if l:
@@ -152,7 +157,7 @@ class PydioApi(Api):
                     '/app/assets/md/MaterialIcons-Regular.woff',
                     '/app/assets/md/MaterialIcons-Regular.ttf',
                     '/app/assets/moment-with-locales.js',
-                    '/app/assets/Roboto/Roboto-Regular.ttf'
+                    '/app/assets/Roboto/Roboto-Regular.ttf',
                 ]
         # a map 'dep_path' -> function to serve it
         self.app.serv_deps = {}
@@ -160,6 +165,7 @@ class PydioApi(Api):
             self.app.serv_deps[d] = self.gen_serv_dep(d)
         for d in deps:
             self.app.add_url_rule(d, d, self.app.serv_deps[d])
+
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
@@ -167,6 +173,10 @@ class PydioApi(Api):
 
     #@authDB.requires_auth #FIXME: RuntimeError: working outside of request context
     def gen_serv_dep(self, path):
+        logging.info(os.listdir(str(Path(__file__).parent)))
+        logging.info(os.listdir(str(Path(__file__).parent) + '/app'))
+        logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets'))
+        logging.info(os.listdir(str(Path(__file__).parent) + '/app/src'))
         fp = str(Path(__file__).parent) + path
         with open(fp) as f:
                 content = f.read()
