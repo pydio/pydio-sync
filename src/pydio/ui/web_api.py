@@ -174,7 +174,12 @@ class PydioApi(Api):
                     '/app/src/jobs/NewJobController.js',
                     '/app/src/jobs/SettingsController.js',
                     '/app/src/jobs/JobService.js',
-                ]
+                    '/app/src/jobs/HistoryController.js',
+                    '/app/src/jobs/view/fulljob_toolbar.html',
+                    '/app/src/jobs/view/fulljob.html',
+                    '/app/src/jobs/view/alljobs.html',
+                    '/app/src/jobs/view/general_configs.html',
+        ]
         # a map 'dep_path' -> function to serve it
         self.app.serv_deps = {}
         for d in deps:
