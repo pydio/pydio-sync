@@ -74,6 +74,12 @@
             }
             location.reload();
         }
+        if (typeof(qt) !== 'undefined'){
+            new QWebChannel(qt.webChannelTransport, function(channel) {
+                self.pydiouijs = channel.objects.pydiouijs;
+                self.PydioQtFileDialog = channel.objects.PydioQtFileDialog;
+            })
+        } else { self.error2 = "UN DE FI NED"; }
 
         self.openLogs = function(){
             if(!self.PydioQtFileDialog)
