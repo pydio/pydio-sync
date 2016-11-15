@@ -148,6 +148,8 @@ class PydioApi(Api):
         self.app.add_url_rule('/checksync/<string:job_id>', 'checksync', self.check_sync)
         self.app.add_url_rule('/checksync', 'checksync', self.check_sync)
         self.app.add_url_rule('/streamlifesign', 'streamlifesign', self.stream_life_sign)
+
+        self.app.add_url_rule('/about', 'dynamic_about', self.serve_about_content)
         # Add the static deps here, beware they aren't basic protected
         logging.info(str(Path(__file__).parent) + '/app')
         logging.info(os.listdir(str(Path(__file__).parent) + '/app'))
