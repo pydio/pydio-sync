@@ -159,7 +159,6 @@ class PydioApi(Api):
         logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets/md'))
         deps = [
                     '/app/assets/angular-material.min.css',
-                    '/app/bundle.min.js',
                     '/app/assets/app.css',
                     '/app/assets/md/MaterialIcons-Regular.woff2',
                     '/app/assets/md/MaterialIcons-Regular.woff',
@@ -168,17 +167,23 @@ class PydioApi(Api):
                     '/app/assets/moment-with-locales.js',
                     '/app/assets/Roboto/Roboto-Regular.ttf',
                     '/app/assets/Roboto/roboto.css',
-                    '/app/index.html',
                     '/app/about.html',
+                    '/app/bundle.min.js',
+                    '/app/i18n.js',
+                    '/app/index.html',
+                    '/app/src/jobs/HistoryController.js',
                     '/app/src/jobs/JobController.js',
+                    '/app/src/jobs/JobService.js',
                     '/app/src/jobs/NewJobController.js',
                     '/app/src/jobs/SettingsController.js',
-                    '/app/src/jobs/JobService.js',
-                    '/app/src/jobs/HistoryController.js',
-                    '/app/src/jobs/view/fulljob_toolbar.html',
-                    '/app/src/jobs/view/fulljob.html',
+                    '/app/src/jobs/view/advanced.html',
                     '/app/src/jobs/view/alljobs.html',
+                    '/app/src/jobs/view/changehistory.html',
+                    '/app/src/jobs/view/fulljob.html',
+                    '/app/src/jobs/view/fulljob_toolbar.html',
                     '/app/src/jobs/view/general_configs.html',
+                    '/app/src/jobs/view/newjob.html',
+                    '/app/src/jobs/view/tree_node.html',
         ]
         # a map 'dep_path' -> function to serve it
         self.app.serv_deps = {}
