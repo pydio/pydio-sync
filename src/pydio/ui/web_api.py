@@ -157,7 +157,7 @@ class PydioApi(Api):
                     '/app/assets/md/MaterialIcons-Regular.woff2',
                     '/app/assets/md/MaterialIcons-Regular.woff',
                     '/app/assets/md/MaterialIcons-Regular.ttf',
-                    '/app/assets/md/material-icons.css'
+                    '/app/assets/md/material-icons.css',
                     '/app/assets/moment-with-locales.js',
                     '/app/assets/Roboto/Roboto-Regular.ttf',
                     '/app/assets/Roboto/roboto.css',
