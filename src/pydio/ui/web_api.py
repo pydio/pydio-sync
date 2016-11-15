@@ -149,7 +149,14 @@ class PydioApi(Api):
         self.app.add_url_rule('/checksync', 'checksync', self.check_sync)
         self.app.add_url_rule('/streamlifesign', 'streamlifesign', self.stream_life_sign)
         # Add the static deps here, beware they aren't basic protected
-
+        logging.info(str(Path(__file__).parent) + '/app')
+        logging.info(os.listdir(str(Path(__file__).parent) + '/app'))
+        logging.info(str(Path(__file__).parent) + '/app/assets')
+        logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets'))
+        logging.info(str(Path(__file__).parent) + '/app/src/jobs')
+        logging.info(os.listdir(str(Path(__file__).parent) + '/app/src/jobs'))
+        logging.info(str(Path(__file__).parent) + '/app/assets/md')
+        logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets/md'))
         deps = [
                     '/app/assets/angular-material.min.css',
                     '/app/bundle.min.js',
@@ -165,7 +172,7 @@ class PydioApi(Api):
                     '/app/about.html',
                     '/app/src/jobs/JobController.js',
                     '/app/src/jobs/NewJobController.js',
-                    '/app/src/jobs/SettingsContontroller.js',
+                    '/app/src/jobs/SettingsController.js',
                     '/app/src/jobs/JobService.js',
                 ]
         # a map 'dep_path' -> function to serve it
@@ -174,14 +181,7 @@ class PydioApi(Api):
             self.app.serv_deps[d] = self.gen_serv_dep(d)
         for d in deps:
             self.app.add_url_rule(d, d, self.app.serv_deps[d])
-        logging.info(str(Path(__file__).parent) + '/app')
-        logging.info(os.listdir(str(Path(__file__).parent) + '/app'))
-        logging.info(str(Path(__file__).parent) + '/app/assets')
-        logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets'))
-        logging.info(str(Path(__file__).parent) + '/app/src/jobs')
-        logging.info(os.listdir(str(Path(__file__).parent) + '/app/src/jobs'))
-        logging.info(str(Path(__file__).parent) + '/app/assets/md')
-        logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets/md'))
+
         if EndpointResolver:
             self.add_resource(ProxyManager, '/proxy')
             self.add_resource(ResolverManager, '/resolve/<string:client_id>')
