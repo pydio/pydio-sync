@@ -158,6 +158,7 @@ class PydioApi(Api):
                     '/app/assets/md/MaterialIcons-Regular.ttf',
                     '/app/assets/moment-with-locales.js',
                     '/app/assets/Roboto/Roboto-Regular.ttf',
+                    '/app/index.html'
                 ]
         # a map 'dep_path' -> function to serve it
         self.app.serv_deps = {}
