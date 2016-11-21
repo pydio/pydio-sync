@@ -148,7 +148,7 @@
                     // TODO: Merge new jobs events instead of replacing all jobs, to avoid flickering.
                     if ( !self.menuOpened ){
                         self.jobs = tmpJobs;
-                        $scope.jobs = tmpJobs;
+                        //$scope.jobs = tmpJobs;
                         if(SelectedJobService.job){
                             for (var i in self.jobs){
                                 if(self.jobs[i].id === SelectedJobService.job.id){
@@ -156,14 +156,22 @@
                                     SelectedJobService.job.state = self.jobs[i].state
                                     SelectedJobService.job.last_event = self.jobs[i].last_event
                                     SelectedJobService.job.running = self.jobs[i].running
-                                    /* // merges everything -> bug when editing
-                                    for (var field in self.jobs[i]){
-                                        if (['$get', '$save', '$query', '$remove', '$delete', 'toJSON'].indexOf(field) === -1)
-                                            SelectedJobService.job[field] = self.jobs[i][field]
-                                    }
-                                    */
                                     if (SelectedJobService.job.running && SelectedJobService.job.state)
                                         SelectedJobService.job.progress = 100 * parseFloat(SelectedJobService.job.state.global.queue_done) / parseFloat(SelectedJobService.job.state.global.queue_length)
+                                } else {
+                                    // merges everything -> bug when editing
+                                    for (var field in self.jobs[i]){
+                                        if (['$get', '$save', '$query', '$remove', '$delete', 'toJSON'].indexOf(field) === -1)
+                                            $scope.jobs[i][field] = self.jobs[i][field]
+                                    }
+                                }
+                            }
+                        } else {
+                            for (var i in self.jobs){
+                             // merges everything -> bug when editing
+                                for (var field in self.jobs[i]){
+                                    if (['$get', '$save', '$query', '$remove', '$delete', 'toJSON'].indexOf(field) === -1)
+                                        $scope.jobs[i][field] = self.jobs[i][field]
                                 }
                             }
                         }
