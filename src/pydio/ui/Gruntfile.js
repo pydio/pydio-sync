@@ -32,6 +32,7 @@ module.exports = function(grunt) {
                         'node_modules/angular-aria/angular-aria.min.js',
                         'node_modules/angular-material/angular-material.min.js',
                         'node_modules/angular-resource/angular-resource.min.js',
+                        'node_modules/angular-route/angular-route.min.js',
                     ]
                 }
             }

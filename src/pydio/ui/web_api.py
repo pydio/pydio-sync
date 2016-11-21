@@ -185,6 +185,7 @@ class PydioApi(Api):
                     '/app/src/jobs/view/fulljob_toolbar.html',
                     '/app/src/jobs/view/general_configs.html',
                     '/app/src/jobs/view/newjob.html',
+                    '/app/src/jobs/view/settingsbar.html',
                     '/app/src/jobs/view/tree_node.html',
         ]
         # a map 'dep_path' -> function to serve it
