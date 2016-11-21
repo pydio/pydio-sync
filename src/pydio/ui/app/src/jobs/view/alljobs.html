@@ -1,5 +1,5 @@
 <!--{{ showAllJobs }}-->
-<div style="overflow-y: scroll; max-height:800px;">
+<div style="overflow-y: scroll; max-height:800px;" ng-show="document.URL.indexOf('settings') == -1">
 <md-content>
     <md-subheader class="md-no-sticky" ng-show="jobs.length > 1">{{_('Active Tasks')}}</md-subheader>
     <md-list class="md-dense jobslist" flex>
