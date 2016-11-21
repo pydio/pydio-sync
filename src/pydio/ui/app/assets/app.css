@@ -303,6 +303,9 @@ div.change-history-line md-icon.md-secondary.material-icons {
   font-size: 13px;
   color: rgba(0, 0, 0, 0.43);
 }
+.primary-background {
+  background-color: #0288d1;
+}
 #settings-toolbar {
   background-color: #0288d1;
 }
