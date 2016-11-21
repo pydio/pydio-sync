@@ -1,6 +1,6 @@
 (function(){
 
-  angular.module('jobs', ['ngResource'])
+  angular.module('jobs', ['ngResource', 'ngRoute'])
         .service('SelectedJobService', function () {
             var job;
             return job;
@@ -75,8 +75,18 @@
                     query: {method:'GET', params:{job_id:''}, isArray:true}
                 });
             }])
+       .config(['$routeProvider',
+            function($routeProvider){
+               $routeProvider.when("/about", {
+                    templateUrl: "about.html",
+               })
+               .when("/settings", {
+                    templateUrl: "./src/jobs/view/general_configs.html",
+               })
+            }
+            ])
        .controller('JobController', [
-          'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', 'Ws', JobController
+          '$routeParams', 'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', 'Ws', JobController
        ])
 
   /**
@@ -86,7 +96,7 @@
    * @param avatarsService
    * @constructor
    */
-  function JobController( jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId, SelectedJobService, Ws ) {
+  function JobController( $routeParams, jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId, SelectedJobService, Ws ) {
     window.translate = function(string){
         var lang;
         if(window.PydioLangs){

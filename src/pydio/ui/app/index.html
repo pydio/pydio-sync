@@ -24,58 +24,58 @@
     </head>
 
     <body ng-app="starterApp" layout="column" ng-controller="JobController as JC" ng-cloak>
-
-    <div>
-        <md-toolbar layout="row">
-            <md-icon style="width:50px; padding-left:16px; cursor:pointer" ng-hide="showAllJobs && !showGeneralSettings" ng-click="showGeneralSettings = false; showAllJobs = true;">arrow_back</md-icon>
-            <h1 ng-show="showAllJobs && !showGeneralSettings" ng-click="showGeneralSettings = false; showAllJobs = true;" style="cursor:pointer; padding-left:16px;">{{application_title}}</h1>
-            <h1 ng-show="showGeneralSettings">{{_('General configurations page')}}</h1>
-            <span flex></span>
-            <div style="margin-right:28px;" ng-show="showAllJobs && !showGeneralSettings" ng-init="showGeneralSettings = false">
-                <div style="padding-top: 19px"><md-icon style="cursor:pointer" ng-click="showGeneralSettings = !showGeneralSettings">settings</md-icon>
-                    <md-tooltip md-direction="bottom">
-                        {{_('General configurations page')}}
-                    </md-tooltip></div>
-            </div>
-        </md-toolbar>
-        <span ng-hide="showAllJobs || showGeneralSettings" style="height: 100%;">
-            <ng-include src="'./src/jobs/view/fulljob_toolbar.html'"/>
-        </span>
-    </div>
-
-    <div flex layout="column">
-        <!-- md-is-locked-open="$mdMedia('gt-md')" -->
-        <md-sidenav  ng-click="JC.toggleList()" md-component-id="left" class="md-whiteframe-z2" >
-            <md-list>
-                <md-list-item>
-                    <md-button ng-init="showAllJobs = false" ng-click="showAllJobs=!showAllJobs; showGeneralSettings=false" aria-label="Home"><i class="material-icons">home</i></md-button>
-                </md-list-item>
-                <md-list-item ng-repeat="it in JC.jobs" layout="row">
-                    <md-button ng-click="JC.selectJob(it)" ng-class="{'selected' : it === JC.selected }" style="display: table;">
-                        <div style="display: table-cell">
-                            <!--<i style="vertical-align: middle; font-size:17px;" class="material-icons" ng-if="it.state.global.queue_done == 0">check_circle</i>-->
-                            <i style="vertical-align: middle; font-size:17px;" class="material-icons" ng-if="it.running && it.state.global.queue_done <= 0">sync</i>
-                            <md-progress-circular ng-if="it.state.global.queue_done > 0" md-mode="determinate" value="{{it.state.global.queue_done}}" md-diameter="30" style="display: table-cell;"></md-progress-circular>
-                        </div>
-                        <div style="display: table-cell;  padding-left: 10px;">{{it.label}}</div>
-                    </md-button>
-                </md-list-item>
-            </md-list>
-            <md-button class="md-fab md-mini" aria-label="Add Sync Task" style="margin-left: 80%;"  ng-click="JC.newSyncTask($event);">
-                <md-icon aria-hidden="true">add</md-icon>
-            </md-button>
-        </md-sidenav>
-        <span ng-hide="showAllJobs || showGeneralSettings" style="height: 100%;">
-            <ng-include src="'./src/jobs/view/fulljob.html'"/>
-        </span>
-        <span ng-show="showAllJobs && !showGeneralSettings">
-            <ng-include src="'./src/jobs/view/alljobs.html'"/>
-        </span>
-        <span ng-show="showGeneralSettings" style="height: 100%;">
-            <ng-include src="'./src/jobs/view/general_configs.html'"/>
-        </span>
-    </div>
-
+        <div>
+            <md-toolbar layout="row">
+                <a ng-hide="showAllJobs && !showGeneralSettings" href="/app/index.html" ng-click="showGeneralSettings = false; showAllJobs = true;"><md-icon style="width:50px; padding-left:16px; padding-top:18px; cursor:pointer">arrow_back</md-icon></a>
+                <h1 ng-show="showAllJobs && !showGeneralSettings" ng-click="showGeneralSettings = false; showAllJobs = true;" style="cursor:pointer; padding-left:16px;">{{application_title}}</h1>
+                <h1 ng-show="showGeneralSettings">{{_('General configurations page')}}</h1>
+                <span flex></span>
+                <div style="margin-right:28px;" ng-show="showAllJobs && !showGeneralSettings" ng-init="showGeneralSettings = false">
+                    <div style="padding-top: 19px"><a ng-click="showGeneralSettings = !showGeneralSettings" href="#/settings"><md-icon style="cursor:pointer">settings</md-icon></a>
+                        <md-tooltip md-direction="bottom">
+                            {{_('General configurations page')}}
+                        </md-tooltip></div>
+                </div>
+            </md-toolbar>
+            <span ng-hide="showAllJobs || showGeneralSettings" style="height: 100%;">
+                <ng-include src="'./src/jobs/view/fulljob_toolbar.html'"/>
+            </span>
+        </div>
+        <div ng-view>
+            <!-- routed ng-views -->
+        </div>
+        <div flex layout="column">
+            <!-- md-is-locked-open="$mdMedia('gt-md')" -->
+            <md-sidenav  ng-click="JC.toggleList()" md-component-id="left" class="md-whiteframe-z2" >
+                <md-list>
+                    <md-list-item>
+                        <md-button ng-init="showAllJobs = false" ng-click="showAllJobs=!showAllJobs; showGeneralSettings=false" aria-label="Home"><i class="material-icons">home</i></md-button>
+                    </md-list-item>
+                    <md-list-item ng-repeat="it in JC.jobs" layout="row">
+                        <md-button ng-click="JC.selectJob(it)" ng-class="{'selected' : it === JC.selected }" style="display: table;">
+                            <div style="display: table-cell">
+                                <!--<i style="vertical-align: middle; font-size:17px;" class="material-icons" ng-if="it.state.global.queue_done == 0">check_circle</i>-->
+                                <i style="vertical-align: middle; font-size:17px;" class="material-icons" ng-if="it.running && it.state.global.queue_done <= 0">sync</i>
+                                <md-progress-circular ng-if="it.state.global.queue_done > 0" md-mode="determinate" value="{{it.state.global.queue_done}}" md-diameter="30" style="display: table-cell;"></md-progress-circular>
+                            </div>
+                            <div style="display: table-cell;  padding-left: 10px;">{{it.label}}</div>
+                        </md-button>
+                    </md-list-item>
+                </md-list>
+                <md-button class="md-fab md-mini" aria-label="Add Sync Task" style="margin-left: 80%;"  ng-click="JC.newSyncTask($event);">
+                    <md-icon aria-hidden="true">add</md-icon>
+                </md-button>
+            </md-sidenav>
+            <span ng-hide="showAllJobs || showGeneralSettings" style="height: 100%;">
+                <ng-include src="'./src/jobs/view/fulljob.html'"/>
+            </span>
+            <span ng-show="showAllJobs && !showGeneralSettings">
+                <ng-include src="'./src/jobs/view/alljobs.html'"/>
+            </span>
+            <!--<span ng-show="showGeneralSettings" style="height: 100%;">
+                <ng-include src="'./src/jobs/view/general_configs.html'"/>
+            </span>-->
+        </div>
     <script type="text/javascript" src="bundle.min.js"></script>
 
     <script type="text/javascript" src="./src/jobs/JobController.js"></script>
@@ -90,7 +90,6 @@
               angular
                   .module('starterApp', ['ngMaterial', 'jobs'])
                   .config(function($mdThemingProvider ){
-
                           $mdThemingProvider.theme('default')
                               .primaryPalette('blue', {'default': '600'})
                               .accentPalette('orange');
