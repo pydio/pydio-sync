@@ -83,6 +83,16 @@
                .when("/settings", {
                     templateUrl: "./src/jobs/view/general_configs.html",
                })
+               .when('/share/:layout/:jobId/:itemType/:itemPath', {
+                    //:example sample get request would be like
+                    //http://localhost:5556/res/index.html#/share/standard/54.254.418.47-my-files/file/abc%5Chello.txt
+                    controller:'ShareCtrl',
+                    templateUrl:'./src/jobs/view/share.html'
+                })
+                .when('/share/response/:layout', {
+                    controller:'ShareCtrl',
+                    templateUrl:'./src/jobs/view/share_response.html'
+                })
             }
             ])
        .controller('JobController', [

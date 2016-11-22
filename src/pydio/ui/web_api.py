@@ -178,6 +178,7 @@ class PydioApi(Api):
                     '/app/src/jobs/JobService.js',
                     '/app/src/jobs/NewJobController.js',
                     '/app/src/jobs/SettingsController.js',
+                    '/app/src/jobs/ShareController.js',
                     '/app/src/jobs/view/advanced.html',
                     '/app/src/jobs/view/alljobs.html',
                     '/app/src/jobs/view/changehistory.html',
