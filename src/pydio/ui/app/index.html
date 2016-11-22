@@ -24,7 +24,7 @@
     </head>
 
     <body ng-app="starterApp" layout="column" ng-controller="JobController as JC" ng-cloak>
-        <div>
+        <div ng-show="document.URL.indexOf('settings') == -1">
             <md-toolbar layout="row">
                 <a ng-hide="showAllJobs && !showGeneralSettings" href="/app/index.html" ng-click="showGeneralSettings = false; showAllJobs = true;"><md-icon style="width:50px; padding-left:16px; padding-top:18px; cursor:pointer">arrow_back</md-icon></a>
                 <h1 ng-show="showAllJobs && !showGeneralSettings" ng-click="showGeneralSettings = false; showAllJobs = true;" style="cursor:pointer; padding-left:16px;">{{application_title}}</h1>
@@ -83,6 +83,7 @@
     <script type="text/javascript" src="./src/jobs/SettingsController.js"></script>
     <script type="text/javascript" src="./src/jobs/JobService.js"></script>
     <script type="text/javascript" src="./src/jobs/HistoryController.js"></script>
+    <script type="text/javascript" src="./src/jobs/ShareController.js"></script>
 
     <script type="text/javascript" src="./assets/moment-with-locales.js"></script>
     <script type="text/javascript">
