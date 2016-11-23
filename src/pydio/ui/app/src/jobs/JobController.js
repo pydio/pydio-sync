@@ -96,7 +96,7 @@
             }
             ])
        .controller('JobController', [
-          '$routeParams', 'jobService', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', 'Ws', JobController
+          '$routeParams', 'jobService', '$location', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', 'Ws', JobController
        ])
 
   /**
@@ -106,7 +106,7 @@
    * @param avatarsService
    * @constructor
    */
-  function JobController( $routeParams, jobService, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId, SelectedJobService, Ws ) {
+  function JobController( $routeParams, jobService, $location, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId, SelectedJobService, Ws ) {
     window.translate = function(string){
         var lang;
         if(window.PydioLangs){
@@ -149,6 +149,8 @@
     $scope.application_title = window.translate("PydioSync"); // TODO: FETCH ME BABY
     $scope.$on('$mdMenuClose', function(){ self.menuOpened = false});
 
+    $scope.SHOW_INTERFACE = ($location.url().indexOf('share') == -1) // HACKY... hide interface when showing the /share page
+
     self.fake_data = {"tasks":{"current":[{"node":{"bytesize":100000000,"mtime":1467037750,"md5":"5bf234610827e29cb0436122415d4821","node_path":"/JENE/omg/jaja/lefile100MB"},"target":"/JENE/omg/jaja/lefile100MB","total_size":100001132,"bytesize":100000000,"bytes_sent":40,"content":1,"source":"NULL","total_bytes_sent":48367468,"location":"local","progress":3,"row_id":166,"type":"create","md5":"5bf234610827e29cb0436122415d4821"}],"total":5},"global":{"total_time":5.003995,"last_transfer_rate":24365888.264299262,"status_indexing":0,"queue_bytesize":-3280,"queue_start_time":2.774535,"eta":-0.000021983704444345575,"queue_length":5,"queue_done":5.0000219662499905}}
 
     var t0;
@@ -158,7 +160,8 @@
                     // TODO: Merge new jobs events instead of replacing all jobs, to avoid flickering.
                     if ( !self.menuOpened ){
                         self.jobs = tmpJobs;
-                        //$scope.jobs = tmpJobs;
+                        if (typeof($scope.jobs) == "undefined")
+                            $scope.jobs = tmpJobs;
                         if(SelectedJobService.job){
                             for (var i in self.jobs){
                                 if(self.jobs[i].id === SelectedJobService.job.id){

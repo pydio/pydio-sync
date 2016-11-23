@@ -583,9 +583,11 @@ class JobManager(Resource):
                 return ret
             return json_jobs
         logging.info("Requiring job %s" % job_id)
-        data = JobConfig.encoder(jobs[job_id])
-        self.enrich_job(data, job_id)
-        return data
+        if job_id in jobs:
+            data = JobConfig.encoder(jobs[job_id])
+            self.enrich_job(data, job_id)
+            return data
+        return {"error": "Unknown job"}
 
     @pydio_profile
     def enrich_job(self, job_data, job_id, get_notification=False):
