@@ -91,10 +91,6 @@
         function toggleNewJobConfig(){
             $scope.showNewTask = !$scope.showNewTask; // doesn't work, wrong scope
         }
-        self.addNewJob = function(){
-            //$scope.job.$save()
-            console.log(self.job)
-        }
 
         self.loadWorkspaces = function(){
             $scope.loading = true;

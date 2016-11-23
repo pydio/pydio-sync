@@ -162,6 +162,7 @@ class PydioApi(Api):
         deps = [
                     '/app/assets/angular-material.min.css',
                     '/app/assets/app.css',
+                    '/app/assets/images/ServerURL.png',
                     '/app/assets/md/MaterialIcons-Regular.woff2',
                     '/app/assets/md/MaterialIcons-Regular.woff',
                     '/app/assets/md/MaterialIcons-Regular.ttf',

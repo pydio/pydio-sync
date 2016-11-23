@@ -36,7 +36,7 @@
     <md-content flex ng-show="running.tasks && running.tasks.total != 0">
         <md-list class="md-dense" flex>
             <md-subheader class="md-no-sticky" >
-                {{_('Currently processing ')}}{{running.tasks.current.length}} {{_(' tasks (')}}
+                {{_('Currently processing ')}}{{running.tasks.current.length}} {{_(' tasks ')}}
             </md-subheader>
             <div class="change-history-line" ng-repeat="item in running.tasks.current">
                 <span class="progress-cell" ng-if="item.node.bytesize">
