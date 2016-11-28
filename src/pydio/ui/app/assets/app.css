@@ -491,3 +491,15 @@ body.miniview > div.ng-scope > div.well.ng-scope {
 #aboutdiv div.pad-me {
   margin-left: 25px;
 }
+.shareHeader {
+  background-color: #0288d1;
+  color: white;
+  left: 0;
+  right: 0;
+  margin-top: 0;
+  padding: 10px;
+  font-size: 28px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

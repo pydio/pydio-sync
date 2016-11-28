@@ -72,7 +72,7 @@
                     }
                 }
             }
-            location.reload();
+            location.assign("/app/index.html");
         }
         if (typeof(qt) !== 'undefined'){
             new QWebChannel(qt.webChannelTransport, function(channel) {

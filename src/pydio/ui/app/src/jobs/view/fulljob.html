@@ -49,10 +49,15 @@
                     <md-button class="md-raised" style="display:inline-block;" ng-click="JC.openFolder(selected.job.directory)">{{_('OPEN')}}</md-button>
                 </div>
             </div>
+            <!--{{selected.job.server + selected.job.workspace + selected.job.remotefolder}}<br>-->
             <div style="display:flex;">
                 <md-input-container class="md-block" style="flex:1;">
                     <label>{{_('Workspace')}}</label>
-                    <md-icon class="login-icons" aria-hidden="true" style="cursor:default">work</md-icon>
+                    <div style="flex:0;">
+                        <a href="{{selected.job.server + '/ws-' + selected.job.workspace + selected.job.remotefolder}}" target="_blank">
+                            <md-icon class="login-icons" aria-hidden="true" style="cursor:default">work</md-icon>
+                        </a>
+                    </div>
                     <!--<input ng-show="selected.job.workspace != ''" ng-model="selected.job.workspace" disabled>-->
                     <md-select label="Workspaces" ng-model="selected.job.workspace" placeholder="{{selected.job.workspace}}" ng-click="selected.job.workspace = '';JC.showWorkspacePicker()" style="min-width:310px;">
                     <md-optgroup>
@@ -60,7 +65,13 @@
                     </md-optgroup>
                 </md-select>
                 </md-input-container>
-
+            </div>
+            <div style="display:flex;" ng-show="selected.job.remotefolder">
+                <md-input-container class="md-block" style="flex:1;">
+                    <label>{{_('Remote Folder')}}</label>
+                    <md-icon class="login-icons" aria-hidden="true" style="cursor:default">folder_special</md-icon>
+                    <input ng-model="selected.job.remotefolder" disabled>
+                </md-input-container>
                 <!-- <div>
                     <md-button class="md-raised" ng-click="selected.job.workspace = '';JC.showWorkspacePicker()">{{_('CHOOSE')}}</md-button>
                 </div> -->

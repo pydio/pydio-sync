@@ -66,7 +66,7 @@
     <md-content flex>
         <md-list class="md-dense">
             <md-subheader class="md-no-sticky">{{_('Last synchronized files')}}</md-subheader>
-            <div style="width:100px; height:100px; margin: 20px 0 0 50%" ng-show="!logs.length">
+            <div style="width:100px; height:100px; margin: 30px 0 0 47%" ng-show="!logs.length">
                 <md-progress-circular md-mode="indeterminate" md-diameter="40px" ></md-progress-circular>
             </div>
             <div style="padding-left:42px;" ng-show="logs.length==1">
@@ -74,14 +74,14 @@
             </div>
             <div class="change-history-line" ng-repeat="item in logs" ng-if="item.type != 'sync'">
                 <span>
-                    <i class="material-icons change-history-icon" ng-if="item.action == 'delete'">delete</i>
-                    <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'remote'">cloud_upload</i> <!--file_upload-->
-                    <i class="material-icons change-history-icon" ng-if="item.action !== 'delete' && item.type == 'local'">cloud_download</i> <!--file_download-->
+                    <i class="material-icons change-history-icon" ng-if="item.action.indexOf('delete') > -1">delete</i>
+                    <i class="material-icons change-history-icon" ng-if="item.action.indexOf('delete') == -1 && item.type == 'remote'">cloud_upload</i> <!--file_upload-->
+                    <i class="material-icons change-history-icon" ng-if="item.action.indexOf('delete') == -1 && item.type == 'local'">cloud_download</i> <!--file_download-->
                 </span>
                 <span class="change-history-text" ng-click="showChangeDetails(item, $event)">
                     {{ item.message }}
                 </span>
-                <md-icon class="md-secondary" ng-click="openFile(item, $event)">open_in_new</md-icon>
+                <md-icon ng-if="item.action.indexOf('delete') == -1" class="md-secondary" ng-click="openFile(item, $event)">open_in_new</md-icon>
             </div>
         </md-list>
     </md-content>

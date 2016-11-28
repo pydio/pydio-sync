@@ -98,15 +98,34 @@
             clickOutsideToClose: true
         });
     }
+
+    /* init Qt */
+    if (typeof(qt) !== 'undefined'){
+        new QWebChannel(qt.webChannelTransport, function(channel) {
+            self.pydiouijs = channel.objects.pydiouijs; // useful for debug
+            self.PydioQtFileDialog = channel.objects.PydioQtFileDialog;
+        })
+    }
     $scope.openFile = function(item, event){
-        $mdDialog.show(
-          $mdDialog.alert()
-            .clickOutsideToClose(true)
-            .title('To do')
-            .textContent('Call Python OR QT with target ' + item.target + ' - or src ' + item.src)
-            .ariaLabel('Alert Dialog Demo')
-            .ok('Ok...')
-        );
+        if(typeof(self.PydioQtFileDialog) == "undefined"){
+            $mdDialog.show(
+                $mdDialog.alert()
+                .clickOutsideToClose(true)
+                .title('ERROR')
+                .textContent('Call Python OR QT with target ' + item.target + ' - or src ' + item.src)
+                .ariaLabel('Alert Dialog Demo')
+                .ok('Ok...')
+            );
+        } else {
+            var path;
+            if (item.source && item.target && (item.src.length > item.target.length))
+                path = item.src;
+            else
+                path = item.target;
+            if(SelectedJobService.job.directory.endsWith('/') && path.startsWith('/'))
+                path = path.substr(1, path.length)
+            self.PydioQtFileDialog.openUrl(SelectedJobService.job.directory + path)
+        }
     }
 
     $scope.conflict_solver = {current:false,applyToAll:false}
