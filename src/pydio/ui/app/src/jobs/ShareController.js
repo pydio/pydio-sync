@@ -1,5 +1,6 @@
+var share_details;
+
 (function(){
-    'use strict';
     angular.module('jobs')
     .service('shareFile', function() {
         var objectValue = {
@@ -149,11 +150,11 @@
 
         // GetShareLink shares the details with share response page
         $scope.GetShareLink = function(){
-            $scope.share_details = shareFile.get();
-            $scope.share_link = $scope.share_details['shareLink'];
-            $scope.existingLinkFlag = $scope.share_details['existingLinkFlag'];
-            $scope.share_filename = $scope.share_details['fileName'];
-            $scope.checkResponseFlag = ($scope.share_details['shareLink'].substring(0, 4)=='http')
+            share_details = shareFile.get();
+            $scope.share_link = share_details['shareLink'];
+            $scope.existingLinkFlag = share_details['existingLinkFlag'];
+            $scope.share_filename = share_details['fileName'];
+            $scope.checkResponseFlag = (share_details['shareLink'].substring(0, 4)=='http')
         };
 
         // File browser
@@ -189,11 +190,13 @@
         $scope.copyToClipBoard = function(value){
             // check if the text can be copied from QT's copy to clip board else show error message
             try {
-                $scope.QtObject.copyToClipBoard(value);
+                JC.PydioQtFileDialog.copyToClipBoard(value);
+                $scope.copyToClipBoardFlag = true;
             } catch (err) {
                 try {
                     interOp.callSwift(value);
                     window.webkit.messageHandlers.swift.postMessage({body: value});
+                    $scope.copyToClipBoardFlag = true;
                 } catch (err) {
                     console.log("Copy to clipboard is not possible while using web browser");
                 }
