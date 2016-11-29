@@ -18,16 +18,17 @@
                 <md-icon aria-hidden="true" class="login-icons" style="cursor:default">label</md-icon>
                 <input type="text" ng-model="selected.job.label">
             </md-input-container>
-            <md-input-container class="md-block md-icon-float">
-                <label>{{_('Remote Server')}}</label>
-                <!--<a href="{{self.selected.job.server}}" target="_blank"></a>-->
-                <a href="{{selected.job.server}}" target="_blank" id="server_link"></a>
-                <md-icon class="login-icons" style="cursor:pointer" aria-hidden="true" onclick="document.getElementById('server_link').click()">dns</md-icon>
-                <input type="text" ng-model="selected.job.server">
-            </md-input-container>
-            <div ng-show="selected.job.server.startsWith('https')" style="padding-left:39px; margin-top:-20px;" >
-                <md-checkbox ng-model="selected.job.trust_ssl" aria-label="Trust SSL" class="ssl">{{_('Trust SSL')}}</md-checkbox>
-                <md-tooltip>{{_('You can disable SSL checks for testing.')}}</md-tooltip>
+            <div style="display:flex;">
+                <md-input-container class="md-block md-icon-float" style="flex:1">
+                    <label>{{_('Remote Server')}}</label>
+                    <a href="{{selected.job.server}}" target="_blank" id="server_link"></a>
+                    <md-icon class="login-icons" style="cursor:pointer" aria-hidden="true" onclick="document.getElementById('server_link').click()">dns</md-icon>
+                    <input type="text" ng-model="selected.job.server">
+                </md-input-container>
+                <div ng-show="selected.job.server.startsWith('https')" style="padding-top:10px">
+                    <md-checkbox ng-model="selected.job.trust_ssl" aria-label="Trust SSL" class="ssl">{{_('Trust SSL')}}</md-checkbox>
+                    <md-tooltip>{{_('You can disable SSL checks for testing.')}}</md-tooltip>
+                </div>
             </div>
             <md-input-container class="md-block" md-no-float>
                 <label>{{_('Login')}}</label>
@@ -51,13 +52,10 @@
             </div>
             <!--{{selected.job.server + selected.job.workspace + selected.job.remotefolder}}<br>-->
             <div style="display:flex;">
-                <md-input-container class="md-block" style="flex:1;">
+                <md-input-container class="md-block md-float-icon" style="flex:1;">
+                    <a href="{{selected.job.server + '/ws-' + selected.job.workspace + selected.job.remotefolder}}" target="_blank" id="workspace_click"></a>
                     <label>{{_('Workspace')}}</label>
-                    <div style="flex:0;">
-                        <a href="{{selected.job.server + '/ws-' + selected.job.workspace + selected.job.remotefolder}}" target="_blank">
-                            <md-icon class="login-icons" aria-hidden="true" style="cursor:default">work</md-icon>
-                        </a>
-                    </div>
+                    <md-icon class="login-icons" aria-hidden="true" ng-click="document.getElementById('workspace_click').click()" style="cursor:default">work</md-icon>
                     <!--<input ng-show="selected.job.workspace != ''" ng-model="selected.job.workspace" disabled>-->
                     <md-select label="Workspaces" ng-model="selected.job.workspace" placeholder="{{selected.job.workspace}}" ng-click="selected.job.workspace = '';JC.showWorkspacePicker()" style="min-width:310px;">
                     <md-optgroup>

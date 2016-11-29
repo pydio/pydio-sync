@@ -88,6 +88,7 @@
                })
                .when("/settings", {
                     controller: "SettingsController",
+                    controllerAs: "SC",
                     templateUrl: "./src/jobs/view/general_configs.html",
                })
                .when('/share/:layout/:jobId/:itemType/:itemPath', {
