@@ -26,18 +26,18 @@
     <body ng-app="starterApp" layout="column" ng-controller="JobController as JC" ng-cloak>
         <div ng-show="SHOW_INTERFACE">
             <md-toolbar layout="row">
-                <a ng-hide="showAllJobs && !showGeneralSettings" href="/app/index.html" ng-click="showGeneralSettings = false; showAllJobs = true;"><md-icon style="width:50px; padding-left:16px; padding-top:18px; cursor:pointer">arrow_back</md-icon></a>
-                <h1 ng-show="showAllJobs && !showGeneralSettings" ng-click="showGeneralSettings = false; showAllJobs = true;" style="cursor:pointer; padding-left:16px;">{{application_title}}</h1>
-                <h1 ng-show="showGeneralSettings">{{_('General configurations page')}}</h1>
+                <a ng-hide="showAllJobs && !ShowGeneralSettings.show" href="/app/index.html" ng-click="ShowGeneralSettings.show = false; showAllJobs = true;"><md-icon style="width:50px; padding-left:16px; padding-top:18px; cursor:pointer">arrow_back</md-icon></a>
+                <h1 ng-show="showAllJobs && !ShowGeneralSettings.show" ng-click="ShowGeneralSettings.show = false; showAllJobs = true;" style="cursor:pointer; padding-left:16px;">{{application_title}}</h1>
+                <h1 ng-show="ShowGeneralSettings.show">{{_('General configurations page')}}</h1>
                 <span flex></span>
-                <div style="margin-right:28px;" ng-show="showAllJobs && !showGeneralSettings" ng-init="showGeneralSettings = false">
-                    <div style="padding-top: 19px"><a ng-click="showGeneralSettings = !showGeneralSettings" href="#/settings"><md-icon style="cursor:pointer">settings</md-icon></a>
+                <div style="margin-right:28px;" ng-show="showAllJobs && !ShowGeneralSettings.show">
+                    <div style="padding-top: 19px"><a ng-click="ShowGeneralSettings.show = !ShowGeneralSettings.show" href="#/settings"><md-icon style="cursor:pointer">settings</md-icon></a>
                         <md-tooltip md-direction="bottom">
                             {{_('General configurations page')}}
                         </md-tooltip></div>
                 </div>
             </md-toolbar>
-            <span ng-hide="showAllJobs || showGeneralSettings" style="height: 100%;">
+            <span ng-hide="showAllJobs || ShowGeneralSettings.show" style="height: 100%;">
                 <ng-include src="'./src/jobs/view/fulljob_toolbar.html'"/>
             </span>
         </div>
@@ -49,7 +49,7 @@
             <md-sidenav  ng-click="JC.toggleList()" md-component-id="left" class="md-whiteframe-z2" >
                 <md-list>
                     <md-list-item>
-                        <md-button ng-init="showAllJobs = false" ng-click="showAllJobs=!showAllJobs; showGeneralSettings=false" aria-label="Home"><i class="material-icons">home</i></md-button>
+                        <md-button ng-init="showAllJobs = false" ng-click="showAllJobs=!showAllJobs; ShowGeneralSettings.show = false" aria-label="Home"><i class="material-icons">home</i></md-button>
                     </md-list-item>
                     <md-list-item ng-repeat="it in JC.jobs" layout="row">
                         <md-button ng-click="JC.selectJob(it)" ng-class="{'selected' : it === JC.selected }" style="display: table;">
@@ -66,10 +66,10 @@
                     <md-icon aria-hidden="true">add</md-icon>
                 </md-button>
             </md-sidenav>
-            <span ng-hide="showAllJobs || showGeneralSettings" style="height: 100%;">
+            <span ng-hide="showAllJobs || ShowGeneralSettings.show" style="height: 100%;">
                 <ng-include src="'./src/jobs/view/fulljob.html'"/>
             </span>
-            <span ng-show="showAllJobs && !showGeneralSettings">
+            <span ng-show="showAllJobs && !ShowGeneralSettings.show">
                 <ng-include src="'./src/jobs/view/alljobs.html'"/>
             </span>
             <!--<span ng-show="showGeneralSettings" style="height: 100%;">

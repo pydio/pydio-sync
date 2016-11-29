@@ -5,6 +5,10 @@
             var job;
             return job;
         })
+        .service('ShowGeneralSettings', function () {
+            var show;
+            return true;
+        })
         .factory('Jobs', ['$resource',
             function($resource){
                 return $resource('/jobs/:job_id/', {}, {
@@ -78,14 +82,17 @@
        .config(['$routeProvider',
             function($routeProvider){
                $routeProvider.when("/about", {
+                    controllerAs: "SC",
+                    controller: "SettingsController",
                     templateUrl: "about.html",
                })
                .when("/settings", {
+                    controller: "SettingsController",
                     templateUrl: "./src/jobs/view/general_configs.html",
                })
                .when('/share/:layout/:jobId/:itemType/:itemPath', {
                     //:example sample get request would be like
-                    //http://localhost:5556/res/index.html#/share/standard/54.254.418.47-my-files/file/abc%5Chello.txt
+                    //http://localhost:5556/res/index.html#/share/standard/id-my-files/file/abc%5Chello.txt
                     controller:'ShareCtrl',
                     templateUrl:'./src/jobs/view/share.html'
                 })
@@ -96,7 +103,7 @@
             }
             ])
        .controller('JobController', [
-          '$routeParams', 'jobService', '$location', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', 'Ws', JobController
+          '$routeParams', 'jobService', '$location', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', 'ShowGeneralSettings', 'Ws', JobController
        ])
 
   /**
@@ -106,7 +113,7 @@
    * @param avatarsService
    * @constructor
    */
-  function JobController( $routeParams, jobService, $location, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId, SelectedJobService, Ws ) {
+  function JobController( $routeParams, jobService, $location, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId, SelectedJobService, ShowGeneralSettings, Ws ) {
     window.translate = function(string){
         var lang;
         if(window.PydioLangs){
@@ -150,8 +157,14 @@
     $scope.$on('$mdMenuClose', function(){ self.menuOpened = false});
 
     $scope.SHOW_INTERFACE = ($location.url().indexOf('share') == -1) // HACKY... hide interface when showing the /share page
-    $scope.showAllJobs = ($location.url().indexOf('about') != -1) && ($location.url().indexOf('settings') != -1)
+    $scope.showAllJobs = updateShowAllJobs()
+    // /settings trick
+    ShowGeneralSettings.show = false;
+    $scope.ShowGeneralSettings = ShowGeneralSettings;
 
+    function updateShowAllJobs(){
+        return ($location.url().indexOf('about') != -1) || ($location.url().indexOf('settings') != -1)
+    }
     self.fake_data = {"tasks":{"current":[{"node":{"bytesize":100000000,"mtime":1467037750,"md5":"5bf234610827e29cb0436122415d4821","node_path":"/JENE/omg/jaja/lefile100MB"},"target":"/JENE/omg/jaja/lefile100MB","total_size":100001132,"bytesize":100000000,"bytes_sent":40,"content":1,"source":"NULL","total_bytes_sent":48367468,"location":"local","progress":3,"row_id":166,"type":"create","md5":"5bf234610827e29cb0436122415d4821"}],"total":5},"global":{"total_time":5.003995,"last_transfer_rate":24365888.264299262,"status_indexing":0,"queue_bytesize":-3280,"queue_start_time":2.774535,"eta":-0.000021983704444345575,"queue_length":5,"queue_done":5.0000219662499905}}
 
     var t0;
@@ -215,7 +228,7 @@
     self.selectJob = function selectJob ( job ) {
         self.currentNavItem = 'history';
         $scope.showAllJobs = false;
-        $scope.showGeneralSettings = false;
+        ShowGeneralSettings.show = false;
         SelectedJobService.job = angular.isNumber(job) ? $scope.jobs[job] : job;
         SelectedJobService.job.repositories = [{"label": SelectedJobService.job.workspace}];
     }
@@ -248,7 +261,7 @@
 
 
     function toggleGeneralSettings(){
-        $scope.showGeneralSettings = !$scope.showGeneralSettings
+        ShowGeneralSettings.show = !ShowGeneralSettings.show
     }
 
     $scope.applyCmd = function(cmd){
@@ -276,7 +289,7 @@
                 //console.log('info ' + index)
                 $scope.showNewTask = false
                 $scope.showAllJobs = false
-                $scope.showGeneralSettings = false
+                ShowGeneralSettings.show = false
                 self.currentNavItem = 'history';
             break
             case 'start':
@@ -295,7 +308,7 @@
                 //console.log('settings ' + index)
                 $scope.showNewTask = false
                 $scope.showAllJobs = false
-                $scope.showGeneralSettings = false
+                ShowGeneralSettings.show = false
                 self.currentNavItem = "settings"
             break
             case 'pause':
