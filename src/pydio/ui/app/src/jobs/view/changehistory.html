@@ -1,32 +1,18 @@
-<div ng-controller="HistoryController as hc" style="max-height: 800px; overflow-y: scroll">
+<div ng-controller="HistoryController as hc">
+
     <md-content ng-show="conflicts.length">
         <md-subheader class="section-title">{{_('Conflicts')}}</md-subheader>
-        <table style="width: 100%;">
-            <tr>
-                <td><md-checkbox ng-model="conflict_solver.applyToAll" ng-init="conflict_solver.applyToAll = false">{{_('Apply to all conflicts')}}</md-checkbox></td>
-                <td><md-button class="md-raised conflict-button" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPLOCAL');" ng-disabled="!conflict_solver.applyToAll">{{_('Mine')}}</md-button></td>
-                <td><md-button class="md-raised conflict-button" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPBOTH');" ng-disabled="!conflict_solver.applyToAll">{{_('Both Versions')}}</md-button></td>
-                <td>
-                    <md-button class="md-raised conflict-button" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPREMOTE');" ng-disabled="!conflict_solver.applyToAll">{{_('Theirs')}}</md-button>
-                </td>
-            </tr>
-            <tr ng-repeat="conflict in conflicts">
-                <td style="color: rgb(80,80,80); cursor:pointer" ng-click="JC.openFolder({'target':selected.directory+conflict.node_path}, $event)">{{conflict.node_path}}</td>
-                <td>
-                    <md-button class="md-raised conflict-button" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPLOCAL');" ng-disabled="conflict_solver.applyToAll">{{_('Mine')}}</md-button>
-                    </td>
-                    <td><md-button class="md-raised conflict-button" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPBOTH');" ng-disabled="conflict_solver.applyToAll">{{_('Both Versions')}}</md-button>
-                        </td>
-                <td>
-                    <md-button class="md-raised conflict-button" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPREMOTE');" ng-disabled="conflict_solver.applyToAll">{{_('Theirs')}}</md-button>
-                </td>
-
-                <!--<td style="text-align: right;padding:2px 0;">
-                    <md-button ng-show="conflict.status.indexOf('SOLVED:') === -1" ng-click="conflict_solver.current=conflict">{{_('Solve Conflict')}}</md-button>
-                    <span ng-show="conflict.status.indexOf('SOLVED:') === 0" class="small">{{_('Solved')}}</span>
-                </td> -->
-            </tr>
-        </table>
+        <div>
+            <div class="change-history-line conflict-line" ng-repeat="conflict in conflicts">
+                <span>
+                    <i class="change-history-icon">!</i>
+                </span>
+                <span class="change-history-text">{{conflict.node_path}}</span>
+                <span>
+                    <md-button class="md-raised" ng-click="openConflictDialog(conflict)">{{conflict.status.indexOf('SOLVED:') === -1 ? _('Solve Conflict') : _('Solved')}}</md-button>
+                </span>
+            </div>
+        </div>
     </md-content>
     <md-content>
         <div ng-show="running.tasks && running.tasks.total" class="full-job-status-running">

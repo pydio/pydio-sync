@@ -111,10 +111,6 @@ div.full-job-status-running {
   background-color: #E1F5FE;
   color: #01579B;
 }
-div.full-job-scroller {
-  height: 100%;
-  overflow-y: scroll;
-}
 div.change-history-line {
   display: flex;
   border-bottom: 1px solid #ececec;
@@ -140,6 +136,8 @@ div.change-history-line .change-history-icon {
   font-size: 15px;
   margin-top: -2px;
   margin-right: 8px;
+  font-style: normal;
+  display: inline-block;
 }
 div.change-history-line span.progress-cell,
 div.change-history-line span.empty-cell {
@@ -157,6 +155,36 @@ div.change-history-line md-icon.md-secondary.material-icons {
   padding-top: 6px;
   padding-right: 4px;
   padding-left: 8px;
+}
+div.change-history-line.conflict-line .change-history-text {
+  margin-top: 14px;
+  color: #d32f2f;
+}
+div.change-history-line.conflict-line .change-history-icon {
+  background-color: #d32f2f;
+  margin-top: 11px;
+}
+.conflict-version-block {
+  padding: 16px;
+  margin: 1px 8px;
+  border: 1px solid #E0E0E0;
+  border-radius: 5px;
+  font-size: 12px;
+  max-width: 110px;
+  cursor: pointer;
+  outline: none;
+}
+.conflict-version-block:hover {
+  background-color: #fafafa;
+}
+.conflict-version-block.selected {
+  border-color: #1e88e5;
+  border-width: 2px;
+  margin: 0px 7px;
+}
+.conflict-version-block i.material-icons {
+  color: #EEEEEE;
+  font-size: 56px;
 }
 .history-more-info {
   padding: 20px;

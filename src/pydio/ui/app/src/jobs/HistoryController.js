@@ -21,9 +21,17 @@
   })
   .filter('basename', function(){
         return function(path){
+            if(!path) return '';
             return path.split(/[\\/]/).pop();
         }
     })
+  .filter('timestamp', function(){
+    return function(tStamp){
+        if(!tStamp) return '';
+        var d = new Date(tStamp * 1000);
+        return d.toString();
+    }
+  })
   .filter('bytes', function() {
     return function(bytes, precision) {
         if (bytes == 0) return bytes;
@@ -128,7 +136,34 @@
         }
     }
 
-    $scope.conflict_solver = {current:false,applyToAll:false}
+    $scope.conflict_solver = {current:false,applyToAll:false,selection:null};
+
+    $scope.openConflictDialog = function(conflict){
+        var defaultStatus = 'SOLVED:KEEPBOTH';
+        if(conflict.status.indexOf('SOLVED:') === 0){
+            defaultStatus = conflict.status;
+        }
+        $scope.conflict_solver = {
+            current:conflict,
+            applyToAll:true,
+            selection:defaultStatus
+        };
+        $mdDialog.show({
+            templateUrl: 'src/jobs/view/conflict.html',
+            scope:$scope,
+            preserveScope:true
+        });
+    };
+
+    $scope.closeConflictDialog = function(solveStatus){
+        if(solveStatus){
+            var conflict = $scope.conflict_solver.current;
+            $scope.solveConflict(conflict.node_id, solveStatus);
+        }
+        $scope.conflict_solver = {current:false,applyToAll:false,selection:null};
+        $mdDialog.hide();
+    };
+
     $scope.solveConflict = function(nodeId, status){
         $scope.conflict_solver.current = null;
         var appToAll = $scope.conflict_solver.applyToAll;
@@ -136,7 +171,7 @@
             if(!appToAll && conflict.node_id != nodeId) return;
             if(appToAll && conflict.status.indexOf('SOLVED:') === 0) return;
             conflict.status = status;
-            conflict.job_id = selected.id;
+            conflict.job_id = $scope.selected.id;
             conflict.$save();
         });
     };
