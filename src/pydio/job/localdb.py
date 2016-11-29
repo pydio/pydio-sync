@@ -262,7 +262,14 @@ class LocalDbHandler():
             for idx, col in enumerate(c.description):
                 if col[0] == 'stat_result':
                     continue
-                d[col[0]] = row[idx]
+                if col[0] == 'detail' and row[idx]:
+                    try:
+                        decoded_detail = pickle.loads(row[idx])
+                        d[col[0]] = decoded_detail
+                    except ValueError:
+                        pass
+                else:
+                    d[col[0]] = row[idx]
             rows.append(d)
         c.close()
         return rows
