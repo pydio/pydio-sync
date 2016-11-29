@@ -7,11 +7,11 @@
                 query: {method:'GET', params:{}, isArray:false}
             });
         }])
-    .controller('SettingsController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', 'GeneralConfigs', SettingsController]);
+    .controller('SettingsController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', 'GeneralConfigs', 'ShowGeneralSettings', SettingsController]);
     /**
      * Controller for new jobs
      */
-    function SettingsController(jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, GeneralConfigs){
+    function SettingsController(jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, GeneralConfigs, ShowGeneralSettings){
         var self = this;
         self._ = window.translate;
         if (window.ui_config){
@@ -19,6 +19,9 @@
         }
         // JS methods need to be exposed...
         self.SaveGeneralConfig = SaveGeneralConfig;
+
+        // Make sur the interface is in the correct state
+        ShowGeneralSettings.show = true;
 
         // Load the general config from agent (http://localhost:5556/general_configs)
         var general_configs_data = GeneralConfigs.query({},
