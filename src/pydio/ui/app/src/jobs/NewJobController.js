@@ -24,11 +24,25 @@
                 }, isArray:true}
             });
         }])
-    .controller('NewJobController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', 'Ws', 'Folders', 'Jobs', 'SelectedJobService', NewJobController]);
+    .factory('EtaSize', ['$resource',
+        function($resource){
+            return $resource('/eta_size', {}, {
+                query: {method:'GET', params:{
+                    url   :'',
+                    ws    :'',
+                    user  :'',
+                    password:'',
+                    remote_folder:'',
+                    local_folder: '',
+                    trust_ssl:'',
+                }}
+            });
+        }])
+    .controller('NewJobController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', 'Ws', 'Folders', 'Jobs', 'SelectedJobService', 'EtaSize', '$filter', NewJobController]);
     /**
      * Controller for new jobs
      */
-    function NewJobController( jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $mdToast, Ws, Folders, Jobs, SelectedJobService ){
+    function NewJobController( jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $mdToast, Ws, Folders, Jobs, SelectedJobService, EtaSize, $filter ){
         // JS methods need to be exposed...
         var self = this;
 
@@ -60,8 +74,10 @@
         self.job.server = "https://localhost:7443/";
         self.job.directory = "/Users/thomas/Pydio/tests/oneMoreTest";
         self.job.remote_folder = "/";
-        self.job.total_size = 12002020; // TODO LULZ never gonna happen
-        self.job.eta = 111232123; // TODO LULZ never gonna happen
+        self.job.total_size = 0; // TODO LULZ
+        self.job.eta = 0;
+        self.job.remote_size = 0;
+        self.job.local_size = 0;
 
         self.checkedTaskFailed = false;
         self.checkedTaskFolder = true;
@@ -239,7 +255,7 @@
                 ws:self.job.workspace['@repositorySlug'],
                 subdir:path
             }, function(resp){
-                console.log(resp)
+                //console.log(resp)
                 if(resp[0] && resp[0].error){
                      self.toastError(resp[0].error);
                 }
@@ -311,7 +327,7 @@
 
         self.checkTask = function(){
             //console.log('Check task')
-
+            getSizeAndEta()
             checkTaskMore()
             checkTaskFolder()
             angular.element(document.getElementById("newjoblabel")).triggerHandler('focus');
@@ -360,6 +376,34 @@
                     self.checkedTaskFolder = true;
                     });
             }
+        }
+
+        function getSizeAndEta(){
+            self.loadingSizeAndEta = true;
+            var info = EtaSize.query({
+                url:self.job.server,
+                user:self.job.user,
+                password:self.job.password,
+                trust_ssl:self.job.trust_ssl,
+                ws:self.job.workspace['@repositorySlug'],
+                remote_folder:self.job.remote_folder,
+                local_folder: self.job.directory
+            }, function(resp){
+                if(resp[0] && resp[0].error){
+                    self.error = error;
+                    self.toastError(resp[0].error);
+                }
+                self.loadingSizeAndEta = false
+                self.job.remote_size = $filter('bytes')(info.info.remote_folder_size)
+                self.job.local_size = $filter('bytes')(info.info.local_folder_size)
+                var dl_rate = 2 * 1024 //* 1024
+                var up_rate = 0.1 * 1024 //* 1024
+                var eta = info.info.local_folder_size  / dl_rate + info.info.remote_folder_size / up_rate
+                self.job.eta = moment.duration(eta).humanize()
+            }, function(resp){
+                self.loadingSizeAndEta = false;
+                self.toastError(window.translate('Error while loading ETA and SIZE information!'));
+            })
         }
 
         self.addTask = function(){

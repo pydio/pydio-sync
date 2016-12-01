@@ -140,6 +140,7 @@ class PydioApi(Api):
         self.add_resource(ShareCopyManager, '/share_cp')
         self.add_resource(GeneralConfigManager, '/general_configs')
         self.add_resource(HistoryManager, '/change_history/<string:job_id>')
+        self.add_resource(EtaSize, '/eta_size')
         self.add_resource(Feedback, '/feedbackinfo')
         self.app.add_url_rule('/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/config.js', 'config', self.server_js_config)
@@ -462,6 +463,53 @@ class WorkspacesManager(Resource):
             logging.error(ree.message)
             return {'error': _('Cannot resolve domain!')}, 400
 
+class EtaSize(Resource):
+
+    @authDB.requires_auth
+    @pydio_profile
+    def get(self):
+        args = request.args
+        base = args['url'].rstrip('/')
+        verify = False if args['trust_ssl'] == 'true' else True
+        if 'password' in args:
+            auth = (args['user'], args['password'])
+        else:
+            auth = (args['user'], keyring.get_password(base, args['user']))
+        if verify and "REQUESTS_CA_BUNDLE" in os.environ:
+            verify = os.environ["REQUESTS_CA_BUNDLE"]
+        # GET REMOTE SIZE
+        from pydio.sdkremote.remote import PydioSdk
+        trust_ssl = False
+        if 'trust_ssl' in args:
+            trust_ssl = args['trust_ssl'] == 'true'
+        logging.info("SKIP " + str(trust_ssl))
+        remote_folder = "" if args['remote_folder'] == "/" else args['remote_folder']
+        sdk = PydioSdk(args['url'], args['ws'], remote_folder, '',
+                       auth=(args['user'], args['password']),
+                       device_id=ConfigManager.Instance().get_device_id(),
+                       skip_ssl_verify=trust_ssl,
+                       proxies=ConfigManager.Instance().get_defined_proxies(),
+                       timeout=20)
+        up = [0.0]
+        def callback(location, change, info):
+            if change and "bytesize" in change and change["md5"] != "directory":
+                up[0] += float(change["bytesize"])
+        sdk.changes_stream(0, callback)
+        remote_folder_size = up[0]
+        # LOCAL SIZE
+        local_folder_size = -1
+        if 'local_folder' in args and args['local_folder'] != '':
+            if not os.path.exists(args['local_folder']):
+                return {"info": {"remote_folder_size": remote_folder_size, "local_folder_size": 0}}
+            else:
+                for dirpath, dirnames, filenames in os.walk(args['local_folder']):
+                    for f in filenames:
+                        fp = os.path.join(dirpath, f)
+                        try:
+                            local_folder_size += os.path.getsize(fp)
+                        except OSError:
+                                pass
+        return {"info": {"remote_folder_size": remote_folder_size, "local_folder_size": local_folder_size}}
 
 class FoldersManager(Resource):
 
