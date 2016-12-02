@@ -113,7 +113,7 @@
                                 <!--<label><i class="fa fa-folder" aria-hidden="true"></i> Local Folder</label>-->
                                 <label>{{_('Local Folder')}}</label>
                                 <md-icon class="login-icons" ng-click="NJC.openDirChooser($event)" aria-hidden="true">folder</md-icon>
-                                <input ng-model="NJC.job.directory" ng-keyup="NJC.doneWithEnter($event)">
+                                <input ng-model="NJC.job.directory" ng-keyup="NJC.doneWithEnter($event)" required>
                             </md-input-container>
                             <div>
                                 <md-button class="md-raised" style="display:inline-block;" ng-click="NJC.openDirChooser($event)">CHOOSE</md-button>
@@ -121,7 +121,7 @@
                         </md-content>
                         <md-content class="bottom-buttons">
                             <md-button ng-click="selectedTab = selectedTab - 1">&lt; {{_('BACK')}}</md-button>
-                            <md-button class="md-primary" ng-click="selectedTab = selectedTab + 1; NJC.checkTask(); selected.job = NJC.job">{{_('REVIEW PARAMETERS')}}</md-button>
+                            <md-button class="md-primary" ng-disabled="!NJC.job.directory" ng-click="selectedTab = selectedTab + 1; NJC.checkTask(); selected.job = NJC.job">{{_('REVIEW PARAMETERS')}}</md-button>
                         </md-content>
                     </md-content>
                 </md-tab>
@@ -158,28 +158,30 @@
                             </md-input-container>
                             <md-card>
                                 <md-card-title>
-                                    <span class="md-headline" style="color: #9e9e9e;"><md-icon>info</md-icon>&nbsp;{{_('Sync Task Preview')}}</span>
-                                    <md-progress-circular md-mode="indeterminate" md-diameter="20px" ng-show="NJC.loadingSizeAndEta" style="padding: 10px 20px 0 0"></md-progress-circular>
+                                    <span class="md-headline" style="color: #9e9e9e; font-size:18px;">{{_('Estimated Transfer Information')}}</span>
                                 </md-card-title>
-                                <div layout="row" style="padding-left: 12px" ng-show="!NJC.loadingSizeAndEta">
-                                    <md-input-container class="md-block md-icon-float" style="max-width:40%;">
-                                        <label>{{_('Data Local')}}</label>
-                                        <md-icon class="login-icons" aria-hidden="true">data_usage</md-icon>
-                                        <input ng-model="NJC.job.local_size" disabled>
-                                    </md-input-container>
-                                    <span style="width:12px"></span>
-                                    <md-input-container class="md-block md-icon-float" style="max-width:40%;">
-                                        <label>{{_('Data Remote')}}</label>
-                                        <md-icon class="login-icons" aria-hidden="true">storage</md-icon>
-                                        <input ng-model="NJC.job.remote_size" disabled>
-                                    </md-input-container>
-                                </div>
-                                <div style="padding-left: 12px">
-                                    <md-input-container class="md-block md-icon-float" style="max-width:40%;">
-                                        <label>{{_('Estimated Time')}}</label>
-                                        <md-icon class="login-icons" aria-hidden="true">timelapse</md-icon>
-                                        <input ng-model="NJC.job.eta" disabled>
-                                    </md-input-container>
+                                <md-progress-circular md-mode="indeterminate" md-diameter="20px" ng-show="NJC.loadingSizeAndEta" style="padding-bottom: 40px; margin: 20px 20px 0 45%;"></md-progress-circular>
+                                <div style="padding: 0 12px 0 12px;" ng-show="!NJC.loadingSizeAndEta">
+                                    <div layout="row">
+                                        <md-input-container class="md-block md-icon-float" style="max-width:35%;">
+                                            <label>{{_('Data Local')}}</label>
+                                            <md-icon class="login-icons" aria-hidden="true">data_usage</md-icon>
+                                            <input ng-model="NJC.job.local_size" disabled>
+                                        </md-input-container>
+                                        <span style="width:12px"></span>
+                                        <md-input-container class="md-block md-icon-float" style="max-width:35%;">
+                                            <label>{{_('Data Remote')}}</label>
+                                            <md-icon class="login-icons" aria-hidden="true">storage</md-icon>
+                                            <input ng-model="NJC.job.remote_size" disabled>
+                                        </md-input-container>
+                                    </div>
+                                    <div>
+                                        <md-input-container class="md-block md-icon-float" style="max-width:35%;">
+                                            <label>{{_('Estimated Time')}}</label>
+                                            <md-icon class="login-icons" aria-hidden="true">timelapse</md-icon>
+                                            <input ng-model="NJC.job.eta" disabled>
+                                        </md-input-container>
+                                    </div>
                                 </div>
                             </md-card>
                             <div ng-show="NJC.checkedTaskFailed">
