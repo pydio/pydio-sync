@@ -1,6 +1,6 @@
 <div id="aboutdiv" style="height: 100%;">
 <ng-include src="'src/jobs/view/settingsbar.html'"></ng-include>
-    <div style="height:calc(100% - 48px);" ng-init="currentNavItem = 'about'">
+    <div style="height:calc(100% - 48px);overflow-y: scroll; max-height:548px;" ng-init="currentNavItem = 'about'">
         <h2>About PydioSync</h2>
         <div class="pad-me">
         <p>PydioSync v##VERSION## - Build ##COMMIT## (##BUILD_CHANNEL##) - ##VERSION_DATE##

@@ -7,11 +7,11 @@
                 query: {method:'GET', params:{}, isArray:false}
             });
         }])
-    .controller('SettingsController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', 'GeneralConfigs', 'ShowGeneralSettings', SettingsController]);
+    .controller('SettingsController', ['jobService', '$mdToast', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$location', 'GeneralConfigs', 'ShowGeneralSettings', SettingsController]);
     /**
      * Controller for new jobs
      */
-    function SettingsController(jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, GeneralConfigs, ShowGeneralSettings){
+    function SettingsController(jobService, $mdToast, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $location, GeneralConfigs, ShowGeneralSettings){
         var self = this;
         self._ = window.translate;
         if (window.ui_config){
@@ -75,7 +75,12 @@
                     }
                 }
             }
-            location.assign("/app/index.html");
+            $mdToast.show({
+                hideDelay   : 4000,
+                position    : 'bottom right',
+                controller  : function(){},
+                template    : '<md-toast><span class="md-toast-text" style="" flex>' + window.translate('Settings Updated') + '</span></md-toast>'
+            });
         }
         if (typeof(qt) !== 'undefined'){
             new QWebChannel(qt.webChannelTransport, function(channel) {
