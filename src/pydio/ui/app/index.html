@@ -23,7 +23,7 @@
 
     </head>
 
-    <body ng-app="starterApp" layout="column" ng-controller="JobController as JC" ng-cloak>
+    <body ng-app="starterApp" layout="column" ng-controller="JobController as JC" ng-cloak onresize="setMaxJobsHeight()">
         <div ng-show="SHOW_INTERFACE">
             <md-toolbar layout="row">
                 <a ng-hide="showAllJobs && !ShowGeneralSettings.show" href="/app/index.html" ng-click="ShowGeneralSettings.show = false; showAllJobs = true;"><md-icon style="width:50px; padding-left:16px; padding-top:18px; cursor:pointer">arrow_back</md-icon></a>
@@ -96,7 +96,10 @@
                               .accentPalette('orange');
 
                   });
-        </script>
+              function setMaxJobsHeight(){
+                document.getElementById('joblist').style.maxHeight = (window.innerHeight - 70) + "px"
+              }
+    </script>
     <script src="i18n.js"></script>
     <script type="text/javascript">_ = window.translate</script>
     <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>

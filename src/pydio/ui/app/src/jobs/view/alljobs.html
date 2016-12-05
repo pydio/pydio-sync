@@ -1,5 +1,16 @@
 <!--{{ showAllJobs }}-->
-<div style="overflow-y: scroll; max-height:660px;" ng-show="SHOW_INTERFACE">
+<span ng-hide="JC.jobs.length > 0">
+    <ng-include src="'./src/jobs/view/welcome.html'"/>
+    <md-content layout="row">
+    <span flex></span>
+    <md-button class="md-fab md-mini" aria-label="Add Sync Task" ng-init="showNewTask=false;" ng-click="JC.newSyncTask($event);">
+              <md-icon aria-hidden="true">add</md-icon>
+        <md-tooltip md-direction="left">{{_('Create a new sync task')}}</md-tooltip>
+    </md-button>
+    <span style="width:16px;"></span>
+</md-content>
+</span>
+<div id="joblist" style="overflow-y: scroll; max-height:660px;" ng-show="SHOW_INTERFACE">
 <md-content>
     <md-subheader class="md-no-sticky" ng-show="jobs.length > 1">{{_('Active Tasks')}}</md-subheader>
     <md-list class="md-dense jobslist" flex>
