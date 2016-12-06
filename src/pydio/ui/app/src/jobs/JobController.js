@@ -104,7 +104,7 @@
             }
             ])
        .controller('JobController', [
-          '$routeParams', 'jobService', '$location', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', 'ShowGeneralSettings', 'Ws', JobController
+          '$routeParams', 'jobService', '$location', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', '$mdColors', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', 'ShowGeneralSettings', 'Ws', JobController
        ])
 
   /**
@@ -114,7 +114,7 @@
    * @param avatarsService
    * @constructor
    */
-  function JobController( $routeParams, jobService, $location, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, Jobs, Commands, JobsWithId, SelectedJobService, ShowGeneralSettings, Ws ) {
+  function JobController( $routeParams, jobService, $location, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, $mdColors, Jobs, Commands, JobsWithId, SelectedJobService, ShowGeneralSettings, Ws ) {
     window.translate = function(string){
         var lang;
         if(window.PydioLangs){
@@ -136,6 +136,8 @@
         }
         return string;
     }
+
+    primarycolor = $mdColors.getThemeColor('blue-600');
 
     $scope._ = window.translate;
     var self = this;
@@ -479,6 +481,7 @@
                 self.PydioQtFileDialog.getDirectory()
                 SelectedJobService.job.directory = window.PydioDirectory
                 pollres = $timeout(pollResult, 700)
+                $scope.conflicts = []
             }
         }
         pollResult()

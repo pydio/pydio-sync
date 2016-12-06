@@ -87,17 +87,21 @@
 
     <script type="text/javascript" src="./assets/moment-with-locales.js"></script>
     <script type="text/javascript">
+              // globals for basic themeing
+              var pydiotheme = { 'base': 'blue', 'hue': '600', 'accent': 'orange'}
+              var primarycolor;
 
               angular
                   .module('starterApp', ['ngMaterial', 'jobs'])
                   .config(function($mdThemingProvider ){
                           $mdThemingProvider.theme('default')
-                              .primaryPalette('blue', {'default': '600'})
-                              .accentPalette('orange');
-
+                              .primaryPalette(pydiotheme.base, {'default': pydiotheme.hue})
+                              .accentPalette(pydiotheme.accent);
                   });
+
               function setMaxJobsHeight(){
                 document.getElementById('joblist').style.maxHeight = (window.innerHeight - 70) + "px"
+                document.getElementById('full-job-scroller').style.maxHeight = (window.innerHeight - 165) + "px"
               }
     </script>
     <script src="i18n.js"></script>

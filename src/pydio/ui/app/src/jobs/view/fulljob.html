@@ -1,7 +1,8 @@
-<div ng-show="JC.currentNavItem == 'history'" class="full-job-scroller">
+<div id="full-job-scroller" style="overflow-y: scroll; max-height:500px;">
+<div ng-show="JC.currentNavItem == 'history'">
     <ng-include src="'./src/jobs/view/changehistory.html'"></ng-include>
 </div>
-<div ng-show="JC.currentNavItem == 'settings'" class="full-job-scroller">
+<div ng-show="JC.currentNavItem == 'settings'">
     <!-- --
     {{selected.job}}
     <!-- -->
@@ -80,6 +81,7 @@
         </div>
     </md-content>
 
+</div>
 </div>
 <!-- DEBUG {{selected.job}} -->
 

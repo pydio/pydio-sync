@@ -1,19 +1,9 @@
 <div>
     <center>
         <h3>{{_('Welcome to PydioSync')}}</h3>
-        <p>{{_('The best way to keep all your data in sync between')}}</p>
-        <div layout="row">
-            <md-input ng-model="client_id" type="text" placeholder="Client ID"></md-input>
-            <md-button class="md-raised md-primary" ng-disabled="!client_id"></md-button>
-        </div>
-        <div style="padding-top: 19px"><a ng-click="ShowGeneralSettings.show = !ShowGeneralSettings.show" href="#/settings"><md-icon style="cursor:pointer">settings</md-icon></a>
-            <md-tooltip md-direction="bottom">
-                        {{_('General configurations page')}}
-            </md-tooltip>
-        </div>
-        <p>{{_('To begin using PydioSync, add a synctask.')}}</p>
-        <p>{{_('If you encounter issues please refer to the documentation.')}}</p>
-        <div><a href="https://pydio.com/en/docs/v7/checking-sync">https://pydio.com/en/docs/v7/checking-sync</a></div>
-        <p>{{_('If that fails please look for help in our <a href="https://pydio.com/forum/f/forum/troubleshooting/pydiosync/">forum</a></p>
+        <p>{{_('The best way to keep all your data in sync.')}}</p>
+        <p>{{_('To begin using PydioSync, ')}}<md-button ng-click="JC.newSyncTask($event);" style="cursor:pointer" class="md-primary md-raised">{{('add a synctask.')}}</md-button></p>
+        <p>{{_('If you encounter issues please refer to the')}} <a href="https://pydio.com/en/docs/v7/checking-sync">documentation</a>.</p>
+        <p>{{_('If that fails please look for help in our')}}&nbsp;<a href="https://pydio.com/forum/f/forum/troubleshooting/pydiosync/">forum</a>.</p>
     </center>
 </div>

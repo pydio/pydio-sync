@@ -52,7 +52,7 @@
     <md-content flex>
         <md-list class="md-dense">
             <md-subheader class="md-no-sticky">{{_('Last synchronized files')}}</md-subheader>
-            <div style="width:100px; height:100px; margin: 30px 0 0 47%" ng-show="!logs.length">
+            <div style="width:100px; min-height:100px; margin: 30px 0 0 47%" ng-show="!logs.length">
                 <md-progress-circular md-mode="indeterminate" md-diameter="40px" ></md-progress-circular>
             </div>
             <div style="padding-left:42px;" ng-show="logs.length==1">

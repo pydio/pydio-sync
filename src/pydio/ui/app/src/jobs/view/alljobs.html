@@ -10,9 +10,9 @@
     <span style="width:16px;"></span>
 </md-content>
 </span>
-<div id="joblist" style="overflow-y: scroll; max-height:660px;" ng-show="SHOW_INTERFACE">
+<div id="joblist" style="overflow-y: scroll; max-height:620px;" ng-show="SHOW_INTERFACE && jobs.length > 1">
 <md-content>
-    <md-subheader class="md-no-sticky" ng-show="jobs.length > 1">{{_('Active Tasks')}}</md-subheader>
+    <md-subheader class="md-no-sticky">{{_('Active Tasks')}}</md-subheader>
     <md-list class="md-dense jobslist" flex>
         <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="item.active" ng-click="JC.selectJob($index)">
             <div layout="row">
