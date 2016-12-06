@@ -60,17 +60,20 @@ class ChangeHistory():
         self.remote_sdk = remote_sdk
         self.local_sdk = local_sdk
         self.job_config = job_config
-        self.status_handler = db_handler
+        self.db_handler = db_handler
 
-    def insert_change(self, change):
-        if change is not None:
+    def insert_change(self, change, status):
+        logging.info(change)
+        try:
+            if not (change['node'] is not None and change['node']['node_path'] is not None):
+                change['node'] = {'node_path': "DELETED"}
             self.cursor.execute("INSERT INTO changes (seq_id, node_path, location, type, source, target, content, md5,"
-                              " bytesize, status, last_try) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                              (change.change['row_id'], change.change['node']['node_path'], change.change['location'], change.change['type'],
-                              change.change['source'], change.change['target'], change.change['content'],
-                              change.change['md5'], change.change['bytesize'], change.status, int(time.time())))
-        else:
-            logging.info('[Warning] Change was None')
+                                " bytesize, status, last_try) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                (change['row_id'], change['node']['node_path'], change['location'], change['type'],
+                                 change['source'], change['target'], change['content'],
+                                 change['md5'], change['bytesize'], status, int(time.time())))
+        except sqlite3.OperationalError:
+            logging.info("DB locked")
 
 
     def close(self):

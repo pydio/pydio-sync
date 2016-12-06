@@ -1,4 +1,4 @@
-#
+# -*- encoding: utf-8 -*-
 # Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 # This file is part of Pydio.
 #
@@ -93,7 +93,7 @@ class SqliteChangeStore():
         except sqlite3.OperationalError as oe:
             # Catch Database locked errors and try again
             logging.exception(oe)
-            time.sleep(.5)
+            time.sleep(.02)
             self.open()
 
 
@@ -206,32 +206,13 @@ class SqliteChangeStore():
                 for i in pool:
                     if not i.isAlive():
                         if i.status == "SUCCESS" or (hasattr(i, "error") and hasattr(i.error, "code") and i.error.code == 1404):  # file download impossible -> Assume deleted from server
-                            self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
+                            res = self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
                             #logging.info("DELETE CHANGE %s" % i.change)
-                            if i.change is not None:
-                                if hasattr(i.change, 'status'):
-                                    i.change.status = "FAILED"
-                                self.change_history.insert_change(i)
-                        elif i.status == "FAILED":
+                            self.change_history.insert_change(i.change, i.status)
+                        else:
+                            i.status = "FAILED"
                             self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
-                            self.change_history.insert_change(i)
-                            """ Because of consolidation this is no longer useful
-                            class Failchange:
-                                pass
-                            if i.change['row_id'] not in self.failingchanges:
-                                self.failingchanges[i.change['row_id']] = Failchange()
-                                self.failingchanges[i.change['row_id']].change = i.change
-                                self.failingchanges[i.change['row_id']].fail = 1
-                            else:
-                                if "fail" in self.failingchanges[i.change['row_id']]:
-                                    if self.failingchanges[i.change['row_id']].fail > 5:  # Try 5 times then delete it and move on, Is this ever reached ?
-                                        self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
-                                        if i.change is not None:
-                                            self.change_history.insert_change(i)
-                                        del self.failingchanges[i.change['row_id']]
-                                    else:
-                                        self.failingchanges[i.change['row_id']].fail += 1
-                            """
+                            self.change_history.insert_change(i.change, i.status)
                         pool.remove(i)
                         i.join()
                         #logging.info("Change done " + str(i))
@@ -276,7 +257,8 @@ class SqliteChangeStore():
                                             more = current_change['source']
                                         elif 'target' in current_change:
                                             more = current_change['target']
-                                logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss) + " " + more)
+                                #logging.info(more)
+                                logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
                             except Exception as e:
                                 logging.exception(e)
                                 logging.info(str(type(pool[0].change)) + " " + str(pool[0].change))
