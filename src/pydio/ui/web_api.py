@@ -624,7 +624,7 @@ class JobManager(Resource):
                 self.enrich_job(data, k, (request.path == '/jobs-status'))
                 json_jobs.append(data)
             if request.path == '/jobs-status':
-                response = {'is_connected_to_internet': connection_helper.internet_ok, 'jobs': json_jobs}
+                response = {'is_connected_to_internet': connection_helper.internet_ok, 'jobs': json_jobs, 'icon': self.getIcon(connection_helper.internet_ok, json_jobs)}
                 return response
             if "with_id" in request.args:
                 # returns easier to parse jobs than an array
@@ -669,6 +669,31 @@ class JobManager(Resource):
         scheduler.disable_job(job_id)
         JobsLoader.Instance().clear_job_data(job_id, parent=True)
         return job_id + "deleted", 204
+
+    def getIcon(self, internet, jobs):
+        """
+        possible states:
+            0 active | 1 error | 2 conflicts | 3 nointernet | 4 normal
+        """
+        for j in jobs:
+            if not j["running"]:
+                continue
+            # is there an error ?
+            if "last_event" in j and "status" in j["last_event"]:
+                if j["last_event"]["status"] == u'error':
+                    return 1
+            # is there a conflict
+            if "state" in j and 'total' in j["state"]:
+                if j["state"]["total"] > 0:
+                    return 2
+            # is there an active job
+            if "last_event" in j and "message" in j["last_event"]:
+                if j["last_event"]["message"] != 'Synchronized':
+                    return 0
+            # is the internet down
+            if not internet:
+                return 3
+        return 4
 
 
 class ConflictsManager(Resource):
