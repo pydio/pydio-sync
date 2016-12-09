@@ -140,7 +140,7 @@ class PydioScheduler():
             # delete databases
             job_folder = os.path.join(str(self.jobs_root_path), job_id)
             for file in os.listdir(job_folder):
-                if file in ["pydio.sqlite", "changes.sqlite", "sequences"]:
+                if file in ["pydio.sqlite", "changes.sqlite", "sequences", "history.sqlite", "pydio.sqlite-journal", "changes.sqlite-journal"]:
                     try:
                         os.unlink(os.path.join(job_folder, file))
                     except Exception as e:
