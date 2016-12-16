@@ -38,11 +38,11 @@
                 }}
             });
         }])
-    .controller('NewJobController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', 'Ws', 'Folders', 'Jobs', 'SelectedJobService', 'EtaSize', '$filter', NewJobController]);
+    .controller('NewJobController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', 'Ws', 'Folders', 'Jobs', 'SelectedJobService', 'NewJobService', 'EtaSize', '$filter', NewJobController]);
     /**
      * Controller for new jobs
      */
-    function NewJobController( jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $mdToast, Ws, Folders, Jobs, SelectedJobService, EtaSize, $filter ){
+    function NewJobController( jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $mdToast, Ws, Folders, Jobs, SelectedJobService, NewJobService, EtaSize, $filter ){
         // JS methods need to be exposed...
         var self = this;
 
@@ -69,12 +69,27 @@
         self.job.hide_down_dir   = 'false';  // to hide buttons in gui
         self.job.timeout         = '20';
         self.job.__type__        = 'JobConfig';
+        $scope.ui_config = window.ui_config;
         self.job.user = "pydio";
         self.job.password = "pydiopassword";
         self.job.server = "https://localhost:7443/";
+        if(typeof(NewJobService.server) !== "undefined"){
+            self.job.server = NewJobService.server;
+        } else {
+            // fetch job from existing task...
+            var jobs = Jobs.query({}, function(){
+                console.log(jobs)
+                for (var task in jobs){
+                    console.log("FROM OLD job" + jobs[task].server )
+                    self.job.server = jobs[task].server // initialize job with first job
+                    break
+                }
+            })
+        }
+
         self.job.directory = "/Users/thomas/Pydio/tests/oneMoreTest";
         self.job.remote_folder = "/";
-        self.job.total_size = 0; // TODO LULZ
+        self.job.total_size = 0;
         self.job.eta = 0;
         self.job.remote_size = 0;
         self.job.local_size = 0;

@@ -9,6 +9,10 @@
             var show;
             return true;
         })
+        .service('NewJobService', function(){
+            var newjob;
+            return newjob;
+        })
         .factory('Jobs', ['$resource',
             function($resource){
                 return $resource('/jobs/:job_id/', {}, {
@@ -79,6 +83,12 @@
                     query: {method:'GET', params:{job_id:''}, isArray:true}
                 });
             }])
+       .factory('Endpoints', ['$resource',
+            function($resource){
+                return $resource('/resolve/:client_id', {}, {
+                    query: {method:'GET', params:{client_id:''}, isArray:false}
+                });
+            }])
        .config(['$routeProvider',
             function($routeProvider){
                $routeProvider.when("/about", {
@@ -104,7 +114,7 @@
             }
             ])
        .controller('JobController', [
-          '$routeParams', 'jobService', '$location', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', '$mdColors', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', 'ShowGeneralSettings', 'Ws', JobController
+          '$routeParams', 'jobService', '$location', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', '$mdColors', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', 'NewJobService', 'ShowGeneralSettings', 'Ws', 'Endpoints', JobController
        ])
 
   /**
@@ -114,7 +124,7 @@
    * @param avatarsService
    * @constructor
    */
-  function JobController( $routeParams, jobService, $location, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, $mdColors, Jobs, Commands, JobsWithId, SelectedJobService, ShowGeneralSettings, Ws ) {
+  function JobController( $routeParams, jobService, $location, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, $mdColors, Jobs, Commands, JobsWithId, SelectedJobService, NewJobService, ShowGeneralSettings, Ws, Endpoints ) {
     window.translate = function(string){
         var lang;
         if(window.PydioLangs){
@@ -137,7 +147,7 @@
         return string;
     }
 
-    primarycolor = $mdColors.getThemeColor('blue-600');
+    primarycolor = $mdColors.getThemeColor(pydiotheme.base + '-' + pydiotheme.hue);
 
     $scope._ = window.translate;
     var self = this;
@@ -244,7 +254,7 @@
         $mdDialog.show({
             controller: 'NewJobController',
             controllerAs: 'NJC',
-            templateUrl: './src/jobs/view/newjob.html?i='+Math.floor(Math.random()*10000), // TODO: tricks the cache (REMOVE ME)
+            templateUrl: './src/jobs/view/newjob.html',
             parent: angular.element(document.body),
             targetEvent: ev,
             clickOutsideToClose:true
@@ -514,7 +524,75 @@
             .ok('OK')
             .targetEvent(ev)
         );
-  };
+    };
+
+    $scope.resolveClientId = function(){
+        $scope.loading = true;
+        $scope.error_ws = null;
+        if (!self.client_id){
+            $scope.error_ws = "Null Client ID"
+            console.log($scope.error_ws)
+        }
+        Endpoints.get({
+            client_id:self.client_id
+        }, function(response){
+            self.ws = {}
+            $scope.Content = response;
+            if (response['endpoints'] && response.endpoints.length){
+                //console.log(response)
+                pydiotheme.base = response["vanity"]["splash_bg_color"]
+                pydiotheme.base = response["vanity"]["main_tint"]
+                // DRAFT for theme
+                //response["vanity"]["application_name"]
+                //response["vanity"]["splash_image"]
+                //response["support"]["info_panel"]
+                /*$mdThemingProvider.theme('default')
+                              .primaryPalette(pydiotheme.base, {'default': pydiotheme.hue})
+                              .accentPalette(pydiotheme.accent);*/
+                //reload the theme
+                //$mdThemingProvider.theme('default').reload('default');
+                NewJobService.server = response.endpoints[0].url;
+                try{
+                    document.getElementById('dynasheet').href += '?';
+                }catch(e){}
+                $scope.loading = false;
+                $timeout(function(){
+                    document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
+                    $timeout(function(){
+                        $mdDialog.show({
+                            controller: 'NewJobController',
+                            controllerAs: 'NJC',
+                            templateUrl: './src/jobs/view/newjob.html',
+                            parent: angular.element(document.body),
+                            clickOutsideToClose:false
+                        }
+
+                    )
+                    .then(function(answer) {
+                        $scope.status = 'You said the information was "' + answer + '".';
+                    }, function() {
+                        $scope.status = 'You cancelled the dialog.';
+                    });
+                        //$location.path('/new');
+                    }, 1000);
+                }, 700);
+                return;
+            }else{
+
+            }
+        }, function(response){
+            $scope.loading = false;
+            $scope.error_ws = response.data.message;
+            $timeout(function(){
+                $scope.error_ws = null;
+            }, 7000);
+        })
+    };
+
+    $scope.resolveWithEnter = function(ev){
+        if(ev.keyCode == 13)
+            $scope.resolveClientId();
+    }
 
   } // End of Controller
 })();

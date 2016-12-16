@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" >
     <head>
-        <title>PydioSync</title>
+        <title>PydioSync</title> <!-- Application title -->
 
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -11,7 +11,8 @@
         <link rel="stylesheet" href="assets/angular-material.min.css"/>
         <link rel="stylesheet" href="assets/md/material-icons.css"/>
         <link rel="stylesheet" href="assets/Roboto/roboto.css"/>
-        <link rel="stylesheet" href="assets/app.css"/>
+        <!-- <link rel="stylesheet" href="assets/app.css"/> -->
+        <link rel="stylesheet/less" type="text/css" href="assets/app.less" />
         <style type="text/css">
             /**
             * Hide when Angular is not yet loaded and initialized
@@ -90,10 +91,31 @@
               // globals for basic themeing
               var pydiotheme = { 'base': 'blue', 'hue': '600', 'accent': 'orange'}
               var primarycolor;
-
+              // see configs.js
+    </script>
+    <script src="i18n.js"></script>
+    <script type="text/javascript">_ = window.translate</script>
+    <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script src="config.js"></script>
+        <!-- set options before less.js script -->
+    <script>
+      less = {
+        env: "development",
+        async: false,
+        fileAsync: false,
+        poll: 1000,
+        functions: {},
+        dumpLineNumbers: "comments",
+        relativeUrls: false,
+        rootpath: ":/a.com/"
+      };
+    </script>
+    <script src="assets/less.js" type="text/javascript"></script>
+    <script type="text/javascript">
+              // take care of configs.js
               angular
                   .module('starterApp', ['ngMaterial', 'jobs'])
-                  .config(function($mdThemingProvider ){
+                  .config(function($mdThemingProvider){
                           $mdThemingProvider.theme('default')
                               .primaryPalette(pydiotheme.base, {'default': pydiotheme.hue})
                               .accentPalette(pydiotheme.accent);
@@ -104,9 +126,6 @@
                 document.getElementById('full-job-scroller').style.maxHeight = (window.innerHeight - 165) + "px"
               }
     </script>
-    <script src="i18n.js"></script>
-    <script type="text/javascript">_ = window.translate</script>
-    <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
 
     </body>
 </html>

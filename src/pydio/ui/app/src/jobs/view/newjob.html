@@ -4,7 +4,7 @@
             <div class="md-toolbar-tools">
                 <h2>{{_('Create a new Synchronization')}}</h2>
                 <span flex></span>
-                <md-button class="md-icon-button" ng-click="cancel()">
+                <md-button class="md-icon-button" ng-click="cancel()" ng-show="ui_config.login_mode === 'standard'">
                     <md-icon>close</md-icon>
                 </md-button>
             </div>
@@ -16,13 +16,13 @@
 
                     <md-content class="" style="padding: 16px;">
                         <h3>{{_('1. Configure Connection')}}</h3>
-                        <p>{{_('Connect to the server with the same URL as the one you would use to access through a web browser, e.g. http://mydomain.com/pydio.')}}</p>
-
+                        <p ng-show="ui_config.login_mode === 'standard'">{{_('Connect to the server with the same URL as the one you would use to access through a web browser, e.g. http://mydomain.com/pydio.')}}</p>
+                        <p ng-hide="ui_config.login_mode === 'standard'">{{_('Please enter your credentials, if you encounter issues, contact the person that provided you with those credentials.')}}</p>
                         <div class="error-block" ng-show="NJC.error">
                             <b>Error</b>: {{NJC.error}}
                         </div>
                         <div style="margin-top: 30px;">
-                            <md-input-container class="md-icon-float md-block">
+                            <md-input-container class="md-icon-float md-block" ng-show="ui_config.login_mode === 'standard'">
                                 <label>{{_('Remote Server')}}</label>
                                 <md-icon class="login-icons" aria-hidden="true">dns</md-icon>
                                 <input ng-model="NJC.job.server" type="text" md-autofocus="selectedTab === 0"/>
@@ -43,12 +43,12 @@
 
                         </div>
 
-                        <p ng-click="showURLTip = !showURLTip" style="cursor: pointer;">{{_('Tip: how do I find my server URL?')}}</p>
+                        <p ng-click="showURLTip = !showURLTip" style="cursor: pointer;" ng-show="ui_config.login_mode === 'standard'">{{_('Tip: how do I find my server URL?')}}</p>
                         <md-checkbox style="margin-left:16px" ng-model="NJC.job.trust_ssl" ng-init="NJC.job.trust_ssl = false" ng-show="SSL_failed" aria-label="SSL">
                             {{_('Trust SSL certificate.')}}
                         </md-checkbox>
                         <md-content class="bottom-buttons">
-                            <md-button ng-click="cancel()">{{_('CANCEL')}}</md-button>
+                            <md-button ng-click="cancel()" ng-show="ui_config.login_mode === 'standard'">{{_('CANCEL')}}</md-button>
                             <md-button id="connect_button" class="md-primary" ng-click="NJC.loadWorkspaces(); goto('step2')">{{_('CONNECT')}}</md-button>
                         </md-content>
 
@@ -136,7 +136,7 @@
                                 <md-icon class="login-icons" aria-hidden="true">label</md-icon>
                                 <input type="text" ng-model="NJC.job.label" id="newjoblabel">
                             </md-input-container>
-                            <md-input-container class="md-block md-icon-float">
+                            <md-input-container class="md-block md-icon-float" ng-show="ui_config.login_mode === 'standard'">
                                 <label>{{_('Remote Server')}}</label>
                                 <md-icon class="login-icons" aria-hidden="true">dns</md-icon>
                                 <input ng-model="NJC.job.server" disabled>

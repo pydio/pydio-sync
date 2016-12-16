@@ -1,6 +1,7 @@
 <!--{{ showAllJobs }}-->
 <span ng-hide="JC.jobs.length > 0">
-    <ng-include src="'./src/jobs/view/welcome.html'"/>
+    <ng-include src="'/welcome'"></ng-include>
+    <!-- Might want to have this button here?
     <md-content layout="row">
     <span flex></span>
     <md-button class="md-fab md-mini" aria-label="Add Sync Task" ng-init="showNewTask=false;" ng-click="JC.newSyncTask($event);">
@@ -8,9 +9,10 @@
         <md-tooltip md-direction="left">{{_('Create a new sync task')}}</md-tooltip>
     </md-button>
     <span style="width:16px;"></span>
+    -->
 </md-content>
 </span>
-<div id="joblist" style="overflow-y: scroll; max-height:620px;" ng-show="SHOW_INTERFACE && jobs.length > 1">
+<div id="joblist" style="overflow-y: scroll; max-height:620px;" ng-show="SHOW_INTERFACE && jobs.length > 0">
 <md-content>
     <md-subheader class="md-no-sticky">{{_('Active Tasks')}}</md-subheader>
     <md-list class="md-dense jobslist" flex>

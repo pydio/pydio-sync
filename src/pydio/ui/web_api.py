@@ -143,13 +143,13 @@ class PydioApi(Api):
         self.add_resource(EtaSize, '/eta_size')
         self.add_resource(Feedback, '/feedbackinfo')
         self.app.add_url_rule('/i18n.js', 'i18n', self.serve_i18n_file)
-        self.app.add_url_rule('/config.js', 'config', self.server_js_config)
+        self.app.add_url_rule('/app/config.js', 'config', self.server_js_config)
         self.app.add_url_rule('/dynamic.css', 'dynamic_css', self.serve_dynamic_css)
         self.app.add_url_rule('/about.html', 'dynamic_about', self.serve_about_content)
         self.app.add_url_rule('/checksync/<string:job_id>', 'checksync', self.check_sync)
         self.app.add_url_rule('/checksync', 'checksync', self.check_sync)
         self.app.add_url_rule('/streamlifesign', 'streamlifesign', self.stream_life_sign)
-
+        self.app.add_url_rule('/welcome', 'dynamic_welcome', self.serve_welcome)
         self.app.add_url_rule('/about', 'dynamic_about', self.serve_about_content)
         # Add the static deps here, beware they aren't basic protected
         logging.info(str(Path(__file__).parent) + '/app')
@@ -162,7 +162,8 @@ class PydioApi(Api):
         logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets/md'))
         deps = [
                     '/app/assets/angular-material.min.css',
-                    '/app/assets/app.css',
+                    '/app/assets/app.css', # decide css or less???
+                    '/app/assets/app.less',  # decide css or less???
                     '/app/assets/images/ServerURL.png',
                     '/app/assets/md/MaterialIcons-Regular.woff2',
                     '/app/assets/md/MaterialIcons-Regular.woff',
@@ -191,19 +192,17 @@ class PydioApi(Api):
                     '/app/src/jobs/view/settingsbar.html',
                     '/app/src/jobs/view/tree_node.html',
                     '/app/src/jobs/view/conflict.html',
-                    '/app/src/jobs/view/welcome.html',
         ]
+
+        if EndpointResolver:
+            EndpointResolver.Instance().finalize_init(self, JobsLoader.Instance().data_path, str(self.real_static_folder.parent.parent), ConfigManager.Instance())
+
         # a map 'dep_path' -> function to serve it
         self.app.serv_deps = {}
         for d in deps:
             self.app.serv_deps[d] = self.gen_serv_dep(d)
         for d in deps:
             self.app.add_url_rule(d, d, self.app.serv_deps[d])
-
-        if EndpointResolver:
-            self.add_resource(ProxyManager, '/proxy')
-            self.add_resource(ResolverManager, '/resolve/<string:client_id>')
-            self.app.add_url_rule('/res/dynamic.png', 'dynamic_png', self.serve_dynamic_image)
 
     #@authDB.requires_auth #FIXME: RuntimeError: working outside of request context
     def gen_serv_dep(self, path):
@@ -216,6 +215,7 @@ class PydioApi(Api):
             mime = "text/javascript"
         else:
             mime = "text"
+        @authDB.requires_auth
         def func():
             return Response(response=content, status=200, mimetype=mime)
         return func
@@ -279,6 +279,18 @@ class PydioApi(Api):
                         status=200,
                         mimetype="text/html")
 
+    def serve_welcome(self):
+        content = ''
+        if EndpointResolver:
+            content = EndpointResolver.Instance().load_welcome_content()
+        else:
+            about_file = str(self.real_static_folder / 'jobs/view/welcome.html')
+            with open(about_file, 'r') as handle:
+                content = handle.read()
+        return Response(response=content,
+                        status=200,
+                        mimetype="text/html")
+
     @pydio_profile
     def start_server(self):
         try:
@@ -316,8 +328,7 @@ class PydioApi(Api):
                        device_id=ConfigManager.Instance().get_device_id(),
                        skip_ssl_verify=job.trust_ssl,
                        proxies=ConfigManager.Instance().get_defined_proxies(),
-                       timeout=380
-                       )
+                       timeout=380)
         checker = SyncChecker(job_id, jobs, sdk)
         resp = checker.dofullcheck()
         return Response(json.dumps(resp),
@@ -426,12 +437,13 @@ class WorkspacesManager(Resource):
                 message = _("Server not found (404), is it up and has it Pydio installed ?")
             elif r == 401:
                 message = _("Authentication failed: please verify your login and password")
+                r = 400  # trick to avoid prompting for creds again
             elif r == 403:
                 message = _("Access to the server is forbidden")
             elif r == 500 or r == 408:
                 message = _("Server seems to be encountering problems (500)")
             logging.debug("Error while loading workspaces : " + message)
-            return {'error': message}, resp.status_code
+            return {'error': message}, r
         except SSLError as rt:
             logging.error(rt.message)
             return {'error': _("An SSL error happened! Is your server using a self-signed certificate? In that case please check 'Trust SSL certificate'")}, 400
@@ -767,62 +779,6 @@ class CmdManager(Resource):
         else:
             return PydioScheduler.Instance().handle_generic_signal(self, cmd)
         return ('success',)
-
-
-class ResolverManager(Resource):
-
-    @authDB.requires_auth
-    @pydio_profile
-    def get(self, client_id):
-        try:
-            return EndpointResolver.Instance().get_customer_endpoints(client_id)
-        except EndpointException as e:
-            return {'message': e.message, 'code': e.error_id}, 500
-
-
-class ProxyManager(Resource):
-
-    @authDB.requires_auth
-    @pydio_profile
-    def get(self):
-        # read contents from proxy.json
-        res, response = {}, {}
-        try:
-            f = open(os.path.join(ConfigManager.Instance().get_configs_path(), 'proxies.json'))
-            res = json.load(f)
-            f.close()
-        except IOError: # no proxy file exists
-            res = json.loads('{"http": {"username": "", "password": "","hostname": "","port": "","active":"false"},"https": {"username": "", "password": "", "hostname": "","port": "","active":"false"}}')
-        # parse the content and only return some fields
-        for protocol in res.keys():
-            response[protocol] = {}
-            for field in res[protocol]:
-                if field != u"password":
-                    response[protocol][field] = res[protocol][field]
-        return response
-
-    @authDB.requires_auth
-    @pydio_profile
-    def post(self):
-        json_req = request.get_json()
-        logging.info("Writing into proxies.json file")
-        try:
-            for protocol in json_req.keys():
-                if "password" in json_req[protocol]:
-                    if json_req[protocol]['password'] != "":
-                        keyring.set_password(json_req[protocol]["hostname"], json_req[protocol]["username"], json_req[protocol]["password"])
-                        json_req[protocol]["password"] = "__pydio_proxy_pwd__"
-        except keyring.errors.PasswordSetError as e:
-            logging.error("Error while storing password in keychain, should we store it cyphered in the config?")
-        except Exception as e:
-            logging.error("Error while storing password in keychain, error message:" + e.message)
-            logging.exception(e)
-
-        ConfigManager.Instance().proxies_loaded = False
-        # write the content into local proxy.json file
-        ConfigManager.Instance().set_user_proxy(json_req)
-        return self.get()
-
 
 class TaskInfoManager(Resource):
 

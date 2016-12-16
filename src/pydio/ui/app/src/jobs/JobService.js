@@ -5,12 +5,7 @@
          .service('jobService', ['$q', JobService]);
 
   /**
-   * Users DataService
-   * Uses embedded, hard-coded data model; acts asynchronously to simulate
-   * remote data service call(s).
-   *
-   * @returns {{loadAll: Function}}
-   * @constructor
+   * Fake data for basic view things
    */
   function JobService($q){
       var jobs = {
