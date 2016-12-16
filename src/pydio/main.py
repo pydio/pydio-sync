@@ -35,6 +35,7 @@ try:
     from pydio.utils.i18n import PoProcessor
     from pydio.utils.pydio_profiler import LogFile
 except ImportError:
+    # This allows to run manually python main.py
     from utils.functions import get_user_home, guess_filesystemencoding
     import utils.functions
     import monkeypatch
