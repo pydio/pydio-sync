@@ -213,6 +213,9 @@ class PydioApi(Api):
 
     def gen_serv_dep(self, path):
         fp = str(Path(__file__).parent) + path
+        # adapt path for window$
+        if platform.system().lower().startswith("win"):
+            fp.replace('/', '\\')
         with open(fp) as f:
                 content = f.read()
         if path.endswith('.css'):
