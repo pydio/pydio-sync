@@ -151,7 +151,8 @@ class PydioApi(Api):
         self.app.add_url_rule('/streamlifesign', 'streamlifesign', self.stream_life_sign)
         self.app.add_url_rule('/welcome', 'dynamic_welcome', self.serve_welcome)
         self.app.add_url_rule('/about', 'dynamic_about', self.serve_about_content)
-        # Add the static deps here, beware they aren't basic protected
+        # Add the static deps here
+        """
         logging.info(str(Path(__file__).parent) + '/app')
         logging.info(os.listdir(str(Path(__file__).parent) + '/app'))
         logging.info(str(Path(__file__).parent) + '/app/assets')
@@ -160,9 +161,11 @@ class PydioApi(Api):
         logging.info(os.listdir(str(Path(__file__).parent) + '/app/src/jobs'))
         logging.info(str(Path(__file__).parent) + '/app/assets/md')
         logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets/md'))
+        """
         deps = [
                     '/app/assets/angular-material.min.css',
                     '/app/assets/app.less',
+                    '/app/assets/less.js',
                     '/app/assets/images/ServerURL.png',
                     '/app/assets/md/MaterialIcons-Regular.woff2',
                     '/app/assets/md/MaterialIcons-Regular.woff',
@@ -196,7 +199,7 @@ class PydioApi(Api):
         if EndpointResolver:
             if getattr(sys, 'frozen', False):
                 EndpointResolver.Instance().finalize_init(self, JobsLoader.Instance().data_path,
-                                                          str(self.real_static_folder.parent.parent+"/pydio"),
+                                                          str(self.real_static_folder.parent.parent)+"/pydio",
                                                           ConfigManager.Instance())
             else:
                 EndpointResolver.Instance().finalize_init(self, JobsLoader.Instance().data_path, str(self.real_static_folder.parent.parent), ConfigManager.Instance())
@@ -208,7 +211,6 @@ class PydioApi(Api):
         for d in deps:
             self.app.add_url_rule(d, d, self.app.serv_deps[d])
 
-    #@authDB.requires_auth #FIXME: RuntimeError: working outside of request context
     def gen_serv_dep(self, path):
         fp = str(Path(__file__).parent) + path
         with open(fp) as f:
