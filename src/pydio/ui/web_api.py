@@ -215,9 +215,13 @@ class PydioApi(Api):
         fp = str(Path(__file__).parent) + path
         # adapt path for window$
         if platform.system().lower().startswith("win"):
-            fp.replace('/', '\\')
-        with open(fp) as f:
-                content = f.read()
+            fp = fp.replace('/', '\\')
+        try:
+            with open(fp) as f:
+                    content = f.read()
+        except IOError as e:
+            logging.exception(e)
+            logging.info(os.listdir(os.path.dirname(fp)))
         if path.endswith('.css'):
                 mime = "text/css"
         elif path.endswith('.js'):
