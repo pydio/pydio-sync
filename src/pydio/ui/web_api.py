@@ -162,8 +162,7 @@ class PydioApi(Api):
         logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets/md'))
         deps = [
                     '/app/assets/angular-material.min.css',
-                    '/app/assets/app.css', # decide css or less???
-                    '/app/assets/app.less',  # decide css or less???
+                    '/app/assets/app.less',
                     '/app/assets/images/ServerURL.png',
                     '/app/assets/md/MaterialIcons-Regular.woff2',
                     '/app/assets/md/MaterialIcons-Regular.woff',
@@ -195,7 +194,12 @@ class PydioApi(Api):
         ]
 
         if EndpointResolver:
-            EndpointResolver.Instance().finalize_init(self, JobsLoader.Instance().data_path, str(self.real_static_folder.parent.parent), ConfigManager.Instance())
+            if getattr(sys, 'frozen', False):
+                EndpointResolver.Instance().finalize_init(self, JobsLoader.Instance().data_path,
+                                                          str(self.real_static_folder.parent.parent+"/pydio"),
+                                                          ConfigManager.Instance())
+            else:
+                EndpointResolver.Instance().finalize_init(self, JobsLoader.Instance().data_path, str(self.real_static_folder.parent.parent), ConfigManager.Instance())
 
         # a map 'dep_path' -> function to serve it
         self.app.serv_deps = {}
