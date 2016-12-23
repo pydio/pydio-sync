@@ -217,7 +217,7 @@ class PydioApi(Api):
         if platform.system().lower().startswith("win"):
             fp = fp.replace('/', '\\')
         try:
-            with open(fp) as f:
+            with open(fp, 'rb') as f:
                     content = f.read()
         except IOError as e:
             logging.exception(e)
