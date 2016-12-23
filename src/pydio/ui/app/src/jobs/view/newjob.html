@@ -13,11 +13,11 @@
         <md-dialog-content style="max-width:800px;max-height:810px;" class="new-job-form">
             <md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
                 <md-tab class="login-icons" label="{{_('1. Configure Connection')}}" name="step1">
-
                     <md-content class="" style="padding: 16px;">
                         <h3>{{_('1. Configure Connection')}}</h3>
+                        {{ui_config}} test
                         <p ng-show="ui_config.login_mode === 'standard'">{{_('Connect to the server with the same URL as the one you would use to access through a web browser, e.g. http://mydomain.com/pydio.')}}</p>
-                        <p ng-hide="ui_config.login_mode === 'standard'">{{_('Please enter your credentials, if you encounter issues, contact the person that provided you with those credentials.')}}</p>
+                        <p ng-hide="ui_config.login_mode === 'alias'">{{_('Please enter your credentials, if you encounter issues, contact the person that provided you with those credentials.')}}</p>
                         <div class="error-block" ng-show="NJC.error">
                             <b>Error</b>: {{NJC.error}}
                         </div>
