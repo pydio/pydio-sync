@@ -555,6 +555,7 @@
                 try{
                     document.getElementById('dynasheet').href += '?';
                 }catch(e){}
+                console.log("Everything seems fine so far.")
                 $scope.loading = false;
                 $timeout(function(){
                     document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
