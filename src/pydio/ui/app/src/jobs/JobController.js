@@ -147,8 +147,6 @@
         return string;
     }
 
-    primarycolor = $mdColors.getThemeColor(pydiotheme.base + '-' + pydiotheme.hue);
-
     $scope._ = window.translate;
     var self = this;
 
@@ -180,6 +178,10 @@
     }
     self.fake_data = {"tasks":{"current":[{"node":{"bytesize":100000000,"mtime":1467037750,"md5":"5bf234610827e29cb0436122415d4821","node_path":"/JENE/omg/jaja/lefile100MB"},"target":"/JENE/omg/jaja/lefile100MB","total_size":100001132,"bytesize":100000000,"bytes_sent":40,"content":1,"source":"NULL","total_bytes_sent":48367468,"location":"local","progress":3,"row_id":166,"type":"create","md5":"5bf234610827e29cb0436122415d4821"}],"total":5},"global":{"total_time":5.003995,"last_transfer_rate":24365888.264299262,"status_indexing":0,"queue_bytesize":-3280,"queue_start_time":2.774535,"eta":-0.000021983704444345575,"queue_length":5,"queue_done":5.0000219662499905}}
 
+    setTimeout(function(){
+        // After view loaded ?
+        setMaxJobsHeight()
+    }, 0);
     var t0;
     (function tickJobs() {
         var tmpJobs = Jobs.query(function(){
@@ -200,10 +202,16 @@
                                         SelectedJobService.job.progress = 100 * parseFloat(SelectedJobService.job.state.global.queue_done) / parseFloat(SelectedJobService.job.state.global.queue_length)
                                 } else {
                                     // merges everything -> bug when editing
-                                    for (var field in self.jobs[i]){
-                                        if (['$get', '$save', '$query', '$remove', '$delete', 'toJSON'].indexOf(field) === -1)
-                                            $scope.jobs[i][field] = self.jobs[i][field]
+                                    try {
+                                        for (var field in self.jobs[i]){
+                                            if (['$get', '$save', '$query', '$remove', '$delete', 'toJSON'].indexOf(field) === -1)
+                                                $scope.jobs[i][field] = self.jobs[i][field]
+                                        }
+                                    } catch (e) {
+                                        $location.path('app/index.html')
+                                        console.log(e)
                                     }
+
                                 }
                             }
                         } else {
@@ -526,6 +534,9 @@
         );
     };
 
+    less.modifyVars({
+        '@primary_color': pydiotheme.base,
+    });
     $scope.resolveClientId = function(){
         $scope.loading = true;
         $scope.error_ws = null;
@@ -541,20 +552,18 @@
             if (response['endpoints'] && response.endpoints.length){
                 //console.log(response)
                 pydiotheme.base = response["vanity"]["splash_bg_color"]
-                pydiotheme.base = response["vanity"]["main_tint"]
+                pydiotheme.accent = response["vanity"]["main_tint"]
                 // DRAFT for theme
                 //response["vanity"]["application_name"]
                 //response["vanity"]["splash_image"]
                 //response["support"]["info_panel"]
-                /*$mdThemingProvider.theme('default')
-                              .primaryPalette(pydiotheme.base, {'default': pydiotheme.hue})
-                              .accentPalette(pydiotheme.accent);*/
-                //reload the theme
-                //$mdThemingProvider.theme('default').reload('default');
+                //logTheme()
                 NewJobService.server = response.endpoints[0].url;
-                try{
-                    document.getElementById('dynasheet').href += '?';
-                }catch(e){}
+                // update less
+                less.modifyVars({
+                  '@primary_color': pydiotheme.base,
+                });
+                document.getElementById('app_icon').src += '?'
                 $scope.loading = false;
                 $timeout(function(){
                     document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
@@ -568,11 +577,6 @@
                         }
 
                     )
-                    .then(function(answer) {
-                        $scope.status = 'You said the information was "' + answer + '".';
-                    }, function() {
-                        $scope.status = 'You cancelled the dialog.';
-                    });
                         //$location.path('/new');
                     }, 1000);
                 }, 700);
