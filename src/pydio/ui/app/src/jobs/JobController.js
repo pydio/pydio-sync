@@ -180,7 +180,7 @@
 
     setTimeout(function(){
         // After view loaded ?
-        setMaxJobsHeight()
+        try { setMaxJobsHeight() } catch (e) { console.log('Failed to set correct height') }
     }, 0);
     var t0;
     (function tickJobs() {
