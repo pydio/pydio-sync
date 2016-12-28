@@ -38,11 +38,11 @@
                 }}
             });
         }])
-    .controller('NewJobController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', 'Ws', 'Folders', 'Jobs', 'SelectedJobService', 'NewJobService', 'EtaSize', '$filter', NewJobController]);
+    .controller('NewJobController', ['jobService', '$mdDialog', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', 'Ws', 'Folders', 'Jobs', 'SelectedJobService', 'NewJobService', 'EndpointsUrl', 'EtaSize', '$filter', NewJobController]);
     /**
      * Controller for new jobs
      */
-    function NewJobController( jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $mdToast, Ws, Folders, Jobs, SelectedJobService, NewJobService, EtaSize, $filter ){
+    function NewJobController( jobService, $mdDialog, $mdSidenav, mdBottomSheet, $timeout, $log, $scope, $mdToast, Ws, Folders, Jobs, SelectedJobService, NewJobService, EndpointsUrl, EtaSize, $filter ){
         // JS methods need to be exposed...
         var self = this;
 
@@ -84,7 +84,29 @@
                     self.job.server = jobs[task].server // initialize job with first job
                     break
                 }
-            })
+                if (typeof(self.job.server) === "undefined"){
+                    // fetch from endpoint
+                    EndpointsUrl.get({
+                    }, function(response){
+                        self.ws = {}
+                        $scope.Content = response;
+                        if (response['endpoints'] && response.endpoints.length){
+                            //console.log(response)
+                            pydiotheme.base = response["vanity"]["splash_bg_color"]
+                            pydiotheme.accent = response["vanity"]["main_tint"]
+                            // DRAFT for theme
+                            //response["vanity"]["application_name"]
+                            //response["vanity"]["splash_image"]
+                            //response["support"]["info_panel"]
+                            //logTheme()
+                            NewJobService.server = response.endpoints[0].url;
+                            // update less
+                            $scope.loading = false;
+                        }
+                    })
+                }
+              }
+            )
         }
 
         self.job.directory = "/Users/thomas/Pydio/tests/oneMoreTest";

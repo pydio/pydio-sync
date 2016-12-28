@@ -72,7 +72,7 @@ md-list-item > button {
 }
 
 md-button.menuBtn > md-icon {
-  fill:white;
+  fill:@inverted-font-color;
   width:24px;
   height:24px;
 }
@@ -124,7 +124,7 @@ span.name {
 /* START REWORKING 'SETTINGS' PANEL */
 
 @primary_color: #0288D1;
-@light-white: rgba(255, 255, 255, 0.87);
+@inverted-font-color: white;
 
 .text-label-ellipsis{
     text-overflow: ellipsis;
@@ -157,7 +157,7 @@ div.change-history-line{
     }
 
     .change-history-icon {
-        color: white;
+        color: @inverted-font-color;
         background-color: rgba(0, 0, 0, 0.43);
         border-radius: 50%;
         height: 30px;
@@ -232,12 +232,12 @@ div.change-history-line{
 #full-job-toolbar {
 
     button.alljob-control{
-        background-color: white;
+        background-color: @inverted-font-color;
         min-width:56px;
     }
     div.full-job-title{
         flex:1;
-        color: white;
+        color: @inverted-font-color;
         width: ~"calc(100% - 70px)";
         padding-top: 6px;
         span:focus {
@@ -259,7 +259,7 @@ div.change-history-line{
     div.full-job-toolbar-controls{
 
         position: absolute;
-        color: @light-white;
+        color: @inverted-font-color;
         top: -41px;
         right: 16px;
         z-index: 1000;
@@ -268,19 +268,19 @@ div.change-history-line{
             cursor:pointer;
             transition: color 550ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;
             &:hover{
-                color: white;
+                color: @inverted-font-color;
             }
             .icon-stop, .icon-sync, .icon-delete {
                 font-size: 20px;
                 border-radius: 50%;
                 padding: 6px;
-                color: white;
+                color: @inverted-font-color;
             }
         }
     }
     md-nav-bar{
         .md-button._md-nav-button.md-unselected{
-            color: @light-white;
+            color: @inverted-font-color;
         }
         md-nav-ink-bar{
             bottom: -1px;
@@ -458,7 +458,7 @@ h1, md-icon:focus{ /* Fix for the weird blue highlight, place me in a smaller sc
     }
     .error-block{
         background-color:red;
-        color: white;
+        color: @inverted-font-color;
         padding: 10px;
         border-radius: 3px;
     }
@@ -610,7 +610,7 @@ body.miniview > div.ng-scope > div.well.ng-scope {
 
 .shareHeader{
     background-color: @primary_color;
-    color: white;
+    color: @inverted-font-color;
     left: 0;
     right: 0;
     margin-top: 0;

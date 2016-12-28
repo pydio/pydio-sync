@@ -166,6 +166,7 @@ class PydioApi(Api):
                     '/app/assets/angular-material.min.css',
                     '/app/assets/app.less',
                     '/app/assets/less.js',
+                    '/app/assets/w3color.js',
                     '/app/assets/images/ServerURL.png',
                     '/app/assets/md/MaterialIcons-Regular.woff2',
                     '/app/assets/md/MaterialIcons-Regular.woff',

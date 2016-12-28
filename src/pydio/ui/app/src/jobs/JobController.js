@@ -26,6 +26,10 @@
                     query: {method:'GET', params:{job_id:'',with_id:true}}
                 });
         }])
+        .factory('EndpointsUrl', ['$resource',
+        function($resource){
+            return $resource('/url', {}, {query: {method:'GET', params:{}}})
+        }])
         .filter('moment', function(){
             return function(time_string){
                 if(window.PydioEnvLanguages && window.PydioEnvLanguages.length){
@@ -114,7 +118,7 @@
             }
             ])
        .controller('JobController', [
-          '$routeParams', 'jobService', '$location', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', '$mdColors', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', 'NewJobService', 'ShowGeneralSettings', 'Ws', 'Endpoints', JobController
+          '$routeParams', 'jobService', '$location', '$mdSidenav', '$mdBottomSheet', '$timeout', '$log', '$scope', '$mdToast', '$mdDialog', '$mdColors', 'Jobs', 'Commands', 'JobsWithId', 'SelectedJobService', 'NewJobService', 'ShowGeneralSettings', 'Ws', 'Endpoints', 'EndpointsUrl', JobController
        ])
 
   /**
@@ -124,7 +128,7 @@
    * @param avatarsService
    * @constructor
    */
-  function JobController( $routeParams, jobService, $location, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, $mdColors, Jobs, Commands, JobsWithId, SelectedJobService, NewJobService, ShowGeneralSettings, Ws, Endpoints ) {
+  function JobController( $routeParams, jobService, $location, $mdSidenav, $mdBottomSheet, $timeout, $log, $scope, $mdToast, $mdDialog, $mdColors, Jobs, Commands, JobsWithId, SelectedJobService, NewJobService, ShowGeneralSettings, Ws, Endpoints, EndpointsUrl ) {
     window.translate = function(string){
         var lang;
         if(window.PydioLangs){
@@ -534,9 +538,7 @@
         );
     };
 
-    less.modifyVars({
-        '@primary_color': pydiotheme.base,
-    });
+    updateTheme()
     $scope.resolveClientId = function(){
         $scope.loading = true;
         $scope.error_ws = null;
@@ -560,12 +562,14 @@
                 //logTheme()
                 NewJobService.server = response.endpoints[0].url;
                 // update less
-                less.modifyVars({
-                  '@primary_color': pydiotheme.base,
-                });
+                updateTheme()
                 document.getElementById('app_icon').src += '?'
+                console.log(response.endpoints[0].url)
+                location.pathname = "/app/index.html#"
+                // --- DELETE
                 $scope.loading = false;
                 $timeout(function(){
+                    // todo show this on start up when response.xml is present
                     document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
                     $timeout(function(){
                         $mdDialog.show({
@@ -575,12 +579,12 @@
                             parent: angular.element(document.body),
                             clickOutsideToClose:false
                         }
-
                     )
                         //$location.path('/new');
                     }, 1000);
                 }, 700);
                 return;
+                // DELETE ---
             }else{
 
             }
@@ -598,5 +602,23 @@
             $scope.resolveClientId();
     }
 
+    // TODO: only do this when needed i.e. right after response.xml was written
+    EndpointsUrl.get({}, function(response){
+        $timeout(function(){
+            // on success
+            document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
+            $timeout(function(){
+                $mdDialog.show({
+                    controller: 'NewJobController',
+                    controllerAs: 'NJC',
+                    templateUrl: './src/jobs/view/newjob.html',
+                    parent: angular.element(document.body),
+                    clickOutsideToClose:false
+                }
+            )
+                //$location.path('/new');
+            }, 1000);
+        }, 700);
+    })
   } // End of Controller
 })();
