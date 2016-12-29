@@ -565,7 +565,7 @@
                 updateTheme()
                 document.getElementById('app_icon').src += '?'
                 console.log(response.endpoints[0].url)
-                location.pathname = "/app/index.html#"
+                location.pathname = "/app/index.html"
                 // --- DELETE
                 $scope.loading = false;
                 $timeout(function(){
@@ -605,7 +605,8 @@
     // TODO: only do this when needed i.e. right after response.xml was written
     EndpointsUrl.get({}, function(response){
         $timeout(function(){
-            // on success
+        console.log(response['endpoints'])
+        if(response['endpoints']){
             document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
             $timeout(function(){
                 $mdDialog.show({
@@ -618,6 +619,7 @@
             )
                 //$location.path('/new');
             }, 1000);
+        }
         }, 700);
     })
   } // End of Controller

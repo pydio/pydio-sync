@@ -70,9 +70,9 @@
         self.job.timeout         = '20';
         self.job.__type__        = 'JobConfig';
         $scope.ui_config = window.ui_config;
-        self.job.user = "pydio";
-        self.job.password = "pydiopassword";
-        self.job.server = "https://localhost:7443/";
+        self.job.user = "";
+        self.job.password = "";
+        self.job.server = "";
         if(typeof(NewJobService.server) !== "undefined"){
             self.job.server = NewJobService.server;
         } else {
