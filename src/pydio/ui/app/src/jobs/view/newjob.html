@@ -10,6 +10,7 @@
             </div>
             <md-progress-linear md-mode="indeterminate" ng-show="loading" style="height:2px;"></md-progress-linear>
         </md-toolbar>
+        <div>{{ui_config.login_mode}} || {{loading}}</div>
         <md-dialog-content style="max-width:800px;max-height:810px;" class="new-job-form">
             <md-tabs md-dynamic-height md-border-bottom md-selected="selectedTab">
                 <md-tab class="login-icons" label="{{_('1. Configure Connection')}}" name="step1">
