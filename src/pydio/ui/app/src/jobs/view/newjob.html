@@ -48,7 +48,7 @@
                         </md-checkbox>
                         <md-content class="bottom-buttons">
                             <md-button ng-click="cancel()" ng-show="ui_config.login_mode === 'standard'">{{_('CANCEL')}}</md-button>
-                            <md-button id="connect_button" class="md-primary" ng-click="NJC.loadWorkspaces(); goto('step2')">{{_('CONNECT')}}</md-button>
+                            <md-button id="connect_button" class="md-primary" ng-click="NJC.loadWorkspaces(); goto('step2')" ng-disabled="!NJC.job.password || !NJC.job.user">{{_('CONNECT')}}</md-button>
                         </md-content>
 
                     </md-content>

@@ -100,6 +100,7 @@
                             //response["support"]["info_panel"]
                             //logTheme()
                             NewJobService.server = response.endpoints[0].url;
+                            self.job.server = NewJobService.server;
                             // update less
                             $scope.loading = false;
                         }

@@ -607,7 +607,7 @@
         $timeout(function(){
         console.log(response['endpoints'])
         if(response['endpoints']){
-            document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
+            //document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
             $timeout(function(){
                 $mdDialog.show({
                     controller: 'NewJobController',
