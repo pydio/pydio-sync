@@ -570,7 +570,7 @@
                 $scope.loading = false;
                 $timeout(function(){
                     // todo show this on start up when response.xml is present
-                    document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
+                    //document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
                     $timeout(function(){
                         $mdDialog.show({
                             controller: 'NewJobController',
