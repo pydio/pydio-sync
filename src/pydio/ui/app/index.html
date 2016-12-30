@@ -131,22 +131,22 @@
                         if ( colors.indexOf(pydiotheme.base) > -1 ){
                             // Base in colors
                             // accent not in color, register accent
-                            registerPalette($mdThemingProvider, 'accentPalette', pydiotheme.accent)
+                            registerPalette($mdThemingProvider, 'accentPalette', pydiotheme.accent, pydiotheme.background)
                             $mdThemingProvider.theme('default').primaryPalette(pydiotheme.base).accentPalette('accentPalette');
                         } else if ( colors.indexOf(pydiotheme.accent) > -1 ){
                             // Accent in colors
                             // base not in color, register base
-                            registerPalette($mdThemingProvider, 'basePalette', pydiotheme.base)
+                            registerPalette($mdThemingProvider, 'basePalette', pydiotheme.base, pydiotheme.background)
                             $mdThemingProvider.theme('default').primaryPalette('basePalette').accentPalette(pydiotheme.accent);
                         } else {
                             // else register both
                             try {
-                                registerPalette($mdThemingProvider, 'accentPalette', pydiotheme.accent)
-                                registerPalette($mdThemingProvider, 'basePalette', pydiotheme.base)
+                                registerPalette($mdThemingProvider, 'accentPalette', pydiotheme.accent, pydiotheme.background)
+                                registerPalette($mdThemingProvider, 'basePalette', pydiotheme.base, pydiotheme.background)
                                 $mdThemingProvider.theme('default').primaryPalette('basePalette').accentPalette('accentPalette');
                             } catch (e) {
                                 console.log(e)
-                                $mdThemingProvider.theme('default').primaryPalette('blue').accentPalette('orange');
+                                $mdThemingProvider.theme('default').primaryPalette('blue').accentPalette('orange').contrastDefaultColor(blackOrWhite(pydiotheme.background)==='white'?'light':'dark');
                             }
                         }
                     }
@@ -164,7 +164,7 @@
             document.getElementById('full-job-scroller').style.maxHeight = (window.innerHeight - 165) + "px"
           }
 
-          function registerPalette(provider, name, color){
+          function registerPalette(provider, name, color, background){
             provider.definePalette(name, {
                 '50': color,
                 '100': color,
@@ -180,7 +180,7 @@
                 'A200': color,
                 'A400': color,
                 'A700': color,
-                'contrastDefaultColor': blackOrWhite(color)==='white'?'light':'dark',    // default text is light
+                'contrastDefaultColor': blackOrWhite(background)==='white'?'light':'dark',    // default text is light
                 'contrastDarkColors': ['50', '100', '200', '300', '400', 'A100'], // will have dark
                 'contrastLightColors': undefined    // alternative 'dark'
             });
@@ -210,7 +210,7 @@
           function updateTheme(){
             less.modifyVars({
               '@primary_color': pydiotheme.background,
-              '@inverted-font-color': blackOrWhite(pydiotheme.base),
+              '@inverted-font-color': blackOrWhite(pydiotheme.background),
             });
           }
 

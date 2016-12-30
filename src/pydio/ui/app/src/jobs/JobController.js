@@ -564,8 +564,7 @@
                 // update less
                 updateTheme()
                 document.getElementById('app_icon').src += '?'
-                console.log(response.endpoints[0].url)
-                location.pathname = "/app/index.html"
+                window.location.reload();
                 // --- DELETE
                 $scope.loading = false;
                 $timeout(function(){
@@ -605,20 +604,21 @@
     // TODO: only do this when needed i.e. right after response.xml was written
     EndpointsUrl.get({}, function(response){
         $timeout(function(){
-        console.log(response['endpoints'])
-        if(response['endpoints']){
-            //document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
-            $timeout(function(){
-                $mdDialog.show({
-                    controller: 'NewJobController',
-                    controllerAs: 'NJC',
-                    templateUrl: './src/jobs/view/newjob.html',
-                    parent: angular.element(document.body),
-                    clickOutsideToClose:false
-                }
-            )
-                //$location.path('/new');
-            }, 1000);
+        if ($scope.jobs.length == 0){
+            if(response['endpoints']){
+                //document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
+                $timeout(function(){
+                    $mdDialog.show({
+                        controller: 'NewJobController',
+                        controllerAs: 'NJC',
+                        templateUrl: './src/jobs/view/newjob.html',
+                        parent: angular.element(document.body),
+                        clickOutsideToClose:false
+                    }
+                )
+                    //$location.path('/new');
+                }, 1000);
+            }
         }
         }, 700);
     })
