@@ -145,6 +145,7 @@
             $scope.showNewTask = !$scope.showNewTask; // doesn't work, wrong scope
         }
 
+        $scope.selectedTab = 0;
         self.loadWorkspaces = function(){
             $scope.loading = true;
             if(self.job.id == 'new' && !self.job.password) {
