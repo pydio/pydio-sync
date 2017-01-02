@@ -564,7 +564,7 @@
                 // update less
                 updateTheme()
                 document.getElementById('app_icon').src += '?'
-                window.location.reload();
+                location.reload();
                 // --- DELETE
                 $scope.loading = false;
                 $timeout(function(){
