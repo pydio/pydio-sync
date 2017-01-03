@@ -110,7 +110,7 @@
             )
         }
 
-        self.job.directory = "/Users/thomas/Pydio/tests/oneMoreTest";
+        self.job.directory = "";
         self.job.remote_folder = "/";
         self.job.total_size = 0;
         self.job.eta = 0;

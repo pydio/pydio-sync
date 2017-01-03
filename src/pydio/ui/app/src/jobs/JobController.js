@@ -580,8 +580,8 @@
                         }
                     )
                         //$location.path('/new');
-                    }, 1000);
-                }, 700);
+                    }, 400);
+                }, 400);
                 return;
                 // DELETE ---
             }else{
