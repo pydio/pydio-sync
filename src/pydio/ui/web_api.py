@@ -109,8 +109,8 @@ class PydioApi(Api):
         authDB.add_user(user, password)
         self.running = False
         if getattr(sys, 'frozen', False):
-            logging.info('FROZEN ' + str(Path(sys._MEIPASS) / 'ui' / 'app'))
-            self.real_static_folder = Path(sys._MEIPASS) / 'ui' / 'app'
+            self.real_static_folder = Path(sys._MEIPASS) / 'pydio' / 'ui' / 'app'
+            logging.info('FROZEN ' + str(self.real_static_folder))
             logging.info(self.real_static_folder)
             static_folder = str(self.real_static_folder)
         else:
@@ -298,7 +298,7 @@ class PydioApi(Api):
         if EndpointResolver:
             content = EndpointResolver.Instance().load_welcome_content()
         else:
-            about_file = str(self.real_static_folder / 'pydio/ui/app/src/jobs/view/welcome.html')
+            about_file = str(self.real_static_folder / 'src/jobs/view/welcome.html')
             with open(about_file, 'r') as handle:
                 content = handle.read()
         return Response(response=content,
