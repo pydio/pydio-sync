@@ -198,12 +198,7 @@ class PydioApi(Api):
         ]
 
         if EndpointResolver:
-            if getattr(sys, 'frozen', False):
-                EndpointResolver.Instance().finalize_init(self, JobsLoader.Instance().data_path,
-                                                          str(self.real_static_folder.parent.parent)+"/pydio",
-                                                          ConfigManager.Instance())
-            else:
-                EndpointResolver.Instance().finalize_init(self, JobsLoader.Instance().data_path, str(self.real_static_folder.parent.parent), ConfigManager.Instance())
+            EndpointResolver.Instance().finalize_init(self, JobsLoader.Instance().data_path, str(self.real_static_folder.parent.parent), ConfigManager.Instance())
 
         # a map 'dep_path' -> function to serve it
         self.app.serv_deps = {}
