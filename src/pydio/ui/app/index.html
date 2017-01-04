@@ -28,7 +28,7 @@
             <md-toolbar layout="row">
                 <a ng-hide="showAllJobs && !ShowGeneralSettings.show" href="/app/index.html" ng-click="ShowGeneralSettings.show = false; showAllJobs = true;"><md-icon style="width:50px; padding-left:16px; padding-top:18px; cursor:pointer">arrow_back</md-icon></a>
                 <h1 ng-show="showAllJobs && !ShowGeneralSettings.show" ng-click="ShowGeneralSettings.show = false; showAllJobs = true;" style="cursor:pointer;">
-                    <img id="app_icon" style="max-height:40px; padding-left:16px" src="/res/dynamic.png" onerror="this.style.visibility = 'hidden'; document.getElementById('app_title').style.visibility = 'normal'">
+                    <img id="app_icon" style="max-height:40px; padding-left:16px" src="/res/dynamic.png" onerror="this.style.visibility = 'hidden'; document.getElementById('app_title').style.visibility = 'visible'">
                     <span id="app_title" style="visibility:hidden">{{application_title}}</span>
                 </h1>
                 <h1 ng-show="ShowGeneralSettings.show">{{_('General configurations page')}}</h1>
