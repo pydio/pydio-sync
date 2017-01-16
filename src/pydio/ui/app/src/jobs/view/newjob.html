@@ -47,7 +47,7 @@
                             {{_('Trust SSL certificate.')}}
                         </md-checkbox>
                         <md-content class="bottom-buttons">
-                            <md-button ng-click="cancel()" ng-show="ui_config.login_mode === 'standard'">{{_('CANCEL')}}</md-button>
+                            <md-button ng-click="cancel()">{{_('CANCEL')}}</md-button>
                             <md-button id="connect_button" class="md-primary" ng-click="NJC.loadWorkspaces(); goto('step2')" ng-disabled="!NJC.job.password || !NJC.job.user">{{_('CONNECT')}}</md-button>
                         </md-content>
 
@@ -81,7 +81,7 @@
                                     <i class="material-icons login-icons" style="padding-top:27px;" aria-hidden="true">work</i>&nbsp;
                                     <md-select ng-model="NJC.job.workspace" style="min-width:310px;" ng-click="NJC.job.workspace = ''">
                                         <md-optgroup label="Workspaces">
-                                            <md-option ng-value="item" ng-repeat="item in NJC.job.repositories">{{item.label}}</md-option>
+                                            <md-option ng-value="item" ng-repeat="item in NJC.job.repositories | filter:({'@meta_syncable_REPO_SYNCABLE':'true'})">{{item.label}} <span style="padding:3px; margin: 2px 2px 2px 10px; vertical-align:-8px; border-radius:5px;font-size:9pt; background-color:orange" ng-show="item['@acl'] == 'r'">{{ _('This workspace is read only!') }}</span></md-option>
                                         </md-optgroup>
                                     </md-select>
                                 </md-content>

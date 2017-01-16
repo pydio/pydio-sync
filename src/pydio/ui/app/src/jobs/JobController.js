@@ -168,7 +168,7 @@
     self.jobs = $scope.jobs;
 
     self.menuOpened = false;
-    $scope.application_title = window.translate("PydioSync"); // TODO: FETCH ME BABY
+    $scope.application_title = window.translate("PydioSync");
     $scope.$on('$mdMenuClose', function(){ self.menuOpened = false});
 
     $scope.SHOW_INTERFACE = ($location.url().indexOf('share') == -1) // HACKY... hide interface when showing the /share page
@@ -185,7 +185,7 @@
     setTimeout(function(){
         // After view loaded ?
         try { setMaxJobsHeight() } catch (e) { console.log('Failed to set correct height') }
-    }, 0);
+    }, 100);
     var t0;
     (function tickJobs() {
         var tmpJobs = Jobs.query(function(){
@@ -358,8 +358,10 @@
             password:SelectedJobService.job.password,
             trust_ssl:SelectedJobService.job.trust_ssl?'true':'false'
         }, function(response){
+            //console.log(response)
             if(response.application_title){
                 SelectedJobService.job.application_title = response.application_title;
+                $scope.application_title = response.application_title;
             }
             if(response.user_display_name){
                 SelectedJobService.job.user_display_name = response.user_display_name;
@@ -552,11 +554,10 @@
             self.ws = {}
             $scope.Content = response;
             if (response['endpoints'] && response.endpoints.length){
-                //console.log(response)
                 pydiotheme.base = response["vanity"]["splash_bg_color"]
                 pydiotheme.accent = response["vanity"]["main_tint"]
                 // DRAFT for theme
-                //response["vanity"]["application_name"]
+                $scope.application_title = response["vanity"]["application_name"]
                 //response["vanity"]["splash_image"]
                 //response["support"]["info_panel"]
                 //logTheme()
@@ -564,7 +565,8 @@
                 // update less
                 updateTheme()
                 document.getElementById('app_icon').src += '?'
-                location.reload();
+                //location.reload();
+                self.PydioQtFileDialog.qtReload()
                 // --- DELETE
                 $scope.loading = false;
                 $timeout(function(){
@@ -606,7 +608,7 @@
         $timeout(function(){
         if ($scope.jobs.length == 0){
             if(response['endpoints']){
-                //document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
+                //document.getElementById('welcomeDiv').style['marginTop'] = '-200%'; // PROD uncomment me
                 $timeout(function(){
                     $mdDialog.show({
                         controller: 'NewJobController',
@@ -622,5 +624,13 @@
         }
         }, 700);
     })
+
+    self.showDisabled = function (){
+        if(self.jobs)
+            for(var i in self.jobs)
+                if (self.jobs[i] && !self.jobs[i]['active'])
+                    return true;
+        return false;
+    }
   } // End of Controller
 })();

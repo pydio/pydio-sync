@@ -72,7 +72,7 @@
         $scope.ui_config = window.ui_config;
         self.job.user = "";
         self.job.password = "";
-        self.job.server = "";
+        self.job.server = "https://";
         if(typeof(NewJobService.server) !== "undefined"){
             self.job.server = NewJobService.server;
         } else {
@@ -80,8 +80,9 @@
             var jobs = Jobs.query({}, function(){
                 console.log(jobs)
                 for (var task in jobs){
-                    console.log("FROM OLD job" + jobs[task].server )
-                    self.job.server = jobs[task].server // initialize job with first job
+                    //console.log("FROM OLD job" + jobs[task].server )
+                    if(jobs[task].server)
+                        self.job.server = jobs[task].server // initialize job with first job
                     break
                 }
                 if (typeof(self.job.server) === "undefined"){
@@ -90,14 +91,16 @@
                     }, function(response){
                         self.ws = {}
                         $scope.Content = response;
+
                         if (response['endpoints'] && response.endpoints.length){
                             //console.log(response)
                             pydiotheme.base = response["vanity"]["splash_bg_color"]
                             pydiotheme.accent = response["vanity"]["main_tint"]
-                            // DRAFT for theme
-                            //response["vanity"]["application_name"]
-                            //response["vanity"]["splash_image"]
-                            //response["support"]["info_panel"]
+                            pydiotheme.application_name = response["vanity"]["application_name"]
+                            // angular {{}} didn't seem to work, probably suffered scope issues, deprecated
+                            var item = document.getElementById('application_name');
+                            if(item)
+                                item.innerHTML = pydiotheme.application_name;
                             //logTheme()
                             NewJobService.server = response.endpoints[0].url;
                             self.job.server = NewJobService.server;

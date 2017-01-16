@@ -26,15 +26,15 @@
     <body ng-app="starterApp" layout="column" ng-controller="JobController as JC" ng-cloak onresize="setMaxJobsHeight()" md-theme="{{default}}" md-theme-watch="true">
     <div ng-show="SHOW_INTERFACE">
             <md-toolbar layout="row">
+                <img ng-show="showAllJobs && !ShowGeneralSettings.show" id="app_icon" style="max-height:40px; margin: 10px 0 0 10px" src="/res/dynamic.png" onerror="this.style.visibility = 'hidden'; document.getElementById('app_title').style.visibility = 'visible'">
                 <a ng-hide="showAllJobs && !ShowGeneralSettings.show" href="/app/index.html" ng-click="ShowGeneralSettings.show = false; showAllJobs = true;"><md-icon style="width:50px; padding-left:16px; padding-top:18px; cursor:pointer">arrow_back</md-icon></a>
                 <h1 ng-show="showAllJobs && !ShowGeneralSettings.show" ng-click="ShowGeneralSettings.show = false; showAllJobs = true;" style="cursor:pointer;">
-                    <img id="app_icon" style="max-height:40px; padding-left:16px" src="/res/dynamic.png" onerror="this.style.visibility = 'hidden'; document.getElementById('app_title').style.visibility = 'visible'">
-                    <span id="app_title" style="visibility:hidden">{{application_title}}</span>
+                    <span id="app_title" style="/*visibility:hidden;*/ margin-top:calc(100%); margin-left:20px">{{application_title}}</span>
                 </h1>
                 <h1 ng-show="ShowGeneralSettings.show">{{_('General configurations page')}}</h1>
                 <span flex></span>
                 <div style="margin-right:28px;" ng-show="showAllJobs && !ShowGeneralSettings.show">
-                    <div style="padding-top: 19px"><a ng-click="ShowGeneralSettings.show = !ShowGeneralSettings.show" href="#/settings"><md-icon style="cursor:pointer">settings</md-icon></a>
+                    <div style="padding-top: calc(100%)"><a ng-click="ShowGeneralSettings.show = !ShowGeneralSettings.show" href="#/settings"><md-icon style="cursor:pointer">settings</md-icon></a>
                         <md-tooltip md-direction="bottom">
                             {{_('General configurations page')}}
                         </md-tooltip></div>
@@ -162,6 +162,8 @@
             // resize some components to various window sizes
             document.getElementById('joblist').style.maxHeight = (window.innerHeight - 70) + "px"
             document.getElementById('full-job-scroller').style.maxHeight = (window.innerHeight - 165) + "px"
+            document.getElementById('settingsForm').style.maxHeight = (window.innerHeight - 165) + "px"
+            document.getElementById('aboutDiv').style.maxHeight = (window.innerHeight - 165) + "px"
           }
 
           function registerPalette(provider, name, color, background){

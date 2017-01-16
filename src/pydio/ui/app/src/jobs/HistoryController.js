@@ -59,7 +59,6 @@
         t2 = $timeout(tickSelected, 100);
     }
     )();
-
     (function tickLog() {
         if(SelectedJobService.job){
             $scope.selected = SelectedJobService.job;
@@ -76,6 +75,7 @@
                 if(!response.status){
                     $scope.error = window.translate('Ooops, cannot contact agent! Make sure it is running correctly, process will try to reconnect in 20s');
                 }
+                $scope.logs = undefined; // reset jobs (when last job was deleted for instance)
                 console.log(response)
             });
         }
