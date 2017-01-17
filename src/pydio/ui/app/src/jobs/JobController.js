@@ -206,25 +206,33 @@
                                         SelectedJobService.job.progress = 100 * parseFloat(SelectedJobService.job.state.global.queue_done) / parseFloat(SelectedJobService.job.state.global.queue_length)
                                 } else {
                                     // merges everything -> bug when editing
-                                    try {
-                                        for (var field in self.jobs[i]){
-                                            if (['$get', '$save', '$query', '$remove', '$delete', 'toJSON'].indexOf(field) === -1)
-                                                $scope.jobs[i][field] = self.jobs[i][field]
+                                    if(self.jobs.length == $scope.jobs.length){
+                                        try { // try catch to avoid crashing during loading
+                                            for (var field in self.jobs[i]){
+                                                if (['$get', '$save', '$query', '$remove', '$delete', 'toJSON'].indexOf(field) === -1)
+                                                    $scope.jobs[i][field] = self.jobs[i][field]
+                                            }
+                                        } catch (e) {
+                                            $location.path('app/index.html')
+                                            console.log(e)
                                         }
-                                    } catch (e) {
-                                        $location.path('app/index.html')
-                                        console.log(e)
+                                    } else {
+                                        $scope.jobs = self.jobs;
                                     }
 
                                 }
                             }
                         } else {
-                            for (var i in self.jobs){
-                             // merges everything -> bug when editing
-                                for (var field in self.jobs[i]){
-                                    if (['$get', '$save', '$query', '$remove', '$delete', 'toJSON'].indexOf(field) === -1)
-                                        $scope.jobs[i][field] = self.jobs[i][field]
+                            if(self.jobs.length == $scope.jobs.length){
+                                for (var i in self.jobs){
+                                 // merges everything -> bug when editing
+                                    for (var field in self.jobs[i]){
+                                        if (['$get', '$save', '$query', '$remove', '$delete', 'toJSON'].indexOf(field) === -1)
+                                            $scope.jobs[i][field] = self.jobs[i][field]
+                                    }
                                 }
+                            } else {
+                                $scope.jobs = self.jobs;
                             }
                         }
                     }
@@ -628,8 +636,9 @@
     self.showDisabled = function (){
         if(self.jobs)
             for(var i in self.jobs)
-                if (self.jobs[i] && !self.jobs[i]['active'])
+                if (self.jobs[i] && self.jobs[i].hasOwnProperty('active') && !self.jobs[i]['active']){
                     return true;
+                }
         return false;
     }
   } // End of Controller
