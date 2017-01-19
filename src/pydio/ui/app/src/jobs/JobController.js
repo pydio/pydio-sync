@@ -40,6 +40,11 @@
                 return moment(time_string).fromNow();
             }
         })
+        .filter('customdate', function(){
+            return function(item){
+                return item.date.replace(/\..*/, '')
+            }
+        })
         .filter('bytes', function() {
             return function(bytes, precision) {
                 if (bytes == 0) return bytes;
@@ -47,7 +52,10 @@
                 if (typeof precision === 'undefined') precision = 1;
                 var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
                     number = Math.floor(Math.log(bytes) / Math.log(1024));
-                return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
+                var res = (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
+                if (isNaN(res))
+                    res = 0;
+                return res;
             }
         })
         .filter('seconds', function(){
@@ -613,12 +621,11 @@
             $scope.resolveClientId();
     }
 
-    // TODO: only do this when needed i.e. right after response.xml was written
     EndpointsUrl.get({}, function(response){
         $timeout(function(){
         if ($scope.jobs.length == 0){
             if(response['endpoints']){
-                //document.getElementById('welcomeDiv').style['marginTop'] = '-200%'; // PROD uncomment me
+                document.getElementById('welcomeDiv').style['marginTop'] = '-200%';
                 $timeout(function(){
                     $mdDialog.show({
                         controller: 'NewJobController',

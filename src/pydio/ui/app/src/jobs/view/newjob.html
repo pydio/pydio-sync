@@ -63,7 +63,7 @@
                         </md-card-title>
                         <md-card-content layout-padding style="text-align:center;">
                             <img class="img-thumbnail" src="assets/images/ServerURL.png" alt="Server url help">
-                            <md-button md-no-ink class="md-raised" ng-click="showURLTip = !showURLTip">{{_('OK, GOT IT!')}}</md-button>
+                            <md-button md-no-ink class="md-raised md-primary" ng-click="showURLTip = !showURLTip">{{_('OK, GOT IT!')}}</md-button>
                         </md-card-content>
                     </md-card>
 
@@ -216,9 +216,10 @@
                                 </md-card>
                             </div>
                             <div style="padding: 20px 0;">
-                                <span style="cursor: pointer;" ng-click="showAdvancedParameters = !showAdvancedParameters">{{_('Show Advanced Parameters...')}}</span>
+                                <span style="cursor: pointer;" ng-click="showAdvancedParameters = !showAdvancedParameters">
+                                    <span ng-show="!showAdvancedParameters">{{_('Show Advanced Parameters...')}}</span><span ng-show="showAdvancedParameters">{{_('Hide Advanced Parameters...')}}</span></span>
                             </div>
-                            <div ng-show="showAdvancedParameters">
+                            <div ng-show="showAdvancedParameters" style="padding-left: 0 20px 0 20px;">
                                 <md-card-content>
                                     <ng-include src="'./src/jobs/view/advanced.html'"/>
                                 </md-card-content>

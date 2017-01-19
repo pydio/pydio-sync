@@ -99,6 +99,7 @@
                             pydiotheme.base = response["vanity"]["splash_bg_color"]
                             pydiotheme.accent = response["vanity"]["main_tint"]
                             pydiotheme.application_name = response["vanity"]["application_name"]
+                            self.job.label = pydiotheme.application_name;
                             // angular {{}} didn't seem to work, probably suffered scope issues, deprecated
                             var item = document.getElementById('application_name');
                             if(item)
@@ -167,6 +168,7 @@
             }, function(response){
                 if(response.application_title){
                     self.job.application_title = response.application_title;
+                    self.job.label = self.job.application_title;
                 }
                 if(response.user_display_name){
                     self.job.user_display_name = response.user_display_name;

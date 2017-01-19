@@ -195,10 +195,11 @@ class ChangeProcessor:
                      target=path, console_message=message, message=(_('Deleted file %s') % path))
 
     def process_remote_delete(self, path):
-        self.remote_sdk.delete(path)
+        resp = self.remote_sdk.delete(path)
+        file_or_folder = "Folder" if resp.find('fonticon="folder"') > -1 else "File"
         message = 'DELETE ============> ' + path
         self.log(type='remote', action='delete', status='success',
-                 target=path, console_message=message, message=(_('Folder %s deleted') % path))
+                 target=path, console_message=message, message=(_(file_or_folder + ' %s deleted') % path))
 
     @pydio_profile
     def process_local_move(self, source, target):
