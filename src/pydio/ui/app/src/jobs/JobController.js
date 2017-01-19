@@ -277,7 +277,7 @@
             templateUrl: './src/jobs/view/newjob.html',
             parent: angular.element(document.body),
             targetEvent: ev,
-            clickOutsideToClose:true
+            clickOutsideToClose:false
         })
         .then(function(answer) {
             $scope.status = 'You said the information was "' + answer + '".';
@@ -573,8 +573,10 @@
                 // update less
                 updateTheme()
                 document.getElementById('app_icon').src += '?'
-                //location.reload();
-                self.PydioQtFileDialog.qtReload()
+                if (self.PydioQtFileDialog)
+                    self.PydioQtFileDialog.qtReload()
+                else
+                    location.reload()
                 // --- DELETE
                 $scope.loading = false;
                 $timeout(function(){
