@@ -1,6 +1,6 @@
 <md-dialog aria-label="Conflict dialog" style="max-width: 96%;">
   <md-dialog-content style="padding: 16px;">
-      <h3>File {{conflict_solver.current.node_path|basename}} has two different versions</h3>
+      <h3>{{_('File')}}&nbsp;{{conflict_solver.current.node_path|basename}}&nbsp; {{_('has two different versions')}}</h3>
       <div style="text-align: left;font-size: 12px;padding-bottom: 22px;max-width: 330px;color: grey;">
           {{_('Pick one version to override the other, or keep both by creating a copy of your local version.')}}
       </div>
@@ -19,18 +19,18 @@
               </div>
           </div>
           <div class="conflict-version-block" ng-click="conflict_solver.selection='SOLVED:KEEPREMOTE'" ng-class={'selected':conflict_solver.selection==='SOLVED:KEEPREMOTE'}>
-              <div>Remote Version</div>
+              <div>{{_('Remote Version')}}</div>
               <i class="material-icons">cloud</i><br/>
               {{conflict_solver.current.detail.node.bytesize|bytes}}<br/>
               {{_('Modified')}} {{conflict_solver.current.detail.node.mtime|timestamp|moment}}
           </div>
       </div>
       <div ng-show="conflict_solver.selection" style="text-align: left;font-size: 12px;padding-top: 22px;max-width: 330px;color: grey;">
-          <md-checkbox ng-model="conflict_solver.applyToAll" aria-label="Apply to all?">Apply this choice to all conflicts?</md-checkbox>
+          <md-checkbox ng-model="conflict_solver.applyToAll" aria-label="Apply to all?">{{_('Apply this choice to all conflicts?')}}</md-checkbox>
       </div>
   </md-dialog-content>
   <md-dialog-actions>
-    <md-button ng-click="closeConflictDialog()">Cancel</md-button>
-    <md-button ng-disabled="!conflict_solver.selection" ng-click="closeConflictDialog(conflict_solver.selection)" class="md-raised md-primary">OK</md-button>
+    <md-button ng-click="closeConflictDialog()">{{_('Cancel')}}</md-button>
+    <md-button ng-disabled="!conflict_solver.selection" ng-click="closeConflictDialog(conflict_solver.selection)" class="md-raised md-primary">{{_('OK')}}</md-button>
   </md-dialog-actions>
 </md-dialog>
