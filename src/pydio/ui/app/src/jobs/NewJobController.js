@@ -73,20 +73,22 @@
         self.job.user = "";
         self.job.password = "";
         self.job.server = "https://";
+        var default_value = self.job.server;
         if(typeof(NewJobService.server) !== "undefined"){
+            //console.log("FROM directive " + jobs[task].server )
             self.job.server = NewJobService.server;
         } else {
             // fetch job from existing task...
             var jobs = Jobs.query({}, function(){
                 console.log(jobs)
                 for (var task in jobs){
-                    //console.log("FROM OLD job" + jobs[task].server )
+                    //console.log("FROM OLD job " + jobs[task].server )
                     if(jobs[task].server)
                         self.job.server = jobs[task].server // initialize job with first job
                     break
                 }
-                if (typeof(self.job.server) === "undefined"){
-                    // fetch from endpoint
+                if (self.job.server === default_value){
+                    //console.log("FROM ENDPOINT " + jobs[task].server )
                     EndpointsUrl.get({
                     }, function(response){
                         self.ws = {}
