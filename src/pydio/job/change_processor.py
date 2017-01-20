@@ -20,6 +20,7 @@
 import os
 import logging
 import shutil
+import xml.etree.ElementTree as ET
 try:
     from pydio.utils.global_config import ConfigManager
     from pydio.utils.pydio_profiler import pydio_profile
@@ -198,8 +199,14 @@ class ChangeProcessor:
         resp = self.remote_sdk.delete(path)
         file_or_folder = "Folder" if resp.find('fonticon="folder"') > -1 else "File"
         message = 'DELETE ============> ' + path
-        self.log(type='remote', action='delete', status='success',
-                 target=path, console_message=message, message=(_(file_or_folder + ' %s deleted') % path))
+        try:
+            mess = ET.ElementTree(ET.fromstring(resp)).getroot().find('message').text
+            self.log(type='remote', action='delete', status='success',
+                     target=path, console_message=message, message=mess)
+        except Exception as e:
+            logging.exception(e)
+            self.log(type='remote', action='delete', status='success',
+                     target=path, console_message=message, message=(_(file_or_folder + ' %s deleted') % path))
 
     @pydio_profile
     def process_local_move(self, source, target):
