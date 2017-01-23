@@ -56,6 +56,7 @@ var share_details;
             $scope.ui_config = window.ui_config;
         }
         // Display the view based on the type of layout
+        $scope.miniview = true;
         if($routeParams.layout == "miniview" || document.URL.indexOf("minivew") > -1) {
             if (document.getElementsByTagName("body")[0].className.indexOf("miniview") == -1)
                 document.getElementsByTagName("body")[0].className += "miniview";
