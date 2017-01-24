@@ -191,7 +191,7 @@ var share_details;
         $scope.copyToClipBoard = function(value){
             // check if the text can be copied from QT's copy to clip board else show error message
             try {
-                JC.PydioQtFileDialog.copyToClipBoard(value);
+                channel.objects.PydioQtFileDialog.copyToClipBoard(value);
                 $scope.copyToClipBoardFlag = true;
             } catch (err) {
                 try {
