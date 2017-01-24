@@ -20,6 +20,9 @@
 import os
 import logging
 import shutil
+import sys
+import re
+
 import xml.etree.ElementTree as ET
 try:
     from pydio.utils.global_config import ConfigManager
@@ -67,6 +70,15 @@ class ChangeProcessor:
         :return:
         """
         item = self.change
+        """ # Just here for reference this is clearly not optimal
+        if sys.platform.startswith('win'):
+            if 'node' in item and 'node_path' in item['node']:
+                if re.search('[?<>:*|]', item['node']['node_path']) is not None:
+                    logging.info('ERROR At least one unsupported character found in ' + item['node']['node_path'])
+                    return False
+        if sys.platfrom.startswith('Darwin'):
+            return False
+        """
         location = item['location']
         item['progress'] = 0
         if self.job_config.direction == 'up' and location == 'remote':
