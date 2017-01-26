@@ -64,13 +64,13 @@
             $scope.selected = SelectedJobService.job;
             var all = Logs.query({job_id:SelectedJobService.job.id}, function(){
                 $scope.error = null;
-                // TODO: Merge new log events instead of replacing all logs, to avoid flickering.
                 $scope.logs = all.logs;
-                /*// REMOVE ME FOR PROD
                 if(all.running.tasks){
                     if (all.running.tasks.current.length != 0)
                         $scope.running = all.running;
-                }*/
+                    else
+                        $scope.running = null;
+                }
             }, function(response){
                 if(!response.status){
                     $scope.error = window.translate('Ooops, cannot contact agent! Make sure it is running correctly, process will try to reconnect in 20s');

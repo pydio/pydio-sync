@@ -212,7 +212,11 @@ class ChangeProcessor:
         file_or_folder = "Folder" if resp.find('fonticon="folder"') > -1 else "File"
         message = 'DELETE ============> ' + path
         try:
-            mess = ET.ElementTree(ET.fromstring(resp)).getroot().find('message').text
+            e = ET.ElementTree(ET.fromstring(resp)).getroot().find('message')
+            if e:
+                mess = e.text
+            else:
+                mess = _(file_or_folder + ' {} deleted'.format(path))
             self.log(type='remote', action='delete', status='success',
                      target=path, console_message=message, message=mess)
         except Exception as e:

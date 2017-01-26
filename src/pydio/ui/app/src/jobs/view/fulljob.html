@@ -60,7 +60,7 @@
                     <!--<input ng-show="selected.job.workspace != ''" ng-model="selected.job.workspace" disabled>-->
                     <md-select label="Workspaces" ng-model="selected.job.workspace" placeholder="{{selected.job.workspace}}" ng-click="selected.job.workspace = '';JC.showWorkspacePicker()" style="min-width:310px;">
                     <md-optgroup>
-                        <md-option ng-value="item" ng-repeat="item in selected.job.repositories">{{item.label}}</md-option>
+                        <md-option ng-value="item" ng-repeat="item in selected.job.repositories">{{item.label}} <span style="padding:3px; margin: 0px 2px 2px 10px; vertical-align:-8px; border-radius:5px;font-size:9pt; background-color:orange" ng-show="item['@acl'] == 'r'">{{ _('This workspace is read only!') }}</span></md-option>
                     </md-optgroup>
                 </md-select>
                 </md-input-container>

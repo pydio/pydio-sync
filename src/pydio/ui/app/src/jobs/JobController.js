@@ -193,7 +193,7 @@
     setTimeout(function(){
         // After view loaded ?
         try { setMaxJobsHeight() } catch (e) { console.log('Failed to set correct height') }
-    }, 100);
+    }, 500);
     var t0;
     (function tickJobs() {
         var tmpJobs = Jobs.query(function(){
@@ -270,6 +270,7 @@
         self.currentNavItem = 'history';
         $scope.showAllJobs = false;
         ShowGeneralSettings.show = false;
+        $scope.running = null;
         SelectedJobService.job = angular.isNumber(job) ? $scope.jobs[job] : job;
         SelectedJobService.job.repositories = [{"label": SelectedJobService.job.workspace}];
     }
@@ -455,6 +456,11 @@
     }
 
     self.doSave = function(){
+        // Fix the data
+        if( typeof(SelectedJobService.job['workspace']) !== "string" ){
+            if (SelectedJobService.job['workspace']['@repositorySlug'])
+                SelectedJobService.job['workspace'] = SelectedJobService.job['workspace']['@repositorySlug'];
+        }
         SelectedJobService.job.$save();
     }
 
