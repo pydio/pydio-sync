@@ -63,7 +63,7 @@ class ChangeHistory():
         self.db_handler = db_handler
 
     def insert_change(self, change, status):
-        logging.info(change)
+        #logging.info(change)
         try:
             if not (change['node'] is not None and change['node']['node_path'] is not None):
                 change['node'] = {'node_path': "DELETED"}
