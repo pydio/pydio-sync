@@ -46,8 +46,7 @@ class PydioScheduler():
         
     @pydio_profile
     def start_all(self):
-        for job_id in self.job_configs:
-            job_config = self.job_configs[job_id]
+        for job_config in self.job_configs:
             self.start_from_config(job_config)
 
     def pause_all(self):
