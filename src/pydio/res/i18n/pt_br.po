@@ -907,10 +907,10 @@ msgid "Última sincronização"
 #: res/i18n/html_strings.py:182
 msgid "ERROR"
 msgstr "ERRO"
-/*Problema*/
+
 #: res/i18n/html_strings.py:184
 msgid "idle"
-msgstr "idle"
+msgstr "inativo"
 
 #: res/i18n/html_strings.py:185
 msgid "[DISABLED]"
@@ -947,10 +947,10 @@ msgstr ""
 #: res/i18n/html_strings.py:193
 msgid "Apply to all conflicts"
 msgstr "Aplicar a todos os conflitos"
-/*Problema*/
+
 #: res/i18n/html_strings.py:194
 msgid "Mine"
-msgstr "Mine"
+msgstr "Minha"
 
 
 #: res/i18n/html_strings.py:195
@@ -1018,10 +1018,10 @@ msgstr "Segurança"
 #: res/i18n/html_strings.py:214
 msgid "Expires after"
 msgstr "Expira após"
-/*Problema*/
+
 #: res/i18n/html_strings.py:218
 msgid "Link Handle"
-msgstr "Fazer a ligação Handle"
+msgstr "Link Handle"
 
 #: res/i18n/html_strings.py:219
 msgid ""
@@ -1110,10 +1110,10 @@ msgstr "A maneira mais fácil para manter seus dados sob controle"
 #: res/i18n/html_strings.py:241
 msgid "Loading..."
 msgstr "Carregando ..."
-/*Problema*/
+
 #: res/i18n/html_strings.py:242 res/i18n/html_strings.py:245
 msgid "Get Started"
-msgstr "Get Started"
+msgstr "Iniciar"
 
 #: sdklocal/local.py:121
 msgid "Cannot remove local folder"
@@ -1317,9 +1317,8 @@ msgstr "A pasta já está compartilhada como um espaço de trabalho!"
 #~ "If you are using https, is your certificate self-signed? If yes, check "
 #~ "\"Trust SSL certificate\""
 #~ msgstr ""
-#~ "Se você estiver usando https, é o seu certificado auto assinado? Se sim, marque"
+#~ "Se você estiver usando https, o seu certificado é auto assinado? Se sim, marque"
 #~ "\"Certificado de confiança SSL\ ""
-
 
 #~ msgid "You"
 #~ msgstr "Você"
