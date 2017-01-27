@@ -440,8 +440,12 @@
                     self.toastError(resp[0].error);
                 }
                 self.loadingSizeAndEta = false
-                self.job.remote_size = $filter('bytes')(info.info.remote_folder_size)
-                self.job.local_size = $filter('bytes')(info.info.local_folder_size)
+                if (info.info.remote_folder_size && info.info.remote_folder_size > 0)
+                    self.job.remote_size = $filter('bytes')(info.info.remote_folder_size);
+                if (info.info.local_folder_size && info.info.local_folder_size > 0)
+                    self.job.local_size = $filter('bytes')(info.info.local_folder_size);
+                else
+                    self.job.local_size = 0;
                 var dl_rate = 2 * 1024 //* 1024
                 var up_rate = 0.1 * 1024 //* 1024
                 var eta = info.info.local_folder_size  / dl_rate + info.info.remote_folder_size / up_rate

@@ -65,11 +65,13 @@
             var all = Logs.query({job_id:SelectedJobService.job.id}, function(){
                 $scope.error = null;
                 $scope.logs = all.logs;
-                if(all.running.tasks){
-                    if (all.running.tasks.current.length != 0)
-                        $scope.running = all.running;
-                    else
-                        $scope.running = null;
+                if( all.running ){
+                    if (all.running.tasks){
+                        if (all.running.tasks.current.length != 0)
+                            $scope.running = all.running;
+                        else
+                            $scope.running = null;
+                    }
                 }
             }, function(response){
                 if(!response.status){

@@ -160,10 +160,18 @@
 
           function setMaxJobsHeight(){
             // resize some components to various window sizes
-            document.getElementById('joblist').style.maxHeight = (window.innerHeight - 70) + "px"
-            document.getElementById('full-job-scroller').style.maxHeight = (window.innerHeight - 165) + "px"
-            document.getElementById('settingsForm').style.maxHeight = (window.innerHeight - 165) + "px"
-            document.getElementById('aboutDiv').style.maxHeight = (window.innerHeight - 165) + "px"
+            var e = document.getElementById('joblist');
+            if(e)
+                e.style.maxHeight = (window.innerHeight - 70) + "px";
+            e = document.getElementById('full-job-scroller');
+            if(e)
+                e.style.maxHeight = (window.innerHeight - 165) + "px";
+            e = document.getElementById('settingsForm')
+            if (e)
+                e.style.maxHeight = (window.innerHeight - 165) + "px";
+            e = document.getElementById('aboutDiv');
+            if(e)
+                e.style.maxHeight = (window.innerHeight - 165) + "px";
           }
 
           function registerPalette(provider, name, color, background){

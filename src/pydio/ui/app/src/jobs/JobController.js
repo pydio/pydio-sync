@@ -52,9 +52,11 @@
                 if (typeof precision === 'undefined') precision = 1;
                 var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
                     number = Math.floor(Math.log(bytes) / Math.log(1024));
-                var res = (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
-                if (isNaN(res))
-                    res = 0;
+                var res = 0
+                if (!isNaN(number))
+                     res = (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision)
+                if(!isNaN(res))
+                    res +=  ' ' + units[number];
                 return res;
             }
         })
