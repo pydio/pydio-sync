@@ -47,13 +47,14 @@
         var self = this;
 
         $scope.hide = function() {
-          $mdDialog.hide();
+            $mdDialog.hide();
         };
         $scope.cancel = function() {
-          $mdDialog.cancel();
+            document.getElementById('welcomeDiv').style['marginTop'] = '0px';
+            $mdDialog.cancel();
         };
         $scope.answer = function(answer) {
-          $mdDialog.hide(answer);
+            $mdDialog.hide(answer);
         };
         $scope._ = window.translate;
         self.toggleNewJobConfig = toggleNewJobConfig;
