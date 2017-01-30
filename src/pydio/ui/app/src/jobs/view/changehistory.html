@@ -67,7 +67,7 @@
                 <span class="change-history-text">
                     {{ item.message }}
                 </span>
-                <md-tooltip md-direction="right"><div layout="row" flex><i class="material-icons change-history-icon">history</i><span style="margin-top:0px; vertical-align:top">&nbsp; {{item | customdate | moment}}</span></div></md-tooltip>
+                <md-tooltip md-direction="left" style="margin-left:40%"><div layout="row"><i class="material-icons change-history-icon">history</i><span style="margin-top:0px; vertical-align:top">&nbsp; {{item | customdate | moment}}</span></div></md-tooltip>
                 <md-icon ng-if="item.action.indexOf('delete') == -1" class="md-secondary" ng-click="openFile(item, $event)">open_in_new</md-icon>
             </div>
         </md-list>

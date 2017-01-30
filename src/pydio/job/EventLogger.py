@@ -97,6 +97,7 @@ class EventLogger():
 
     @pydio_profile
     def get_all(self, limit=10, offset=0, filter_type=None, filter_action=None):
+        # FEATURE: use history.sqlite instead, which has more info, beware of db lock
         conn = sqlite3.connect(self.db, timeout=self.timeout)
         events = []
         try:
