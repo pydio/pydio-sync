@@ -213,10 +213,10 @@ class ChangeProcessor:
         message = 'DELETE ============> ' + path
         try:
             e = ET.ElementTree(ET.fromstring(resp)).getroot().find('message')
-            if e:
+            if e is not None:
                 mess = e.text
             else:
-                mess = _(file_or_folder + ' {} deleted'.format(path))
+                mess = _(file_or_folder + u' {} deleted'.format(path))
             self.log(type='remote', action='delete', status='success',
                      target=path, console_message=message, message=mess)
         except Exception as e:
