@@ -162,7 +162,6 @@ class PoProcessor:
 
     def extract_html_strings(self,file_name):
         import re
-
         groups = []
         with open(file_name) as fp:
             for line in fp:
@@ -172,13 +171,15 @@ class PoProcessor:
         return groups
 
     def extract_all_html_strings(self, root_html, output_file):
-
-        import glob
-
         strings = []
-        files = glob.glob(root_html + '/*.html')
-        for html_file in files:
-            strings += self.extract_html_strings(html_file)
+        logging.info(root_html)
+        # Scan html files in root_html for translations strings
+        for root, dirs, files in os.walk(root_html):
+            for file in files:
+                if file.endswith(".html") and root.find('node_modules') == -1:
+                    html_file = os.path.join(root, file)
+                    logging.info("Scanning " + html_file)
+                    strings += self.extract_html_strings(html_file)
 
         index = 1
         with open(output_file, 'w') as fp:

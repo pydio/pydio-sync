@@ -239,12 +239,15 @@ def main(argv=sys.argv[1:]):
         proc = PoProcessor()
         if args.extract_html == 'extract':
             root = Path(__file__).parent
-            count = proc.extract_all_html_strings(str(root / 'ui' / 'res' ), str(root / 'res' / 'i18n' / 'html_strings.py' ))
+            count = proc.extract_all_html_strings(str(root / 'ui' ), str(root / 'res' / 'i18n' / 'html_strings.py' ))
             logging.info('Wrote %i strings to html_strings.py - Now update PO files using standard tools' % count)
             # nothing more to do
         elif args.extract_html == 'compile':
             root = Path(__file__).parent
-            proc.po_to_json(str(root / 'res' / 'i18n' / '*.po'), str(root / 'ui' / 'res' / 'i18n.js'))
+            proc.po_to_json(str(root / 'res' / 'i18n' / '*.po'), str(root / 'ui' / 'app' / 'i18n.js'))
+        logging.info("XGETTEXT, TODO automate")
+        logging.info("Merge po files, TODO automate")
+        logging.info("MSGFMT, TODO automate")
         return sys.exit(0)
 
     if args.diag_http:
