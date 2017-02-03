@@ -51,25 +51,26 @@
                     <md-button class="md-raised" style="display:inline-block;" ng-click="JC.openFolder(selected.job.directory)">{{_('OPEN')}}</md-button>
                 </div>
             </div>
-            <!--{{selected.job.server + selected.job.workspace + selected.job.remotefolder}}<br>-->
+            <!--{{selected.job.server + selected.job.workspace + selected.job.remote_folder}}<br>-->
             <div style="display:flex;">
                 <md-input-container class="md-block md-float-icon" style="flex:1;">
-                    <a href="{{selected.job.server + '/ws-' + selected.job.workspace + selected.job.remotefolder}}" id="workspace_click"></a>
+                    <a href="{{selected.job.server + '/ws-' + selected.job.workspace + selected.job.remote_folder}}" id="workspace_click"></a>
                     <label>{{_('Workspace')}}</label>
                     <md-icon class="login-icons" aria-hidden="true" ng-click="document.getElementById('workspace_click').click()" style="cursor:default">work</md-icon>
                     <!--<input ng-show="selected.job.workspace != ''" ng-model="selected.job.workspace" disabled>-->
-                    <md-select label="Workspaces" ng-model="selected.job.workspace" placeholder="{{selected.job.workspace}}" ng-click="selected.job.workspace = '';JC.showWorkspacePicker()" style="min-width:310px;">
-                    <md-optgroup>
-                        <md-option ng-value="item" ng-repeat="item in selected.job.repositories">{{item.label}} <span style="padding:3px; margin: 0px 2px 2px 10px; vertical-align:-8px; border-radius:5px;font-size:9pt; background-color:orange" ng-show="item['@acl'] == 'r'">{{ _('This workspace is read only!') }}</span></md-option>
-                    </md-optgroup>
-                </md-select>
+                    <md-select label="Workspaces" ng-model="selected.job.workspace" placeholder="{{selected.job.workspace}}" ng-click="selected.job.workspace = '';JC.showWorkspacePicker()" ng-disabled="!selected.job.password" style="min-width:310px;">
+                        <md-optgroup>
+                            <md-option ng-value="item" ng-repeat="item in selected.job.repositories">{{item.label}} <span style="padding:3px; margin: 0px 2px 2px 10px; vertical-align:-8px; border-radius:5px;font-size:9pt; background-color:orange" ng-show="item['@acl'] == 'r'">{{ _('This workspace is read only!') }}</span></md-option>
+                        </md-optgroup>
+                    </md-select>
+                    <md-tooltip ng-hide="selected.job.password">{{_('You must provide your password')}}</md-tooltip>
                 </md-input-container>
             </div>
-            <div style="display:flex;" ng-show="selected.job.remotefolder">
+            <div style="display:flex;" ng-show="selected.job.remote_folder">
                 <md-input-container class="md-block" style="flex:1;">
                     <label>{{_('Remote Folder')}}</label>
                     <md-icon class="login-icons" aria-hidden="true" style="cursor:default">folder_special</md-icon>
-                    <input ng-model="selected.job.remotefolder" disabled>
+                    <input ng-model="selected.job.remote_folder" disabled>
                 </md-input-container>
                 <!-- <div>
                     <md-button class="md-raised" ng-click="selected.job.workspace = '';JC.showWorkspacePicker()">{{_('CHOOSE')}}</md-button>

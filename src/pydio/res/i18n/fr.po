@@ -440,9 +440,8 @@ msgid "Stop"
 msgstr "Stop"
 
 #: res/i18n/html_strings.py:46 res/i18n/html_strings.py:51
-#, fuzzy
 msgid "Settings"
-msgstr "Paramètres de journal (log)"
+msgstr "Paramètres"
 
 #: res/i18n/html_strings.py:48
 msgid "Disabled Tasks"
@@ -451,7 +450,7 @@ msgstr "Tâches arrêtées"
 #: res/i18n/html_strings.py:50 res/i18n/html_strings.py:88
 #, fuzzy
 msgid "Start"
-msgstr "Tâche démarrée"
+msgstr "Démarrer"
 
 #: res/i18n/html_strings.py:53
 msgid "Solve Conflict"
