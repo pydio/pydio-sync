@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pydio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-02 15:37+0100\n"
+"POT-Creation-Date: 2017-02-03 14:17+0100\n"
 "PO-Revision-Date: 2016-02-01 21:16+0100\n"
 "Last-Translator: Roland Stumpp <support@mediaoffice.de>\n"
 "Language-Team: mediaOffice GbR <support@mediaoffice.de>\n"
@@ -367,7 +367,7 @@ msgstr "Zeitüberschreitung der Verbindung!"
 msgid "Increase the timeout in case of slow responsive server"
 msgstr "Zeitlimit vergrößern falls der antwortende Server zu langsam ist"
 
-#: res/i18n/html_strings.py:30 res/i18n/html_strings.py:117
+#: res/i18n/html_strings.py:30 res/i18n/html_strings.py:118
 msgid "Timeout in seconds"
 msgstr "Zeitlimit in Sekunden"
 
@@ -428,7 +428,7 @@ msgstr ""
 msgid "More info..."
 msgstr ""
 
-#: res/i18n/html_strings.py:43 res/i18n/html_strings.py:90
+#: res/i18n/html_strings.py:43 res/i18n/html_strings.py:91
 #, fuzzy
 msgid "Pause"
 msgstr "Auftrag angehalten"
@@ -437,7 +437,7 @@ msgstr "Auftrag angehalten"
 msgid "Resume"
 msgstr ""
 
-#: res/i18n/html_strings.py:45 res/i18n/html_strings.py:93
+#: res/i18n/html_strings.py:45 res/i18n/html_strings.py:94
 msgid "Stop"
 msgstr ""
 
@@ -450,7 +450,7 @@ msgstr "Einstellungen Logdateien"
 msgid "Disabled Tasks"
 msgstr ""
 
-#: res/i18n/html_strings.py:50 res/i18n/html_strings.py:88
+#: res/i18n/html_strings.py:50 res/i18n/html_strings.py:89
 #, fuzzy
 msgid "Start"
 msgstr "Auftrag gestartet"
@@ -550,12 +550,12 @@ msgstr ""
 msgid "Sync task settings"
 msgstr "Zeitüberschreitung der Verbindung!"
 
-#: res/i18n/html_strings.py:76 res/i18n/html_strings.py:157
+#: res/i18n/html_strings.py:76 res/i18n/html_strings.py:158
 msgid "Label"
 msgstr "Beschriftung"
 
-#: res/i18n/html_strings.py:77 res/i18n/html_strings.py:129
-#: res/i18n/html_strings.py:158
+#: res/i18n/html_strings.py:77 res/i18n/html_strings.py:130
+#: res/i18n/html_strings.py:159
 #, fuzzy
 msgid "Remote Server"
 msgstr "Server"
@@ -569,17 +569,17 @@ msgstr "Geprüftes SSL Zertifikat"
 msgid "You can disable SSL checks for testing."
 msgstr ""
 
-#: res/i18n/html_strings.py:80 res/i18n/html_strings.py:131
+#: res/i18n/html_strings.py:80 res/i18n/html_strings.py:132
 msgid "Login"
 msgstr "Anmelden"
 
-#: res/i18n/html_strings.py:81 res/i18n/html_strings.py:132
-#: res/i18n/html_strings.py:189 res/i18n/html_strings.py:194
+#: res/i18n/html_strings.py:81 res/i18n/html_strings.py:133
+#: res/i18n/html_strings.py:190 res/i18n/html_strings.py:195
 msgid "Password"
 msgstr "Passwort"
 
-#: res/i18n/html_strings.py:82 res/i18n/html_strings.py:151
-#: res/i18n/html_strings.py:161
+#: res/i18n/html_strings.py:82 res/i18n/html_strings.py:152
+#: res/i18n/html_strings.py:162
 msgid "Local Folder"
 msgstr "Ordner auf dem lokalen Computer"
 
@@ -591,54 +591,58 @@ msgstr ""
 msgid "Workspace"
 msgstr "Dateiverzeichnis"
 
-#: res/i18n/html_strings.py:85 res/i18n/html_strings.py:144
+#: res/i18n/html_strings.py:85 res/i18n/html_strings.py:145
 msgid "This workspace is read only!"
 msgstr "Dieses Dateiverzeichnis ist schreibgeschützt!"
 
-#: res/i18n/html_strings.py:86 res/i18n/html_strings.py:160
+#: res/i18n/html_strings.py:86
+msgid "You must provide your password"
+msgstr ""
+
+#: res/i18n/html_strings.py:87 res/i18n/html_strings.py:161
 #, fuzzy
 msgid "Remote Folder"
 msgstr "Ordner auf dem lokalen Computer"
 
-#: res/i18n/html_strings.py:87
+#: res/i18n/html_strings.py:88
 msgid "CHOOSE"
 msgstr ""
 
-#: res/i18n/html_strings.py:89
+#: res/i18n/html_strings.py:90
 msgid "Enable"
 msgstr ""
 
-#: res/i18n/html_strings.py:91
+#: res/i18n/html_strings.py:92
 #, fuzzy
 msgid "Synchronised"
 msgstr "Synchronisiert"
 
-#: res/i18n/html_strings.py:92
+#: res/i18n/html_strings.py:93
 msgid "Rescan local files and compare with the server"
 msgstr ""
 
-#: res/i18n/html_strings.py:94
+#: res/i18n/html_strings.py:95
 #, fuzzy
 msgid "Delete"
 msgstr "Sync löschen"
 
-#: res/i18n/html_strings.py:95
+#: res/i18n/html_strings.py:96
 msgid "LAST ACTIONS"
 msgstr ""
 
-#: res/i18n/html_strings.py:96 res/i18n/html_strings.py:178
+#: res/i18n/html_strings.py:97 res/i18n/html_strings.py:179
 msgid "SETTINGS"
 msgstr ""
 
-#: res/i18n/html_strings.py:97
+#: res/i18n/html_strings.py:98
 msgid "Update settings"
 msgstr "Einstellungen Updates"
 
-#: res/i18n/html_strings.py:98
+#: res/i18n/html_strings.py:99
 msgid "Enable / Disable update here."
 msgstr "Update aktivieren / deaktivieren"
 
-#: res/i18n/html_strings.py:99
+#: res/i18n/html_strings.py:100
 msgid ""
 "Set the update check frequency (here 1 means update check only once a day, "
 "default value 0 means it check for update each time agent establishes a new "
@@ -648,23 +652,23 @@ msgstr ""
 "geprüft wird, ob Updates voehanden sind. Die Standard Einstellung 0 sucht "
 "Updates immer,  wenn eine neue Verbindung mit dem UI hergestellt wird) "
 
-#: res/i18n/html_strings.py:100
+#: res/i18n/html_strings.py:101
 msgid "Update check frequency in days"
 msgstr "Update Check Frequenz in Tagen"
 
-#: res/i18n/html_strings.py:101
+#: res/i18n/html_strings.py:102
 msgid "Last update check was on: "
 msgstr "Der letzte Update Check war am: "
 
-#: res/i18n/html_strings.py:102
+#: res/i18n/html_strings.py:103
 msgid "Proxy settings"
 msgstr "Proxy-Einstellungen"
 
-#: res/i18n/html_strings.py:103
+#: res/i18n/html_strings.py:104
 msgid "Enable / Disable Proxy."
 msgstr "Proxy aktivieren / deaktivieren"
 
-#: res/i18n/html_strings.py:104
+#: res/i18n/html_strings.py:105
 msgid ""
 "If you want the network connections to pass through proxy, fill the "
 "parameters below."
@@ -672,91 +676,91 @@ msgstr ""
 "Wenn die Netzwerk Verbindung über einen Proxy Server laufen soll, legen Sie "
 "bitte unten die Einstellungen fest.  "
 
-#: res/i18n/html_strings.py:105
+#: res/i18n/html_strings.py:106
 msgid "Log settings"
 msgstr "Einstellungen Logdateien"
 
-#: res/i18n/html_strings.py:106
+#: res/i18n/html_strings.py:107
 msgid "File Name"
 msgstr "Dateiname"
 
-#: res/i18n/html_strings.py:107
+#: res/i18n/html_strings.py:108
 msgid "Number of log files"
 msgstr "Anzahl der Log-Dateien"
 
-#: res/i18n/html_strings.py:108
+#: res/i18n/html_strings.py:109
 msgid "Maximum size for each log file"
 msgstr ""
 
-#: res/i18n/html_strings.py:109
+#: res/i18n/html_strings.py:110
 msgid "Enhance the log details as you need them."
 msgstr "Die Log Details benutzerdefiniert festlegen."
 
-#: res/i18n/html_strings.py:110
+#: res/i18n/html_strings.py:111
 msgid "Info"
 msgstr "Info"
 
-#: res/i18n/html_strings.py:111
+#: res/i18n/html_strings.py:112
 msgid "Debug"
 msgstr "Fehlerprotokoll"
 
-#: res/i18n/html_strings.py:112
+#: res/i18n/html_strings.py:113
 msgid "Warning"
 msgstr "Warnung"
 
-#: res/i18n/html_strings.py:113
+#: res/i18n/html_strings.py:114
 msgid "OPEN LOGS"
 msgstr ""
 
-#: res/i18n/html_strings.py:114
+#: res/i18n/html_strings.py:115
 msgid "Other settings"
 msgstr "Weitere Einstellungen"
 
-#: res/i18n/html_strings.py:115
+#: res/i18n/html_strings.py:116
 msgid "Max wait time for local db access"
 msgstr "Max. Zeitlimit der lokalen Datenbank"
 
-#: res/i18n/html_strings.py:116
+#: res/i18n/html_strings.py:117
 msgid "If you encounter database locked error try increasing this value"
 msgstr ""
 "Wenn Sie die Fehlermeldung Datenbank gesperrt bekommen, können Sie den "
 "Standardwert des max. Zeitlimit erhöhen"
 
-#: res/i18n/html_strings.py:118
+#: res/i18n/html_strings.py:119
 msgid "Set Language"
 msgstr ""
 
-#: res/i18n/html_strings.py:119
+#: res/i18n/html_strings.py:120
 msgid "Language "
 msgstr ""
 
-#: res/i18n/html_strings.py:120
+#: res/i18n/html_strings.py:121
 msgid "Language"
 msgstr ""
 
-#: res/i18n/html_strings.py:121
+#: res/i18n/html_strings.py:122
 msgid "Update Settings"
 msgstr "Änderungen speichern"
 
-#: res/i18n/html_strings.py:122
+#: res/i18n/html_strings.py:123
 msgid "SAVE SETTINGS"
 msgstr ""
 
-#: res/i18n/html_strings.py:123
+#: res/i18n/html_strings.py:124
 msgid "New Sync Task"
 msgstr ""
 
-#: res/i18n/html_strings.py:124
+#: res/i18n/html_strings.py:125
 #, fuzzy
 msgid "Create a new Synchronization"
 msgstr "Erstellen Sie eine neue Synchronisation"
 
-#: res/i18n/html_strings.py:125 res/i18n/html_strings.py:126
+#: res/i18n/html_strings.py:126 res/i18n/html_strings.py:127
 #, fuzzy
 msgid "1. Configure Connection"
 msgstr "Eine Verbindung konfigurieren"
 
-#: res/i18n/html_strings.py:127
+#: res/i18n/html_strings.py:128
 #, fuzzy
 msgid ""
 "Connect to the server with the same URL as the one you would use to access "
@@ -766,39 +770,39 @@ msgstr ""
 "auch über einen Internet Browser auf Pydio zugreifen, z. Bsp.: http://meine-"
 "domain.com/pydio "
 
-#: res/i18n/html_strings.py:128
+#: res/i18n/html_strings.py:129
 msgid ""
 "Please enter your credentials, if you encounter issues, contact the person "
 "that provided you with those credentials."
 msgstr ""
 
-#: res/i18n/html_strings.py:130
+#: res/i18n/html_strings.py:131
 msgid "If possible use HTTPS for security."
 msgstr ""
 
-#: res/i18n/html_strings.py:133
+#: res/i18n/html_strings.py:134
 #, fuzzy
 msgid "Tip: how do I find my server URL?"
 msgstr "Wo kann ich meine Server-URL finden?"
 
-#: res/i18n/html_strings.py:134
+#: res/i18n/html_strings.py:135
 #, fuzzy
 msgid "Trust SSL certificate."
 msgstr "Geprüftes SSL Zertifikat"
 
-#: res/i18n/html_strings.py:135
+#: res/i18n/html_strings.py:136
 msgid "CANCEL"
 msgstr ""
 
-#: res/i18n/html_strings.py:136
+#: res/i18n/html_strings.py:137
 msgid "CONNECT"
 msgstr ""
 
-#: res/i18n/html_strings.py:137
+#: res/i18n/html_strings.py:138
 msgid "How can I find my server URL?"
 msgstr "Wo kann ich meine Server-URL finden?"
 
-#: res/i18n/html_strings.py:138
+#: res/i18n/html_strings.py:139
 #, fuzzy
 msgid ""
 "The server URL is the adress that you can see in your browser when accessing "
@@ -811,192 +815,192 @@ msgstr ""
 "mit \"ws-\" beginnt, entfernen Sie diesen Teil und behalten nur den Anfang "
 "(siehe Bild unterhalb) "
 
-#: res/i18n/html_strings.py:139
+#: res/i18n/html_strings.py:140
 msgid "OK, GOT IT!"
 msgstr ""
 
-#: res/i18n/html_strings.py:140 res/i18n/html_strings.py:141
+#: res/i18n/html_strings.py:141 res/i18n/html_strings.py:142
 #, fuzzy
 msgid "2. Select a workspace"
 msgstr "Einen Arbeitsbereich auswählen"
 
-#: res/i18n/html_strings.py:142
+#: res/i18n/html_strings.py:143
 #, fuzzy
 msgid "Welcome, you are now connected to "
 msgstr "Sie haben eine Serververbindung mit %1 "
 
-#: res/i18n/html_strings.py:143
+#: res/i18n/html_strings.py:144
 #, fuzzy
 msgid "Choose a workspace"
 msgstr "Gesamtes Dateiverzeichnis"
 
-#: res/i18n/html_strings.py:145
+#: res/i18n/html_strings.py:146
 #, fuzzy
 msgid "Sync only a subfolder"
 msgstr "Nur ein Unterverzeichnis von diesem Dateiverzeichnis synchronisieren"
 
-#: res/i18n/html_strings.py:146 res/i18n/html_strings.py:152
-#: res/i18n/html_strings.py:176
+#: res/i18n/html_strings.py:147 res/i18n/html_strings.py:153
+#: res/i18n/html_strings.py:177
 msgid "BACK"
 msgstr ""
 
-#: res/i18n/html_strings.py:147
+#: res/i18n/html_strings.py:148
 msgid "NEXT"
 msgstr ""
 
-#: res/i18n/html_strings.py:148 res/i18n/html_strings.py:149
+#: res/i18n/html_strings.py:149 res/i18n/html_strings.py:150
 #, fuzzy
 msgid "3. Select a local folder"
 msgstr "Der lokale Ordner kann nicht entfernt werden."
 
-#: res/i18n/html_strings.py:150
+#: res/i18n/html_strings.py:151
 msgid ""
 "The content of My Files / Subfolder will be synced against the following "
 "folder on your computer. It will be created by default, or you can change "
 "its location."
 msgstr ""
 
-#: res/i18n/html_strings.py:153
+#: res/i18n/html_strings.py:154
 msgid "REVIEW PARAMETERS"
 msgstr ""
 
-#: res/i18n/html_strings.py:154 res/i18n/html_strings.py:155
+#: res/i18n/html_strings.py:155 res/i18n/html_strings.py:156
 #, fuzzy
 msgid "Review Sync Task Parameters"
 msgstr "Einstellungen speichern"
 
-#: res/i18n/html_strings.py:156
+#: res/i18n/html_strings.py:157
 msgid ""
 "Sync is now ready to launch: please verify the parameters and click on "
 "start. You can change these parameters later as well."
 msgstr ""
 
-#: res/i18n/html_strings.py:159
+#: res/i18n/html_strings.py:160
 #, fuzzy
 msgid "Remote Workspace"
 msgstr "Server Dateiverzeichnis"
 
-#: res/i18n/html_strings.py:162
+#: res/i18n/html_strings.py:163
 msgid "Estimated Transfer Information"
 msgstr ""
 
-#: res/i18n/html_strings.py:163
+#: res/i18n/html_strings.py:164
 msgid "Data Local"
 msgstr ""
 
-#: res/i18n/html_strings.py:164
+#: res/i18n/html_strings.py:165
 msgid "Data Remote"
 msgstr ""
 
-#: res/i18n/html_strings.py:165
+#: res/i18n/html_strings.py:166
 #, fuzzy
 msgid "Estimated Time"
 msgstr "Geschätzte Zeit"
 
-#: res/i18n/html_strings.py:166 res/i18n/html_strings.py:170
+#: res/i18n/html_strings.py:167 res/i18n/html_strings.py:171
 msgid "A sync task with similar parameters exists."
 msgstr ""
 
-#: res/i18n/html_strings.py:167
+#: res/i18n/html_strings.py:168
 #, fuzzy
 msgid "Please"
 msgstr "Bitte warten ..."
 
-#: res/i18n/html_strings.py:168 res/i18n/html_strings.py:172
+#: res/i18n/html_strings.py:169 res/i18n/html_strings.py:173
 msgid "change parameters"
 msgstr "Einstellungen ändern"
 
-#: res/i18n/html_strings.py:169 res/i18n/html_strings.py:173
+#: res/i18n/html_strings.py:170 res/i18n/html_strings.py:174
 msgid "CHANGE PARAMETERS"
 msgstr ""
 
-#: res/i18n/html_strings.py:171
+#: res/i18n/html_strings.py:172
 msgid "You may want to"
 msgstr ""
 
-#: res/i18n/html_strings.py:174
+#: res/i18n/html_strings.py:175
 #, fuzzy
 msgid "Show Advanced Parameters..."
 msgstr "Erweiterte Einstellungen"
 
-#: res/i18n/html_strings.py:175
+#: res/i18n/html_strings.py:176
 #, fuzzy
 msgid "Hide Advanced Parameters..."
 msgstr "Erweiterte Einstellungen"
 
-#: res/i18n/html_strings.py:177
+#: res/i18n/html_strings.py:178
 msgid "SAVE AND LAUNCH"
 msgstr ""
 
-#: res/i18n/html_strings.py:179
+#: res/i18n/html_strings.py:180
 msgid "ABOUT"
 msgstr ""
 
-#: res/i18n/html_strings.py:180 res/i18n/html_strings.py:181
-#: res/i18n/html_strings.py:210
+#: res/i18n/html_strings.py:181 res/i18n/html_strings.py:182
+#: res/i18n/html_strings.py:211
 msgid "Share %1 via Pydio"
 msgstr "Teilen Sie %1 über den Datei Manager"
 
-#: res/i18n/html_strings.py:182 res/i18n/html_strings.py:201
+#: res/i18n/html_strings.py:183 res/i18n/html_strings.py:202
 msgid "Description"
 msgstr "Beschreibung"
 
-#: res/i18n/html_strings.py:183
+#: res/i18n/html_strings.py:184
 msgid "Path"
 msgstr "Pfad"
 
-#: res/i18n/html_strings.py:184
+#: res/i18n/html_strings.py:185
 msgid "Share item"
 msgstr "Freigegebener Link"
 
-#: res/i18n/html_strings.py:185
+#: res/i18n/html_strings.py:186
 msgid "by creating a public link that can easily be sent to your contacts."
 msgstr ""
 "durch die Erzeugung eines öffentlichen Links kann dies einfach an Ihre "
 "Kontakte geschickt werden.  "
 
-#: res/i18n/html_strings.py:186
+#: res/i18n/html_strings.py:187
 msgid "You can customize the link parameters using the forms below."
 msgstr ""
 "Sie können die Linkeinstellungen anpassen wenn Sie das Formular unten nutzen."
 
-#: res/i18n/html_strings.py:187
+#: res/i18n/html_strings.py:188
 msgid "Secure Link Access"
 msgstr "Sicherer Link Zugriff"
 
-#: res/i18n/html_strings.py:188
+#: res/i18n/html_strings.py:189
 msgid "Optional Password"
 msgstr "Optionales Passwort"
 
-#: res/i18n/html_strings.py:190
+#: res/i18n/html_strings.py:191
 msgid "Expires After"
 msgstr "Läuft ab nach"
 
-#: res/i18n/html_strings.py:191 res/i18n/html_strings.py:196
+#: res/i18n/html_strings.py:192 res/i18n/html_strings.py:197
 msgid "Days"
 msgstr "Tagen"
 
-#: res/i18n/html_strings.py:192 res/i18n/html_strings.py:197
+#: res/i18n/html_strings.py:193 res/i18n/html_strings.py:198
 msgid "Downloads"
 msgstr "Downloads"
 
-#: res/i18n/html_strings.py:193
+#: res/i18n/html_strings.py:194
 msgid "Security"
 msgstr "Sicherheit"
 
-#: res/i18n/html_strings.py:195
+#: res/i18n/html_strings.py:196
 msgid "Expires after"
 msgstr "Läuft ab nach"
 
-#: res/i18n/html_strings.py:198
+#: res/i18n/html_strings.py:199
 msgid "Advanced parameters"
 msgstr "Erweiterte Einstellungen"
 
-#: res/i18n/html_strings.py:199
+#: res/i18n/html_strings.py:200
 msgid "Link Handle"
 msgstr "Link Handhabung"
 
-#: res/i18n/html_strings.py:200
+#: res/i18n/html_strings.py:201
 msgid ""
 "If you want a durable and pretty link (like https://.../my-share-link), you "
 "can use this field. Link handle will be generated if left empty."
@@ -1005,39 +1009,39 @@ msgstr ""
 "mein-geteilter-Link), können Sie dieses Feld benutzen. Wenn Sie das Feld "
 "leer lassen, wird der Link automatisch erzeugt.  "
 
-#: res/i18n/html_strings.py:202
+#: res/i18n/html_strings.py:203
 msgid "This will be displayed to the shared users."
 msgstr "Dies wird dem Nutzer angezeigt, mit dem Sie den Link teilen."
 
-#: res/i18n/html_strings.py:203
+#: res/i18n/html_strings.py:204
 msgid "Access Rights"
 msgstr "Zugriffsrechte"
 
-#: res/i18n/html_strings.py:204
+#: res/i18n/html_strings.py:205
 msgid "By default, the item will be previewed and downloadable"
 msgstr "Standardmäßig kann man die Datei anschauen und herunterladen"
 
-#: res/i18n/html_strings.py:205
+#: res/i18n/html_strings.py:206
 msgid "Preview"
 msgstr "Vorschau"
 
-#: res/i18n/html_strings.py:206
+#: res/i18n/html_strings.py:207
 msgid "Download"
 msgstr "Download"
 
-#: res/i18n/html_strings.py:207
+#: res/i18n/html_strings.py:208
 msgid "Upload"
 msgstr "Hochladen"
 
-#: res/i18n/html_strings.py:208 res/i18n/html_strings.py:209
+#: res/i18n/html_strings.py:209 res/i18n/html_strings.py:210
 msgid "Generate Link"
 msgstr "Einen Link erzeugen"
 
-#: res/i18n/html_strings.py:211
+#: res/i18n/html_strings.py:212
 msgid "Shared Link"
 msgstr "Freigegebener Link"
 
-#: res/i18n/html_strings.py:212
+#: res/i18n/html_strings.py:213
 msgid ""
 "Shared link to the selected item already exists. Below is the link to the "
 "selected item"
@@ -1045,54 +1049,54 @@ msgstr ""
 "Geteilter Link zu der ausgewählten Datei ist bereits vorhanden. Nachfolgend "
 "der Link zu der ausgewählten Datei"
 
-#: res/i18n/html_strings.py:213
+#: res/i18n/html_strings.py:214
 msgid "New shared link to the selected item has been generated"
 msgstr "Ein neuer Link für eine geteilte Datei wurde erzeugt"
 
-#: res/i18n/html_strings.py:214
+#: res/i18n/html_strings.py:215
 msgid "Shared Link to the selected item has not been generated"
 msgstr "Es wurde kein neuer Link für eine geteilte Datei erzeugt"
 
-#: res/i18n/html_strings.py:215
+#: res/i18n/html_strings.py:216
 #, fuzzy
 msgid "Share link"
 msgstr "Freigegebener Link"
 
-#: res/i18n/html_strings.py:216
+#: res/i18n/html_strings.py:217
 msgid "Copy to Clipboard"
 msgstr "In die Zwischenablage kopieren"
 
-#: res/i18n/html_strings.py:217
+#: res/i18n/html_strings.py:218
 msgid "UnShare Link"
 msgstr "Löschen der Freigabe"
 
-#: res/i18n/html_strings.py:218
+#: res/i18n/html_strings.py:219
 msgid "Text has been copied to clipboard."
 msgstr "Text wurde in die Zwischenablage kopiert."
 
-#: res/i18n/html_strings.py:219
+#: res/i18n/html_strings.py:220
 msgid "Successfully unshared."
 msgstr "Teilung erfolgreich aufgehoben"
 
-#: res/i18n/html_strings.py:220
+#: res/i18n/html_strings.py:221
 #, fuzzy
 msgid "Welcome to PydioSync"
 msgstr "Willkommen beim Pydio-Sync"
 
-#: res/i18n/html_strings.py:221
+#: res/i18n/html_strings.py:222
 #, fuzzy
 msgid "The best way to keep all your data in sync."
 msgstr "Der einfachste Weg, Ihre Daten unter Kontrolle zu halten"
 
-#: res/i18n/html_strings.py:222
+#: res/i18n/html_strings.py:223
 msgid "To begin using PydioSync, "
 msgstr ""
 
-#: res/i18n/html_strings.py:223
+#: res/i18n/html_strings.py:224
 msgid "If you encounter issues please refer to the"
 msgstr ""
 
-#: res/i18n/html_strings.py:224
+#: res/i18n/html_strings.py:225
 msgid "If that fails please look for help in our"
 msgstr ""
 

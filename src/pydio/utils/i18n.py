@@ -93,6 +93,15 @@ gettext.bind_textdomain_codeset(APP_NAME, "UTF-8")
 language = gettext.translation(APP_NAME, mo_location, languages=languages, fallback=True)
 
 """
+New process:
+ > pydio-sync-agent --extract_html=extract
+ MANUALLY EDIT PO FILES
+ > pydio-sync-agent --extract_html=compile
+
+To add a new language :
+ see below and edit extract_html in main.py
+
+-- OBSOLETE Kept for reference, useful to add languages --
 Utilitary to transform HTML strings to PO compatible strings.
 Process is the following
 * In PY files, declare the following import, and use _('')

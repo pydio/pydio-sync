@@ -21,6 +21,7 @@
 import logging
 import sys
 import os
+import subprocess
 try:
     import pydio.monkeypatch
     import pydio.utils.functions
@@ -237,17 +238,24 @@ def main(argv=sys.argv[1:]):
 
     if args.extract_html:
         proc = PoProcessor()
+        languages = ['fr', 'de', 'nl', 'it']
+        root = Path(__file__).parent
         if args.extract_html == 'extract':
-            root = Path(__file__).parent
             count = proc.extract_all_html_strings(str(root / 'ui' ), str(root / 'res' / 'i18n' / 'html_strings.py' ))
             logging.info('Wrote %i strings to html_strings.py - Now update PO files using standard tools' % count)
             # nothing more to do
+            cmd = 'xgettext --language=Python --keyword=_ --output=res/i18n/pydio.pot `find . -name "*.py"`'
+            subprocess.check_output(cmd, shell=True, cwd=str(root))
+            for l in languages:
+                cmd = 'msgmerge -vU ' + l + '.po pydio.pot'
+                logging.info('Running ' + cmd)
+                subprocess.check_output(cmd, cwd=str(root / 'res' / 'i18n'), shell=True)
         elif args.extract_html == 'compile':
-            root = Path(__file__).parent
+            for l in languages:
+                cmd = 'msgfmt ' + l + '.po --output-file ' + l + '/LC_MESSAGES/pydio.mo'
+                logging.info('Running ' + cmd)
+                subprocess.check_output(cmd, cwd=str(root / 'res' / 'i18n'), shell=True)
             proc.po_to_json(str(root / 'res' / 'i18n' / '*.po'), str(root / 'ui' / 'app' / 'i18n.js'))
-        logging.info("XGETTEXT, TODO automate")
-        logging.info("Merge po files, TODO automate")
-        logging.info("MSGFMT, TODO automate")
         return sys.exit(0)
 
     if args.diag_http:
