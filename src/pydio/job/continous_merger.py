@@ -445,7 +445,7 @@ class ContinuousDiffMerger(threading.Thread):
                     self.marked_for_snapshot_pathes = []
 
                 writewait = .5  # To avoid reading events before they're written (db lock) wait for writing to finish
-                while self.event_handler.locked:
+                while self.event_handler and self.event_handler.locked:
                     logging.info("Waiting for changes to be written before retrieving remote changes.")
                     if writewait < 5:
                         writewait += .5
