@@ -169,6 +169,7 @@
             }, function(response){
                 if(response.application_title){
                     self.job.application_title = response.application_title;
+                    $scope.application_title = self.job.application_title;
                     self.job.label = self.job.application_title;
                 }
                 if(response.user_display_name){

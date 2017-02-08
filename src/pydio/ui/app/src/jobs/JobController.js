@@ -179,6 +179,8 @@
 
     self.menuOpened = false;
     $scope.application_title = window.translate("PydioSync");
+    if (ui_config.login_mode === 'alias')
+        $scope.application_title = window.translate("Workspaces");
     $scope.$on('$mdMenuClose', function(){ self.menuOpened = false});
 
     $scope.SHOW_INTERFACE = ($location.url().indexOf('share') == -1) // HACKY... hide interface when showing the /share page

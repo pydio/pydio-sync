@@ -73,7 +73,7 @@
         <md-input-container class="md-block" style="flex:1">
             <md-tooltip>{{_('You can increase or reduce the number of concurrent connections.')}}</md-tooltip>
             <label>{{_('Concurrent connections')}}</label>
-            <input type="number" ng-model="selected.job.poolsize" min="1" max="99" required ng-style="
+            <input type="number" ng-model="selected.job.poolsize" min="1" max="99" step="1" required ng-style="
                     selected.job.poolsize <= 4 && {'color': 'DarkGreen'} ||
                     selected.job.poolsize <= 8 && selected.job.poolsize > 4 && {'color': 'Salmon'} ||
                     selected.job.poolsize > 8 && {'color': 'FireBrick'}">
