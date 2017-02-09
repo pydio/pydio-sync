@@ -247,7 +247,8 @@ def main(argv=sys.argv[1:]):
             cmd = 'xgettext --language=Python --keyword=_ --output=res/i18n/pydio.pot `find . -name "*.py"`'
             subprocess.check_output(cmd, shell=True, cwd=str(root))
             for l in languages:
-                cmd = 'msgmerge -vU ' + l + '.po pydio.pot'
+                # Sometimes fuzzy matching should be used but mostly results in wrong translations
+                cmd = 'msgmerge -vU --no-fuzzy-matching ' + l + '.po pydio.pot'
                 logging.info('Running ' + cmd)
                 subprocess.check_output(cmd, cwd=str(root / 'res' / 'i18n'), shell=True)
         elif args.extract_html == 'compile':

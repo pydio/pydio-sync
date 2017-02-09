@@ -38,7 +38,7 @@ msgstr "File %s eliminato"
 #: job/change_processor.py:219
 #, fuzzy
 msgid " {} deleted"
-msgstr "Cartella %s eliminata"
+msgstr " {} eliminata"
 
 #: job/change_processor.py:225
 #, fuzzy, python-format
@@ -183,7 +183,7 @@ msgstr "Errore di connessione: troppe redirezioni"
 
 #: job/continous_merger.py:698 ui/web_api.py:467 ui-old/web_api.py:375
 msgid "Chunked encoding error, please check the logs"
-msgstr ""
+msgstr "Pezzi codifica errore, controllare i log"
 
 #: job/continous_merger.py:701 ui/web_api.py:470 ui-old/web_api.py:378
 msgid "Content Decoding error, please check the logs"
@@ -278,15 +278,15 @@ msgstr "Automaticamente"
 
 #: res/i18n/html_strings.py:12
 msgid "Manually (you trigger the sync)"
-msgstr ""
+msgstr "Manuale (Sync sul click ►)"
 
 #: res/i18n/html_strings.py:13
 msgid "At a given time of day"
-msgstr ""
+msgstr "A questa ora della giornata"
 
 #: res/i18n/html_strings.py:14
 msgid "Every x min"
-msgstr ""
+msgstr "Doppo x minuti"
 
 #: res/i18n/html_strings.py:15 res/i18n/html_strings.py:52
 msgid "Conflicts"
@@ -319,7 +319,7 @@ msgstr ""
 
 #: res/i18n/html_strings.py:20
 msgid "Resolution scheme"
-msgstr ""
+msgstr "Modo di resoluzione"
 
 #: res/i18n/html_strings.py:21
 msgid "Keep both"
@@ -338,14 +338,16 @@ msgid ""
 "The local file is renamed to a new file with a dot and your username. The "
 "common version is that of the server."
 msgstr ""
+"La file locale sara rinomita con un punto e il suo nome utente. La versione "
+"corrente sara quella del server."
 
 #: res/i18n/html_strings.py:25
 msgid "In this mode the local version is kept and pushed to the server."
-msgstr ""
+msgstr "Con questo modo, la versione locale e preferita e sara caricata sul server."
 
 #: res/i18n/html_strings.py:26
 msgid "In this mode the local version is lost."
-msgstr ""
+msgstr "Con questo modo la versione locale sara riplassata con quello del server."
 
 #: res/i18n/html_strings.py:27
 #, fuzzy
@@ -363,7 +365,7 @@ msgstr "Timeout in secondi"
 
 #: res/i18n/html_strings.py:31
 msgid "You can increase or reduce the number of concurrent connections."
-msgstr ""
+msgstr "È possibile aumentare o reducere il numero di connessione"
 
 #: res/i18n/html_strings.py:32
 #, fuzzy
@@ -372,15 +374,15 @@ msgstr "Configura Connessione"
 
 #: res/i18n/html_strings.py:33
 msgid "WS"
-msgstr ""
+msgstr "WS"
 
 #: res/i18n/html_strings.py:34
 msgid "Active"
-msgstr ""
+msgstr "Attivati"
 
 #: res/i18n/html_strings.py:35
 msgid "Sync interval"
-msgstr ""
+msgstr "Tempo fra due Sync"
 
 #: res/i18n/html_strings.py:36
 msgid "Include/Exclude from Sync"
@@ -409,11 +411,11 @@ msgstr "Aggiungere una sincronizzazione"
 
 #: res/i18n/html_strings.py:41
 msgid "Active Tasks"
-msgstr ""
+msgstr "Compiti attivi"
 
 #: res/i18n/html_strings.py:42 res/i18n/html_strings.py:49
 msgid "More info..."
-msgstr ""
+msgstr "Più informazioni..."
 
 #: res/i18n/html_strings.py:43 res/i18n/html_strings.py:91
 #, fuzzy
@@ -422,11 +424,11 @@ msgstr "Processo in pausa"
 
 #: res/i18n/html_strings.py:44
 msgid "Resume"
-msgstr ""
+msgstr "Riprendere"
 
 #: res/i18n/html_strings.py:45 res/i18n/html_strings.py:94
 msgid "Stop"
-msgstr ""
+msgstr "Stop"
 
 #: res/i18n/html_strings.py:46 res/i18n/html_strings.py:51
 #, fuzzy
@@ -435,7 +437,7 @@ msgstr "Impostazioni Log"
 
 #: res/i18n/html_strings.py:48
 msgid "Disabled Tasks"
-msgstr ""
+msgstr "Compiti disattivati"
 
 #: res/i18n/html_strings.py:50 res/i18n/html_strings.py:89
 #, fuzzy
@@ -468,11 +470,11 @@ msgstr "Tempo stimato"
 
 #: res/i18n/html_strings.py:59
 msgid "Currently processing "
-msgstr ""
+msgstr "Compiti attuali"
 
 #: res/i18n/html_strings.py:60
 msgid " tasks "
-msgstr ""
+msgstr " compiti"
 
 #: res/i18n/html_strings.py:61
 #, fuzzy
@@ -481,7 +483,7 @@ msgstr "Sincronizzato"
 
 #: res/i18n/html_strings.py:62
 msgid "No history available"
-msgstr ""
+msgstr "Niente a dispozione"
 
 #: res/i18n/html_strings.py:63
 #, fuzzy
@@ -490,7 +492,7 @@ msgstr "Nome File"
 
 #: res/i18n/html_strings.py:64
 msgid "has two different versions"
-msgstr ""
+msgstr "a due versione differente"
 
 #: res/i18n/html_strings.py:65
 msgid ""
@@ -500,7 +502,7 @@ msgstr ""
 
 #: res/i18n/html_strings.py:66 res/i18n/html_strings.py:69
 msgid "Modified"
-msgstr ""
+msgstr "Modificato"
 
 #: res/i18n/html_strings.py:67
 msgid "Local will be renamed, remote will be downloaded."
@@ -517,7 +519,7 @@ msgstr ""
 
 #: res/i18n/html_strings.py:71
 msgid "Cancel"
-msgstr ""
+msgstr "Cancelare"
 
 #: res/i18n/html_strings.py:72
 msgid "OK"
@@ -525,11 +527,11 @@ msgstr ""
 
 #: res/i18n/html_strings.py:73
 msgid "REVERT"
-msgstr ""
+msgstr "DISFARE"
 
 #: res/i18n/html_strings.py:74
 msgid "SAVE"
-msgstr ""
+msgstr "SALVARE"
 
 #: res/i18n/html_strings.py:75
 #, fuzzy

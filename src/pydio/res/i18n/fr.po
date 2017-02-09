@@ -148,12 +148,10 @@ msgid "Merging changes between remote and local, please wait..."
 msgstr "Fusion des modifications distantes et locales..."
 
 #: job/continous_merger.py:554
-#, fuzzy
 msgid "Detecting unecessary changes..."
 msgstr "%i Changements détectés"
 
 #: job/continous_merger.py:557
-#, fuzzy
 msgid "Done detecting unecessary changes..."
 msgstr "%i Changements détectés"
 
@@ -274,6 +272,8 @@ msgid ""
 "By default, changes are propagated in real-time, but for some usecases it "
 "can be handy to disable real-time and switch to less frequent checks."
 msgstr ""
+"Par défaut, les modifications sont propagées immédiatement, dans certains "
+"cas, il peut être préférable de synchroniser manuellement."
 
 #: res/i18n/html_strings.py:11
 #, fuzzy
@@ -353,7 +353,6 @@ msgid "In this mode the local version is lost."
 msgstr "Dans ce mode la version locale est écrasée."
 
 #: res/i18n/html_strings.py:27
-#, fuzzy
 msgid "Connection settings"
 msgstr "Paramètres de connexion"
 
@@ -595,7 +594,7 @@ msgstr "Ce workspace est en lecture seule !"
 
 #: res/i18n/html_strings.py:86
 msgid "You must provide your password"
-msgstr ""
+msgstr "Mot de passe nécessaire"
 
 #: res/i18n/html_strings.py:87 res/i18n/html_strings.py:161
 #, fuzzy
