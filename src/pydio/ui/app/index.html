@@ -29,7 +29,7 @@
                 <img ng-show="showAllJobs && !ShowGeneralSettings.show" id="app_icon" style="max-height:40px; margin: 10px 0 0 10px" src="/res/dynamic.png" onerror="this.style.visibility = 'hidden'; document.getElementById('app_title').style.visibility = 'visible'">
                 <a ng-hide="showAllJobs && !ShowGeneralSettings.show" href="/app/index.html" ng-click="ShowGeneralSettings.show = false; showAllJobs = true;"><md-icon style="width:50px; padding-left:16px; padding-top:18px; cursor:pointer">arrow_back</md-icon></a>
                 <h1 ng-show="showAllJobs && !ShowGeneralSettings.show" ng-click="ShowGeneralSettings.show = false; showAllJobs = true;" style="cursor:pointer;">
-                    <span id="app_title" style="/*visibility:hidden;*/ margin-top:calc(100%);">{{application_title}}</span>
+                    <span id="app_title" style="/*visibility:hidden;*/ margin-top:calc(100%);">&nbsp;{{application_title}}</span>
                 </h1>
                 <h1 ng-show="ShowGeneralSettings.show">{{_('General configurations page')}}</h1>
                 <span flex></span>
@@ -168,7 +168,7 @@
                 e.style.maxHeight = (window.innerHeight - 165) + "px";
             e = document.getElementById('settingsForm')
             if (e)
-                e.style.maxHeight = (window.innerHeight - 165) + "px";
+                e.style.maxHeight = (window.innerHeight - 225) + "px";
             e = document.getElementById('aboutDiv');
             if(e)
                 e.style.maxHeight = (window.innerHeight - 165) + "px";
