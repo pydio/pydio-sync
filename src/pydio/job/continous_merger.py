@@ -569,6 +569,17 @@ class ContinuousDiffMerger(threading.Thread):
                         for row in self.db_handler.list_conflict_nodes():
                             self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPBOTH')
                         store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
+                    if self.job_config.solve == 'local':
+                        logging.info('Marking nodes SOLVED:KEEPLOCAL')
+                        for row in self.db_handler.list_conflict_nodes():
+                            self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPLOCAL')
+                        store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
+                    if self.job_config.solve == 'remote':
+                        logging.info('Marking nodes SOLVED:KEEPREMOTE')
+                        for row in self.db_handler.list_conflict_nodes():
+                            self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPREMOTE')
+                        store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
+
                 if store_conflicts:
                     logging.info('Conflicts detected, cannot continue!')
                     self.logger.log_state(_('Conflicts detected, cannot continue!'), 'error')
