@@ -50,7 +50,9 @@
             $mdDialog.hide();
         };
         $scope.cancel = function() {
-            document.getElementById('welcomeDiv').style['marginTop'] = '0px';
+            var e = document.getElementById('welcomeDiv')
+            if(e)
+                e.style['marginTop'] = '0px';
             $mdDialog.cancel();
         };
         $scope.answer = function(answer) {
