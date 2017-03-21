@@ -42,7 +42,7 @@ try:
 except ImportError:
     pass
 
-class SqliteChangeStore():
+class SqliteChangeStore(object):
     conn = None
     DEBUG = False
 
