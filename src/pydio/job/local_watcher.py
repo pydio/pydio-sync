@@ -104,7 +104,7 @@ class SnapshotDiffStart(DirectorySnapshotDiff):
 
 class LocalWatcher(threading.Thread):
     def __init__(self, local_path, data_path, event_handler):
-        threading.Thread.__init__(self)
+        super(LocalWatcher, self).__init__()
         self.basepath = unicode(local_path)
         self.observer = None
         self.job_data_path = data_path
@@ -193,4 +193,3 @@ class LocalWatcher(threading.Thread):
         self.observer.schedule(self.event_handler, self.basepath, recursive=True)
         self.observer.start()
         self.observer.join()
-
