@@ -20,19 +20,28 @@
 import os
 import logging
 import shutil
-from pydio.utils.global_config import ConfigManager
-from pydio.utils import i18n
-_ = i18n.language.ugettext
-from pydio.utils.pydio_profiler import pydio_profile
+import sys
+import re
+
+import xml.etree.ElementTree as ET
+try:
+    from pydio.utils.global_config import ConfigManager
+    from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils import i18n
+    _ = i18n.language.ugettext
+except ImportError:
+    from utils.global_config import ConfigManager
+    from utils.pydio_profiler import pydio_profile
+    from utils import i18n
+    _ = i18n.language.ugettext
 
 class ChangeProcessor:
     def __init__(self, change, change_store, job_config, local_sdk, remote_sdk, status_handler, event_logs_handler):
         """
-
         :param change: dict
         :param change_store: pydio.job.change_stores.SqliteChangeStore
         :param job_config: dict
-        :param local_sdk: pydio.sdk.local.SystemSdk
+        :param local_sdk: pydio.sdklocal.local.SystemSdk
         :param status_handler: pydio.local.status_handler
         :param event_logs_handler: pydio.job.EventLogger
         :type remote_sdk: pydio.sdk.remote.PydioSdk
@@ -48,7 +57,8 @@ class ChangeProcessor:
     def log(self, type, action, status, message, console_message, source='', target=''):
         logging.info(console_message)
         logging.info(message)
-        self.log_handler.log(event_type=type, action=action, status=status, source=source, target=target, message=message)
+        if self.log_handler:
+            self.log_handler.log(event_type=type, action=action, status=status, source=source, target=target, message=message)
 
     def update_node_status(self, path, status):
         self.status_handler.update_node_status(path, status)
@@ -60,6 +70,15 @@ class ChangeProcessor:
         :return:
         """
         item = self.change
+        """ # Just here for reference this is clearly not optimal
+        if sys.platform.startswith('win'):
+            if 'node' in item and 'node_path' in item['node']:
+                if re.search('[?<>:*|]', item['node']['node_path']) is not None:
+                    logging.info('ERROR At least one unsupported character found in ' + item['node']['node_path'])
+                    return False
+        if sys.platfrom.startswith('Darwin'):
+            return False
+        """
         location = item['location']
         item['progress'] = 0
         if self.job_config.direction == 'up' and location == 'remote':
@@ -76,7 +95,8 @@ class ChangeProcessor:
                         self.process_local_mkdir(item['node']['node_path'])
                     else:
                         self.process_remote_mkdir(item['node']['node_path'])
-                    self.change_store.buffer_real_operation(location, item['type'], 'NULL', item['node']['node_path'])
+                    if self.change_store is not None:
+                        self.change_store.buffer_real_operation(location, item['type'], 'NULL', item['node']['node_path'])
 
             elif item['node']['bytesize'] == 0:
                 logging.debug('[' + location + '] Create file ' + item['node']['node_path'])
@@ -84,21 +104,24 @@ class ChangeProcessor:
                     self.process_local_mkfile(item['node']['node_path'])
                 else:
                     self.process_remote_mkfile(item['node']['node_path'])
-                self.change_store.buffer_real_operation(location, 'create', 'NULL', item['node']['node_path'])
+                if self.change_store is not None:
+                    self.change_store.buffer_real_operation(location, 'create', 'NULL', item['node']['node_path'])
 
             else:
                 if item['node']['node_path']:
                     if location == 'remote':
                         self.process_download(item['node']['node_path'], is_mod=(item['type'] != 'create'), callback_dict=item)
-                        if item['type'] == 'create':
-                            self.change_store.buffer_real_operation(location, item['type'], 'NULL',
+                        if self.change_store is not None:
+                            if item['type'] == 'create':
+                                self.change_store.buffer_real_operation(location, item['type'], 'NULL',
                                                                     item['node']['node_path'])
-                        else:
-                            self.change_store.buffer_real_operation(location, item['type'], item['node']['node_path'],
-                                                                    item['node']['node_path'])
+                            else:
+                                self.change_store.buffer_real_operation(location, item['type'], item['node']['node_path'],
+                                                                        item['node']['node_path'])
                     else:
                         self.process_upload(item['node']['node_path'], is_mod=(item['type'] != 'create'), callback_dict=item)
-                        self.change_store.buffer_real_operation(location, item['type'], ('NULL' if item['type'] =='create' else item['node']['node_path']),
+                        if self.change_store is not None:
+                            self.change_store.buffer_real_operation(location, item['type'], ('NULL' if item['type'] =='create' else item['node']['node_path']),
                                                                 item['node']['node_path'])
 
         elif item['type'] == 'delete':
@@ -107,7 +130,8 @@ class ChangeProcessor:
                 self.process_local_delete(item['source'])
             else:
                 self.process_remote_delete(item['source'])
-            self.change_store.buffer_real_operation(location, 'delete', item['source'], 'NULL')
+            if self.change_store is not None:
+                self.change_store.buffer_real_operation(location, 'delete', item['source'], 'NULL')
 
         elif item['type'] == 'bulk_mkdirs':
             try:
@@ -118,34 +142,38 @@ class ChangeProcessor:
                     #self.change_store.buffer_real_operation(bulk_location, 'create', 'NULL', path)
                     bulk.append({'type':'create', 'location':bulk_location, 'source':'NULL', 'target':path})
 
-                if bulk:
+                if bulk and self.change_store is not None:
                     self.change_store.bulk_buffer_real_operation(bulk)
-            except Exception as e :
+            except Exception as e:
+                logging.exception(e)
                 pass
         else:
             logging.debug('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
             if location == 'remote':
                 if os.path.exists(self.job_config.directory + item['source']):
-                    if self.process_local_move(item['source'], item['target']):
+                    if self.process_local_move(item['source'], item['target']) and self.change_store is not None:
                         self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'])
                 else:
                     if item["node"]["md5"] == "directory":
                         logging.debug('Cannot find folder to move, switching to creation')
                         self.process_local_mkdir(item['target'])
-                        self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
+                        if self.change_store is not None:
+                            self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
                     else:
                         logging.debug('Cannot find source, switching to DOWNLOAD')
                         self.process_download(item['target'], is_mod=False, callback_dict=item)
-                    self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
+                    if self.change_store is not None:
+                        self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
             else:
                 if self.remote_sdk.stat(item['source']):
                     self.process_remote_move(item['source'], item['target'])
-                    self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'])
+                    if self.change_store is not None:
+                        self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'])
                 elif item['node']['md5'] != 'directory':
                     logging.debug('Cannot find source, switching to UPLOAD')
                     self.process_upload(item['target'], callback_dict=item, is_mod=False)
-                    self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
-
+                    if self.change_store is not None:
+                        self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
 
     def process_local_mkdir(self, path):
         message = path + ' <============ MKDIR'
@@ -180,27 +208,42 @@ class ChangeProcessor:
                      target=path, console_message=message, message=(_('Deleted file %s') % path))
 
     def process_remote_delete(self, path):
-        self.remote_sdk.delete(path)
+        resp = self.remote_sdk.delete(path)
+        file_or_folder = "Folder" if resp.find('fonticon="folder"') > -1 else "File"
         message = 'DELETE ============> ' + path
-        self.log(type='remote', action='delete', status='success',
-                 target=path, console_message=message, message=(_('Folder %s deleted') % path))
+        try:
+            e = ET.ElementTree(ET.fromstring(resp)).getroot().find('message')
+            if e is not None:
+                mess = e.text
+            else:
+                mess = _(file_or_folder + u' {} deleted'.format(path))
+            self.log(type='remote', action='delete', status='success',
+                     target=path, console_message=message, message=mess)
+        except Exception as e:
+            logging.exception(e)
+            self.log(type='remote', action='delete', status='success',
+                     target=path, console_message=message, message=(_(file_or_folder + ' %s deleted') % path))
 
     @pydio_profile
     def process_local_move(self, source, target):
-        if os.path.exists(self.job_config.directory + source):
-            if not os.path.exists(self.job_config.directory + os.path.dirname(target)):
-                os.makedirs(self.job_config.directory + os.path.dirname(target))
-            shutil.move(self.job_config.directory + source, self.job_config.directory + target)
-            message = source + ' to ' + target + ' <============ MOVE'
-            self.log(type='local', action='move', status='success', target=target,
-                     source=source, console_message=message,
-                     message=(_('Moved %(source)s to %(target)s') % ({'source': source, 'target': target})))
-            return True
+        try:
+            if os.path.exists(self.job_config.directory + source):
+                if not os.path.exists(self.job_config.directory + os.path.dirname(target)):
+                    os.makedirs(self.job_config.directory + os.path.dirname(target))
+                shutil.move(self.job_config.directory + source, self.job_config.directory + target)
+                message = source + ' to ' + target + ' <============ MOVE'
+                self.log(type='local', action='move', status='success', target=target,
+                         source=source, console_message=message,
+                         message=(_('Moved %(source)s to %(target)s') % ({'source': source, 'target': target})))
+                return True
+        except Exception as e:
+            logging.exception(e)
         return False
 
     @pydio_profile
     def process_remote_move(self, source, target):
         message = 'MOVE ============> ' + source + ' to ' + target
+        self.update_node_status(target, 'IDLE')
         self.log(type='remote', action='move', status='success', target=target,
                  source=source, console_message=message,
                  message=(_('Moved %(source)s to %(target)s') % ({'source': source, 'target': target})))
@@ -220,13 +263,14 @@ class ChangeProcessor:
                 self.local_sdk.rsync_patch(full_path, delta_path)
                 message = path + ' <====PATCH====== ' + path
             except Exception as e:
-                self.remote_sdk.download(path, self.job_config.directory + path, callback_dict)
+                logging.exception(e)
+                self.remote_sdk.stat_and_download(path, self.job_config.directory + path, callback_dict)
             if os.path.exists(sig_path):
                 os.remove(sig_path)
             if os.path.exists(delta_path):
                 os.remove(delta_path)
         else:
-            self.remote_sdk.download(path, self.job_config.directory + path, callback_dict)
+            self.remote_sdk.stat_and_download(path, self.job_config.directory + path, callback_dict)
 
         self.update_node_status(path, 'IDLE')
         self.log(type='local', action='download', status='success',
@@ -250,16 +294,17 @@ class ChangeProcessor:
                 self.remote_sdk.rsync_patch(path, delta_path)
                 message = path + ' =====PATCH=====> ' + path
             except Exception as e:
-                self.remote_sdk.upload(full_path, self.local_sdk.stat(path), path, callback_dict,
-                               max_upload_size=max_upload_size)
+                logging.exception(e)
+                self.remote_sdk.upload_and_hashstat(full_path, self.local_sdk.stat(path), path, self.status_handler,
+                                                    callback_dict, max_upload_size=max_upload_size)
             finally:
                 if os.path.exists(sig_path):
                     os.remove(sig_path)
                 if os.path.exists(delta_path):
                     os.remove(delta_path)
         else:
-            self.remote_sdk.upload(full_path, self.local_sdk.stat(path), path, callback_dict,
-                               max_upload_size=max_upload_size)
+            self.remote_sdk.upload_and_hashstat(full_path, self.local_sdk.stat(path), path, self.status_handler,
+                                callback_dict, max_upload_size=max_upload_size)
 
         self.update_node_status(path, 'IDLE')
         self.log(type='remote', action='upload', status='success', target=path,
@@ -272,10 +317,9 @@ class ChangeProcessor:
 
     def process_remote_mkfile(self, path):
         message = 'MKFILE ============> ' + path
-        self.remote_sdk.mkfile(path)
+        self.remote_sdk.mkfile(path, self.local_sdk.stat(path))
         self.log(type='remote', action='mkfile', status='success', target=path,
                  console_message=message, message=(_('File created at %s') % path))
-
 
 class StorageChangeProcessor(ChangeProcessor):
 
@@ -326,7 +370,8 @@ class StorageChangeProcessor(ChangeProcessor):
 
                 if bulk:
                     self.change_store.bulk_buffer_real_operation(bulk)
-            except Exception as e :
+            except Exception as e:
+                logging.exception(e)
                 pass
         else:
             logging.debug('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])

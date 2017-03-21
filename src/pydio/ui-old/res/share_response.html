@@ -1,0 +1,37 @@
+<div ng-init="miniview_done=false">
+<div ng-hide="miniview_done" ng-class="{'well': miniview}" style="padding-bottom:100%;">
+<h1 class="shareHeader" ng-value="GetShareLink()">{{_('Share %1 via Pydio', share_filename.split('\\').pop().split('/').pop())}}</h1>
+
+<div style="margin-top: 80px;">
+    <form name="myForm" class="form-inline">
+        <div>
+            <h4>{{_('Shared Link')}}</h4>
+            <div class="form-group">
+                    <p ng-show="existingLinkFlag && checkResponseFlag" class="small">{{_('Shared link to the selected item already exists. Below is the link to the selected item')}}</p>
+                    <p ng-show="!existingLinkFlag && checkResponseFlag" class="small">{{_('New shared link to the selected item has been generated')}}</p>
+                    <p ng-show="!checkResponseFlag" class="small">{{_('Shared Link to the selected item has not been generated')}}</p>
+                    <div class="input-group" align="centre">
+                        <input type="text" size="60" ng-model="share_link" readonly class="form-control">
+                    </div>
+                <div />
+            </div>
+        </div>
+    </form>
+</div>
+
+<div  style="text-align: center; margin-top: 20px; font-size: 1.3em;">
+    <button type="button" ng-click="copyToClipBoard(share_link); copyToClipBoardFlag=true;" ng-class="miniview_button" class="btn btn-primary" style="padding: 10px; width: 42%;margin:0 1% 0 0;">{{_('Copy to Clipboard')}}</button>
+    <button type="button" ng-show="checkResponseFlag" class="btn btn-danger" ng-class="miniview_button" ng-click="unShareLink()" style="padding: 10px; width: 42%;margin:0 1% 0 0;" href>{{_('UnShare Link')}}</button>
+</div>
+
+<div  style="text-align: center; margin-top: 20px;">
+    <p class="small" ng-show="copyToClipBoardFlag">{{_('Text has been copied to clipboard.')}}</p>
+</div>
+</div>
+</div>
+<div ng-show="miniview_done" class="well" style="padding-bottom: 100%;">
+    <div style="text-align: center;">
+        <p>{{ share_details.fileName }}</p>
+        <p>{{_('Successfully unshared.')}}</p>
+    </div>
+</div>

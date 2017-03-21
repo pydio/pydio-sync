@@ -19,14 +19,34 @@
 #
 import os,sys
 import urllib2
-
+import logging
+import time
 
 def hashfile(afile, hasher, blocksize=65536):
+    """
+    Hash a fd
+    :param afile: a file descriptor, WARNING don't forget to close it in the caller, check with p = psutil.Processor(); len(p.open_files())
+    :param hasher: usually hashlib.md5()
+    :param blocksize: the size of the chunks
+    :return: hash of fd using hasher and blocksize
+    """
+    #ts = time.time()
     buf = afile.read(blocksize)
     while len(buf) > 0:
         hasher.update(buf)
         buf = afile.read(blocksize)
-    return hasher.hexdigest()
+    res = hasher.hexdigest()
+    if res == "d41d8cd98f00b204e9800998ecf8427e":  # empty file
+        time.sleep(.2)
+        #logging.info("DOUBLE HASH")
+        afile.seek(0)
+        buf = afile.read(blocksize)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = afile.read(blocksize)
+        res = hasher.hexdigest()
+    #logging.info(" HASHED " + afile.name + " " + str(res) + " in " + str(time.time()-ts) + "s")
+    return res
 
 
 def set_file_hidden(path):
@@ -55,9 +75,12 @@ class ConnectionHelper:
     def __init__(self):
         self.internet_ok = True
 
-    def is_connected_to_internet(self):
+    def is_connected_to_internet(self, proxies):
         try:
-            resp = urllib2.urlopen('http://www.google.com', timeout=1)
+            proxy = urllib2.ProxyHandler(proxies)
+            opener = urllib2.build_opener(proxy)
+            urllib2.install_opener(opener)
+            urllib2.urlopen('http://www.google.com', timeout=1)
             self.internet_ok = True
             return True
         except Exception as e:

@@ -1,0 +1,28 @@
+<div ng-class="{'list-group-item-success':job.remote_folder == data['@filename']}" ng-mouseenter="showNewFolder=true" ng-mouseleave="showNewFolder=false" ng-init="showNewFolder=false" style="padding: 5px;border-radius: 3px;">
+    <span style="cursor: pointer;" ng-click="job.remote_folder=data['@filename']; clearNewFolder();" ng-class="{'glyphicon-unchecked':job.remote_folder != data['@filename'],'glyphicon-ok':job.remote_folder == data['@filename']}" class="glyphicon"> </span>
+    <span ng-if="!data['PydioSyncNewNode']" style="cursor: pointer;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]; displaySubFolders(data['@filename']);"  ng-class="{'glyphicon-folder-open': pathes[data['@filename']] && data.tree, 'glyphicon-folder-close': !pathes[data['@filename']] || !data.tree }"
+              class="glyphicon"></span>
+    <span ng-if="data['PydioSyncNewNode']" style="cursor: pointer;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']];"  ng-class="{'glyphicon-folder-open': pathes[data['@filename']] && data.tree, 'glyphicon-folder-close': !pathes[data['@filename']] || !data.tree }"
+              class="glyphicon"></span>
+    &nbsp;&nbsp;
+    <span ng-if="!data['PydioSyncNewNode']" style="cursor: pointer;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]" ng-bind="data['@text']"></span>
+    <input type="text" ng-if="data['PydioSyncNewNode']" ng-keyup="doneWithEnter($event)" ng-attr-required="data['PydioSyncNewNode']" style="min-width:220px; color:#555555;" ng-click="pathes[data['@filename']]=!pathes[data['@filename']]" ng-model="job.new_remote_folder['@text']">
+    <span ng-show="showNewFolder && !data['PydioSyncNewNode']" class="glyphicon glyphicon-plus" style="margin-right: 2px; cursor: pointer;" ng-click="
+        newFolder(data);
+        pathes[data['@filename']] = true;"></span>
+</div>
+<!-- Want to loose the div in the repeat as well -->
+<div ng-hide="!pathes[data['@filename']]" style="padding-left:25px;">
+    <ng-include
+            ng-if="data.tree && data.tree.length > 0"
+            onload="data = child"
+            ng-repeat="child in data.tree"
+            src="'tree_node.html'"/>
+</div>
+<!-- unused? Left here just in case it's due to some legacy something -->
+<div ng-hide="!pathes[data['@filename']]" style="padding-left:25px; background-color: red;">
+    <ng-include
+            ng-if="data.tree && data.tree['@text']"
+            onload="data = data.tree"
+            src="'tree_node.html'"/>
+</div>

@@ -1,0 +1,139 @@
+<div id="settings-toolbar">
+   <ng-include src="'src/jobs/view/settingsbar.html'"></ng-include>
+    <md-content id="settingsForm" style="height:calc(100% - 48px);padding-right:12px;overflow-y: scroll; max-height:548px;" class="general_configs" ng-init="currentNavItem = 'settings'">
+
+        <h3 style="margin-top:10px;">{{_('Update settings')}}</h3>
+        <div class="section-advanced">
+            <md-switch ng-model="general_configs_data.update_info.enable_update_check" aria-label="Update">{{_('Enable / Disable update here.')}}</md-switch>
+            <div ng-show="general_configs_data.update_info.enable_update_check" class="enable_update_more">
+                <p class="legend">{{_('Set the update check frequency (here 1 means update check only once a day, default value 0 means it check for update each time agent establishes a new connection with UI) ')}}</p>
+                <div class="input-group">
+                    <span class="input-group-addon" >{{_('Update check frequency in days')}}</span>
+                    <!--<input type="number" min="0" max="1000000" ng-model="general_configs_data.update_info.update_check_frequency_days" class="form-control" >-->
+                    <md-slider-container ng-disabled="!general_configs_data.update_info.enable_update_check">
+                        <md-icon>update</md-icon>
+                        <md-slider ng-model="general_configs_data.update_info.update_check_frequency_days" min="0" max="365" aria-label="Update frequency" flex></md-slider>
+                        <md-input-container>
+                            <input flex type="number" ng-model="general_configs_data.update_info.update_check_frequency_days" min="0" max="365" aria-label="Update frequency" aria-controls="Update frequency">
+                        </md-input-container>
+                    </md-slider-container>
+                </div>
+                <span>{{_('Last update check was on: ')}} {{general_configs_data.update_info.last_update_date_FORMATTED}}</span>
+            </div>
+        </div>
+
+        <div ng-show="general_configs_show_proxy_settings && ui_config.login_mode === 'alias'" ng-value="proxies" class="section-advanced">
+            <h3>{{_('Proxy settings')}}</h3>
+
+            <div class="pull-right">
+                <div class="btn-group">
+                    <md-switch ng-model="proxies.https.active" aria-label="Proxy"></md-switch>
+                    <md-tooltip>{{_('Enable / Disable Proxy.')}}</md-tooltip>
+                    <!--<md-button type="button" ng-click="proxies.https.active = 'false'" class="btn" ng-class="{'btn-danger':proxies.https.active == 'false','btn-default':proxies.https.active =='false'}">Off</md-button>-->
+                </div>
+            </div>
+
+            <div ng-show="proxies.https.active" style="margin-top:2%;">
+                <!--<div ng-show="proxies.https.active =='true'" style="margin-top:2%;">-->
+                <p>{{_('If you want the network connections to pass through proxy, fill the parameters below.')}}</p>
+                <h4> Https settings </h4>
+                <form name="settingsHTTPS" class="form-inline">
+                    <div class="form-group">
+                        <input type="text" name="s_proxy_url" ng-model="proxies.https.url" class="form-control" placeholder="{{ proxies.https.url === '' ? 'pydio.com:8083' : proxies.https.url }}" autofocus required/>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="https_user" ng-model="proxies.https.username" class="form-control" placeholder="{{ proxies.https.username ==''? 'Username' : proxies.https.username}}">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" name="https_password" ng-model="proxies.https.password" class="form-control" placeholder="P*ssw*rd">
+                    </div>
+                </form>
+                <h4 ng-click="showBlock=!showBlock; scroll(0,10);" ng-init="showBlock = false" style="cursor:pointer;"><span style="font-size: 75%;" class="glyphicon" ng-class="{'glyphicon-chevron-right': !showBlock, 'glyphicon-chevron-down': showBlock}"></span>&nbsp;Http settings...</h4>
+                <div ng-show="showBlock">
+                    <form name="settingsHTTP" class="form-inline">
+                        <div class="form-group">
+                            <div class="form-group">
+                                <input type="text" name="proxy_url" ng-model="proxies.http.url" class="form-control" placeholder="{{ proxies.http.url === '' ? 'pydio.com:8080' : proxies.http.url }}" required/>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="http_user" ng-model="proxies.http.username" class="form-control" placeholder="{{ proxies.http.username === '' ? 'Username' : proxies.http.username}}">
+                            </div>
+                            <div class="form-group">
+                                <input type="password" name="http_password" ng-model="proxies.http.password" class="form-control" placeholder="P*ssw*rd">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+
+        <h3>{{_('Log settings')}}</h3>
+        <div class="section-advanced">
+            <md-input-container class="md-block" flex-gt-sm>
+                <label>{{_('File Name')}}</label>
+                <input ng-model="general_configs_data.log_configuration.log_file_name">
+            </md-input-container>
+
+            <md-input-container class="md-block" flex-gt-sm>
+                <label>{{_('Number of log files')}}</label>
+                <input type="number" min="0" max="1000000" ng-model="general_configs_data.log_configuration.handlers.file.backupCount">
+            </md-input-container>
+
+            <div style="margin-top: -15px;">
+                <p class="legend-small">{{_('Maximum size for each log file')}}: {{general_configs_data.log_configuration.handlers.file.maxBytes | bytes}}</p>
+                <md-slider-container>
+                    <md-icon>data_usage</md-icon>
+                    <md-slider ng-model="general_configs_data.log_configuration.handlers.file.maxBytes" min="100" max="1000000000" aria-label="Log file size" flex></md-slider>
+                </md-slider-container>
+            </div>
+
+            <div>
+                <p class="legend-small">{{_('Enhance the log details as you need them.')}}</p>
+                <!-- TODO check that it works in other languages -->
+                <md-radio-group layout="row" ng-model="general_configs_data.log_configuration.root.level" style="margin: 16px 0 30px;">
+                    <md-radio-button value="INFO" class="md-primary">{{_('Info')}}</md-radio-button>
+                    <md-radio-button value="DEBUG"> {{_('Debug')}} </md-radio-button>
+                    <md-radio-button value="WARNING">{{_('Warning')}}</md-radio-button>
+                </md-radio-group>
+            </div>
+
+            <md-button class="md-raised" ng-click="SC.openLogs()">{{_('OPEN LOGS')}}</md-button>
+
+        </div>
+        <h3>{{_('Other settings')}}</h3>
+        <div class="section-advanced">
+            <h4 style="margin-top:10px;">{{_('Max wait time for local db access')}}</h4>
+            <p>{{_('If you encounter database locked error try increasing this value')}}</p>
+            <md-input-container class="md-block" flex-gt-sm>
+                <label>{{_('Timeout in seconds')}}</label>
+                <input type="number" min="5" max="1000000" ng-model="general_configs_data.max_wait_time_for_local_db_access">
+            </md-input-container>
+            <h4 style="margin-top:10px;">{{_('Set Language')}}</h4>
+            <p>{{_("If you don't want the system's language to be used, manually set it to something else")}}</p>
+            <div class="input-group">
+                <span class="input-group-addon">{{_('Language ')}}</span>
+                <md-select ng-model="general_configs_data.language" class="form-control">
+                    <md-optgroup>
+                        <label>{{_('Language')}}</label>
+                        <md-option value="de">Deutsch</md-option>
+                        <md-option value="en">English</md-option>
+                        <md-option value="fr">Français</md-option>
+                        <md-option value="it">Italiano</md-option>
+                        <md-option value="nl">Nederlands</md-option>
+                    </md-optgroup>
+                </md-select>
+            </div>
+        </div>
+            <!-- OLD <div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: center; background-color: #77b8e2;">
+                <a href="#" title="Cancel"><md-icon>keyboard_arrow_left</md-icon></a>
+                <md-button ng-click="SaveGeneralConfig()" class="btn btn-info" style="width: 40%;margin:0 1%;">{{_('Update Settings')}}</md-button>
+            </div> -->
+             <md-input-container layout="row">
+                <span flex></span>
+                <md-button ng-click="JC.toggleGeneralSettings();" href="/app/index.html"><md-icon>keyboard_arrow_left</md-icon></md-button>
+                <md-button ng-click="SC.SaveGeneralConfig();" class="md-raised md-primary">{{_('SAVE SETTINGS')}}</md-button>
+             </md-input-container>
+    </md-content>
+</div>

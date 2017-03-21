@@ -1,0 +1,41 @@
+<div ng-init="miniview_done=false">
+<div ng-hide="miniview_done" ng-class="{'well': miniview}" style="padding-bottom:100%;">
+<h1 class="shareHeader" ng-value="GetShareLink()">{{_('Share %1 via Pydio', share_filename.split('\\').pop().split('/').pop())}}</h1>
+
+<div style="margin-top: 80px;padding-left:4px">
+    <form name="myForm" class="form-inline">
+        <div>
+            <h4>{{_('Shared Link')}}</h4>
+            <div>
+                <div style="padding-left:4px;">
+                    <p ng-show="existingLinkFlag && checkResponseFlag">{{_('Shared link to the selected item already exists. Below is the link to the selected item')}}</p>
+                    <p ng-show="!existingLinkFlag && checkResponseFlag">{{_('New shared link to the selected item has been generated')}}</p>
+                    <p ng-show="!checkResponseFlag">{{_('Shared Link to the selected item has not been generated')}}</p>
+                    </div>
+                    <md-input-container class="md-icon-float md-block">
+                        <label>{{_('Share link')}}</label>
+                        <md-icon aria-hidden="true" style="height:16px;color:grey;">share</md-icon>
+                        <input ng-model="share_link" type="text" style="width:92%" disabled>
+                    </md-input-container>
+                <div />
+            </div>
+        </div>
+    </form>
+</div>
+
+<div style="text-align: center; margin-top: 20px; font-size: 1.3em;">
+    <md-button ng-click="copyToClipBoard(share_link);" ng-class="miniview_button" class="md-raised md-primary" style="padding: 10px; width: 42%;margin:0 1% 0 0;">{{_('Copy to Clipboard')}}</md-button>
+    <md-button ng-show="checkResponseFlag" class="md-raised md-warn" ng-class="miniview_button" ng-click="unShareLink()" style="padding: 10px; width: 42%;margin:0 1% 0 0;" href>{{_('UnShare Link')}}</md-button>
+</div>
+
+<div style="text-align: center; margin-top: 20px;">
+    <p class="small" ng-show="copyToClipBoardFlag">{{_('Text has been copied to clipboard.')}}</p>
+</div>
+</div>
+</div>
+<div ng-show="miniview_done" class="well" style="padding-bottom: 100%;">
+    <div style="text-align: center;">
+        <p>{{ share_details.fileName }}</p>
+        <p>{{_('Successfully unshared.')}}</p>
+    </div>
+</div>

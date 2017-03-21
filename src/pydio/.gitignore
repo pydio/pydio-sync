@@ -2,3 +2,7 @@ data/*
 .idea
 *.pyc
 .DS_Store
+ui/node_modules/
+ui/app/bundle.min.js
+ui/app/assets/md
+ui/app/assets/angular-material.min.css

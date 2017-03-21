@@ -1,4 +1,4 @@
-#
+# -*- encoding: utf-8 -*-
 # Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 # This file is part of Pydio.
 #
@@ -17,52 +17,84 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
-import inspect
+
 import sqlite3
 import json
 import os
 import logging
 import fnmatch
 import math
-
-from pydio.sdk.exceptions import InterruptException
-from pydio.utils.pydio_profiler import pydio_profile
+import time
+try:
+    from pydio.sdkremote.pydio_exceptions import InterruptException
+    from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils.global_config import GlobalConfigManager
+    from pydio.job.change_history import ChangeHistory
+except ImportError:
+    from sdkremote.pydio_exceptions import InterruptException
+    from utils.pydio_profiler import pydio_profile
+    from utils.global_config import GlobalConfigManager
+    from job.change_history import ChangeHistory
+from threading import Thread
+try:
+    import resource
+    import humanize
+except ImportError:
+    pass
 
 class SqliteChangeStore():
     conn = None
-    DEBUG = False;
+    DEBUG = False
 
-    def __init__(self, filename, includes, excludes):
+    def __init__(self, filename, includes, excludes, poolsize=4, local_sdk=None, remote_sdk=None, job_config=None, db_handler=None):
         self.db = filename
         self.includes = includes
         self.excludes = excludes
         self.create = False
+        global_config_manager = GlobalConfigManager.Instance(configs_path=os.path.dirname(os.path.dirname(filename)))
+        # Increasing the timeout (default 5 seconds), to avoid database is locked error
+        self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
         if not os.path.exists(self.db):
             self.create = True
+        self.last_commit = time.time()
+        self.local_sdk = local_sdk
+        self.remote_sdk = remote_sdk
+        self.pendingoperations = []
+        self.maxpoolsize = poolsize
+        self.failingchanges = {}  # keep track of failing changes
+        self.change_history = ChangeHistory(self.db[:self.db.rfind("/")] + "/history.sqlite", self.local_sdk, self.remote_sdk, job_config, db_handler)
+        self.job_config = job_config
 
     def open(self):
-        self.conn = sqlite3.connect(self.db)
-        self.conn.row_factory = sqlite3.Row
-        if self.create:
-            self.conn.execute(
-                'CREATE TABLE ajxp_changes (row_id INTEGER PRIMARY KEY AUTOINCREMENT , seq_id, location TEXT, '
-                'type TEXT, source TEXT, target TEXT, content INTEGER, md5 TEXT, bytesize INTEGER, data TEXT)')
-            self.conn.execute(
-                "CREATE TABLE ajxp_last_buffer ( id INTEGER PRIMARY KEY AUTOINCREMENT, location TEXT, type TEXT, "
-                "source TEXT, target TEXT )")
-            self.conn.execute("CREATE INDEX changes_seq_id ON ajxp_changes (seq_id)")
-            self.conn.execute("CREATE INDEX changes_location ON ajxp_changes (location)")
-            self.conn.execute("CREATE INDEX changes_type ON ajxp_changes (type)")
-            self.conn.execute("CREATE INDEX changes_source ON ajxp_changes (source)")
-            self.conn.execute("CREATE INDEX changes_target ON ajxp_changes (target)")
-            self.conn.execute("CREATE INDEX changes_md5 ON ajxp_changes (md5)")
-            self.conn.execute("CREATE INDEX buffer_location ON ajxp_last_buffer (location)")
-            self.conn.execute("CREATE INDEX buffer_type ON ajxp_last_buffer (type)")
-            self.conn.execute("CREATE INDEX buffer_source ON ajxp_last_buffer (source)")
-            self.conn.execute("CREATE INDEX buffer_target ON ajxp_last_buffer (target)")
-        else:
-            self.conn.execute("DELETE FROM ajxp_changes")
-        self.conn.commit()
+        try:
+            self.conn = sqlite3.connect(self.db, timeout=self.timeout)
+            self.conn.row_factory = sqlite3.Row
+            if self.create:
+                self.conn.execute(
+                    'CREATE TABLE ajxp_changes (row_id INTEGER PRIMARY KEY AUTOINCREMENT , seq_id, location TEXT, '
+                    'type TEXT, source TEXT, target TEXT, content INTEGER, md5 TEXT, bytesize INTEGER, data TEXT)')
+                self.conn.execute(
+                    "CREATE TABLE ajxp_last_buffer ( id INTEGER PRIMARY KEY AUTOINCREMENT, location TEXT, type TEXT, "
+                    "source TEXT, target TEXT )")
+                self.conn.execute("CREATE INDEX changes_seq_id ON ajxp_changes (seq_id)")
+                self.conn.execute("CREATE INDEX changes_location ON ajxp_changes (location)")
+                self.conn.execute("CREATE INDEX changes_type ON ajxp_changes (type)")
+                self.conn.execute("CREATE INDEX changes_source ON ajxp_changes (source)")
+                self.conn.execute("CREATE INDEX changes_target ON ajxp_changes (target)")
+                self.conn.execute("CREATE INDEX changes_md5 ON ajxp_changes (md5)")
+                self.conn.execute("CREATE INDEX buffer_location ON ajxp_last_buffer (location)")
+                self.conn.execute("CREATE INDEX buffer_type ON ajxp_last_buffer (type)")
+                self.conn.execute("CREATE INDEX buffer_source ON ajxp_last_buffer (source)")
+                self.conn.execute("CREATE INDEX buffer_target ON ajxp_last_buffer (target)")
+            else:
+                self.conn.execute("DELETE FROM ajxp_changes")
+                self.conn.execute("vacuum")
+            self.conn.commit()
+        except sqlite3.OperationalError as oe:
+            # Catch Database locked errors and try again
+            logging.exception(oe)
+            time.sleep(.02)
+            self.open()
 
 
     def __len__(self):
@@ -75,12 +107,12 @@ class SqliteChangeStore():
         else:
             res = self.conn.execute("SELECT count(row_id) FROM ajxp_changes WHERE location=?", (location,))
         count = res.fetchone()
-        if(self.DEBUG):
+        if self.DEBUG:
             logging.info("Changes store count #"+str(count[0]))
         return count[0]
 
     @pydio_profile
-    def process_changes_with_callback(self, callback):
+    def process_changes_with_callback(self, callback, callback2, continuous_merger):
         c = self.conn.cursor()
 
         res = c.execute('SELECT * FROM ajxp_changes WHERE md5="directory" AND location="local" '
@@ -93,7 +125,7 @@ class SqliteChangeStore():
             mkdirs.append(r['target'])
         splitsize = 10
         for i in range(0, int(math.ceil(float(len(mkdirs)) / float(splitsize)))):
-            callback({'type':'bulk_mkdirs', 'location':'local', 'pathes':mkdirs[i*splitsize:(i+1)*splitsize]})
+            callback({'type': 'bulk_mkdirs', 'location': 'local', 'pathes': mkdirs[i*splitsize:(i+1)*splitsize]})
             ids_list = str(','.join(ids[i*splitsize:(i+1)*splitsize]))
             self.conn.execute('DELETE FROM ajxp_changes WHERE row_id IN (' + ids_list + ')')
         self.conn.commit()
@@ -111,18 +143,149 @@ class SqliteChangeStore():
         #now go to the rest
         res = c.execute('SELECT * FROM ajxp_changes ORDER BY seq_id ASC')
         rows_to_process = []
-        for row in res:
-            rows_to_process.append(self.sqlite_row_to_dict(row, load_node=True))
+        try:
+            for row in res:
+                rows_to_process.append(self.sqlite_row_to_dict(row, load_node=True))
+        except Exception as e:
+            logging.exception(e)
+            logging.info("Failed to decode " + str(row))
+            raise SystemExit
 
-        for r in rows_to_process:
+        import threading
+        class Processor_callback(Thread):
+            def __init__(self, change):
+                threading.Thread.__init__(self)
+                self.change = change
+                self.status = ""
+
+            def run(self):
+                #logging.info("Running change " + str(threading.current_thread()) + " " + str(self.change))
+                ts = time.time()
+                try:
+                    if not callback2(self.change):
+                        self.status = "FAILED"
+                        logging.info("An error occurred processing " + str(self.change))
+                    else:
+                        self.status = "SUCCESS"
+                except InterruptException:
+                    self.status = "FAILED"
+                    # silent fail (network)
+                """except Exception as e:
+                    self.status = "FAILED"
+                    self.error = e
+                    if not hasattr(e, "code"):
+                        logging.exception(e)"""
+                #logging.info("DONE change " + str(threading.current_thread()) + " in " + str(time.time()-ts))
+
+            def stop(self):
+                pass
+        # end of Processor_callback
+
+        def lerunnable(change):
+            p = Processor_callback(change)
+            p.start()
+            return p
+
+        def processonechange(iter):
             try:
-                logging.debug('PROCESSING CHANGE WITH ROW ID %i' % r['row_id'])
-                output = callback(r)
-                if output:
-                    self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (r['row_id'],))
+                change = next(iter)
+                #logging.info('PROCESSING CHANGE %s' % change)
+                proc = lerunnable(change)
+                return proc
+            except StopIteration:
+                return False
+
+        it = iter(rows_to_process)
+        logging.info("To be processed " + str(it.__length_hint__()))
+        pool = []
+        ts = time.time()
+        schedule_exit = False  # This is used to indicate that the last change was scheduled
+        self.change_history.LOCKED = True
+        while True:
+            try:
+                for i in pool:
+                    if not i.isAlive():
+                        if i.status == "SUCCESS" or (hasattr(i, "error") and hasattr(i.error, "code") and i.error.code == 1404):  # file download impossible -> Assume deleted from server
+                            res = self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
+                            #logging.info("DELETE CHANGE %s" % i.change)
+                            self.change_history.insert_change(i.change, i.status)
+                        else:
+                            i.status = "FAILED"
+                            self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
+                            self.change_history.insert_change(i.change, i.status)
+                        pool.remove(i)
+                        i.join()
+                        #logging.info("Change done " + str(i))
+                        yield str(i)
+                if schedule_exit and len(pool) == 0:
+                    break
+                if len(pool) >= self.maxpoolsize:
+                    time.sleep(.2)
+                    continue
+                else:
+                    output = processonechange(it)
+                    time.sleep(.01)
+                    if not output and not schedule_exit:
+                        for op in self.pendingoperations:
+                            self.buffer_real_operation(op.location, op.type, op.source, op.target)
+                        try:
+                            humanize
+                            logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts).replace(' ago', '') + " to process changes.")
+                            logging.info(" Fails : " + str(len(self.failingchanges)))
+                        except NameError:
+                            pass # NOP if not humanize lib
+                        schedule_exit = True
+                        continue
+                    else:
+                        # waiting for changes to be processed
+                        time.sleep(.1)
+                        continuous_merger.update_current_tasks()
+                    if output and output.isAlive():
+                        pool.append(output)
+                    try:
+                        humanize
+                        current_change = ""
+                        if len(pool) == 1:
+                            try:
+                                current_change = pool[0].change
+                                more = ""
+                                if current_change:
+                                    if current_change['node']:
+                                        if 'node_path' in current_change['node']:
+                                            more = current_change['node']['node_path']
+                                        elif 'source' in current_change:
+                                            more = current_change['source']
+                                        elif 'target' in current_change:
+                                            more = current_change['target']
+                                #logging.info(more)
+                                logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
+                            except Exception as e:
+                                logging.exception(e)
+                                logging.info(str(type(pool[0].change)) + " " + str(pool[0].change))
+                    except NameError:
+                        pass
+                    """if hasattr(output, "done"):
+                        pool.append(output)"""
             except InterruptException as e:
+                logging.info("@@@@@@@@@@@ Interrupted @@@@@@@@@@")
+            except Exception as e:
+                logging.exception(e)
+        try:
+            self.conn.commit()
+        except Exception as e:
+            logging.exception(e)
+        while True:
+            try:
+                self.change_history.conn.commit()
                 break
-        self.conn.commit()
+            except sqlite3.OperationalError:
+                pass
+        self.change_history.LOCKED = False
+        try:
+            self.change_history.consolidate()
+        except Exception as e:
+            logging.info("TODO: handle")
+            logging.exception(e)
 
     @pydio_profile
     def list_changes(self, cursor=0, limit=5, where=''):
@@ -271,11 +434,10 @@ class SqliteChangeStore():
             self.debug("Detecting and removing copies")
 
     @pydio_profile
-    def detect_unnecessary_changes(self, local_sdk, remote_sdk):
-        self.local_sdk = local_sdk
-        self.remote_sdk = remote_sdk
+    def detect_unnecessary_changes(self):
         local = self.get_row_count('local')
         rem = self.get_row_count('remote')
+        logging.debug("[detect unecessary] LOCAL CHANGES: " + str(local) + " REMOTE CHANGES " + str(rem))
         bulk_size = 400
         ids_to_delete = []
         for i in range(0, int(math.ceil(float(local) / float(bulk_size)))):
@@ -284,7 +446,7 @@ class SqliteChangeStore():
             ids_to_delete = ids_to_delete + self.filter_w_stat('remote', self.remote_sdk, self.local_sdk, j*bulk_size, bulk_size)
 
         res = self.conn.execute('DELETE FROM ajxp_changes WHERE row_id IN (' + str(','.join(ids_to_delete)) + ')')
-        logging.info('[change store] Filtering unnecessary changes : pruned %i rows', res.rowcount)
+        logging.debug('[change store] Filtering unnecessary changes : pruned %i rows', res.rowcount)
         self.conn.commit()
         if(self.DEBUG):
             self.debug("Detecting unnecessary changes")
@@ -308,12 +470,11 @@ class SqliteChangeStore():
         if len(test_stats):
             local_stats = sdk.bulk_stat(test_stats, with_hash=True)
             opposite_stats = opposite_sdk.bulk_stat(test_stats, with_hash=True)
-
         to_remove = filter(lambda it: self.filter_change(it, local_stats, opposite_stats), changes)
         return map(lambda row: str(row['row_id']), to_remove)
 
     @pydio_profile
-    def clean_and_detect_conflicts(self, status_handler, job_config):
+    def clean_and_detect_conflicts(self, status_handler):
 
         # transform solved conflicts into process operation
         def handle_solved(node):
@@ -326,10 +487,10 @@ class SqliteChangeStore():
                 self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
                                   ('remote', node['node_path'].replace('\\', '/')))
             elif node['status'] == 'SOLVED:KEEPBOTH':
-                logging.info("[DEBUG] work in progress -- keepboth")
+                #logging.info("[DEBUG] work in progress -- keepboth " + node['node_path'])
                 # remove conflict from table, effect: FILES out of sync,
                 #self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?', ('remote', node['node_path'].replace('\\', '/')))
-                self.local_sdk.duplicateWith(node['node_path'], job_config.user_id)
+                self.local_sdk.duplicateWith(node['node_path'], self.job_config.user_id)
                 self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
                                   ('local', node['node_path'].replace('\\', '/')))
 
@@ -354,7 +515,11 @@ class SqliteChangeStore():
                 conflicts += 1
                 path = row['target']
                 logging.debug('[change store] Storing CONFLICT on node %s' % path)
-                status_handler.update_node_status(path, 'CONFLICT', self.sqlite_row_to_dict(row, load_node=True))
+                try:
+                    status_handler.update_node_status(path, 'CONFLICT', self.sqlite_row_to_dict(row, load_node=True))
+                except Exception as e:
+                    logging.exception(e)
+                    logging.info("Problem with " + path)
 
         return conflicts
 
@@ -431,20 +596,55 @@ class SqliteChangeStore():
 
     def buffer_real_operation(self, location, type, source, target):
         location = 'remote' if location == 'local' else 'local'
-        self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)",
-                          (type, location, source.replace("\\", "/"), target.replace("\\", "/")))
-        self.conn.commit()
+        try:
+            self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (type, location, source.replace("\\", "/"), target.replace("\\", "/")))
+            self.conn.commit()
+        except sqlite3.ProgrammingError:
+            self.threaded_buffer_real_operation(type, location, source, target)
 
     def bulk_buffer_real_operation(self, bulk):
-        if bulk :
+        if bulk:
             for operation in bulk:
                 location = operation['location']
                 location = 'remote' if location == 'local' else 'local'
                 self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (operation['type'], location, operation['source'].replace("\\", "/"), operation['target'].replace("\\", "/")))
             self.conn.commit()
 
+    class operation():
+        pass
+
+    def threaded_buffer_real_operation(self, type, location, source, target):
+        op = self.operation()
+        op.type = type
+        op.location = location
+        op.source = source
+        op.target = target
+        self.pendingoperations.append(op)
+
+    def process_pending_changes(self):
+        """ Updates the buffer with the operations treated
+        """
+        # TODO lock
+        #logging.info("Processing pending changes (" + str(len(self.pendingoperations)) + ")")
+        while len(self.pendingoperations) > 0:
+            op = self.pendingoperations.pop()
+            #self.buffer_real_operation(op.location, op.type, op.source, op.target)
+            self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (op.type, op.location, op.source.replace("\\", "/"), op.target.replace("\\", "/")))
+        self.conn.commit()
 
     def clear_operations_buffer(self):
+        """nbrows = 0
+        for r in self.conn.execute('SELECT * FROM ajxp_last_buffer'):
+            txt = u""
+            for c in r:
+                if type(c) == unicode:
+                    txt += c
+                else:
+                    txt += str(c)
+                txt += "|"
+            logging.info(txt)
+            nbrows += 1
+        logging.info("$$ About to clear %d rows of ajxp_last_buffer", nbrows)"""
         self.conn.execute("DELETE FROM ajxp_last_buffer")
         self.conn.commit()
 
@@ -461,8 +661,14 @@ class SqliteChangeStore():
         try:
             if stats:
                 return stats[path]
-        except KeyError:
+        except KeyError as ke:
             pass
+        try:
+            import platform, unicodedata
+            if platform.system() == "Darwin" and stats:
+                return stats[unicodedata.normalize('NFC', unicode(path))]
+        except KeyError as ke:
+            logging.exception(ke)
 
         if location == 'remote':
             return self.remote_sdk.stat(path, with_hash)
@@ -483,6 +689,7 @@ class SqliteChangeStore():
         return -1
 
     def close(self):
+        self.change_history.conn.close()
         self.conn.close()
 
     def massive_store(self, location, changes):
@@ -519,8 +726,13 @@ class SqliteChangeStore():
             md5 = ''
         if change['node'] and change['node']['bytesize']:
             bytesize = change['node']['bytesize']
+        elif change['node'] and change['node']['bytesize']==0:
+            # Fixing the bug: Instead of assigning the bytesize of the empty file to null, it should be set to zero, it
+            # prevents from the errors on file size comparison.
+            bytesize = 0
         else:
             bytesize = ''
+
         content = 0
         if md5 != 'directory' and (change['type'] == 'content' or change['type'] == 'create'):
             content = 1
@@ -540,6 +752,10 @@ class SqliteChangeStore():
 
     def remove(self, location, seq_id):
         self.conn.execute("DELETE FROM ajxp_changes WHERE location=? AND seq_id=?", (location, seq_id))
+
+    def remove_based_on_location(self, location):
+        self.conn.execute("DELETE FROM ajxp_changes WHERE location=?", (location,))
+        self.conn.commit()
 
     #showing the changes store state
     def debug(self, after=""):
@@ -562,7 +778,7 @@ class SqliteChangeStore():
         target = change['target'].replace("\\", "/")
         action = change['type']
         for _ in self.conn.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (action, location, source, target)):
-            logging.debug('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
+            logging.info('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
             return True
         return False
 
@@ -655,11 +871,13 @@ class SqliteChangeStore():
             return {'location': 'local', 'node_id': node_id, 'source':  source, 'target': 'NULL', 'type': 'delete', 'seq':seq, 'stat_result':stat_result, 'node':None},\
                    {'location': 'local', 'node_id': node_id, 'source':  'NULL', 'target': target, 'type': 'create', 'seq':seq, 'stat_result':stat_result, 'node': change['node']}
 
+
     @pydio_profile
     def update_pending_status(self, status_handler, local_seq):
         res = self.conn.execute('SELECT seq_id FROM ajxp_changes WHERE seq_id >' + str(local_seq) + ' ORDER BY seq_id')
         list_seq_ids = [str(row[0]) for row in res]
         status_handler.update_bulk_node_status_as_pending(list_seq_ids)
+
 
 class PathOperation(object):
     @staticmethod

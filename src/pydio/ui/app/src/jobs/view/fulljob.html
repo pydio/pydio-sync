@@ -1,0 +1,88 @@
+<div id="full-job-scroller" style="overflow-y: scroll; max-height:480px;">
+<div ng-show="JC.currentNavItem == 'history'">
+    <ng-include src="'./src/jobs/view/changehistory.html'"></ng-include>
+</div>
+<div ng-show="JC.currentNavItem == 'settings'">
+    <!-- --
+    {{selected.job}}
+    <!-- -->
+    <div layout="row" ng-show="isModified" style="background-color: rgb(229,229,229)">
+              <span flex></span> <!-- TODO: Only show when modified -->
+              <md-button ng-click="JC.revertJob()">{{_('REVERT')}}</md-button>
+              <md-button class="md-raised md-primary" ng-click="JC.doSave();">{{_('SAVE')}}</md-button>
+    </div>
+    <md-content id="settingsForm">
+        <div class="section-title" style="margin-top:10px;">{{_('Sync task settings')}}</div>
+        <div style="margin-top:30px;">
+            <md-input-container class="md-block md-icon-float">
+                <label>{{_('Label')}}</label>
+                <md-icon aria-hidden="true" class="login-icons" style="cursor:default">label</md-icon>
+                <input type="text" ng-model="selected.job.label">
+            </md-input-container>
+            <div style="display:flex;">
+                <md-input-container class="md-block md-icon-float" ng-hide="ui_config.login_mode === 'alias'" style="flex:1">
+                    <label>{{_('Remote Server')}}</label>
+                    <a href="{{selected.job.server}}" id="server_link"></a>
+                    <md-icon class="login-icons" style="cursor:pointer" aria-hidden="true" onclick="document.getElementById('server_link').click()">dns</md-icon>
+                    <input type="text" ng-model="selected.job.server">
+                </md-input-container>
+                <div ng-show="selected.job.server.startsWith('https') && ui_config.login_mode !== 'alias'" style="padding-top:10px">
+                    <md-checkbox ng-model="selected.job.trust_ssl" aria-label="Trust SSL" class="ssl">{{_('Trust SSL')}}</md-checkbox>
+                    <md-tooltip>{{_('You can disable SSL checks for testing.')}}</md-tooltip>
+                </div>
+            </div>
+            <md-input-container class="md-block" md-no-float>
+                <label>{{_('Login')}}</label>
+                <md-icon class="login-icons" aria-hidden="true" style="cursor:default">account_circle</md-icon>
+                <input type="text" ng-model="selected.job.user">
+            </md-input-container>
+            <md-input-container class="md-block" md-no-float>
+                <label>{{_('Password')}}</label>
+                <md-icon class="login-icons" aria-hidden="true">lock</md-icon>
+                <input type="password" ng-model="selected.job.password">
+            </md-input-container>
+            <div style="display:flex;">
+                <md-input-container style="flex:1;">
+                    <label>{{_('Local Folder')}}</label>
+                    <md-icon class="login-icons" style="cursor:pointer" aria-hidden="true" ng-click="JC.openFolder(selected.job.directory)">folder</md-icon>
+                    <input ng-model="selected.job.directory" disabled>
+                </md-input-container>
+                <div>
+                    <md-button class="md-raised" style="display:inline-block;" ng-click="JC.openFolder(selected.job.directory)">{{_('OPEN')}}</md-button>
+                </div>
+            </div>
+            <!--{{selected.job.server + selected.job.workspace + selected.job.remote_folder}}<br>-->
+            <div style="display:flex;">
+                <md-input-container class="md-block md-float-icon" style="flex:1;">
+                    <a href="{{selected.job.server + '/ws-' + selected.job.workspace + selected.job.remote_folder}}" id="workspace_click"></a>
+                    <label>{{_('Workspace')}}</label>
+                    <md-icon class="login-icons" aria-hidden="true" ng-click="document.getElementById('workspace_click').click()" style="cursor:default">work</md-icon>
+                    <!--<input ng-show="selected.job.workspace != ''" ng-model="selected.job.workspace" disabled>-->
+                    <md-select label="Workspaces" ng-model="selected.job.workspace" placeholder="{{selected.job.workspace}}" ng-click="selected.job.workspace = '';JC.showWorkspacePicker()" ng-disabled="!selected.job.password" style="min-width:310px;">
+                        <md-optgroup>
+                            <md-option ng-value="item" ng-repeat="item in selected.job.repositories">{{item.label}} <span style="padding:3px; margin: 0px 2px 2px 10px; vertical-align:-8px; border-radius:5px;font-size:9pt; background-color:orange" ng-show="item['@acl'] == 'r'">{{ _('This workspace is read only!') }}</span></md-option>
+                        </md-optgroup>
+                    </md-select>
+                    <md-tooltip ng-hide="selected.job.password">{{_('You must provide your password')}}</md-tooltip>
+                </md-input-container>
+            </div>
+            <div style="display:flex;" ng-show="selected.job.remote_folder">
+                <md-input-container class="md-block" style="flex:1;">
+                    <label>{{_('Remote Folder')}}</label>
+                    <md-icon class="login-icons" aria-hidden="true" style="cursor:default">folder_special</md-icon>
+                    <input ng-model="selected.job.remote_folder" disabled>
+                </md-input-container>
+                <!-- <div>
+                    <md-button class="md-raised" ng-click="selected.job.workspace = '';JC.showWorkspacePicker()">{{_('CHOOSE')}}</md-button>
+                </div> -->
+            </div>
+        </div>
+        <div style="padding-top:0;">
+            <ng-include src="'./src/jobs/view/advanced.html'"></ng-include>
+        </div>
+    </md-content>
+
+</div>
+</div>
+<!-- DEBUG {{selected.job}} -->
+

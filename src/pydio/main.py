@@ -1,4 +1,4 @@
-#
+# -*- coding: utf-8 -*-
 # Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 #  This file is part of Pydio.
 #
@@ -21,7 +21,34 @@
 import logging
 import sys
 import os
-from pydio.utils.functions import get_user_home, guess_filesystemencoding
+import subprocess
+try:
+    import pydio.monkeypatch
+    import pydio.utils.functions
+    from pydio.utils.functions import get_user_home, guess_filesystemencoding
+    from pydio.job.job_config import JobConfig, JobsLoader
+    from pydio.test.diagnostics import PydioDiagnostics
+    from pydio.utils.config_ports import PortsDetector
+    from pydio.utils.global_config import ConfigManager, GlobalConfigManager
+    from pydio.ui.web_api import PydioApi
+    from pydio.job.scheduler import PydioScheduler
+    from pydio.job import manager
+    from pydio.utils.i18n import PoProcessor
+    from pydio.utils.pydio_profiler import LogFile
+except ImportError:
+    # This allows to run manually python main.py
+    from utils.functions import get_user_home, guess_filesystemencoding
+    import utils.functions
+    import monkeypatch
+    from job.job_config import JobConfig, JobsLoader
+    from job import manager
+    from test.diagnostics import PydioDiagnostics
+    from utils.config_ports import PortsDetector
+    from utils.global_config import ConfigManager, GlobalConfigManager
+    from ui.web_api import PydioApi
+    from job.scheduler import PydioScheduler
+    from utils.i18n import PoProcessor
+    from utils.pydio_profiler import LogFile
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-7s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logging.getLogger().setLevel(logging.DEBUG)
@@ -50,8 +77,6 @@ import argparse
 import json
 import thread
 import time
-import pydio.monkeypatch
-import pydio.utils.functions
 from pathlib import Path
 
 if __name__ == "__main__":
@@ -74,12 +99,6 @@ if __name__ == "__main__":
         logging.debug("Prepending to sys.path: %s" % os.path.dirname(pydio_module))
         sys.path.insert(0, os.path.dirname(pydio_module))
 
-from pydio.job.job_config import JobConfig, JobsLoader
-from pydio.test.diagnostics import PydioDiagnostics
-from pydio.utils.config_ports import PortsDetector
-from pydio.utils.global_config import ConfigManager
-from pydio.ui.web_api import PydioApi
-from pydio.job.scheduler import PydioScheduler
 
 import appdirs
 APP_NAME='Pydio'
@@ -99,6 +118,10 @@ elif sys.platform == 'linux2':
         logging.info('Linux CONFIG DIR EXPANDED: ' + CONFIGDIR)
     DEFAULT_DATA_PATH = os.path.join(CONFIGDIR, APP_NAME)
     logging.info('Linux DEFAULT_DATA_PATH: ' + DEFAULT_DATA_PATH)
+
+global_config_manager = GlobalConfigManager.Instance(configs_path=DEFAULT_DATA_PATH)
+global_config_manager.configs_path = DEFAULT_DATA_PATH
+global_config_manager.set_general_config(global_config_manager.default_settings)
 
 DEFAULT_PARENT_PATH = get_user_home(APP_NAME)
 
@@ -149,17 +172,23 @@ def main(argv=sys.argv[1:]):
             if not os.path.exists(user_dir):
                 try:
                     os.mkdir(user_dir)
-                except Exception:
+                except Exception as e:
+                    logging.exception(e)
                     pass
             if os.path.exists(user_dir):
-                from pydio.utils.favorites_manager import add_to_favorites
+                try:
+                    from pydio.utils.favorites_manager import add_to_favorites
+                except ImportError:
+                    from utils.favorites_manager import add_to_favorites
                 add_to_favorites(user_dir, APP_NAME)
 
     setup_logging(args.verbose, jobs_root_path)
 
     if args.auto_start:
-        import pydio.autostart
-
+        try:
+            import pydio.autostart
+        except ImportError:
+            import autostart
         pydio.autostart.setup(argv)
         return 0
 
@@ -169,13 +198,18 @@ def main(argv=sys.argv[1:]):
     jobs_loader = JobsLoader.Instance(data_path=u_jobs_root_path)
     config_manager.set_rdiff_path(args.rdiff)
 
+    logging.info(
+        "Product Version Number {0:s} and Version Date {1:s}".format(str(config_manager.get_version_data()['version']),
+                                                                str(config_manager.get_version_data()['date'])))
+
     if args.proxy is not None:
         data = args.proxy.split('::') if len(args.proxy.split('::'))%5 in range(0, 2) else logging.error("Wrong number of parameters pased for proxy")
         msg = {}
         for i in range(len(args.proxy.split('::'))/5):
             msg[data[i*5]] = {"username": data[i*5+1], "password": data[i*5+2], "hostname": data[i*5+3], "port": data[i*5+4]}
         proxy_flag = data[-1] if len(args.proxy.split('::'))%5 == 1 else True  # default true
-        config_manager.set_user_proxy(msg, check_proxy_flag=proxy_flag)
+        # setting != testing, please
+        config_manager.set_user_proxy(msg)
         return 0
 
     if args.server and args.directory and args.workspace:
@@ -200,20 +234,29 @@ def main(argv=sys.argv[1:]):
         return sys.exit(0)
 
     if args.memory_profile:
-        from pydio.utils.pydio_profiler import LogFile
         sys.stdout = LogFile('stdout')
 
     if args.extract_html:
-        from pydio.utils.i18n import PoProcessor
         proc = PoProcessor()
+        languages = ['fr', 'de', 'nl', 'it']
+        root = Path(__file__).parent
         if args.extract_html == 'extract':
-            root = Path(__file__).parent
-            count = proc.extract_all_html_strings(str(root / 'ui' / 'res' ), str(root / 'res' / 'i18n' / 'html_strings.py' ))
+            count = proc.extract_all_html_strings(str(root / 'ui' ), str(root / 'res' / 'i18n' / 'html_strings.py' ))
             logging.info('Wrote %i strings to html_strings.py - Now update PO files using standard tools' % count)
             # nothing more to do
+            cmd = 'xgettext --language=Python --keyword=_ --output=res/i18n/pydio.pot `find . -name "*.py"`'
+            subprocess.check_output(cmd, shell=True, cwd=str(root))
+            for l in languages:
+                # Sometimes fuzzy matching should be used but mostly results in wrong translations
+                cmd = 'msgmerge -vU --no-fuzzy-matching ' + l + '.po pydio.pot'
+                logging.info('Running ' + cmd)
+                subprocess.check_output(cmd, cwd=str(root / 'res' / 'i18n'), shell=True)
         elif args.extract_html == 'compile':
-            root = Path(__file__).parent
-            proc.po_to_json(str(root / 'res' / 'i18n' / '*.po'), str(root / 'ui' / 'res' / 'i18n.js'))
+            for l in languages:
+                cmd = 'msgfmt ' + l + '.po --output-file ' + l + '/LC_MESSAGES/pydio.mo'
+                logging.info('Running ' + cmd)
+                subprocess.check_output(cmd, cwd=str(root / 'res' / 'i18n'), shell=True)
+            proc.po_to_json(str(root / 'res' / 'i18n' / '*.po'), str(root / 'ui' / 'app' / 'i18n.js'))
         return sys.exit(0)
 
     if args.diag_http:
@@ -237,7 +280,6 @@ def main(argv=sys.argv[1:]):
     scheduler = PydioScheduler.Instance(jobs_root_path=jobs_root_path, jobs_loader=jobs_loader)
     server = PydioApi(ports_detector.get_port(), ports_detector.get_username(),
         ports_detector.get_password(), external_ip=args.api_address)
-    from pydio.job import manager
     manager.api_server = server
 
     try:
@@ -262,58 +304,30 @@ def setup_logging(verbosity=None, application_path=None):
         if not application_path.exists():
             application_path.mkdir(parents=True)
 
-    log_file = str(application_path / "pydio.log")
+    general_config = global_config_manager.get_general_config()
 
-    levels = {
-        0: logging.WARNING,
-        1: logging.INFO,
-        2: logging.DEBUG,
-    }
+    log_file = os.path.join(DEFAULT_DATA_PATH, str(general_config['log_configuration']['log_file_name']))
+
+    log_level_mapping ={'WARNING'  : logging.WARNING,
+                        'INFO'     : logging.INFO,
+                        'DEBUG'    : logging.DEBUG
+                       }
+
+    levels = dict((int(k), log_level_mapping[v]) for k, v in general_config['log_configuration']['log_levels'].items())
     level = levels.get(verbosity, logging.NOTSET)
 
-    configuration = {
-        'version': 1,
-        'disable_existing_loggers': True,
-        'formatters': {
-            'short': {
-                'format': '%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(message)s',
-                'datefmt': '%H:%M:%S',
-            },
-            # this will slow down the app a little, due to
-            'verbose': {
-                'format': '%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(filename)s:%(lineno)s | %(funcName)s | %(message)s',
-                'datefmt': '%Y-%m-%d %H:%M:%S',
-            },
-        },
-        'handlers': {
-            'file': {
-                'level': 'INFO',
-                'class': 'logging.handlers.RotatingFileHandler',
-                'formatter': 'verbose',
-                'backupCount': 8,
-                'maxBytes': 4194304,  # 4MB
-                'filename': log_file
-            },
-            'console': {
-                'level': level,
-                'class': 'logging.StreamHandler',
-                'formatter': 'short',
-            },
-        },
-        'root': {
-            'level': 'DEBUG',
-            'handlers': ['console', 'file'],
-        }
+    general_config['log_configuration']['disable_existing_loggers'] = bool(general_config['log_configuration']['disable_existing_loggers'])
+    general_config['log_configuration']['handlers']['file']['filename'] = log_file
+    general_config['log_configuration']['handlers']['console']['level'] = level
 
-    }
+    configuration = general_config['log_configuration']
+
     from logging.config import dictConfig
 
     dictConfig(configuration)
-    #logging.info("Logging setup changed")
     logging.debug("verbosity: %s" % verbosity)
 
 
 if __name__ == "__main__":
     main()
-    from pydio.job import manager
     manager.wait()

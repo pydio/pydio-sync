@@ -24,8 +24,15 @@ import sys
 from pathlib import *
 import datetime
 import logging
-from pydio.job.localdb import DBCorruptedException
-from pydio.utils.pydio_profiler import pydio_profile
+import time
+try:
+    from pydio.job.localdb import DBCorruptedException
+    from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils.global_config import GlobalConfigManager
+except ImportError:
+    from job.localdb import DBCorruptedException
+    from utils.pydio_profiler import pydio_profile
+    from utils.global_config import GlobalConfigManager
 
 
 class EventLogger():
@@ -34,11 +41,14 @@ class EventLogger():
         self.db = job_data_path + '/pydio.sqlite'
         if not os.path.exists(job_data_path):
             os.mkdir(job_data_path)
+        # Fetch the local db access timeout
+        global_config_manager = GlobalConfigManager.Instance(configs_path=job_data_path)
+        self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
         if not os.path.exists(self.db):
             self.init_db()
 
     def init_db(self):
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         cursor = conn.cursor()
         if getattr(sys, 'frozen', False):
             respath = (Path(sys._MEIPASS)) / 'res' / 'create.sql'
@@ -59,7 +69,7 @@ class EventLogger():
     @pydio_profile
     def log(self, event_type, message, action, status, source='', target='', uniq=False):
         insert = True
-        conn = sqlite3.connect(self.db)
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         if uniq:
             try:
                 sel = conn.execute('SELECT id FROM events WHERE type=?', (event_type, ))
@@ -74,17 +84,21 @@ class EventLogger():
                 conn.execute("INSERT INTO events('type', 'message', 'source', 'action', 'target', 'status', 'date') "
                              "VALUES (?, ?, ?, ?, ?, ?, ?)", (event_type, message, source, action, target, status, date_time))
             else:
-                conn.execute("UPDATE events SET type=?, message=?, source=?, action=?, target=?, status=?, date=? "
-                             " WHERE type=?", (event_type, message, source, action, target, status, date_time, event_type))
+                conn.execute("UPDATE events SET message=?, source=?, action=?, target=?, status=?, date=? "
+                             " WHERE type=?", (message, source, action, target, status, date_time, event_type))
 
             conn.commit()
-        except sqlite3.Error as e:
+        except sqlite3.OperationalError as e:
             logging.error('sql insert error while trying to log event : %s ' % (e.message,))
+            conn.close()
+            time.sleep(.05)
+            self.log(event_type, message, action, status, source, target, uniq)
         conn.close()
 
     @pydio_profile
     def get_all(self, limit=10, offset=0, filter_type=None, filter_action=None):
-        conn = sqlite3.connect(self.db)
+        # FEATURE: use history.sqlite instead, which has more info, beware of db lock
+        conn = sqlite3.connect(self.db, timeout=self.timeout)
         events = []
         try:
             c = conn.cursor()
@@ -116,7 +130,7 @@ class EventLogger():
     def consume_notification(self):
         events = self.get_all(1, 0, filter_type='notif')
         if len(events):
-            conn = sqlite3.connect(self.db)
+            conn = sqlite3.connect(self.db, timeout=self.timeout)
             conn.execute("DELETE FROM events WHERE type=?", ('notif',))
             conn.commit()
             conn.close()
@@ -136,22 +150,27 @@ class EventLogger():
 
     @pydio_profile
     def get_all_from_type(self, type):
-        type_list = ['local', 'remote']
-        if type in type_list:
-            logging.debug("type ok")
-            conn = sqlite3.connect(self.db)
-            c = conn.cursor()
-            events = c.execute("SELECT * FROM events WHERE type = '%s' ORDER BY date DESC" % type).fetchall()
-            c.close()
-            return events
-        else:
-            return "No type of this kind", 404
+        try:
+            type_list = ['local', 'remote']
+            if type in type_list:
+                logging.debug("type ok")
+                conn = sqlite3.connect(self.db, timeout=self.timeout)
+                c = conn.cursor()
+                events = c.execute("SELECT * FROM events WHERE type = '%s' ORDER BY date DESC" % type).fetchall()
+                c.close()
+                return events
+            else:
+                return "No type of this kind", 404
+        except sqlite3.OperationalError:
+            logging.info("Database was locked trying to get_all_from_type")
+            time.sleep(.2)
+            self.get_all_from_type(type)
 
     @pydio_profile
     def get_all_from_action(self, action):
         action_list = ['download', 'upload', 'move', 'mkdir', 'delete_folder', 'delete_file', 'delete']
         if action in action_list:
-            conn = sqlite3.connect(self.db)
+            conn = sqlite3.connect(self.db, timeout=self.timeout)
             c = conn.cursor()
             events = c.execute("SELECT * FROM events WHERE action = '%s' ORDER BY date DESC" % action).fetchall()
             c.close()
@@ -161,12 +180,31 @@ class EventLogger():
 
     @pydio_profile
     def get_all_from_status(self, status):
-        status_list = ['in_progress', 'done', 'undefined']
-        if status in status_list:
-            conn = sqlite3.connect(self.db)
-            c = conn.cursor()
-            events = c.execute("SELECT * FROM events WHERE status = '%s' ORDER BY date DESC" % status).fetchall()
+        try:
+            status_list = ['in_progress', 'done', 'undefined']
+            if status in status_list:
+                conn = sqlite3.connect(self.db, timeout=self.timeout)
+                c = conn.cursor()
+                events = c.execute("SELECT * FROM events WHERE status = '%s' ORDER BY date DESC" % status).fetchall()
+                c.close()
+                return events
+            else:
+                return "No status of this kind", 404
+        except sqlite3.OperationalError:
+            time.sleep(.2)
+            return self.get_all_from_status(status)
+
+    @pydio_profile
+    def get_last_action(self):
+        """
+        :return: [last row from events]
+        """
+        res = []
+        try:
+            c = sqlite3.connect(self.db, timeout=self.timeout).cursor()
+            res = c.execute("SELECT * FROM events ORDER BY id DESC LIMIT 1").fetchall()
             c.close()
-            return events
-        else:
-            return "No status of this kind", 404
+        except sqlite3.OperationalError:
+            logging.debug("Database was locked, while fetching last_action")
+        finally:
+            return res

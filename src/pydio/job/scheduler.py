@@ -17,16 +17,22 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
-import logging, sys
+import logging, sys, os
 
 from pydispatch import dispatcher
-
-from pydio.job.continous_merger import ContinuousDiffMerger
-from pydio import COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
-from pydio.utils.functions import Singleton, guess_filesystemencoding
-from pydio.job import manager
-from pydio.utils.pydio_profiler import pydio_profile
-
+try:
+    from pydio.job.continous_merger import ContinuousDiffMerger
+    from pydio import COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
+    from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils.functions import Singleton, guess_filesystemencoding
+    from pydio.job import manager
+except ImportError:
+    from job.continous_merger import ContinuousDiffMerger
+    from job import manager
+    from utils.functions import Singleton, guess_filesystemencoding
+    from utils.pydio_profiler import pydio_profile
+    COMMAND_SIGNAL = 'command'
+    JOB_COMMAND_SIGNAL = 'job_command'
 
 @Singleton
 class PydioScheduler():
@@ -89,7 +95,11 @@ class PydioScheduler():
         thread = self.get_thread(job_id)
         if not thread:
             return False
-        return {"global": thread.get_global_progress(), "tasks": thread.get_current_tasks()}
+        return {
+            "global": thread.get_global_progress(),
+            "tasks": thread.get_current_tasks(),
+            "websocket": thread.get_websocket_status()
+        }
 
     @pydio_profile
     def pause_job(self, job_id):
@@ -124,6 +134,19 @@ class PydioScheduler():
             self.enable_job(job_id)
         elif command == 'disable':
             self.disable_job(job_id)
+        elif command == "resync":
+            self.disable_job(job_id)
+            logging.info("R E S Y N C " + job_id)
+            # delete databases
+            job_folder = os.path.join(str(self.jobs_root_path), job_id)
+            for file in os.listdir(job_folder):
+                if file in ["pydio.sqlite", "changes.sqlite", "sequences", "history.sqlite", "pydio.sqlite-journal", "changes.sqlite-journal"]:
+                    try:
+                        os.unlink(os.path.join(job_folder, file))
+                    except Exception as e:
+                        logging.exception(e)
+            self.enable_job(job_id)
+            self.start_job(job_id)
 
     def handle_generic_signal(self, sender, command):
         if command == 'reload-configs':
@@ -154,4 +177,3 @@ class PydioScheduler():
         logging.debug("[Scheduler] Reloading config")
         self.jobs_loader.load_config()
         self.job_configs = self.jobs_loader.get_jobs()
-

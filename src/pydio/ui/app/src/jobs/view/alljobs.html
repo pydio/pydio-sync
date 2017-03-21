@@ -1,0 +1,137 @@
+<!--{{ showAllJobs }}-->
+<span ng-hide="JC.jobs.length > 0">
+    <ng-include src="'/welcome'"></ng-include>
+    <!-- Might want to have this button here?
+        <md-content layout="row">
+        <span flex></span>
+        <md-button class="md-fab md-mini" aria-label="Add Sync Task" ng-init="showNewTask=false;" ng-click="JC.newSyncTask($event);">
+                  <md-icon aria-hidden="true">add</md-icon>
+            <md-tooltip md-direction="left">{{_('Create a new sync task')}}</md-tooltip>
+        </md-button>
+        <span style="width:16px;"></span>
+        </md-content>
+    -->
+</span>
+<div id="joblist" style="overflow-y: scroll; max-height:620px;" ng-show="SHOW_INTERFACE && jobs.length > 0">
+<md-content>
+    <md-subheader class="md-no-sticky">{{_('Active Tasks')}}</md-subheader>
+    <md-list class="md-dense jobslist" flex>
+        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="item.active" ng-click="JC.selectJob($index)">
+            <div layout="row">
+                <!--<img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label}}" />-->
+                <md-button class="md-fab md-primary alljob-control" aria-label="Pause" ng-show="item.running" ng-click="applyCmdToJob('pause', jobs[$index])">
+                    <md-icon>pause</md-icon>
+                </md-button>
+                <md-button class="md-fab md-primary alljob-control" aria-label="Play" ng-show="!item.running" ng-click="applyCmdToJob('resume', jobs[$index])">
+                    <md-icon>play_arrow</md-icon>
+                </md-button>
+                <div class="md-list-item-text joblist-item" layout="column">
+                    <h3>{{ item.label }}</h3>
+                    <h4 style="overflow: ellipsis">{{ item.last_event.message }}</h4>
+                </div>
+            </div>
+            <span flex></span>
+            <md-menu md-position-mode="target-right target" >
+                <md-button aria-label="Open Sync menu" class="md-icon-button" ng-click="$mdOpenMenu($event); JC.menuOpened = true">
+                    <i md-menu-origin class="material-icons">more_vert</i>
+                </md-button>
+                <md-menu-content width="4">
+                    <!--<md-menu-item>
+                        <md-button ng-click="JC.menuClick($index, 'info')">
+                        <div layout="row" flex>
+                            <p flex>{{_('More info...')}}</p>
+                        </div>
+                        </md-button>
+                    </md-menu-item>-->
+                    <md-menu-item ng-show="jobs[$index].running">
+                        <md-button ng-click="JC.menuClick($index, 'pause')">
+                        <div layout="row" flex>
+                            <p flex>{{_('Pause')}}</p>
+                         </div>
+                        </md-button>
+                    </md-menu-item>
+                    <md-menu-item ng-show="!jobs[$index].running">
+                        <md-button ng-click="JC.menuClick($index, 'resume')">
+                        <div layout="row" flex>
+                            <p flex>{{_('Resume')}}</p>
+                         </div>
+                        </md-button>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button ng-click="JC.menuClick($index, 'stop')">
+                        <div layout="row" flex>
+                            <p flex>{{_('Stop')}}</p>
+                        </div>
+                    </md-button>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button ng-click="JC.menuClick($index, 'settings')">
+                        <div layout="row" flex>
+                            <p flex>{{_('Settings')}}</p>
+                        </div>
+                        </md-button>
+                    </md-menu-item>
+                </md-menu-content>
+            </md-menu>
+            <md-divider class="alljob-divider" md-inset ng-if="!$last"></md-divider>
+        </md-list-item>
+    </md-list>
+</md-content>
+<md-content layout="row">
+    <span flex></span>
+    <md-button class="md-fab md-mini" aria-label="Add Sync Task" ng-init="showNewTask=false;" ng-click="JC.newSyncTask($event);">
+              <md-icon aria-hidden="true">add</md-icon>
+        <md-tooltip md-direction="left">{{_('Create a new sync task')}}</md-tooltip>
+    </md-button>
+    <span style="width:16px;"></span>
+</md-content>
+<md-content>
+    <md-subheader class="md-no-sticky" ng-show="JC.showDisabled()">{{_('Disabled Tasks')}}</md-subheader>
+    <md-list class="md-dense jobslist disabled-jobs" flex>
+        <md-list-item class="md-3-line" ng-repeat="item in jobs" ng-if="!item.active" ng-click="JC.selectJob($index)">
+            <div layout="row">
+                <!--<img ng-src="{{item.face}}?{{$index}}" class="md-avatar" alt="{{item.label[0] + item.label[1]}}" />-->
+                <md-button class="md-fab md-primary alljob-control" aria-label="Play" ng-click="applyCmdToJob('enable', jobs[$index])">
+                    <md-icon>play_arrow</md-icon>
+                </md-button>
+                <div class="md-list-item-text joblist-item" layout="column">
+                    <h3>{{ item.label }}</h3>
+                </div>
+            </div>
+            <span flex></span>
+            <md-menu md-position-mode="target-right target" >
+                <md-button aria-label="Open Sync menu" class="md-icon-button" ng-click="$mdOpenMenu($event); JC.menuOpened = true">
+                    <i md-menu-origin class="material-icons">more_vert</i>
+                </md-button>
+                <md-menu-content width="4">
+                    <md-menu-item>
+                        <md-button ng-click="JC.menuClick($index, 'info')">
+                        <div layout="row" flex>
+                            <p flex>{{_('More info...')}}</p>
+                        </div>
+                        </md-button>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button ng-click="JC.menuClick($index, 'start')">
+                        <div layout="row" flex>
+                            <p flex>{{_('Start')}}</p>
+                         </div>
+                        </md-button>
+                    </md-menu-item>
+                    </md-menu-item>
+                    <md-menu-item>
+                        <md-button ng-click="JC.menuClick($index, 'settings')">
+                        <div layout="row" flex>
+                            <p flex>{{_('Settings')}}</p>
+                        </div>
+                        </md-button>
+                    </md-menu-item>
+                </md-menu-content>
+            </md-menu>
+                <md-divider class="alljob-divider" md-inset ng-if="!$last"></md-divider>
+        </md-list-item>
+    </md-list>
+</md-content>
+</div>
+<!--DEBUG INFO
+{{jobs}}-->

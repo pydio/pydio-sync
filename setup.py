@@ -42,7 +42,17 @@ setup_kwargs = {
     'install_requires': install_reqs,
 
     "package_data": {
-        'pydio': ['res/*.sql']
+        'pydio': ['res/*.sql',
+                  'ui/app/*.html',
+                  'ui/app/*.js',
+                  'ui/app/assets/*.js',
+                  'ui/app/assets/*.css',
+                  'ui/app/assets/images/*.png',
+                  'ui/app/src/jobs/view/*.html',
+                  'ui/app/src/jobs/*.js',
+                  'ui/app/assets/md/material-icons.css',
+                  'ui/app/assets/Roboto/roboto.css',
+                  ]
     },
 
     # metadata for upload to PyPI

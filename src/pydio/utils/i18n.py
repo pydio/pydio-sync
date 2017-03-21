@@ -1,5 +1,5 @@
 #
-# Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
+# Copyright 2007-2016 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 # This file is part of Pydio.
 #
 #  Pydio is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 import os, sys
 import locale
 import gettext
+import logging
 from pathlib import *
 
 # Change this variable to your app name!
@@ -41,11 +42,17 @@ else:
 #
 #  In maemo it is in the LANG environment variable
 #  (on desktop is usually LANGUAGES)
-def get_languages():
+def get_default_language():
     DEFAULT_LANGUAGES = os.environ.get('LANG', '').split(':')
     DEFAULT_LANGUAGES += ['en_US']
-
     languages = []
+    if sys.platform == "darwin":
+        try:
+            languages += [os.popen("defaults read .GlobalPreferences AppleLanguages | tr -d [:space:] | cut -c2-3").read()[:-1]]
+        except Exception as e:
+            logging.debug("There was a problem getting the language. " + str(e.message))
+            logging.exception(e)
+
     lc, encoding = locale.getdefaultlocale()
     if lc:
         languages = [lc]
@@ -53,6 +60,27 @@ def get_languages():
     # Concat all languages (env + default locale),
     #  and here we have the languages and location of the translations
     languages += DEFAULT_LANGUAGES
+    logging.info("LANGUAGE guessed: " + str(languages))
+    return languages
+
+def get_languages():
+    try:
+        from pydio.utils.global_config import GlobalConfigManager
+    except ImportError:
+        from utils.global_config import GlobalConfigManager
+    try:
+        conf = GlobalConfigManager.Instance().get_general_config()
+    except Exception:
+        # languages not ready, default to English
+        return ["en_US"]
+    languages = []
+    try:
+        if conf["language"] == "":
+            languages = get_default_language()
+        else:
+            return [conf["language"]]
+    except KeyError:
+        languages = get_default_language()
     return languages
 
 
@@ -60,11 +88,20 @@ languages = get_languages()
 mo_location = LOCALE_DIR
 gettext.install(True, localedir=None, unicode=1)
 gettext.find(APP_NAME, mo_location)
-gettext.textdomain (APP_NAME)
+gettext.textdomain(APP_NAME)
 gettext.bind_textdomain_codeset(APP_NAME, "UTF-8")
 language = gettext.translation(APP_NAME, mo_location, languages=languages, fallback=True)
 
 """
+New process:
+ > pydio-sync-agent --extract_html=extract
+ MANUALLY EDIT PO FILES
+ > pydio-sync-agent --extract_html=compile
+
+To add a new language :
+ see below and edit extract_html in main.py
+
+-- OBSOLETE Kept for reference, useful to add languages --
 Utilitary to transform HTML strings to PO compatible strings.
 Process is the following
 * In PY files, declare the following import, and use _('')
@@ -132,10 +169,8 @@ class PoProcessor:
 
         dest.close()
 
-
     def extract_html_strings(self,file_name):
         import re
-
         groups = []
         with open(file_name) as fp:
             for line in fp:
@@ -144,15 +179,16 @@ class PoProcessor:
                     groups += mo
         return groups
 
-
     def extract_all_html_strings(self, root_html, output_file):
-
-        import glob
-
         strings = []
-        files = glob.glob(root_html + '/*.html')
-        for html_file in files:
-            strings += self.extract_html_strings(html_file)
+        logging.info(root_html)
+        # Scan html files in root_html for translations strings
+        for root, dirs, files in os.walk(root_html):
+            for file in files:
+                if file.endswith(".html") and root.find('node_modules') == -1:
+                    html_file = os.path.join(root, file)
+                    logging.info("Scanning " + html_file)
+                    strings += self.extract_html_strings(html_file)
 
         index = 1
         with open(output_file, 'w') as fp:
@@ -162,5 +198,3 @@ class PoProcessor:
                 index += 1
 
         return len(strings)
-
-

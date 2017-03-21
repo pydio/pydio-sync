@@ -1,0 +1,632 @@
+html, body {
+  font-family: 'Roboto', sans-serif;
+  font-size:14px;
+  height:100%;
+  margin: 0px;
+  padding: 0px;
+}
+
+/* Toolbar area */
+
+.menu {
+  background-color: transparent;
+  border: none;
+  height: 38px;
+  margin: 16px;
+  width: 36px;
+}
+
+
+md-toolbar h3 {
+  margin: auto;
+  font-weight: 500;
+}
+
+/* Sidenav area */
+
+md-list-item > button {
+  width:100%;
+  text-align:left !important;
+}
+
+  md-list .md-button.selected {
+    color: #03a9f4;
+  }
+
+  md-sidenav  md-list {
+    padding: 0px 0px 8px 0px;
+  }
+
+
+/* Primary content area */
+
+#content {
+  overflow: hidden;
+}
+
+#content  {
+  padding-left: 40px;
+  padding-right: 40px;
+  padding-top: 5px;
+}
+
+#content .md-button.share {
+  background-color: transparent;
+  border: none;
+  width: 48px;
+  height: 48px;
+  margin: 8px auto 16px 0;
+  position: absolute;
+  top: 10px;
+  right: 25px;
+}
+
+#content md-icon.avatar {
+  margin-top: 10px;
+}
+
+#content .md-button.share > md-icon {
+  fill:black;
+  width:36px;
+  height:36px;
+}
+
+md-button.menuBtn > md-icon {
+  fill:@inverted-font-color;
+  width:24px;
+  height:24px;
+}
+
+#content .md-button.share:active > md-icon {
+  background-color: #dadada;
+  border-radius: 75%;
+  padding:4px;
+  transition: all 100ms ease-out 30ms;
+}
+
+#content img {
+  display: block;
+  height: auto;
+  max-width: 500px;
+}
+
+/* Utils */
+
+.content-wrapper {
+  position: relative;
+}
+
+/* Typography support coming in 0.8.0 */
+
+md-toolbar h1 {
+  font-size: 1.250em;
+  font-weight: 400;
+}
+
+md-bottom-sheet  md-icon {
+  margin-right:20px;
+}
+
+span.name {
+  font-weight: bold;
+  font-size:1.1em;
+  padding-left:5px;
+}
+
+.alljob-control {
+    margin-right: 20px;
+}
+
+.alljob-divider {
+    left: 100px !important;
+}
+
+/* START REWORKING 'SETTINGS' PANEL */
+
+@primary_color: #0288D1;
+@inverted-font-color: white;
+
+.text-label-ellipsis{
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+md-toolbar.md-default-theme:not(.md-menu-toolbar), md-toolbar:not(.md-menu-toolbar) {
+    background-color: @primary_color;
+}
+
+div.full-job-status-running{
+    text-align: center;
+    padding: 10px 20px;
+    background-color: #E1F5FE;
+    color: #01579B;
+}
+
+div.change-history-line{
+
+    display: flex;
+    border-bottom: 1px solid #ececec;
+    padding: 10px 10px 10px 16px;
+
+    .change-history-text{
+        .text-label-ellipsis;
+        flex: 1;
+        padding: 4px;
+        font-size: 13px;
+    }
+
+    .change-history-icon {
+        color: @inverted-font-color;
+        background-color: rgba(0, 0, 0, 0.43);
+        border-radius: 50%;
+        height: 30px;
+        width: 30px;
+        text-align: center;
+        box-sizing: border-box;
+        padding: 7px;
+        font-size: 15px;
+        margin-top: -2px;
+        margin-right: 8px;
+        font-style:normal;
+        display:inline-block;
+    }
+
+    span.progress-cell, span.empty-cell{
+        display: inline-block;
+        width: 35px;
+        md-progress-circular {
+            margin: 3px 5px;
+        }
+    }
+
+    md-icon.md-secondary.material-icons{
+        font-size: 15px;
+        color: rgba(0, 0, 0, 0.33);
+        cursor: pointer;
+        padding-top: 6px;
+        padding-right: 4px;
+        padding-left: 8px;
+    }
+
+    &.conflict-line{
+        .change-history-text{
+            margin-top: 14px;
+            color: rgb(211, 47, 47);
+        }
+        .change-history-icon{
+            background-color: rgb(211, 47, 47);
+            margin-top: 11px;
+        }
+    }
+}
+
+.conflict-version-block{
+    padding: 16px;
+    margin: 1px 8px;
+    border: 1px solid #E0E0E0;
+    border-radius: 5px;
+    font-size: 12px;
+    max-width: 110px;
+    cursor: pointer;
+    outline: none;
+    &:hover{
+        background-color: #fafafa;
+    }
+    &.selected{
+        border-color: #1e88e5;
+        border-width: 2px;
+        margin: 0px 7px;
+    }
+    i.material-icons{
+        color: #EEEEEE;
+        font-size: 56px;
+    }
+}
+
+.history-more-info{
+    padding: 20px;
+}
+
+
+#full-job-toolbar {
+
+    button.alljob-control{
+        background-color: @inverted-font-color;
+        min-width:56px;
+    }
+    div.full-job-title{
+        flex:1;
+        color: @inverted-font-color;
+        width: ~"calc(100% - 70px)";
+        padding-top: 6px;
+        span:focus {
+            outline: none;
+            border: 0;
+        }
+        h3{
+            .text-label-ellipsis;
+            width: 100%;
+        }
+        div.full-job-status{
+            .text-label-ellipsis;
+            font-size: 15px;
+            i.material-icons{
+                font-size: 12px;
+            }
+        }
+    }
+    div.full-job-toolbar-controls{
+
+        position: absolute;
+        color: @inverted-font-color;
+        top: -41px;
+        right: 16px;
+        z-index: 1000;
+
+        span.tb-button{
+            cursor:pointer;
+            transition: color 550ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;
+            &:hover{
+                color: @inverted-font-color;
+            }
+            .icon-stop, .icon-sync, .icon-delete {
+                font-size: 20px;
+                border-radius: 50%;
+                padding: 6px;
+                color: @inverted-font-color;
+            }
+        }
+    }
+    md-nav-bar{
+        .md-button._md-nav-button.md-unselected{
+            color: @inverted-font-color;
+        }
+        md-nav-ink-bar{
+            bottom: -1px;
+        }
+    }
+    .warning {
+        md-icon{
+            font-size: 17px !important;
+            height: 21px;
+            color: orange !important;
+            min-width: 13px !important;
+            margin: 0;
+            width: 17px;
+            min-height: 20px;
+        }
+    }
+}
+
+#settingsForm{
+
+    padding: 16px;
+
+    md-input-container {
+        margin: 7px 0px;
+    }
+
+    div.section-title, h3{
+        margin: 20px 0 20px;
+        font-size: 19px;
+        color: rgba(0,0,0,0.73);
+        font-weight: 400;
+    }
+
+    &.general_configs h3{
+        margin: 30px 0 30px;
+    }
+
+    &.general_configs h4{
+        color: rgba(0,0,0,0.43);
+    }
+
+    md-icon.login-icons {
+        color: rgba(0,0,0,0.53);
+        font-size: 20px !important;
+        height: 18px;
+        left: 4px !important;
+    }
+
+    md-checkbox.ssl {
+        transform: scale(.8);
+    }
+
+    div.section-advanced {
+        p.legend{
+            font-size: 13px;
+            color: rgba(0,0,0,0.43);
+        }
+        p.legend-small{
+            font-size: 10px;
+            color: rgba(0, 0, 0, 0.54);
+            font-weight: 400;
+            margin:0;
+        }
+        md-radio-group{
+            margin-left: 5px;
+        }
+    }
+
+    div.conflict-auto-more, div.trigger-time-more, div.enable_update_more{
+        margin-left: 8px;
+        border-left: 2px dotted #feb558;
+        padding-left: 18px;
+        md-select{
+            margin: 10px 0 0 0;
+            width: 97%;
+        }
+        div.conflict-more-legend{
+            padding-top: 20px;
+            font-size: 13px;
+            color: rgba(0,0,0,0.43);
+        }
+    }
+
+}
+
+.primary-background {
+    background-color: @primary_color;
+}
+
+#settings-toolbar{
+    background-color: @primary_color;
+    md-tabs .md-tab {
+        color:red;
+    }
+    h1 {
+        padding-left: 16px;
+    }
+    h2 {
+        padding-left: 16px;
+        margin: 10px 0 20px;
+        font-size: 14px;
+        color: rgba(0,0,0,0.53);
+        font-weight: 600;
+    }
+    div.pad-me {
+        margin-left: 20px;
+    }
+    md-input-container { /* CHECK*/
+        margin: 7px 0px;
+    }
+}
+
+.jobslist{
+    button.alljob-control{
+        min-width: 56px;
+    }
+
+    .md-list-item-inner .layout-row{
+        overflow: hidden;
+    }
+
+    .joblist-item{
+        h3{
+            font-size: 17px !important;
+            line-height: 1.2em !important;
+        }
+        h4{
+            font-size: 13px !important;
+            line-height: 16px !important;
+            color: rgba(0,0,0,0.53) !important;
+            white-space: normal !important;
+        }
+    }
+
+    &.disabled-jobs{
+        md-list-item{
+            opacity: 0.53;
+            &:hover{
+                opacity: 1;
+            }
+        }
+    }
+}
+
+
+.login-icons {
+        color: rgba(0,0,0,0.33);
+        font-size: 20px !important;
+        height: 18px;
+        left: 4px !important;
+    }
+
+h1, md-icon:focus{ /* Fix for the weird blue highlight, place me in a smaller scope someday */
+    outline: none;
+    border: 0;
+}
+
+.new-job-form{
+
+    md-tabs-wrapper{
+        display: none;
+    }
+
+    .tip-my-url{
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 10000;
+        bottom: 0;
+        overflow: scroll;
+        display: block;
+    }
+    img{
+        width: 90%;
+    }
+    .error-block{
+        background-color:red;
+        color: @inverted-font-color;
+        padding: 10px;
+        border-radius: 3px;
+    }
+
+    md-input-container.md-block{
+        margin: 10px 0;
+    }
+
+    .md-padding{
+        padding: 16px;
+    }
+
+    h3{
+        font-weight: 300;
+        font-size: 24px;
+        color: #9e9e9e;
+        margin: 5px 0;
+    }
+    .bottom-buttons{
+        margin-top: 16px;
+        margin-right: 16px;
+        text-align: right;
+    }
+    .hint{
+        font-size: 10px;
+        color: rgba(0,0,0,0.53);
+        md-icon{
+            font-size: 17px !important;
+            height: 21px;
+            color: orange !important;
+            min-width: 13px !important;
+            margin: 0;
+            width: 17px;
+            min-height: 20px;
+        }
+    }
+
+}
+
+md-dialog{
+    max-width: 85%;
+    max-height: 90%;
+    md-toolbar{
+        h2{
+            font-size: 16px;
+        }
+    }
+}
+
+.conflict-button {
+    /* width: 100px; */
+    font-size: 10px;
+}
+
+/* Share page for macos */
+.miniview .navbar, .miniview h1 {
+   display: none;
+}
+
+.miniview .shareHeader {
+   top: 0;
+   margin-top: 0;
+}
+
+.miniview h3 {
+   color: rgb(21, 140, 186) !important;
+   font-size: 1em;
+   margin-top: 20px !important;
+   margin-bottom: 20px;
+}
+
+body.miniview > div.ng-scope > div.well.ng-scope {
+   margin: 0px !important;
+   box-shadow: 0 0 0 !important;
+   border:0;
+   border-radius:0 !important;
+   padding-bottom: 50% !important;
+}
+
+.miniview > btn btn-primary {
+   padding-bottom: 20px;
+}
+
+.miniview {
+   padding: 0px !important;
+   padding-top: 0 !important;
+   background-color: rgb(250,250,250);
+}
+
+.miniview form {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.miniview_margin {
+    margin-left: 16px;
+}
+
+.miniview_button {
+    padding: 20px 20px 20px 20px;
+}
+
+.miniview body {
+    background-color: rgb(250,250,250);
+}
+
+.miniview h4 {
+    margin-top: 20px;
+    margin-bottom: 5px;
+    font-size: 13px;
+    color: #888;
+    font-weight: 400;
+}
+
+.padding4em {
+    padding-bottom: 4em;
+}
+
+#shareDiv {
+    padding-left: 4px;
+    h3 {
+        cursor: pointer;
+    }
+    h3:focus {
+        outline: none;
+        border: 0;
+    }
+    .share_icon {
+        vertical-align: -4px;
+        font-size: 18px;
+    }
+    .share_icon_alt {
+        color: grey;
+    }
+}
+/* About page */
+#aboutdiv{
+    h2 {
+        padding-left: 16px;
+        margin: 10px 0 20px;
+        font-size: 14px;
+        color: rgba(0,0,0,0.53);
+        font-weight: 600;
+    }
+    div.pad-me {
+        margin-left: 25px;
+    }
+}
+
+.shareHeader{
+    background-color: @primary_color;
+    color: @inverted-font-color;
+    left: 0;
+    right: 0;
+    margin-top: 0;
+    padding: 10px;
+    font-size: 28px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* all */
+span:focus {
+    outline: none;
+    border: 0;
+}
+i:focus {
+    outline: none;
+    border: 0;
+}

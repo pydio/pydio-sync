@@ -24,7 +24,12 @@ import json
 import urlparse
 import os
 import logging
-from pydio.utils.functions import Singleton
+import platform
+import unicodedata
+try:
+    from pydio.utils.functions import Singleton
+except ImportError:
+    from utils.functions import Singleton
 
 
 @Singleton
@@ -122,7 +127,16 @@ class JobConfig:
         self.trust_ssl = False
         self.filters = dict(
             includes=['*'],
-            excludes=['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store', '.~lock.*']
+
+            # ***** Exclude Patterns *****
+            # .* --> used to store configurations for different applications (.pydio_id, .bashrc, .mozilla)
+            #  /recycle_bin* --> recycle bin
+            # '~*' --> temp doc files
+            # '*.xlk' --> temp excel files
+            # '*.tmp' --> windows temp files
+            # ~lock.* --> temp lock files
+            # .DS_Store --> stores metadata information in mac
+            excludes=['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store', '.~lock.*', '~*', '*.xlk', '*.tmp']
         )
 
         self.timeout = 20
@@ -157,11 +171,12 @@ class JobConfig:
                     "start_time": obj.start_time,
                     "trust_ssl":obj.trust_ssl,
                     "active": obj.active,
-                    "filter": obj.filters,
+                    "filters": obj.filters,
                     "timeout": obj.timeout,
                     "hide_up_dir": obj.hide_up_dir,
                     "hide_bi_dir": obj.hide_bi_dir,
-                    "hide_down_dir": obj.hide_down_dir
+                    "hide_down_dir": obj.hide_down_dir,
+                    "poolsize": obj.poolsize
                     }
 
         raise TypeError(repr(JobConfig) + " can't be encoded")
@@ -207,7 +222,21 @@ class JobConfig:
                     logging.error(
                         "Error while storing password in keychain, should we store it cyphered in the config?")
             if 'filters' in obj:
-                job_config.filters = obj['filters']
+                if platform.system() == "Darwin":
+                    if isinstance(obj['filters']['excludes'], list):
+                        job_config.filters['excludes'] = []
+                        for e in obj['filters']['excludes']:
+                            job_config.filters['excludes'].append(unicodedata.normalize('NFD', e))
+                    elif isinstance(obj['filters']['excludes'], str):
+                        job_config.filters['excludes'] = unicodedata.normalize('NFD', obj['filters']['excludes'])
+                    if isinstance(obj['filters']['includes'], list):
+                        job_config.filters['includes'] = []
+                        for i in obj['filters']['includes']:
+                            job_config.filters['includes'].append(unicodedata.normalize('NFD', i))
+                    elif isinstance(obj['filters']['includes'], str):
+                        job_config.filters['includes'] = unicodedata.normalize('NFD', obj['filters']['includes'])
+                else:
+                    job_config.filters = obj['filters']
             if 'direction' in obj and obj['direction'] in ['up', 'down', 'bi']:
                 job_config.direction = obj['direction']
             if 'trust_ssl' in obj and obj['trust_ssl'] in [True, False]:
@@ -227,8 +256,12 @@ class JobConfig:
             else:
                 job_config.id = obj['id']
             if 'timeout' in obj:
-                job_config.timeout = obj['timeout']
-
+                try:
+                    job_config.timeout = int(obj['timeout'])
+                except ValueError:
+                    job_config.timeout = 20
+            else:
+                job_config.timeout = 20
             if job_config.frequency == 'auto' or job_config.frequency == 'time':
                 job_config.monitor = True
             else:
@@ -239,6 +272,13 @@ class JobConfig:
                 job_config.hide_bi_dir = obj['hide_bi_dir']
             if 'hide_down_dir' in obj:
                 job_config.hide_down_dir = obj['hide_down_dir']
-
+            if 'poolsize' in obj:
+                job_config.poolsize = obj['poolsize']
+            else:
+                job_config.poolsize = 4
+            if 'poll_interval' in obj:
+                job_config.online_timer = obj['poll_interval']
+            else:
+                job_config.online_timer = 10
             return job_config
         return obj

@@ -1,0 +1,141 @@
+<div style="margin-bottom:10px;">
+    <h2 class="editHeader">
+    <div class="pull-right">
+        <div class="btn-group">
+            <button type="button" ng-click="toggleJobActive()" class="btn" ng-class="{'btn-success':job.active,'btn-default':!job.active}">On</button>
+            <button type="button" ng-click="toggleJobActive()" class="btn" ng-class="{'btn-danger':!job.active,'btn-default':job.active}">Off</button>
+        </div>
+    </div>
+    {{_('SYNC %1 parameters', job.label?job.label:job.id)}}
+    </h2>
+</div>
+
+<div style="margin-top: 120px;">
+    <div class="small pull-left" style="text-align: center; width: 40%; overflow: visible;">
+        <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
+        <span ng-if="ui_config.login_mode == 'standard'">{{_('Server')}}: {{job.server}}<br></span>
+        {{_('Workspace')}}: {{job.workspace}} <a href="{{job.server}}" target="_blank"><span class="glyphicon glyphicon-new-window"></span></a><br>
+        <span ng-if="job.remote_folder">{{_('Folder')}}: {{job.remote_folder}}</span>
+    </div>
+
+    <div ng-show="job.resynctimeout >= 0" style="">
+        <div class="modal" style="display: block;background-color:rgba(0,0,0,0.23);">
+            <div class="modal-dialog" style="top: 30%;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="modal-title">{{_('Resync task')}}</div>
+                    </div>
+                    <div class="modal-body">
+                        <span class="glyphicon glyphicon-warning-sign" style="font-size:2em;"></span>
+                        <div style="margin-top: -2em; margin-left:3em;">
+                            <span style="font-size:1em">{{_('This operation will make sure that your server and local folder are correctly synchronized. Beware, this can take a while, and may be resource intensive.')}}</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="text-align:center;">
+                        <button class="btn btn-default btn-sm" ng-click="cancelResync()" style="text-align: center; width:44%; display:inline;">{{_('Cancel')}}</button>
+                        <span style="width:5%; display:inline-block;"></span>
+                        <button class="btn btn-default btn-sm" ng-click="proceedResync()" style="text-align: center; width:44%; display:inline;">{{_('Proceed')}} ({{ job.resynctimeout }} s)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <span style="float:left; width: 3.6%; margin-top: 50px; border-top: 1px dashed #000000;"></span>
+    <span href="#" ng-click="showResync=!showResync; triggerResync()" class="glyphicon glyphicon-refresh btn btn-default" style="float: left; margin: 2.6em 6px 0 6px; display: inline;" data-toggle="tooltip" data-placement="bottom" title="{{_('Trigger a full re-indexation')}}" data-original-title="Beware, resyncing is resource intensive for the server and the client."></span>
+    <span style="float:left; width: 3.6%; margin-top: 50px; border-top: 1px dashed #000000;"></span>
+
+    <div class="small pull-right" style="text-align: center; width: 40%; overflow: visible; word-break: break-all;">
+        <img src="images/desktop.png" style="width: 100px;"><br>
+        {{job.directory_label?job.directory_label:job.directory}} <a ng-show="QtObject" ng-click="openFile(job.directory+'/')"><span class="glyphicon glyphicon-new-window"></span></a><br>
+    </div>
+    </div>
+    <br style="clear: both;">
+    <h3 style="margin-top: 30px;">{{_('Label')}}</h3>
+    <div class="">
+        <input type="text" ng-model="job.label" class="form-control">
+    </div>
+
+
+    <h3 style="margin-top: 30px;">{{_('Server Connexion')}}</h3>
+    <div>
+        <div class="input-group">
+            <span class="input-group-addon">{{_('Login')}}</span>
+            <input type="text" name="user" ng-model="job.user" class="form-control" placeholder="Login" required>
+            <span class="input-group-addon">{{_('Password')}}</span>
+            <input type="password" name="pwd" ng-model="job.password" class="form-control" placeholder="Password" required>
+        </div>
+    </div>
+
+    <h3 style="margin-top: 30px;">{{_('Local Folder')}}</h3>
+    <div class="">
+        <div class="input-group">
+            <input type="text" ng-model="job.directory" readonly class="form-control">
+            <span class="input-group-btn">
+                <button class="btn btn-default" ng-click="openDirChooser()" type="button">{{_('Choose')}}</button>
+            </span>
+        </div>
+    </div>
+
+
+    <h3 style="margin-top: 30px;">{{_('Remote workspace')}}</h3>
+    <div ng-if="!repositories && job.workspace" class="">
+        <div class="input-group">
+            <label class="input-group-addon">{{_('Workspace')}}</label>
+            <input type="text" readonly class="form-control" ng-model="job.workspace"/>
+            <label class="input-group-addon">{{_('Folder')}}</label>
+            <input type="text"readonly class="form-control" ng-model="job.remote_folder"/>
+            <span class="input-group-btn">
+                <button class="btn btn-default" type="button" ng-click="loadWorkspaces()">{{_('Change')}}</button>
+            </span>
+        </div>
+    </div>
+
+    <div ng-if="repositories">
+
+        <div class="btn-group" dropdown is-open="status.isopen">
+            <button type="button" class="btn customButton btn-default dropdown-toggle">
+            {{selectedWorkspace}}  <span class="caret pull-right"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                <li class="repos" ng-click="OnWorkspaceClick(repo)" ng-repeat="repo in repositories | filter:({'@meta_syncable_REPO_SYNCABLE':'true', '@acl':'r'})">{{repo.label}}
+                <div class="repo-desc" style="padding:3px;">{{ repo.description }} <span style="padding:3px; vertical-align:15%;" ng-show="repo['@acl'] == 'r'" class="label label-warning">{{ _('This workspace is read only!') }}</span></div></li>
+            </ul>
+        </div>
+
+        <div class="input-group" ng-show="folders && folders.length" style="padding: 7px;">
+            <span ng-click="showFoldersBox=!showFoldersBox;job.remote_folder=''"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!showFoldersBox,'glyphicon-ok':showFoldersBox}"></span> <label >{{_('Synchronise only a subfolder of this workspace')}}</label></span>
+        </div>
+        <div ng-show="folders && folders.length && showFoldersBox" class="well" style="background-color: white; padding: 10px; margin-top: 7px;">
+            <div ng-click="job.remote_folder = ''" ng-class="{'list-group-item-success':!job.remote_folder}" style="cursor: pointer;padding: 5px;border-radius: 3px; display: none;">
+                <span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;{{_('Whole workspace')}}<span ng-if="folders_loading"> {{_('[loading...]')}}</span> <span>{{folders_loading_error}}</span>
+            </div>
+            <!-- Want to loose the div in the repeat as well -->
+            <div>
+                <ng-include
+                        ng-repeat="child in folders"
+                        src="'tree_node.html'"
+                        onload="data = child;job = job"/>
+            </div>
+        </div>
+    </div>
+
+    <h3 style="margin-top: 50px; cursor:pointer;" ng-click="edit_show_advanced=!edit_show_advanced">
+        <span ng-class="{'glyphicon-chevron-right':!edit_show_advanced,'glyphicon-chevron-down':edit_show_advanced}" class="small glyphicon"></span> {{_('Advanced parameters')}}<span ng-if="!edit_show_advanced">...</span>
+    </h3>
+    <div ng-show="edit_show_advanced">
+        <ng-include src="'advanced.html'" onload="job = job"></ng-include>
+    </div>
+
+    <div>
+        <br style="clear: both">
+    </div>
+
+</div>
+
+<div  class="navbar-inverse navbar-fixed-bottom" style="padding: 10px; text-align: right; background-color: #77b8e2;">
+    <a href="#" title="Cancel"><span class="glyphicon glyphicon-arrow-left" style="color: white;font-size: 27px;position: absolute;left: 10px;top: 13px;"></span></a>
+    <button type="button"  class="btn btn-danger" ng-click="deleteJob()" style="width: 40%;margin:0 1%;" href>{{_('Delete Sync')}}</button>
+    <button type="button" ng-click="save('full')" class="btn btn-info" style="width: 40%;margin:0 1%;">{{_('Save Parameters')}}</button>
+</div>
+</div>

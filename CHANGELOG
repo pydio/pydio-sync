@@ -1,0 +1,98 @@
+# PydioSync - Release Notes - 06.07.2016
+## v1.2.6 stable (Windows, MacOS, Linux)
+----
+- Added language selection
+- Added Italian translation
+- Added create folder, full depth folder selection during sync task creation
+- Added single request failed change reprocessor
+- Added scrollable change history (TODO: fix autorefresh)
+- Configurable poolsize (concurrent connections) in GUI
+
+# PydioSync - Release Notes - 23.05.2016
+## v1.2.4 stable (Windows, MacOS, Linux)
+----
+- Bug fixes
+
+# PydioSync - Release Notes - 10.05.2016
+## v1.2.3 stable (Windows, MacOS, Linux)
+----
+- Configurable poll intervals (configs.json)
+- Faster change processor
+- Added some Index for faster DB processing
+- Better support for Linux
+
+# PydioSync - Release Notes - 21.04.2016
+## v1.2.2 stable (Windows, MacOS, Linux)
+----
+- Fixed missing version number on Windows
+- Fixed auto update check
+- Fixed delete changes even if their processing failed
+- Fixed handling of empty files in indexation
+- Fixed Open File functionality on old synced files in Windows
+
+# PydioSync - Release Notes - 13.04.2016
+## v1.2.1 dev (Windows, MacOS, Linux)
+----
+- Fixed TLS1.2 support on MacOSX
+- Changed links to pydio.com in about, added license info
+- Updated translations
+- Better handling of Database lock erros
+- Multithreaded indexation
+- Include/ Exclude filter fix for MacOSX, added support for UTF-8
+- Fixed explorer icons to not display in inactive folders
+- Fixed share for new sharing with Pydio
+- Code change use submodule for SDK
+- Default to UTF-8 when filesystem encoding is unknown
+- Wait for file write to end during upload
+- send update requests only when the sync agent is up
+
+# PydioSync - Release Notes - 14.03.2016
+## v1.2.0 stable (Windows, MacOS, Linux)
+----
+- Added a general configuration file with options such as logging format, size, auto update
+- Refactored sharing from Desktop
+- Added German language translation
+- Added options panel
+- Fixed a possible renaming file problems
+- Fixed handling of encoding in MacOSX (was causing unnecessary down/uploads)
+- Multithreaded the processing of changes
+- Patched import for easier development and use of Python tools
+- Fixed multi syncs after multi click on Fire the Rocket
+
+# PydioSync - Release Notes - 20.01.2016
+## v1.0.4 stable (Windows, MacOS, Linux)
+----
+- Fixed some language detection issues
+- MacOSX (> 10.10) Finder integration, icons and share feature
+- Fixed conflicts for empty files
+- Status icons are correct for newly created files
+- Logs are more informative and easier to read
+- Added some mixing French translations
+- Fixed most "database locked" errors
+- Fixed token based authentication for multiple syncs
+- Fixed handling of exclude lists, added GUI configuration options
+- Can set Server Timeout option in UI for client requests
+- Fixed upgrade issue on running app for windows
+    * Replace the old agent with the latest
+    * Fixed the registry entries for shell extension if we upgrade while app is running
+- Removed the dependency of Qt's File dialog for share
+- Fixed Preview while sharing via sync-client
+- Fixed handling of utf-8 during share
+- Fixed last workspace can be selected when there are 10+ to choose from share
+
+# PydioSync - Release Notes - 04.12.2015
+## v1.0.3 stable (Windows, MacOS, Linux)
+----
+- Added a "Share with Pydio" button on right click in Windows explorer
+- Folder and file custom icons as status indicator (synced, syncing, offline)
+- new Windows installer
+- Added auto-resolution of conflicts, conflicting files are renamed to <file>.<username><number>.<ext>
+- Write only workspaces can no longer be synced with PydioSync (was causing issues)
+- Users are warned when configuring a read only Workspace, sync direction is Download only
+- Added the last modification time of files in the UI (dropdown list)
+- Added some missing translations
+- Better handling of quota limits
+- Improvements on Database state
+- Updated SSL certificates
+- Timeout functionality for each task, to allow to lower load on weak servers
+

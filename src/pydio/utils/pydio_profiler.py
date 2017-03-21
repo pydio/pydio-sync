@@ -50,7 +50,7 @@ def pydio_profile(func=None, stream=None, precision=6):
         return profile(func, stream, precision)
     elif sys.argv.__contains__('-mp') or sys.argv.__contains__('--memory_profile'):
         index = sys.argv.index('-mp') if sys.argv.__contains__('-mp') else sys.argv.index('--memory_profile')
-        return profile(func, stream, precision) if (sys.argv[index+1] == 'True') else func
+        return profile(func, stream, precision) if (str(sys.argv[index+1]).lower() == 'true') else func
     else:
         return func
 

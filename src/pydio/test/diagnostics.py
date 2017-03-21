@@ -19,13 +19,19 @@
 #
 
 import logging
+import platform
 import multiprocessing
 import sys
 #import zmq
+try:
+    from pydio.utils.pydio_profiler import pydio_profile
+    from pydio.utils.global_config import ConfigManager
+    from pydio.sdkremote.remote import PydioSdk
+except:
+    from utils.pydio_profiler import pydio_profile
+    from utils.global_config import ConfigManager
+    from sdkremote.remote import PydioSdk
 
-from pydio.sdk.remote import PydioSdk
-from pydio.utils.global_config import ConfigManager
-from pydio.utils.pydio_profiler import pydio_profile
 
 class PydioDiagnostics():
 
@@ -65,6 +71,9 @@ class PydioDiagnostics():
         else:
             pydio_sdk = PydioSdk(self.url, self.basepath, self.ws_id or '',
                                  user_id=self.user_id, device_id=ConfigManager.Instance().get_device_id())
+
+        if platform.system() == "Linux":
+            pydio_sdk.stick_to_basic = True
         success = pydio_sdk.stat(unicode('/', 'utf-8'))
         logging.info('Server ping on %s with user/pass %s/%s: %s' % (self.url, self.user_id, self.password, 'success' if success else 'failure'))
         if not success:
@@ -76,5 +85,6 @@ class PydioDiagnostics():
         import requests
         if 'REQUESTS_CA_BUNDLE' in os.environ and not os in ["ce", "nt"]:
             logging.info("Certificate path is " + os.environ['REQUESTS_CA_BUNDLE'])
-            data = requests.get('https://google.com', verify=os.environ['REQUESTS_CA_BUNDLE'])
+            data = requests.get('https://google.com', verify=os.environ['REQUESTS_CA_BUNDLE'],
+                                proxies=ConfigManager.Instance().get_defined_proxies())
             logging.info(data)

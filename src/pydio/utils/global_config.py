@@ -20,6 +20,7 @@
 from .functions import Singleton
 import pickle
 import os
+import time
 import uuid, json,logging
 import keyring
 
@@ -36,6 +37,8 @@ class ConfigManager:
     def __init__(self, configs_path, data_path):
         self.configs_path = configs_path
         self.data_path = data_path
+        self.general_config = None
+        self.last_load = 0
 
     def get_configs_path(self):
         return self.configs_path
@@ -67,7 +70,10 @@ class ConfigManager:
         return self.device_id
 
     def get_version_data(self):
-        from pydio.version import version, build, version_date
+        try:
+            from pydio.version import version, build, version_date
+        except ImportError:
+            from version import version, build, version_date
         return {'version': version, 'build':build, 'date':version_date}
 
     def get_defined_proxies(self):
@@ -93,6 +99,7 @@ class ConfigManager:
                     else:
                         logging.error('The proxy data is not the form of dict obj')
                 except Exception as e:
+                    logging.exception(e)
                     logging.error('Error while trying to load proxies.json file')
 
             if data != "":
@@ -106,6 +113,8 @@ class ConfigManager:
                             break
             self.proxies_loaded = True
             #logging.info("[Proxy info] " + str(self.proxies))
+        if not self.proxies:
+            self.proxies = {}
         return self.proxies
 
     def check_proxy(self, data):
@@ -123,12 +132,14 @@ class ConfigManager:
                     else:
                         proxy = protocol + '://' + data[protocol]["username"] + ':' + data[protocol]["password"] + '@' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
                     proxies[protocol] = proxy
-                import urllib
-                urllib.urlopen("http://www.google.com", proxies=proxies)
+
+                import requests
+                resp = requests.get("http://www.google.com", proxies=proxies)
                 logging.info("[Proxy info] Server is reachable via proxy from client")
+                return resp.status_code == 200
             except IOError:
                 logging.error("[Proxy info] Connection error! (Check proxy)")
-            return True # what else?
+            return False
 
     def set_user_proxy(self, data):
         """
@@ -140,7 +151,96 @@ class ConfigManager:
         file_name = os.path.join(self.configs_path, 'proxies.json')
         try:
             with open(file_name, 'w') as f:
-                json.dump(data, f)
+                json.dump(data, f, indent=4, separators=(',', ': '))
         except Exception as ex:
             logging.exception(ex)
         return "write to Proxies.json file is successful"
+
+@Singleton
+class GlobalConfigManager:
+
+    def __init__(self, configs_path=None):
+        if configs_path is not None:
+            self.configs_path = configs_path
+        self.default_settings = {
+            "log_configuration": {
+                "log_file_name": "pydio.log",
+                "version": 1,
+                "disable_existing_loggers": "True",
+                "formatters": {
+                    "short": {
+                        "format": u"%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(message)s",
+                        "datefmt": "%H:%M:%S"
+                    },
+                    "verbose": {
+                        "format": u"%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(filename)s : %(lineno)s | %(funcName)s | %(message)s",
+                        "datefmt": "%Y-%m-%d %H:%M:%S"
+                    }
+                },
+                "handlers": {
+                    "file": {
+                        "level": "INFO",
+                        "class": "logging.handlers.RotatingFileHandler",
+                        "formatter": "verbose",
+                        "backupCount": 8,
+                        "maxBytes": 4194304,
+                        "filename": "log_file"
+                    },
+                    "console": {
+                        "level": "level",
+                        "class": "logging.StreamHandler",
+                        "formatter": "short"
+                    }
+                },
+                "root": {
+                    "level": "DEBUG",
+                    "handlers": [ "console", "file" ]
+                },
+                "log_levels": {
+                    "0": "WARNING",
+                    "1": "INFO",
+                    "2": "DEBUG"
+                }
+            },
+            "update_info": {
+                "enable_update_check": "True",
+                "update_check_frequency_days": 1,
+                "last_update_date": 0
+            },
+            "max_wait_time_for_local_db_access": 30,
+            "language": ""
+        }
+
+    def set_general_config(self, data):
+        """
+        Put the global configurations into general_config.json if it doesn't exist
+        :param data: dict object with configuration data
+        """
+        global_config_file = os.path.join(self.configs_path, 'general_config.json')
+        self.last_load = 0
+        # Set the global config only if no prior settings exists
+        if not os.path.exists(global_config_file) or os.stat(global_config_file).st_size == 0:
+            if not os.path.exists(self.configs_path):
+                os.makedirs(self.configs_path)
+            with open(global_config_file, 'w') as conf_file:
+                json.dump(data, conf_file, indent=4, separators=(',', ': '))
+
+    def update_general_config(self, data):
+        """
+        Update the global configurations into general_config.json
+        :param data: dict object with configuration data
+        """
+        self.last_load = 0
+        with open(os.path.join(self.configs_path, 'general_config.json'), 'w') as conf_file:
+            json.dump(data, conf_file, indent=4, separators=(',', ': '))
+
+    def get_general_config(self):
+        """
+        Fetch the config details from general_config.json file
+        :return: dict object with configuration data
+        """
+        with open(os.path.join(self.configs_path, 'general_config.json')) as conf_file:  # memoize general config, don't reload the file more than every 3 seconds
+            if time.time() - self.last_load > 5:
+                self.last_load = time.time()
+                self.general_config = json.load(conf_file)
+            return self.general_config
