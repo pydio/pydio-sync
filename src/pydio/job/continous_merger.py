@@ -80,7 +80,7 @@ class ContinuousDiffMerger(threading.Thread):
         :param job_data_path: Filesystem path where the job data are stored
         :return:
         """
-        threading.Thread.__init__(self)
+        super(ContinuousDiffMerger, self).__init__()
         self.last_run = 0
         self.configs_path = job_data_path
         self.job_config = job_config
