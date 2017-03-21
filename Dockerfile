@@ -1,7 +1,7 @@
 FROM python:2
 LABEL maintainer "louis@pydio.com"
 
-ENV PYDIO_GIT_BRANCH 'materialUI'
+ENV PYDIO_GIT_BRANCH 'dev'
 
 WORKDIR /root
 
