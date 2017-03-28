@@ -18,9 +18,15 @@ def init():
 
 
 class TestJobConfig(TestCase):
+    _server_addr = "http://foo.com/path/to/resource?test=true"
+    _workspace = "test"
+
     """Test pydio.job.job_config.JobConfig"""
     def setUp(self):
         self.cfg = JobConfig()
+        # test against a non-trivial URL.
+        self.cfg.server = self._server_addr
+        self.cfg.workspace = self._workspace
 
     def tearDown(self):
         JobsLoader.Instance().jobs.clear()
@@ -48,7 +54,8 @@ class TestJobConfig(TestCase):
             timeout=9001,  # it's over 9000!
             hide_up_dir="TEST_HIDE_UP_DIR",
             hide_bi_dir="TEST_HIDE_BI_DIR",
-            hide_down_dir="TEST_HIDE_DOWN_DIR"
+            hide_down_dir="TEST_HIDE_DOWN_DIR",
+            poolsize="TEST_POOL_SIZE",
         )
 
         cfg = JobConfig(**kw)
@@ -57,9 +64,6 @@ class TestJobConfig(TestCase):
             self.assertEqual(getattr(cfg, k), v)
 
     def test_make_id(self):
-        # test against a non-trivial URL.
-        self.cfg.server = "http://foo.com/path/to/resource?test=true"
-        self.cfg.workspace = "test"
         test_id = "foo.com-test"
 
         self.cfg.make_id()
@@ -70,6 +74,19 @@ class TestJobConfig(TestCase):
         self.cfg.make_id()
         self.assertEqual(self.cfg.id, "foo.com-test-1", "improper id incrementation")
 
+    def test_encoder(self):
+        self.cfg.make_id()
+
+        # JobConfig.encoder is a static method
+        res = JobConfig.encoder(self.cfg)
+        # TODO validate res
+
+        self.assertRaises(
+            TypeError,
+            JobConfig.encoder,
+            {},
+            "non-JobConfig-instances should raise a TypeError"
+        )
 
 if __name__ != "__main__":
      init()

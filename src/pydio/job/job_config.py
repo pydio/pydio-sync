@@ -145,6 +145,8 @@ class JobConfig(object):
         self.hide_bi_dir = kw.get("hide_bi_dir", 'false')
         self.hide_down_dir = kw.get("hide_down_dir", 'false')
 
+        self.poolsize = kw.get("poolsize", 4)
+
     def make_id(self):
         i = 1
         base_id = urlparse.urlparse(self.server).hostname + '-' + self.workspace
