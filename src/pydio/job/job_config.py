@@ -33,7 +33,7 @@ except ImportError:
 
 
 @Singleton
-class JobsLoader():
+class JobsLoader(object):
     config_file = ''
     jobs = None
     data_path = None
