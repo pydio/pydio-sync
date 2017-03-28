@@ -789,7 +789,7 @@ class SqliteChangeStore(object):
         max_seq = last_info['max_seq'] if (last_info and last_info.has_key('max_seq')) else -1
 
         if not row:
-            if last_info and last_info.has_key('change') and change:
+            if last_info and last_info.get("change", False):
                 seq = change['seq']
                 first, second = self.reformat(change)
                 if first:
@@ -798,8 +798,7 @@ class SqliteChangeStore(object):
                     self.store(location, second['seq'], second)
         else:
             seq = row.pop('seq')
-            max_seq = seq if seq > max_seq else max_seq
-            last_info['max_seq'] = max_seq
+            last_info['max_seq'] = max(seq, max_seq)
 
             if not self.echo_match(location, row):
                 logging.debug("processing " + row['source'] + " -> " + row['target'])
@@ -835,7 +834,6 @@ class SqliteChangeStore(object):
                     change['seq'] = seq
 
                 last_info['change'] = change
-                last_info['max_seq'] = max_seq
 
     # from (path, dp, dc ) to (source, target, type,...)
     def reformat(self, change):
