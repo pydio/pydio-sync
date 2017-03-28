@@ -138,7 +138,7 @@ class SqlSnapshot(object):
         return set(self._stat_snapshot)
 
 
-class LocalDbHandler():
+class LocalDbHandler(object):
 
     def __init__(self, job_data_path='', base=''):
         self.base = base
