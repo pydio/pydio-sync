@@ -16,9 +16,6 @@ WORKDIR /root
 RUN pip install -r src/pydio/sdkremote/requirements.txt
 RUN pip install -r requirements.txt && python setup.py develop
 
-# install debugging tools
-RUN pip install ipython ipdb
-
 WORKDIR /root/src/pydio/ui
 RUN npm install -g grunt-cli && npm install grunt && npm install && grunt
 WORKDIR /root/src/pydio
