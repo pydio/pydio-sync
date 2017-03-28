@@ -27,7 +27,6 @@ import keyring
 
 @Singleton
 class ConfigManager:
-
     device_id = ''
     data_path = ''
     rdiff_path = ''
