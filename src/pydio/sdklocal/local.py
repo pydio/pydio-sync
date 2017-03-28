@@ -61,7 +61,7 @@ class SystemSdk(object):
         """
         return os.path.exists(self.basepath)
 
-    def bulk_stat(self, pathes, with_hash=False):
+    def bulk_stat(self, paths, with_hash=False):
         return None
 
     def mkfile(self, path):
