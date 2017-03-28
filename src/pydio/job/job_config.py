@@ -106,25 +106,25 @@ class JobsLoader():
             import shutil
             shutil.rmtree(job_data_path)
 
-class JobConfig:
+class JobConfig(object):
 
-    def __init__(self):
+    def __init__(self, **kw):
         # define instance attributes
-        self.server = ''
-        self.directory = ''
-        self.workspace = ''
-        self.remote_folder = ''
-        self.user_id = ''
-        self.label = ''
+        self.server = kw.get('server', '')
+        self.directory = kw.get('directory', '')
+        self.workspace = kw.get('workspace', '')
+        self.remote_folder = kw.get('remote_folder', '')
+        self.user_id = kw.get('user_id', '')
+        self.label = kw.get('label', '')
         # Default values
-        self.server_configs = None
-        self.active = True
-        self.direction = 'bi'
-        self.frequency = 'auto'
-        self.start_time = {'h': 0, 'm': 0}
-        self.solve = 'manual'
-        self.monitor = True
-        self.trust_ssl = False
+        self.server_configs = kw.get("server_configs", None)
+        self.active = kw.get("active", True)
+        self.direction = kw.get("direction", "bi")
+        self.frequency = kw.get("frequency", 'auto')
+        self.start_time = kw.get("start_time", {'h': 0, 'm': 0})
+        self.solve = kw.get("solve", 'manual')
+        self.monitor = kw.get("monitor", True)
+        self.trust_ssl = kw.get("trust_ssl", False)
         self.filters = dict(
             includes=['*'],
 
@@ -139,11 +139,11 @@ class JobConfig:
             excludes=['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store', '.~lock.*', '~*', '*.xlk', '*.tmp']
         )
 
-        self.timeout = 20
+        self.timeout = kw.get("timeout", 20)  # TODO units???
 
-        self.hide_up_dir = 'false'
-        self.hide_bi_dir = 'false'
-        self.hide_down_dir = 'false'
+        self.hide_up_dir = kw.get("hide_up_dir", "false")  # TODO:  use bool
+        self.hide_bi_dir = kw.get("hide_bi_dir", 'false')
+        self.hide_down_dir = kw.get("hide_down_dir", 'false')
 
     def make_id(self):
         i = 1
