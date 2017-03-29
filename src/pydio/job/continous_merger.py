@@ -343,21 +343,13 @@ class ContinuousDiffMerger(threading.Thread):
         self.sdk.set_interrupt()
         self.interrupt = True
 
-    def sleep_offline(self):
-        """
-        Sleep the thread for a "long" time (offline time)
-        :return:
-        """
-        self.online_status = False
-        self.last_run = time.time()
-        time.sleep(self.event_timer)
+    def sleep(self, online=True):
+        """Put the thread to sleep.
 
-    def sleep_online(self):
+        :online: if True, signals that the thread is sleeping briefly, else signals
+                 a long-term pause.
         """
-        Sleep the thread for a "short" time (online time)
-        :return:
-        """
-        self.online_status = True
+        self.online_status = online
         self.last_run = time.time()
         time.sleep(self.event_timer)
 
@@ -368,9 +360,9 @@ class ContinuousDiffMerger(threading.Thread):
         logger.log_state(_('Synchronized'), 'success')
         if self.job_config.frequency == 'manual':
             self.job_status_running = False
-            self.sleep_offline()
+            self.sleep(online=False)
         else:
-            self.sleep_online()
+            self.sleep()
 
 
     @pydio_profile
@@ -397,7 +389,7 @@ class ContinuousDiffMerger(threading.Thread):
                 if not self.job_status_running:
                     logging.debug("self.online_timer: %s" % self.online_timer)
                     self.logger.log_state(_('Status: Paused'), "sync")
-                    self.sleep_offline()
+                    self.sleep(online=False)
                     continue
 
                 if self.job_config.frequency == 'time':
@@ -406,7 +398,7 @@ class ContinuousDiffMerger(threading.Thread):
                     now = datetime.datetime.now().time()
                     if not start_time < now < end_time:
                         self.logger.log_state(_('Status: scheduled for %s') % str(start_time), "sync")
-                        self.sleep_offline()
+                        self.sleep(online=False)
                         continue
                     else:
                         logging.info("Now triggering synchro as expected at time " + str(start_time))
@@ -415,7 +407,7 @@ class ContinuousDiffMerger(threading.Thread):
                     log = _('Cannot find local folder! Did you disconnect a volume? Waiting %s seconds before retry') % self.offline_timer
                     logging.error(log)
                     self.logger.log_state(_('Cannot find local folder, did you disconnect a volume?'), "error")
-                    self.sleep_offline()
+                    self.sleep(online=False)
                     continue
 
                 # Before starting infinite loop, small check that remote folder still exists
@@ -428,12 +420,12 @@ class ContinuousDiffMerger(threading.Thread):
                         continue
                     except Exception as e:
                         logging.exception(e)
-                        self.sleep_offline()
+                        self.sleep(online=False)
                     if not self.sdk.check_basepath():
                         log = _('Cannot find remote folder, maybe it was renamed? Sync cannot start, please check the configuration.')
                         logging.error(log)
                         self.logger.log_state(log, 'error')
-                        self.sleep_offline()
+                        self.sleep(online=False)
                         continue
 
                 if self.watcher:
@@ -479,14 +471,14 @@ class ContinuousDiffMerger(threading.Thread):
                     self.marked_for_snapshot_pathes = []
                     logging.error(error)
                     self.logger.log_state(error, "wait")
-                    self.sleep_offline()
+                    self.sleep(online=False)
                     continue
                 except Exception as e:
                     error = 'Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer)
                     logging.exception(e)
                     self.logger.log_state(_('Error while connecting to remote server (%s)') % e.message, "error")
                     self.marked_for_snapshot_pathes = []
-                    self.sleep_offline()
+                    self.sleep(online=False)
                     continue
                 self.online_status = True
                 if not self.job_config.server_configs:
@@ -584,7 +576,7 @@ class ContinuousDiffMerger(threading.Thread):
                     logging.info('Conflicts detected, cannot continue!')
                     self.logger.log_state(_('Conflicts detected, cannot continue!'), 'error')
                     self.current_store.close()
-                    self.sleep_offline()
+                    self.sleep(online=False)
                     self.logger.log_notif(_('Conflicts detected, cannot continue!'), 'error')
                     continue
 
@@ -722,14 +714,14 @@ class ContinuousDiffMerger(threading.Thread):
             except RequestException as ree:
                 logging.error(ree.message)
                 self.logger.log_state(_('Cannot resolve domain!'), 'error')
-                self.sleep_offline()
+                self.sleep(online=False)
             except Exception as e:
                 if not (e.message.lower().count('[quota limit reached]') or e.message.lower().count('[file permissions]')):
                     logging.exception('Unexpected Error: %s' % e.message)
                     self.logger.log_state(_('Unexpected Error: %s') % e.message, 'error')
                 else:
                     logging.exception(e)
-                self.sleep_offline()
+                self.sleep(online=False)
             logging.debug('Finished this cycle, waiting for %i seconds' % self.online_timer)
             very_first = False
 
