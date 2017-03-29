@@ -8,9 +8,48 @@ from unittest import TestCase
 from pydio.job.job_config import JobConfig, JobsLoader
 
 
+JOBS_ROOT_PATH = "/tmp"
+SERVER_ADDR = "http://foo.com/path/to/resource?test=true"
+WORKSPACE_NAME = "test"
+TEST_ID = "foo.com-test"
 BLACKLIST = ['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store',
              '.~lock.*', '~*', '*.xlk', '*.tmp']
-JOBS_ROOT_PATH = "/tmp"
+JOB_CONFIG_DICT = {
+    'direction': 'bi',
+    'filters': {
+        'excludes': [
+            '.*',
+            '*/.*',
+            '/recycle_bin*',
+            '*.pydio_dl',
+            '*.DS_Store',
+            '.~lock.*',
+            '~*',
+            '*.xlk',
+            '*.tmp'
+        ],
+
+        'includes': ['*']
+    },
+    'poolsize': 4,
+    'hide_bi_dir': 'false',
+    'start_time': {'h': 0, 'm': 0},
+    '__type__': 'JobConfig',
+    'timeout': 20,
+    'server': SERVER_ADDR,
+    'trust_ssl': False,
+    'remote_folder': '',
+    'hide_down_dir': 'false',
+    'frequency': 'auto',
+    'solve': 'manual',
+    'user': '',
+    'workspace': WORKSPACE_NAME,
+    'hide_up_dir': 'false',
+    'directory': '',
+    'label': TEST_ID,
+    'active': True,
+    'id': TEST_ID
+}
 
 
 def init():
@@ -18,15 +57,13 @@ def init():
 
 
 class TestJobConfig(TestCase):
-    _server_addr = "http://foo.com/path/to/resource?test=true"
-    _workspace = "test"
 
     """Test pydio.job.job_config.JobConfig"""
     def setUp(self):
         self.cfg = JobConfig()
         # test against a non-trivial URL.
-        self.cfg.server = self._server_addr
-        self.cfg.workspace = self._workspace
+        self.cfg.server = SERVER_ADDR
+        self.cfg.workspace = WORKSPACE_NAME
 
     def tearDown(self):
         JobsLoader.Instance().jobs.clear()
@@ -64,23 +101,19 @@ class TestJobConfig(TestCase):
             self.assertEqual(getattr(cfg, k), v)
 
     def test_make_id(self):
-        test_id = "foo.com-test"
-
         self.cfg.make_id()
-        self.assertEqual(self.cfg.id, test_id, "malformed base id")
+        self.assertEqual(self.cfg.id, TEST_ID, "malformed base id")
 
         # test incrementation
-        JobsLoader.Instance().jobs[test_id] = None
+        JobsLoader.Instance().jobs[TEST_ID] = None
         self.cfg.make_id()
         self.assertEqual(self.cfg.id, "foo.com-test-1", "improper id incrementation")
 
     def test_encoder(self):
         self.cfg.make_id()
-
         # JobConfig.encoder is a static method
         res = JobConfig.encoder(self.cfg)
-        # TODO validate res
-
+        self.assertEqual(res, JOB_CONFIG_DICT)
         self.assertRaises(
             TypeError,
             JobConfig.encoder,
