@@ -18,18 +18,18 @@ JOB_CONFIG_DICT = {
     'direction': 'bi',
     'filters': {
         'excludes': [
-            '.*',
-            '*/.*',
-            '/recycle_bin*',
-            '*.pydio_dl',
-            '*.DS_Store',
-            '.~lock.*',
-            '~*',
-            '*.xlk',
-            '*.tmp'
+            u'.*',
+            u'*/.*',
+            u'/recycle_bin*',
+            u'*.pydio_dl',
+            u'*.DS_Store',
+            u'.~lock.*',
+            u'~*',
+            u'*.xlk',
+            u'*.tmp'
         ],
 
-        'includes': ['*']
+        'includes': [u'*']
     },
     'poolsize': 4,
     'hide_bi_dir': 'false',
@@ -120,6 +120,22 @@ class TestJobConfig(TestCase):
             {},
             "non-JobConfig-instances should raise a TypeError"
         )
+
+    def test_object_decoder(self):
+        # JobConfig.object_decoder is a static method
+        res = JobConfig.object_decoder(JOB_CONFIG_DICT)
+        self.assertIsInstance(
+            res, JobConfig,
+            "known-valid JobConfig dict did not produce a JobConfig instance"
+        )
+
+        negtest = {"__type__": "random"}
+        self.assertIs(
+            JobConfig.object_decoder(negtest), negtest,
+            ("Dicts with a '__type__' key that do not match 'JobConfig' should "
+             "be returned unchanged")
+        )
+
 
 if __name__ != "__main__":
      init()
