@@ -68,6 +68,24 @@ class TestContinuousDiffMerger(TestCase):
         # When everything is said and done, we should have 100% of the file.
         self.assertAlmostEqual(self.cdm.global_progress["queue_done"], 1.0)
 
+    def test_is_running(self):
+        self.assertIsInstance(self.cdm.is_running(), bool)
+
+    def test_init_global_progress(self):
+        self.cdm.init_global_progress()
+        keys = (
+            'status_indexing',
+            'queue_length',
+            'queue_done',
+            'queue_bytesize',
+            'total_time'
+        )
+        for k in keys:
+            self.assertFalse(self.cdm.global_progress[k])
+
+        self.assertIsInstance(self.cdm.global_progress["queue_start_time"], float)
+        self.assertEqual(self.cdm.global_progress["last_transfer_rate"], -1)
+
 
 if __name__ != "__main__":
     init()
