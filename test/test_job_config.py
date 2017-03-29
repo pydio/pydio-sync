@@ -4,6 +4,7 @@
 # Copyright 2017, Abstrium SAS
 
 from unittest import TestCase
+from collections import namedtuple
 
 from pydio.job.job_config import JobConfig, JobsLoader
 
@@ -57,6 +58,10 @@ def init():
 
 
 class TestJobConfig(TestCase):
+    Args = namedtuple("Args", [
+        "server", "workspace", "directory",
+        "remote_folder", "password", "user", "direction"
+    ])
 
     """Test pydio.job.job_config.JobConfig"""
     def setUp(self):
@@ -135,6 +140,54 @@ class TestJobConfig(TestCase):
             ("Dicts with a '__type__' key that do not match 'JobConfig' should "
              "be returned unchanged")
         )
+
+    def _synthesize_args(self, **kw):
+        return self.Args(
+            SERVER_ADDR,
+            WORKSPACE_NAME,
+            "/tmp///",
+            kw.get("remote_folder"),
+            "P@ssw0rd",
+            "usr",
+            kw.get("direction")
+        )
+
+    def test_load_from_cliargs_full(self):
+        """Here we just test that we're not getting any exceptions and that
+        unmodified values are being set"""
+        args = self._synthesize_args()
+        self.cfg.load_from_cliargs(args)
+        self.assertEqual(self.cfg.server, SERVER_ADDR)
+        self.assertEqual(self.cfg.workspace, WORKSPACE_NAME)
+
+    def test_load_from_cliargs_direction_default(self):
+        args = self._synthesize_args()
+        self.cfg.load_from_cliargs(args)
+        self.assertEqual(self.cfg.direction, "bi", "default unexpectedly ignored")
+
+    def test_load_from_cliargs_direction_override(self):
+        args = self._synthesize_args(direction="down")
+        self.cfg.load_from_cliargs(args)
+        self.assertEqual(self.cfg.direction, "down", "direction override failed")
+
+    def test_load_from_cliargs_remote_folder_default(self):
+        args = self._synthesize_args()
+        self.cfg.load_from_cliargs(args)
+        self.assertEqual(self.cfg.remote_folder, "",
+                         "bad default `{0}`".format(self.cfg.remote_folder))
+
+    def test_load_from_cliargs_remote_folder_override(self):
+        args = self._synthesize_args(remote_folder="/remote/folder///")
+        self.cfg.load_from_cliargs(args)
+        self.assertEqual(
+            self.cfg.remote_folder, "/remote/folder",
+            "override or cleanup has failed ({0})".format(self.cfg.remote_folder)
+        )
+
+    def test_load_from_cliargs_local_folder_cleanup(self):
+        args = self._synthesize_args()
+        self.cfg.load_from_cliargs(args)
+        self.assertEqual(self.cfg.directory, "/tmp")
 
 
 if __name__ != "__main__":

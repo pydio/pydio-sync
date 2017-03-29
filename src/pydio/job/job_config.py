@@ -107,6 +107,7 @@ class JobsLoader(object):
             shutil.rmtree(job_data_path)
 
 class JobConfig(object):
+    __type__ = "JobConfig"
 
     def __init__(self, **kw):
         # define instance attributes
@@ -200,7 +201,6 @@ class JobConfig(object):
         if args.direction:
             self.direction = args.direction
         self.make_id()
-        self.__type__ = "JobConfig"
 
     @staticmethod
     def object_decoder(obj):
