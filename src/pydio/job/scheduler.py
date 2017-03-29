@@ -43,7 +43,7 @@ class PydioScheduler():
         self.jobs_root_path = jobs_root_path
         dispatcher.connect(self.handle_job_signal, signal=JOB_COMMAND_SIGNAL, sender=dispatcher.Any)
         dispatcher.connect(self.handle_generic_signal, signal=COMMAND_SIGNAL, sender=dispatcher.Any)
-        
+
     @pydio_profile
     def start_all(self):
         for job_id in self.job_configs:
