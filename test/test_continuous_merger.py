@@ -113,6 +113,28 @@ class TestContinuousDiffMerger(TestCase):
         self.assertTrue(self.cdm.watcher.interrupt, "interrupt not set")
         self.assertTrue(self.cdm.watcher.is_alive, "watcher was killed")
 
+    def test_sleep(self):
+        # online
+        self.cdm.online_status = None
+        self.cdm.last_run = None
+
+        self.cdm.sleep()
+        self.assertTrue(self.cdm.online_status,
+                        "online=True produced an offline sleep state")
+        self.assertIsNotNone(self.cdm.last_run, "last_run not set")
+
+        # offline
+        self.cdm.online_status = None
+        self.cdm.last_run = None
+        self.cdm.sleep(online=False)
+
+        self.assertIsNotNone(self.cdm.online_status, "online_status not set")
+        self.assertFalse(self.cdm.online_status,
+                         "online=False produced an online sleep state")
+        self.assertIsNotNone(self.cdm.last_run, "last_run not set")
+
+
+
 
 
 if __name__ != "__main__":
