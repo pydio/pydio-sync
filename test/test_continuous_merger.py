@@ -113,8 +113,7 @@ class TestContinuousDiffMerger(TestCase):
         self.assertTrue(self.cdm.watcher.interrupt, "interrupt not set")
         self.assertTrue(self.cdm.watcher.is_alive, "watcher was killed")
 
-    def test_sleep(self):
-        # online
+    def test_sleep_online(self):
         self.cdm.online_status = None
         self.cdm.last_run = None
 
@@ -123,7 +122,7 @@ class TestContinuousDiffMerger(TestCase):
                         "online=True produced an offline sleep state")
         self.assertIsNotNone(self.cdm.last_run, "last_run not set")
 
-        # offline
+    def test_sleep_offline(self):
         self.cdm.online_status = None
         self.cdm.last_run = None
         self.cdm.sleep(online=False)
@@ -133,7 +132,25 @@ class TestContinuousDiffMerger(TestCase):
                          "online=False produced an online sleep state")
         self.assertIsNotNone(self.cdm.last_run, "last_run not set")
 
+    def test_exit_loop_clean(self):
+        class DummyLogger(object):
+            def log_state(*args):
+                pass
 
+        logger = DummyLogger()
+
+        # We haven't specified a `current_store` member for the
+        # ContinuousDiffMerger instance.  `exit_loop_clean` SHOULD try to access
+        # `current_store.conn` in order to close the SQLite connection, which
+        # is expected to raise an AttributeError.
+        #
+        # N.B.:  We are assuming that an attempt to access
+        # `self.cdm.current_store` is equivalent to a successful connection
+        # closure.  This is hackish, but good enough for now.
+        #
+        # TODO:  mock `current_store` so that we can also test that
+        #        `job_status_running` is set to false
+        self.assertRaises(AttributeError, self.cdm.exit_loop_clean, logger)
 
 
 
