@@ -86,6 +86,34 @@ class TestContinuousDiffMerger(TestCase):
         self.assertIsInstance(self.cdm.global_progress["queue_start_time"], float)
         self.assertEqual(self.cdm.global_progress["last_transfer_rate"], -1)
 
+    def test_start_now(self):
+        self.cdm.last_run = 9001
+        self.cdm.sdk.interrupt_tasks = True
+        self.cdm.start_now()
+        self.assertFalse(self.cdm.last_run,
+                         "ContinuousDiffMerger.last_run not set to 0")
+        self.assertFalse(self.cdm.sdk.interrupt_tasks, "interrupt still set")
+
+    def test_pause(self):
+        self.cdm.job_status_running = True
+        self.cdm.sdk.interrupt_tasks = False
+        self.cdm.pause()
+        self.assertFalse(self.cdm.job_status_running, "job still running")
+        self.assertTrue(self.cdm.sdk.interrupt_tasks, "interrupt not set")
+
+    def test_resume(self):
+        self.cdm.pause()
+        self.cdm.resume()
+        self.assertTrue(self.cdm.job_status_running, "job still suspended")
+        self.assertFalse(self.cdm.sdk.interrupt_tasks, "interrupt still set")
+
+    def test_stop(self):
+        self.cdm.resume()
+        self.cdm.stop()
+        self.assertTrue(self.cdm.watcher.interrupt, "interrupt not set")
+        self.assertTrue(self.cdm.watcher.is_alive, "watcher was killed")
+
+
 
 if __name__ != "__main__":
     init()
