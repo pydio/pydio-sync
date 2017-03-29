@@ -218,6 +218,7 @@ class PydioApi(Api):
         except IOError as e:
             logging.exception(e)
             logging.info(os.listdir(os.path.dirname(fp)))
+            logging.info("did you run the gruntfile?")
         if path.endswith('.css'):
                 mime = "text/css"
         elif path.endswith('.js'):
