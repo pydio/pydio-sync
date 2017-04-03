@@ -69,6 +69,68 @@ except ImportError:
     TRANSFER_CALLBACK_SIGNAL = 'transfer_callback'
 
 
+class SigContinue(Exception):
+    """Raised when a sync run cannot continue, but the ContinuousDiffMerger
+    instance is in a consistent state.
+    """
+
+
+def processor_callback(change):
+    try:
+        if self.interrupt or not self.job_status_running:
+            raise InterruptException()
+        self.update_current_tasks()
+        self.update_global_progress()
+        Processor = StorageChangeProcessor if self.storage_watcher else ChangeProcessor
+        proc = Processor(change, self.current_store, self.job_config, self.system, self.sdk,
+                               self.db_handler, self.event_logger)
+        proc.process_change()
+        self.update_min_seqs_from_store(success=True)
+        self.global_progress['queue_done'] = float(counter[0])
+        counter[0] += 1
+        self.update_current_tasks()
+        self.update_global_progress()
+        time.sleep(0.1)
+        if self.interrupt or not self.job_status_running:
+            raise InterruptException()
+
+    except ProcessException as pe:
+        logging.error(pe.message)
+        return False
+    except InterruptException as i:
+        raise i
+    except PydioSdkDefaultException as p:
+        raise p
+    except Exception as ex:
+        logging.exception(ex)
+        return False
+    return True
+
+
+def processor_callback2(change):
+    try:
+        if self.interrupt or not self.job_status_running:
+            raise InterruptException()
+        Processor = StorageChangeProcessor if self.storage_watcher else ChangeProcessor
+        proc = Processor(change, self.current_store, self.job_config, self.system, self.sdk,
+                               self.db_handler, self.event_logger)
+        proc.process_change()
+        if self.interrupt or not self.job_status_running:
+            raise InterruptException()
+    except PydioSdkException as pe:
+        if pe.message.find("Original file") > -1:
+            pe.code = 1404
+            raise pe
+    except ProcessException as pe:
+        logging.error(pe.message)
+        return False
+    except PydioSdkDefaultException as p:
+        raise p
+    except InterruptException as i:
+        raise i
+    return True
+
+
 class ContinuousDiffMerger(threading.Thread):
     """Main Thread grabbing changes from both sides, computing the necessary changes to apply, and applying them"""
 
@@ -82,6 +144,7 @@ class ContinuousDiffMerger(threading.Thread):
         """
         super(ContinuousDiffMerger, self).__init__()
         self.last_run = 0
+        self.very_first = False
         self.configs_path = job_data_path
         self.job_config = job_config
         sqlite_files = [file for file in os.listdir(self.configs_path) if file.endswith(".sqlite")]
@@ -375,333 +438,380 @@ class ContinuousDiffMerger(threading.Thread):
         else:
             return interval > self.offline_timer
 
+    def _check_ready_for_sync_run(self):
+        """Check if it's time to run a sync pass, AND there are no concurrent
+        passes presently engaged.
+
+        :return:bool
+        """
+        # When sync mode is automatic, we will, depending on the
+        # ContinuousDiffMerger's state (ONLINE || OFFLINE), wait some
+        # variable amount of time before engaging in the next sync run.
+        if not self.sync_interval_elapsed:
+            self.sleep(online=True)
+            raise SigContinue
+
+        # don't run if a job is already running
+        if not self.job_status_running:
+            logging.debug("self.online_timer: %s" % self.online_timer)
+            self.logger.log_state(_('Status: Paused'), "sync")
+            self.sleep(online=False)
+            raise SigContinue
+
+        # When the sync is scheduled for a specific time, prevent sync
+        # run until such time is reached.
+        if self.job_config.frequency == 'time':
+            start_time = datetime.time(int(self.job_config.start_time['h']), int(self.job_config.start_time['m']))
+            end_time = datetime.time(int(self.job_config.start_time['h']), int(self.job_config.start_time['m']), 59)
+            now = datetime.datetime.now().time()
+            if not start_time < now < end_time:
+                self.logger.log_state(_('Status: scheduled for %s') % str(start_time), "sync")
+                self.sleep(online=False)
+                raise SigContinue
+            else:
+                logging.info("Now triggering synchro as expected at time " + str(start_time))
+
+    def _init_sync_run(self):
+        self.processing_signals.clear()
+        self.init_global_progress()
+        if self.very_first:
+            self.global_progress["status_indexing"] = 1
+
+    def _check_local_volume(self):
+        """make sure the local volume still exists"""
+        if not self.system.check_basepath():
+            log = _('Cannot find local folder! Did you disconnect a volume? Waiting %s seconds before retry') % self.offline_timer
+            logging.error(log)
+            self.logger.log_state(_('Cannot find local folder, did you disconnect a volume?'), "error")
+            self.sleep(online=False)
+            raise SigContinue
+
+    def _check_remote_volume(self):
+        """make sure the remote volume still exists"""
+        # check that remote folder still exists
+        if not self.sdk.check_basepath():
+            # if it doesn't, try to create it
+            self.sdk.remote_folder = os.path.join("/", self.sdk.remote_folder)
+            try:
+                logging.info("Creating remote directory.")
+                self.sdk.mkdir("")
+                raise SigContinue
+            except Exception as e:  # TODO: restrict to expected exceptions
+                logging.exception(e)
+                self.sleep(online=False)
+            if not self.sdk.check_basepath():
+                log = _('Cannot find remote folder, maybe it was renamed? Sync cannot start, please check the configuration.')
+                logging.error(log)
+                self.logger.log_state(log, 'error')
+                self.sleep(online=False)
+                raise SigContinue
+
+    def _check_target_volumes(self):
+        """Verify that local and remote sync targets are present and accessible.
+        """
+        self._check_local_volume()
+        self._check_remote_volume()
+
+
+    def _load_directory_snapshots(self):
+        """Check for changes in workspace directories since last sync pass.
+
+        raises : InterruptException
+        """
+        if self.watcher is not None:
+            for snap_path in self.marked_for_snapshot_pathes:
+                logging.info('LOCAL SNAPSHOT : loading snapshot for directory %s' % snap_path)
+                if self.interrupt or not self.job_status_running:
+                    raise InterruptException
+
+                self.watcher.check_from_snapshot(snap_path)
+
+            self.marked_for_snapshot_pathes = []
+
+    def _wait_db_lock(self):
+        """To avoid reading events before they're written (db lock) wait for writing to finish"""
+        writewait = .5
+        while self.event_handler is not None and self.event_handler.locked:
+            logging.info("Waiting for changes to be written before retrieving remote changes.")
+            if writewait < 5:
+                writewait += .5
+            time.sleep(writewait)
+
+    def _fetch_remote_changes(self):
+        if self.job_config.direction != 'up':
+            logging.info(
+                'Loading remote changes with sequence {0:s} for job id {1:s}'.format(str(self.remote_seq),
+                                                                                       str(self.job_config.id)))
+            if self.remote_seq == 0:
+                self.logger.log_state(_('Gathering data from remote workspace, this can take a while...'), 'sync')
+                self.very_first = True
+            self.remote_target_seq = self.load_remote_changes_in_store(self.remote_seq, self.current_store)
+            self.current_store.sync()
+        else:
+            self.remote_target_seq = 1
+            self.ping_remote()
+
+    def _fetch_local_changes(self):
+        down = self.job_config.direction == "down"
+        local = self.job_config.solve != 'remote'
+        if not down or (down and local):
+            msg = 'Loading local changes with sequence {0} for job id {1}'.format(
+                self.local_seq,
+                self.job_config.id
+            )
+            logging.info(msg)
+
+            self.local_target_seq = self.db_handler.get_local_changes_as_stream(
+                self.local_seq,
+                self.current_store.flatten_and_store
+            )
+
+            self.current_store.sync()
+        else:
+            self.local_target_seq = 1
+
+        if not connection_helper.internet_ok:
+            connection_helper.is_connected_to_internet(self.sdk.proxies)
+
+    def _abort_sync_run(self):
+        self.processing = False
+        self.update_min_seqs_from_store()
+        self.wait_for_changes = True
+        self.exit_loop_clean(self.logger)
+
+    def _watcher_diagnostics(self):
+        if not self.watcher.isAlive() and not self.interrupt:
+            logging.info("File watcher died, restarting...")
+            self.watcher.stop()
+            self.watcher = LocalWatcher(self.job_config.directory,
+                                        self.configs_path,
+                                        event_handler=self.event_handler)
+            self.start_watcher()
+
+    def _preprocess_changes(self):
+        logging.debug('[CMERGER] Delete Copies ' + self.job_config.id)
+        self.current_store.delete_copies()
+        self.update_min_seqs_from_store()
+        logging.debug('[CMERGER] Dedup changes ' + self.job_config.id)
+        self.current_store.dedup_changes()
+        self.update_min_seqs_from_store()
+        if not self.storage_watcher or self.very_first:
+            logging.debug('[CMERGER] Detect unnecessary changes ' + self.ws_id)
+            self.logger.log_state(_('Detecting unecessary changes...'), 'sync')
+            self.current_store.detect_unnecessary_changes()
+            logging.debug('[CMERGER] Done detecting unnecessary changes')
+            self.logger.log_state(_('Done detecting unecessary changes...'), 'sync')
+        self.update_min_seqs_from_store()
+        logging.debug('Clearing op and pruning folders moves ' + self.job_config.id)
+        self.current_store.clear_operations_buffer()
+        self.current_store.prune_folders_moves()
+        self.update_min_seqs_from_store()
+
+        logging.debug('Store conflicts ' + self.job_config.id)
+        return self.current_store.clean_and_detect_conflicts(self.db_handler)
+
+    def _resolve_conflicts(self, conflicts):
+        if conflicts:
+            if self.job_config.solve == 'both':
+                logging.info('Marking nodes SOLVED:KEEPBOTH')
+                for row in self.db_handler.list_conflict_nodes():
+                    self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPBOTH')
+                conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
+            if self.job_config.solve == 'local':
+                logging.info('Marking nodes SOLVED:KEEPLOCAL')
+                for row in self.db_handler.list_conflict_nodes():
+                    self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPLOCAL')
+                conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
+            if self.job_config.solve == 'remote':
+                logging.info('Marking nodes SOLVED:KEEPREMOTE')
+                for row in self.db_handler.list_conflict_nodes():
+                    self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPREMOTE')
+                conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
+            return conflicts
+
+    def _update_marked_for_snapshot_paths(self):
+        mod_par_set = set(self.current_store.find_modified_parents())
+        snapsh_set = set(self.marked_for_snapshot_pathes)
+        self.marked_for_snapshot_pathes = list(mod_par_set - snapsh_set)
+
+    def _do_sync(self):
+        self.global_progress['status_indexing'] = 0
+        self.global_progress['queue_length'] = changes_length
+
+        logging.info('Processing %i changes' % changes_length)
+        self.logger.log_state(_('Processing %i changes') % changes_length, "start")
+
+        counter = [1]
+
+        try:
+            if sys.platform.startswith('win'):
+                self._update_marked_for_snapshot_paths()
+
+            if not self.processing:
+                self.processing = True
+                for i in self.current_store.process_changes_with_callback(processor_callback, processor_callback2, self):
+                    if self.interrupt:
+                        raise InterruptException
+                    #logging.info("Updating seqs")
+                    self.current_store.process_pending_changes()
+                    self.update_min_seqs_from_store(success=True)
+                    self.global_progress['queue_done'] = float(counter[0])
+                    counter[0] += 1
+                    self.update_current_tasks()
+                    self.update_global_progress()
+                    time.sleep(0.05)  # Allow for changes to be noticeable in UI
+                time.sleep(.5)
+                self.current_store.process_pending_changes()
+                self.update_min_seqs_from_store(success=True)
+                self.update_current_tasks()
+                self.update_global_progress()
+                #logging.info("DONE WITH CHANGES")
+                self.processing = False
+
+        except InterruptException:
+            msg = "ContinuousDiffMerger._do_sync :: caught InterruptException"
+            logging.debug(msg)
+
+    def _compute_changes(self):
+        # REMOTE CHANGES
+        try:
+            self._fetch_remote_changes()
+        except RequestException as ce:
+            logging.exception(ce)
+            if not connection_helper.is_connected_to_internet(self.sdk.proxies):
+                error = _('No Internet connection detected! Waiting for %s seconds to retry') % self.offline_timer
+            else:
+                error = _('Connection to server failed, server is probably down. Waiting %s seconds to retry') % self.offline_timer
+            self.marked_for_snapshot_pathes = []
+            logging.error(error)
+            self.logger.log_state(error, "wait")
+            self.sleep(online=False)
+            raise SigContinue
+        except Exception as e:
+            error = 'Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer)
+            logging.exception(e)
+            self.logger.log_state(_('Error while connecting to remote server (%s)') % e.message, "error")
+            self.marked_for_snapshot_pathes = []
+            self.sleep(online=False)
+            raise SigContinue
+
+        self.online_status = True
+        if not self.job_config.server_configs:
+            self.job_config.server_configs = self.sdk.load_server_configs()
+        self.sdk.set_server_configs(self.job_config.server_configs)
+
+        # LOCAL CHANGES
+        self._fetch_local_changes()
+
+    def _merge(self):
+        # EVALUATE CHANGES
+        if not len(self.current_store):
+            logging.info(
+                'No changes detected in {0}'.format(self.job_config.id)
+            )
+
+            self.very_first = False
+            self._abort_sync_run()
+            self._watcher_diagnostics()
+
+            raise SigContinue
+
+        # START MERGE LOGIC
+        logging.info('Reducing changes for ' + self.job_config.id)
+        self.logger.log_state(_(
+            'Merging changes between remote and local, please wait...'
+        ), 'sync')
+
+        self.global_progress['status_indexing'] = 1
+        # We are updating the status to IDLE here for the nodes which has status as NEW
+        # The reason is when we create a new sync on the existing folder, some of the files might
+        # already be synchronized and we ignore those files while we Dedup changes and those files
+        # remain untouched later.
+        # So the flow of node status change will occur as follows
+        # NEW (as soon as we create a new sync task)
+        #  |
+        # IDLE (here, just before we reduce changes)
+        #  |
+        # PENDING (those files/folders which remain after reducing changes and to be actually processed)
+        #  |
+        # UP / DOWN / CONFLICT (corresponding the operation which occurs)
+        #  |
+        # IDLE (The final state once upload/ download happens or once when the conflict is resolved)
+        self.db_handler.update_bulk_node_status_as_idle()
+
+        if self._resolve_conflicts(self._preprocess_changes()):
+            logging.info('Conflicts detected, cannot continue!')
+            self.logger.log_state(_('Conflicts detected, cannot continue!'), 'error')
+            self.current_store.close()
+            self.sleep(online=False)
+            self.logger.log_notif(_('Conflicts detected, cannot continue!'), 'error')
+            raise SigContinue
+
+        if self.job_config.direction == 'down' and self.job_config.solve != 'remote':
+            self.current_store.remove_based_on_location('local')
+            self.update_min_seqs_from_store()
+
+        changes_length = len(self.current_store)
+        if not changes_length:
+            logging.info('No changes detected for ' + self.job_config.id)
+            self.exit_loop_clean(self.logger)
+            self.very_first = False
+            raise SigContinue
+
+        self.current_store.update_pending_status(self.db_handler, self.local_seq)
+        self._do_sync()
 
     @pydio_profile
     def run(self):
         """
         Start the thread
         """
-        very_first = False
         self.start_watcher()
 
         while not self.interrupt:
+            self._init_sync_run()
+
             try:
-                #
-                # --------------------------------------------------------------
-                #
+                self._check_ready_for_sync_run()
+                self._check_target_volumes()
 
-                # logging.info('Starting cycle with cycles local %i and remote %is' % (self.local_seq, self.remote_seq))
-                self.processing_signals.clear()
-                self.init_global_progress()
-                if very_first:
-                    self.global_progress['status_indexing'] = 1
+                self._load_directory_snapshots()
+                self._wait_db_lock()
 
-                if not self.sync_interval_elapsed:
-                    time.sleep(self.event_timer)
-                    continue
-
-                if not self.job_status_running:
-                    logging.debug("self.online_timer: %s" % self.online_timer)
-                    self.logger.log_state(_('Status: Paused'), "sync")
-                    self.sleep(online=False)
-                    continue
-
-                if self.job_config.frequency == 'time':
-                    start_time = datetime.time(int(self.job_config.start_time['h']), int(self.job_config.start_time['m']))
-                    end_time = datetime.time(int(self.job_config.start_time['h']), int(self.job_config.start_time['m']), 59)
-                    now = datetime.datetime.now().time()
-                    if not start_time < now < end_time:
-                        self.logger.log_state(_('Status: scheduled for %s') % str(start_time), "sync")
-                        self.sleep(online=False)
-                        continue
-                    else:
-                        logging.info("Now triggering synchro as expected at time " + str(start_time))
-
-                if not self.system.check_basepath():
-                    log = _('Cannot find local folder! Did you disconnect a volume? Waiting %s seconds before retry') % self.offline_timer
-                    logging.error(log)
-                    self.logger.log_state(_('Cannot find local folder, did you disconnect a volume?'), "error")
-                    self.sleep(online=False)
-                    continue
-
-                # Before starting infinite loop, small check that remote folder still exists
-                if not self.sdk.check_basepath():
-                    # if it doesn't try to create it
-                    self.sdk.remote_folder = os.path.join("/", self.sdk.remote_folder)
-                    try:
-                        logging.info("Creating remote directory.")
-                        self.sdk.mkdir("")
-                        continue
-                    except Exception as e:
-                        logging.exception(e)
-                        self.sleep(online=False)
-                    if not self.sdk.check_basepath():
-                        log = _('Cannot find remote folder, maybe it was renamed? Sync cannot start, please check the configuration.')
-                        logging.error(log)
-                        self.logger.log_state(log, 'error')
-                        self.sleep(online=False)
-                        continue
-
-                if self.watcher:
-                    for snap_path in self.marked_for_snapshot_pathes:
-                        logging.info('LOCAL SNAPSHOT : loading snapshot for directory %s' % snap_path)
-                        if self.interrupt or not self.job_status_running:
-                                                        raise InterruptException()
-                        self.watcher.check_from_snapshot(snap_path)
-                    self.marked_for_snapshot_pathes = []
-
-                #
-                # --------------------------------------------------------------
-                #
-
-                writewait = .5  # To avoid reading events before they're written (db lock) wait for writing to finish
-                while self.event_handler is not None and self.event_handler.locked:
-                    logging.info("Waiting for changes to be written before retrieving remote changes.")
-                    if writewait < 5:
-                        writewait += .5
-                    time.sleep(writewait)
+                # TODO : don't open a new SQL connection on each iteration.
                 # Load local and/or remote changes, depending on the direction
-                self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite',
-                                                       self.job_config.filters['includes'],
-                                                       self.job_config.filters['excludes'], self.job_config.poolsize,
-                                                       local_sdk=self.system, remote_sdk=self.sdk,
-                                                       job_config=self.job_config, db_handler=self.db_handler)
+                self.current_store = SqliteChangeStore(
+                    self.configs_path + '/changes.sqlite',
+                    self.job_config.filters['includes'],
+                    self.job_config.filters['excludes'], self.job_config.poolsize,
+                    local_sdk=self.system, remote_sdk=self.sdk,
+                    job_config=self.job_config, db_handler=self.db_handler,
+                )
                 self.current_store.open()
-                try:
-                    if self.job_config.direction != 'up':
-                        logging.info(
-                            'Loading remote changes with sequence {0:s} for job id {1:s}'.format(str(self.remote_seq),
-                                                                                                   str(self.job_config.id)))
-                        if self.remote_seq == 0:
-                            self.logger.log_state(_('Gathering data from remote workspace, this can take a while...'), 'sync')
-                            very_first = True
-                        self.remote_target_seq = self.load_remote_changes_in_store(self.remote_seq, self.current_store)
-                        self.current_store.sync()
-                    else:
-                        self.remote_target_seq = 1
-                        self.ping_remote()
-                except RequestException as ce:
-                    logging.exception(ce)
-                    if not connection_helper.is_connected_to_internet(self.sdk.proxies):
-                        error = _('No Internet connection detected! Waiting for %s seconds to retry') % self.offline_timer
-                    else:
-                        error = _('Connection to server failed, server is probably down. Waiting %s seconds to retry') % self.offline_timer
-                    self.marked_for_snapshot_pathes = []
-                    logging.error(error)
-                    self.logger.log_state(error, "wait")
-                    self.sleep(online=False)
-                    continue
-                except Exception as e:
-                    error = 'Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer)
-                    logging.exception(e)
-                    self.logger.log_state(_('Error while connecting to remote server (%s)') % e.message, "error")
-                    self.marked_for_snapshot_pathes = []
-                    self.sleep(online=False)
-                    continue
-                self.online_status = True
-                if not self.job_config.server_configs:
-                    self.job_config.server_configs = self.sdk.load_server_configs()
-                self.sdk.set_server_configs(self.job_config.server_configs)
 
-                if self.job_config.direction != 'down' or (self.job_config.direction == 'down' and self.job_config.solve != 'remote'):
-                    logging.info(
-                        'Loading local changes with sequence {0:s} for job id {1:s}'.format(str(self.local_seq),
-                                                                                              str(self.job_config.id)))
-                    self.local_target_seq = self.db_handler.get_local_changes_as_stream(self.local_seq, self.current_store.flatten_and_store)
-                    self.current_store.sync()
-                else:
-                    self.local_target_seq = 1
-                if not connection_helper.internet_ok:
-                    connection_helper.is_connected_to_internet(self.sdk.proxies)
+                self._compute_changes()
 
-                changes_length = len(self.current_store)
-                if not changes_length:
-                    self.processing = False
-                    logging.info('No changes detected in ' + self.job_config.id)
-                    self.update_min_seqs_from_store()
-                    self.wait_for_changes = True
-                    self.exit_loop_clean(self.logger)
-                    very_first = False
-                    #logging.info("CheckSync of " + self.job_config.id)
-                    #self.db_handler.list_non_idle_nodes()
-                    if not self.watcher.isAlive() and not self.interrupt:
-                        logging.info("File watcher died, restarting...")
-                        self.watcher.stop()
-                        self.watcher = LocalWatcher(self.job_config.directory,
-                                                    self.configs_path,
-                                                    event_handler=self.event_handler)
-                        self.start_watcher()
-                    continue
+                self._merge()
 
-                self.global_progress['status_indexing'] = 1
-                logging.info('Reducing changes for ' + self.job_config.id)
-                self.logger.log_state(_('Merging changes between remote and local, please wait...'), 'sync')
+                # Log success & sleep
+                self.logger.log_state(
+                    _('%i files modified') % self.global_progress['queue_done'],
+                    'success'
+                )
 
-                # We are updating the status to IDLE here for the nodes which has status as NEW
-                # The reason is when we create a new sync on the existing folder, some of the files might
-                # already be synchronized and we ignore those files while we Dedup changes and those files
-                # remain untouched later.
-                # So the flow of node status change will occur as follows
-                # NEW (as soon as we create a new sync task)
-                #  |
-                # IDLE (here, just before we reduce changes)
-                #  |
-                # PENDING (those files/folders which remain after reducing changes and to be actually processed)
-                #  |
-                # UP / DOWN / CONFLICT (corresponding the operation which occurs)
-                #  |
-                # IDLE (The final state once upload/ download happens or once when the conflict is resolved)
-                self.db_handler.update_bulk_node_status_as_idle()
-
-                logging.debug('[CMERGER] Delete Copies ' + self.job_config.id)
-                self.current_store.delete_copies()
-                self.update_min_seqs_from_store()
-                logging.debug('[CMERGER] Dedup changes ' + self.job_config.id)
-                self.current_store.dedup_changes()
-                self.update_min_seqs_from_store()
-                if not self.storage_watcher or very_first:
-                    logging.debug('[CMERGER] Detect unnecessary changes ' + self.ws_id)
-                    self.logger.log_state(_('Detecting unecessary changes...'), 'sync')
-                    self.current_store.detect_unnecessary_changes()
-                    logging.debug('[CMERGER] Done detecting unnecessary changes')
-                    self.logger.log_state(_('Done detecting unecessary changes...'), 'sync')
-                self.update_min_seqs_from_store()
-                logging.debug('Clearing op and pruning folders moves ' + self.job_config.id)
-                self.current_store.clear_operations_buffer()
-                self.current_store.prune_folders_moves()
-                self.update_min_seqs_from_store()
-
-                logging.debug('Store conflicts ' + self.job_config.id)
-                store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
-                if store_conflicts:
-                    if self.job_config.solve == 'both':
-                        logging.info('Marking nodes SOLVED:KEEPBOTH')
-                        for row in self.db_handler.list_conflict_nodes():
-                            self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPBOTH')
-                        store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
-                    if self.job_config.solve == 'local':
-                        logging.info('Marking nodes SOLVED:KEEPLOCAL')
-                        for row in self.db_handler.list_conflict_nodes():
-                            self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPLOCAL')
-                        store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
-                    if self.job_config.solve == 'remote':
-                        logging.info('Marking nodes SOLVED:KEEPREMOTE')
-                        for row in self.db_handler.list_conflict_nodes():
-                            self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPREMOTE')
-                        store_conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
-
-                if store_conflicts:
-                    logging.info('Conflicts detected, cannot continue!')
-                    self.logger.log_state(_('Conflicts detected, cannot continue!'), 'error')
-                    self.current_store.close()
-                    self.sleep(online=False)
-                    self.logger.log_notif(_('Conflicts detected, cannot continue!'), 'error')
-                    continue
-
-                if self.job_config.direction == 'down' and self.job_config.solve != 'remote':
-                    self.current_store.remove_based_on_location('local')
-                    self.update_min_seqs_from_store()
-
-                changes_length = len(self.current_store)
-                if not changes_length:
-                    logging.info('No changes detected for ' + self.job_config.id)
-                    self.exit_loop_clean(self.logger)
-                    very_first = False
-                    continue
-
-                self.current_store.update_pending_status(self.db_handler, self.local_seq)
-
-                self.global_progress['status_indexing'] = 0
-                import change_processor
-                self.global_progress['queue_length'] = changes_length
-                logging.info('Processing %i changes' % changes_length)
-                self.logger.log_state(_('Processing %i changes') % changes_length, "start")
-                counter = [1]
-                def processor_callback(change):
-                    try:
-                        if self.interrupt or not self.job_status_running:
-                            raise InterruptException()
-                        self.update_current_tasks()
-                        self.update_global_progress()
-                        Processor = StorageChangeProcessor if self.storage_watcher else ChangeProcessor
-                        proc = Processor(change, self.current_store, self.job_config, self.system, self.sdk,
-                                               self.db_handler, self.event_logger)
-                        proc.process_change()
-                        self.update_min_seqs_from_store(success=True)
-                        self.global_progress['queue_done'] = float(counter[0])
-                        counter[0] += 1
-                        self.update_current_tasks()
-                        self.update_global_progress()
-                        time.sleep(0.1)
-                        if self.interrupt or not self.job_status_running:
-                            raise InterruptException()
-
-                    except ProcessException as pe:
-                        logging.error(pe.message)
-                        return False
-                    except InterruptException as i:
-                        raise i
-                    except PydioSdkDefaultException as p:
-                        raise p
-                    except Exception as ex:
-                        logging.exception(ex)
-                        return False
-                    return True
-                def processor_callback2(change):
-                    try:
-                        if self.interrupt or not self.job_status_running:
-                            raise InterruptException()
-                        Processor = StorageChangeProcessor if self.storage_watcher else ChangeProcessor
-                        proc = Processor(change, self.current_store, self.job_config, self.system, self.sdk,
-                                               self.db_handler, self.event_logger)
-                        proc.process_change()
-                        if self.interrupt or not self.job_status_running:
-                            raise InterruptException()
-                    except PydioSdkException as pe:
-                        if pe.message.find("Original file") > -1:
-                            pe.code = 1404
-                            raise pe
-                    except ProcessException as pe:
-                        logging.error(pe.message)
-                        return False
-                    except PydioSdkDefaultException as p:
-                        raise p
-                    except InterruptException as i:
-                        raise i
-                    return True
-
-                try:
-                    if sys.platform.startswith('win'):
-                        self.marked_for_snapshot_pathes = list(set(self.current_store.find_modified_parents()) - set(self.marked_for_snapshot_pathes))
-                    if not self.processing:
-                        self.processing = True
-                        for i in self.current_store.process_changes_with_callback(processor_callback, processor_callback2, self):
-                            if self.interrupt:
-                                raise InterruptException
-                            #logging.info("Updating seqs")
-                            self.current_store.process_pending_changes()
-                            self.update_min_seqs_from_store(success=True)
-                            self.global_progress['queue_done'] = float(counter[0])
-                            counter[0] += 1
-                            self.update_current_tasks()
-                            self.update_global_progress()
-                            time.sleep(0.05)  # Allow for changes to be noticeable in UI
-                        time.sleep(.5)
-                        self.current_store.process_pending_changes()
-                        self.update_min_seqs_from_store(success=True)
-                        self.update_current_tasks()
-                        self.update_global_progress()
-                        #logging.info("DONE WITH CHANGES")
-                        self.processing = False
-
-                except InterruptException as iexc:
-                    pass
-                self.logger.log_state(_('%i files modified') % self.global_progress['queue_done'], 'success')
                 if self.global_progress['queue_done']:
-                    self.logger.log_notif(_('%i files modified') % self.global_progress['queue_done'], 'success')
-
+                    self.logger.log_notif(
+                        _('%i files modified') % self.global_progress['queue_done'],
+                        'success'
+                    )
                 self.exit_loop_clean(self.logger)
 
+            except SigContinue:
+                continue
+            #
+            # TODO:  catch these exceptions closer to their source to avoid the
+            #        present clusterfuck.
+            #
             except PydioSdkDefaultException as re:
                 logging.error(re.message)
                 self.logger.log_state(re.message, 'error')
@@ -740,8 +850,9 @@ class ContinuousDiffMerger(threading.Thread):
                 else:
                     logging.exception(e)
                 self.sleep(online=False)
+
             logging.debug('Finished this cycle, waiting for %i seconds' % self.online_timer)
-            very_first = False
+            self.very_first = False
 
     def start_watcher(self):
         if self.watcher:
@@ -753,7 +864,7 @@ class ContinuousDiffMerger(threading.Thread):
                 try:
                     self.global_progress['status_indexing'] = 1
                     self.logger.log_state(_('Checking changes since last launch...'), "sync")
-                    very_first = True
+                    self.very_first = True
                     self.db_handler.update_bulk_node_status_as_idle()
                     self.watcher.check_from_snapshot(state_callback=status_callback)
                 except DBCorruptedException as e:
