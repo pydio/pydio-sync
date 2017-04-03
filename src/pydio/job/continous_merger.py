@@ -364,6 +364,17 @@ class ContinuousDiffMerger(threading.Thread):
         else:
             self.sleep()
 
+    @property
+    def sync_interval_elapsed(self):
+        """If True, the requisite interval between sync runs has elapsed and the
+        application should proceed with the next run.
+        """
+        interval = time.time() - self.last_run
+        if self.online_status:
+            return interval > self.online_timer
+        else:
+            return interval > self.offline_timer
+
 
     @pydio_profile
     def run(self):
@@ -375,14 +386,17 @@ class ContinuousDiffMerger(threading.Thread):
 
         while not self.interrupt:
             try:
+                #
+                # --------------------------------------------------------------
+                #
+
                 # logging.info('Starting cycle with cycles local %i and remote %is' % (self.local_seq, self.remote_seq))
-                self.processing_signals = {}
+                self.processing_signals.clear()
                 self.init_global_progress()
                 if very_first:
                     self.global_progress['status_indexing'] = 1
 
-                interval = int(time.time() - self.last_run)
-                if (self.online_status and interval < self.online_timer) or (not self.online_status and interval < self.offline_timer):
+                if not self.sync_interval_elapsed:
                     time.sleep(self.event_timer)
                     continue
 
@@ -436,8 +450,12 @@ class ContinuousDiffMerger(threading.Thread):
                         self.watcher.check_from_snapshot(snap_path)
                     self.marked_for_snapshot_pathes = []
 
+                #
+                # --------------------------------------------------------------
+                #
+
                 writewait = .5  # To avoid reading events before they're written (db lock) wait for writing to finish
-                while self.event_handler and self.event_handler.locked:
+                while self.event_handler is not None and self.event_handler.locked:
                     logging.info("Waiting for changes to be written before retrieving remote changes.")
                     if writewait < 5:
                         writewait += .5
