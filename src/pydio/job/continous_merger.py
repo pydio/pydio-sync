@@ -25,6 +25,8 @@ import sys
 import threading
 import pickle
 import logging
+from collections import namedtuple
+from functools import partial
 from pydispatch import dispatcher
 from requests.exceptions import RequestException, Timeout, SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, InvalidSchema, InvalidURL
 try:
@@ -75,7 +77,13 @@ class SigContinue(Exception):
     """
 
 
-def processor_callback(change):
+Ctr = namedtuple("Ctr", ["i"])
+
+
+def processor_callback(counter, change):
+    """
+    :counter:Ctr
+    """
     try:
         if self.interrupt or not self.job_status_running:
             raise InterruptException()
@@ -641,7 +649,7 @@ class ContinuousDiffMerger(threading.Thread):
         logging.info('Processing %i changes' % changes_length)
         self.logger.log_state(_('Processing %i changes') % changes_length, "start")
 
-        counter = [1]
+        counter = Ctr(1)
 
         try:
             if sys.platform.startswith('win'):
@@ -649,14 +657,14 @@ class ContinuousDiffMerger(threading.Thread):
 
             if not self.processing:
                 self.processing = True
-                for i in self.current_store.process_changes_with_callback(processor_callback, processor_callback2, self):
+                for i in self.current_store.process_changes_with_callback(partial(processor_callback, counter), processor_callback2, self):
                     if self.interrupt:
                         raise InterruptException
                     #logging.info("Updating seqs")
                     self.current_store.process_pending_changes()
                     self.update_min_seqs_from_store(success=True)
-                    self.global_progress['queue_done'] = float(counter[0])
-                    counter[0] += 1
+                    self.global_progress['queue_done'] = float(counter.i)
+                    counter.i += 1
                     self.update_current_tasks()
                     self.update_global_progress()
                     time.sleep(0.05)  # Allow for changes to be noticeable in UI
