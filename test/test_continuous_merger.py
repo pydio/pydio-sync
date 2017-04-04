@@ -29,6 +29,10 @@ def init():
 
 
 class TestContinuousDiffMerger(TestCase):
+    """Unit tests for ContinuousDiffMerger, excluding `run`.  Sync runs are
+    tested separately.
+    """
+
     def setUp(self):
         job_config = JobConfig()
         job_config.online_timer = 10
@@ -152,6 +156,34 @@ class TestContinuousDiffMerger(TestCase):
         #        `job_status_running` is set to false
         self.assertRaises(AttributeError, self.cdm.exit_loop_clean, logger)
 
+
+class TestSyncRun(TestCase):
+    """Test file synchronization logic."""
+
+    _db_filename = ":memory:"
+    current_store = None
+
+    def setUp(self):
+        from pydio.job.change_stores import SqliteChangeStore
+        from test_job_config import BLACKLIST, WHITELIST
+
+        self.current_store = SqliteChangeStore(
+            filename=self._db_filename,
+            includes=WHITELIST,
+            excludes=BLACKLIST,
+            # TODO : replace with stubs
+            # local_sdk=self.system, remote_sdk=self.sdk,
+            # job_config=self.job_config,
+            # END TODO
+            db_handler=self.db_handler,
+        )
+
+    def tearDown(self):
+        self.current_store.close()
+        self.current_store = None
+
+    def test_canary(self):
+        pass
 
 
 if __name__ != "__main__":
