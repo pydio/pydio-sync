@@ -77,70 +77,15 @@ class SigContinue(Exception):
     """
 
 
-Ctr = namedtuple("Ctr", ["i"])
-
-
-def processor_callback(counter, change):
-    """
-    :counter:Ctr
-    """
-    try:
-        if self.interrupt or not self.job_status_running:
-            raise InterruptException()
-        self.update_current_tasks()
-        self.update_global_progress()
-        Processor = StorageChangeProcessor if self.storage_watcher else ChangeProcessor
-        proc = Processor(change, self.current_store, self.job_config, self.system, self.sdk,
-                               self.db_handler, self.event_logger)
-        proc.process_change()
-        self.update_min_seqs_from_store(success=True)
-        self.global_progress['queue_done'] = float(counter[0])
-        counter[0] += 1
-        self.update_current_tasks()
-        self.update_global_progress()
-        time.sleep(0.1)
-        if self.interrupt or not self.job_status_running:
-            raise InterruptException()
-
-    except ProcessException as pe:
-        logging.error(pe.message)
-        return False
-    except InterruptException as i:
-        raise i
-    except PydioSdkDefaultException as p:
-        raise p
-    except Exception as ex:
-        logging.exception(ex)
-        return False
-    return True
-
-
-def processor_callback2(change):
-    try:
-        if self.interrupt or not self.job_status_running:
-            raise InterruptException()
-        Processor = StorageChangeProcessor if self.storage_watcher else ChangeProcessor
-        proc = Processor(change, self.current_store, self.job_config, self.system, self.sdk,
-                               self.db_handler, self.event_logger)
-        proc.process_change()
-        if self.interrupt or not self.job_status_running:
-            raise InterruptException()
-    except PydioSdkException as pe:
-        if pe.message.find("Original file") > -1:
-            pe.code = 1404
-            raise pe
-    except ProcessException as pe:
-        logging.error(pe.message)
-        return False
-    except PydioSdkDefaultException as p:
-        raise p
-    except InterruptException as i:
-        raise i
-    return True
+class Ctr(object):
+    def __init__(self, i=0):
+        self.i = i
 
 
 class ContinuousDiffMerger(threading.Thread):
     """Main Thread grabbing changes from both sides, computing the necessary changes to apply, and applying them"""
+
+    _sync_deadline = datetime.timedelta(minutes=1)
 
     @pydio_profile
     def __init__(self, job_config, job_data_path):
@@ -446,6 +391,20 @@ class ContinuousDiffMerger(threading.Thread):
         else:
             return interval > self.offline_timer
 
+    @property
+    def scheduled_start_time(self):
+        """The time at which a scheduled sync job should start.
+        N.B.:  this does -not- concern automatic and manual sync runs.
+
+        returns None or datetime object
+        """
+        if self.job_config.frequency != "time":
+            return None
+        return datetime.time(
+            int(self.job_config.start_time['h']),
+            int(self.job_config.start_time['m']),
+        )
+
     def _check_ready_for_sync_run(self):
         """Check if it's time to run a sync pass, AND there are no concurrent
         passes presently engaged.
@@ -457,27 +416,26 @@ class ContinuousDiffMerger(threading.Thread):
         # variable amount of time before engaging in the next sync run.
         if not self.sync_interval_elapsed:
             self.sleep(online=True)
-            raise SigContinue
+            raise SigContinue("_check_ready_for_sync_run: interval not elapsed")
 
         # don't run if a job is already running
         if not self.job_status_running:
             logging.debug("self.online_timer: %s" % self.online_timer)
             self.logger.log_state(_('Status: Paused'), "sync")
             self.sleep(online=False)
-            raise SigContinue
+            raise SigContinue("_check_ready_for_sync_run: job already running")
 
         # When the sync is scheduled for a specific time, prevent sync
         # run until such time is reached.
-        if self.job_config.frequency == 'time':
-            start_time = datetime.time(int(self.job_config.start_time['h']), int(self.job_config.start_time['m']))
-            end_time = datetime.time(int(self.job_config.start_time['h']), int(self.job_config.start_time['m']), 59)
+        if self.scheduled_start_time is not None:
             now = datetime.datetime.now().time()
-            if not start_time < now < end_time:
-                self.logger.log_state(_('Status: scheduled for %s') % str(start_time), "sync")
+            end_time = now + self._sync_deadline
+            if not (self.scheduled_start_time < now < end_time):
+                self.logger.log_state(_('Status: scheduled for {0}'.format(self.scheduled_start_time)), "sync")
                 self.sleep(online=False)
-                raise SigContinue
+                raise SigContinue("_check_ready_for_sync_run: scheduled time not reached")
             else:
-                logging.info("Now triggering synchro as expected at time " + str(start_time))
+                logging.info("Now triggering synchro as expected at time {0}".format(self.scheduled_start_time))
 
     def _init_sync_run(self):
         self.processing_signals.clear()
@@ -492,7 +450,7 @@ class ContinuousDiffMerger(threading.Thread):
             logging.error(log)
             self.logger.log_state(_('Cannot find local folder, did you disconnect a volume?'), "error")
             self.sleep(online=False)
-            raise SigContinue
+            raise SigContinue("_check_local_volume: local folder not found")
 
     def _check_remote_volume(self):
         """make sure the remote volume still exists"""
@@ -503,7 +461,6 @@ class ContinuousDiffMerger(threading.Thread):
             try:
                 logging.info("Creating remote directory.")
                 self.sdk.mkdir("")
-                raise SigContinue
             except Exception as e:  # TODO: restrict to expected exceptions
                 logging.exception(e)
                 self.sleep(online=False)
@@ -512,7 +469,7 @@ class ContinuousDiffMerger(threading.Thread):
                 logging.error(log)
                 self.logger.log_state(log, 'error')
                 self.sleep(online=False)
-                raise SigContinue
+                raise SigContinue("_check_remote_volume: could not find remote folder")
 
     def _check_target_volumes(self):
         """Verify that local and remote sync targets are present and accessible.
@@ -642,7 +599,7 @@ class ContinuousDiffMerger(threading.Thread):
         snapsh_set = set(self.marked_for_snapshot_pathes)
         self.marked_for_snapshot_pathes = list(mod_par_set - snapsh_set)
 
-    def _do_sync(self):
+    def _do_sync(self, changes_length):
         self.global_progress['status_indexing'] = 0
         self.global_progress['queue_length'] = changes_length
 
@@ -657,7 +614,7 @@ class ContinuousDiffMerger(threading.Thread):
 
             if not self.processing:
                 self.processing = True
-                for i in self.current_store.process_changes_with_callback(partial(processor_callback, counter), processor_callback2, self):
+                for i in self.current_store.process_changes_with_callback(partial(self.processor_callback, counter), self.processor_callback2, self):
                     if self.interrupt:
                         raise InterruptException
                     #logging.info("Updating seqs")
@@ -694,14 +651,14 @@ class ContinuousDiffMerger(threading.Thread):
             logging.error(error)
             self.logger.log_state(error, "wait")
             self.sleep(online=False)
-            raise SigContinue
+            raise SigContinue("_compute_changes: request exception")
         except Exception as e:
             error = 'Error while connecting to remote server (%s), waiting for %i seconds before retempting ' % (e.message, self.offline_timer)
             logging.exception(e)
             self.logger.log_state(_('Error while connecting to remote server (%s)') % e.message, "error")
             self.marked_for_snapshot_pathes = []
             self.sleep(online=False)
-            raise SigContinue
+            raise SigContinue("_compute_changes: generic exception")
 
         self.online_status = True
         if not self.job_config.server_configs:
@@ -722,7 +679,7 @@ class ContinuousDiffMerger(threading.Thread):
             self._abort_sync_run()
             self._watcher_diagnostics()
 
-            raise SigContinue
+            raise SigContinue("_merge: no changes to commit")
 
         # START MERGE LOGIC
         logging.info('Reducing changes for ' + self.job_config.id)
@@ -753,7 +710,7 @@ class ContinuousDiffMerger(threading.Thread):
             self.current_store.close()
             self.sleep(online=False)
             self.logger.log_notif(_('Conflicts detected, cannot continue!'), 'error')
-            raise SigContinue
+            raise SigContinue("_merge: conflicts detected. cannot continue.")
 
         if self.job_config.direction == 'down' and self.job_config.solve != 'remote':
             self.current_store.remove_based_on_location('local')
@@ -764,10 +721,10 @@ class ContinuousDiffMerger(threading.Thread):
             logging.info('No changes detected for ' + self.job_config.id)
             self.exit_loop_clean(self.logger)
             self.very_first = False
-            raise SigContinue
+            raise SigContinue("_merge: no changes detected for {0}".format(self.job_config.id))
 
         self.current_store.update_pending_status(self.db_handler, self.local_seq)
-        self._do_sync()
+        self._do_sync(changes_length)
 
     @pydio_profile
     def run(self):
@@ -784,6 +741,7 @@ class ContinuousDiffMerger(threading.Thread):
                 self._check_target_volumes()
 
                 self._load_directory_snapshots()
+
                 self._wait_db_lock()
 
                 # TODO : don't open a new SQL connection on each iteration.
@@ -814,7 +772,7 @@ class ContinuousDiffMerger(threading.Thread):
                     )
                 self.exit_loop_clean(self.logger)
 
-            except SigContinue:
+            except SigContinue as sigcont:
                 continue
             #
             # TODO:  catch these exceptions closer to their source to avoid the
@@ -861,6 +819,64 @@ class ContinuousDiffMerger(threading.Thread):
 
             logging.debug('Finished this cycle, waiting for %i seconds' % self.online_timer)
             self.very_first = False
+
+    def processor_callback(self, counter, change):
+        """
+        :counter:Ctr
+        """
+        try:
+            if self.interrupt or not self.job_status_running:
+                raise InterruptException()
+            self.update_current_tasks()
+            self.update_global_progress()
+            Processor = StorageChangeProcessor if self.storage_watcher else ChangeProcessor
+            proc = Processor(change, self.current_store, self.job_config, self.system, self.sdk,
+                                   self.db_handler, self.event_logger)
+            proc.process_change()
+            self.update_min_seqs_from_store(success=True)
+            self.global_progress['queue_done'] = float(counter[0])
+            counter[0] += 1
+            self.update_current_tasks()
+            self.update_global_progress()
+            time.sleep(0.1)
+            if self.interrupt or not self.job_status_running:
+                raise InterruptException()
+
+        except ProcessException as pe:
+            logging.error(pe.message)
+            return False
+        except InterruptException as i:
+            raise i
+        except PydioSdkDefaultException as p:
+            raise p
+        except Exception as ex:
+            logging.exception(ex)
+            return False
+        return True
+
+
+    def processor_callback2(self, change):
+        try:
+            if self.interrupt or not self.job_status_running:
+                raise InterruptException()
+            Processor = StorageChangeProcessor if self.storage_watcher else ChangeProcessor
+            proc = Processor(change, self.current_store, self.job_config, self.system, self.sdk,
+                                   self.db_handler, self.event_logger)
+            proc.process_change()
+            if self.interrupt or not self.job_status_running:
+                raise InterruptException()
+        except PydioSdkException as pe:
+            if pe.message.find("Original file") > -1:
+                pe.code = 1404
+                raise pe
+        except ProcessException as pe:
+            logging.error(pe.message)
+            return False
+        except PydioSdkDefaultException as p:
+            raise p
+        except InterruptException as i:
+            raise i
+        return True
 
     def start_watcher(self):
         if self.watcher:
