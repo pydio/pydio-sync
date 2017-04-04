@@ -182,9 +182,6 @@ class TestSyncRun(TestCase):
         self.current_store.close()
         self.current_store = None
 
-    def test_canary(self):
-        pass
-
 
 if __name__ != "__main__":
     init()
