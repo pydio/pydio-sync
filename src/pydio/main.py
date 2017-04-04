@@ -310,8 +310,7 @@ def setup_logging(verbosity=None, application_path=None):
 
     log_level_mapping ={'WARNING'  : logging.WARNING,
                         'INFO'     : logging.INFO,
-                        'DEBUG'    : logging.DEBUG
-                       }
+                        'DEBUG'    : logging.DEBUG}
 
     levels = dict((int(k), log_level_mapping[v]) for k, v in general_config['log_configuration']['log_levels'].items())
     level = levels.get(verbosity, logging.NOTSET)
