@@ -13,6 +13,7 @@ JOBS_ROOT_PATH = "/tmp"
 SERVER_ADDR = "http://foo.com/path/to/resource?test=true"
 WORKSPACE_NAME = "test"
 TEST_ID = "foo.com-test"
+WHITELIST = [u'*']
 BLACKLIST = ['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store',
              '.~lock.*', '~*', '*.xlk', '*.tmp']
 JOB_CONFIG_DICT = {
@@ -30,7 +31,7 @@ JOB_CONFIG_DICT = {
             u'*.tmp'
         ],
 
-        'includes': [u'*']
+        'includes': WHITELIST
     },
     'poolsize': 4,
     'hide_bi_dir': 'false',
