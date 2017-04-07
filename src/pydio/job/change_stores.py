@@ -38,9 +38,14 @@ except ImportError:
 from threading import Thread
 try:
     import resource
+except ImportError:
+    resource = None
+
+try:
     import humanize
 except ImportError:
-    pass
+    humanize = None
+
 
 class SqliteChangeStore(object):
     conn = None
@@ -159,8 +164,6 @@ class SqliteChangeStore(object):
                 self.status = ""
 
             def run(self):
-                #logging.info("Running change " + str(threading.current_thread()) + " " + str(self.change))
-                ts = time.time()
                 try:
                     if not callback2(self.change):
                         self.status = "FAILED"
@@ -169,17 +172,9 @@ class SqliteChangeStore(object):
                         self.status = "SUCCESS"
                 except InterruptException:
                     self.status = "FAILED"
-                    # silent fail (network)
-                """except Exception as e:
-                    self.status = "FAILED"
-                    self.error = e
-                    if not hasattr(e, "code"):
-                        logging.exception(e)"""
-                #logging.info("DONE change " + str(threading.current_thread()) + " in " + str(time.time()-ts))
 
             def stop(self):
                 pass
-        # end of Processor_callback
 
         def lerunnable(change):
             p = Processor_callback(change)
@@ -228,12 +223,14 @@ class SqliteChangeStore(object):
                     if not output and not schedule_exit:
                         for op in self.pendingoperations:
                             self.buffer_real_operation(op.location, op.type, op.source, op.target)
-                        try:
-                            humanize
-                            logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts).replace(' ago', '') + " to process changes.")
+
+                        if humanize is not None:
+                            humtime = humanize.naturaltime(time.time()-ts)
+                            humtime = humtime.replace("ago", "").strip()
+                            msg = " @@@ TOOK {time} to process changes."
+                            logging.info(msg.format(time=humtime))
                             logging.info(" Fails : " + str(len(self.failingchanges)))
-                        except NameError:
-                            pass # NOP if not humanize lib
+
                         schedule_exit = True
                         continue
                     else:
@@ -242,30 +239,14 @@ class SqliteChangeStore(object):
                         continuous_merger.update_current_tasks()
                     if output and output.isAlive():
                         pool.append(output)
-                    try:
-                        humanize
-                        current_change = ""
-                        if len(pool) == 1:
-                            try:
-                                current_change = pool[0].change
-                                more = ""
-                                if current_change:
-                                    if current_change['node']:
-                                        if 'node_path' in current_change['node']:
-                                            more = current_change['node']['node_path']
-                                        elif 'source' in current_change:
-                                            more = current_change['source']
-                                        elif 'target' in current_change:
-                                            more = current_change['target']
-                                #logging.info(more)
-                                logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
-                            except Exception as e:
-                                logging.exception(e)
-                                logging.info(str(type(pool[0].change)) + " " + str(pool[0].change))
-                    except NameError:
-                        pass
-                    """if hasattr(output, "done"):
-                        pool.append(output)"""
+
+                    if all((humanize, resource)) and (len(pool) == 1):
+                        mem_usage = humanize.naturalsize(
+                            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+                        )
+                        msg = " Poolsize {psize} Memory usage: {mem}"
+                        logging.info(msg.format(psize=len(pool), mem=mem_usage))
+
             except InterruptException as e:
                 logging.info("@@@@@@@@@@@ Interrupted @@@@@@@@@@")
             except Exception as e:
@@ -326,9 +307,7 @@ class SqliteChangeStore(object):
         c = self.conn.cursor()
         res = c.execute(sql)
         parents = []
-        common_parents = []
         for row in res:
-            r = self.sqlite_row_to_dict(row)
             dir_path = os.path.dirname(row['target'])
             parent_found = False
             for stored in parents:
@@ -341,7 +320,6 @@ class SqliteChangeStore(object):
             if not parent_found:
                 parents.append(dir_path)
 
-        #common_parents.append(self.commonprefix(parents))
         self.conn.commit()
         if(self.DEBUG):
             logging.info("Modified parents after the prevous operation:")
@@ -359,7 +337,6 @@ class SqliteChangeStore(object):
         c = self.conn.cursor()
         res = c.execute(sql)
         for row in res:
-            r = self.sqlite_row_to_dict(row)
             res = self.conn.execute("DELETE FROM ajxp_changes WHERE location=? AND type=? AND source LIKE ?",
                                     (row['location'], row['type'], row['source'].replace("\\", "/") + "/%"))
         self.conn.commit()
