@@ -17,7 +17,8 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
-import logging, sys, os
+import os
+import logging
 
 from pydispatch import dispatcher
 try:
