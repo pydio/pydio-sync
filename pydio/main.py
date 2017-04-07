@@ -77,34 +77,7 @@ except ImportError:
     logging.error("Encodings not bundled with packaged pydio version. Exiting.")
     sys.exit(1)
 
-if os.getenv("PYDIO_ENV") == "dev":
-    _loglvl = logging.DEBUG
-else:
-    _loglvl = logging.INFO
 
-# configure loggers
-logging.basicConfig(
-    level=_loglvl,
-    format='%(asctime)s [%(levelname)-7s] - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-logging.getLogger().setLevel(logging.DEBUG)
-logging.disable(logging.NOTSET)
-logging.getLogger("requests").setLevel(logging.WARNING)
-
-# log PATH info
-logging.debug("sys.path: %s", "\n\t".join(sys.path))
-_python_path = os.getenv('PYTHONPATH', "").split(';')
-logging.debug("PYTHONPATH: %s", "\n\t".join(_python_path))
-
-# log encoding info
-logging.debug("sys.getdefaultencoding(): %s" % sys.getdefaultencoding())
-logging.debug("sys.getfilesystemencoding(): %s" % sys.getfilesystemencoding())
-
-# log environment variables
-_env = ("{k} : {v}".format(k, v) for (k, v) in os.environ.iteritems())
-logging.debug("os.environ: \n\t%s" % "\n\t".join(sorted(_env)))
 
 
 APP_NAME='Pydio'
@@ -157,7 +130,9 @@ def main(args):
         return
 
     jobs_root = _init_jobs_root()
-    setup_logging(args["--verbosity"], jobs_root)
+    cfg = global_config_manager.get_general_config()
+    setup_logging(cfg, args["--verbosity"], jobs_root)
+    report_environment()
 
     if args["--auto-start"]:
         import pydio.autostart
@@ -308,46 +283,86 @@ def main(args):
         sys.exit()
 
 
-def setup_logging(verbosity=None, application_path=None):
-    if not application_path:
-        application_path = appdirs.user_log_dir("pydio", "pydio")
-        if not osp.isdir(application_path):
-            os.makedirs(application_path)
+def _setup_logging_config():
+    if os.getenv("PYDIO_ENV") == "dev":
+        _loglvl = logging.DEBUG
+    else:
+        _loglvl = logging.INFO
 
-    general_config = global_config_manager.get_general_config()
-
-    log_file = osp.join(
-        DEFAULT_DATA_PATH,
-        str(general_config['log_configuration']['log_file_name'])
+    # configure loggers
+    logging.basicConfig(
+        level=_loglvl,
+        format='%(asctime)s [%(levelname)-7s] - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
     )
+
+    # configure loggers
+    logging.getLogger().setLevel(logging.DEBUG)
+    logging.disable(logging.NOTSET)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+
+
+def report_environment():
+    # log PATH info
+    logging.debug("sys.path: %s", "\n\t".join(sys.path))
+    _python_path = os.getenv('PYTHONPATH', "").split(';')
+    logging.debug("PYTHONPATH: %s", "\n\t".join(_python_path))
+
+    # log encoding info
+    logging.debug("sys.getdefaultencoding(): %s" % sys.getdefaultencoding())
+    logging.debug("sys.getfilesystemencoding(): %s" % sys.getfilesystemencoding())
+
+    # log environment variables
+    _env = ("{k} : {v}".format(k, v) for (k, v) in os.environ.iteritems())
+    logging.debug("os.environ: \n\t%s" % "\n\t".join(sorted(_env)))
+
+def _load_verbosity_data(cfg, verbosity):
+
+    # TODO:  redo more cleanly
 
     log_level_mapping = {
         'WARNING'  : logging.WARNING,
         'INFO'     : logging.INFO,
         'DEBUG'    : logging.DEBUG
     }
-    genconf = general_config['log_configuration']['log_levels'].iteritems()
+
+    genconf = cfg['log_configuration']['log_levels'].iteritems()
+
     levels = {int(k) : log_level_mapping[v] for (k, v) in genconf}
 
-    level = levels.get(verbosity, logging.NOTSET)
+    return levels.get(verbosity, logging.NOTSET)
 
-    general_config['log_configuration']['disable_existing_loggers'] = bool(
-        general_config['log_configuration']['disable_existing_loggers']
+
+def setup_logging(cfg, verbosity, application_path):
+    _setup_logging_config()
+
+    if not application_path:
+        application_path = appdirs.user_log_dir("pydio", "pydio")
+        if not osp.isdir(application_path):
+            os.makedirs(application_path)
+
+    log_file = osp.join(
+        DEFAULT_DATA_PATH,
+        str(cfg['log_configuration']['log_file_name'])
     )
-    general_config['log_configuration']['handlers']['file']['filename'] = log_file
-    general_config['log_configuration']['handlers']['console']['level'] = level
 
-    configuration = general_config['log_configuration']
+    level = _load_verbosity_data(cfg, verbosity)
+    cfg['log_configuration']['disable_existing_loggers'] = bool(
+        cfg['log_configuration']['disable_existing_loggers']
+    )
+    cfg['log_configuration']['handlers']['file']['filename'] = log_file
+    cfg['log_configuration']['handlers']['console']['level'] = level
+
 
     from logging.config import dictConfig
-
-    dictConfig(configuration)
+    dictConfig(cfg['log_configuration'])
     logging.debug("verbosity: %s" % verbosity)
 
 
 if __name__ == "__main__":
     from docopt import docopt
     args = docopt(__doc__)
+    import pdb; pdb.set_trace()
 
     main(args)
     manager.wait()
