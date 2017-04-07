@@ -67,7 +67,17 @@ class SqliteChangeStore(object):
         self.pendingoperations = []
         self.maxpoolsize = poolsize
         self.failingchanges = {}  # keep track of failing changes
-        self.change_history = ChangeHistory(self.db[:self.db.rfind("/")] + "/history.sqlite", self.local_sdk, self.remote_sdk, job_config, db_handler)
+
+        hist_db_path, _ = os.path.split(self.db)
+        hist_db_path = os.path.join(hist_db_path, "history.sqlite")
+        self.change_history = ChangeHistory(
+            hist_db_path,
+            self.local_sdk,
+            self.remote_sdk,
+            job_config,
+            db_handler
+        )
+
         self.job_config = job_config
 
     def open(self):
