@@ -19,7 +19,6 @@
 #
 
 import keyring
-from keyring.errors import PasswordSetError
 import json
 import urlparse
 import os
