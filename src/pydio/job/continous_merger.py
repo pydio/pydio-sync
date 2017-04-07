@@ -25,7 +25,6 @@ import sys
 import threading
 import pickle
 import logging
-from collections import namedtuple
 from functools import partial
 from pydispatch import dispatcher
 from requests.exceptions import RequestException, Timeout, SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, InvalidSchema, InvalidURL
@@ -43,7 +42,6 @@ try:
     from pydio.utils.global_config import ConfigManager
     from pydio.utils.pydio_profiler import pydio_profile
     from pydio.utils.check_sqlite import check_sqlite_file
-    from pydio.utils.check_sync import SyncHardener
     from pydio import PUBLISH_SIGNAL, TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
     from pydio.utils import i18n
     _ = i18n.language.ugettext
@@ -61,7 +59,6 @@ except ImportError:
     from utils.global_config import ConfigManager
     from utils.pydio_profiler import pydio_profile
     from utils.check_sqlite import check_sqlite_file
-    from utils.check_sync import SyncHardener
     from utils import i18n
     _ = i18n.language.ugettext
     COMMAND_SIGNAL = 'command'
