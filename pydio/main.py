@@ -131,31 +131,90 @@ def _parse_cli_args():
         help='User name',
         type=unicode, default=None
     )
-    parser.add_argument('-p', '--password', help='Password', type=unicode, default=None)
-    parser.add_argument('-px', '--proxy', help='Enter like http::username::password::proxyIP::proxyPort::...::check_proxy_flag '
-                        'By default proxy connection test happens, to avoid mention 0 or False', type=unicode, default=None)
-    parser.add_argument('-mp', '--memory_profile', help="To Generate the memory profile :: use <<-mp True >> as argument",
-                        type=unicode, default=False)
-    parser.add_argument('-dir', '--direction', help='Synchro Direction', type=str, default='bi')
+    parser.add_argument(
+        '-p', '--password',
+        help='Password',
+        type=unicode, default=None
+    )
+    parser.add_argument(
+        '-px', '--proxy',
+        help=('Enter like http::username::password::proxyIP::proxyPort::...::'
+              'check_proxy_flag.  By default proxy connection test happens, to '
+              'avoid mention 0 or False'),
+        type=unicode, default=None
+    )
+    parser.add_argument(
+        '-mp', '--memory_profile',
+        help="To Generate the memory profile :: use <<-mp True >> as argument",
+        type=unicode, default=False
+    )
+    parser.add_argument(
+        '-dir', '--direction',
+        help='Synchro Direction',
+        type=str, default='bi'
+    )
+
     # Pass a configuration file
-    parser.add_argument('-f', '--file', type=unicode, help='Json file containing jobs configurations')
+    parser.add_argument(
+        '-f', '--file',
+        help='Json file containing jobs configurations',
+        type=unicode,
+    )
+
     # Pass a path to rdiff binary
-    parser.add_argument('-i', '--rdiff', type=unicode, help='Path to rdiff executable', default=None)
+    parser.add_argument(
+        '-i', '--rdiff',
+        help='Path to rdiff executable',
+        type=unicode, default=None
+    )
+
     # Configure API access
-    parser.add_argument('--api_user', help='Set the agent API username (instead of random)', type=unicode, default=None)
-    parser.add_argument('--api_password', help='Set the agent API password (instead of random)', type=unicode, default=None)
-    parser.add_argument('--api_address', help='Set the agent IP address. By default, no address means that local '
-                                              'access only is allowed.', type=str, default=None)
-    parser.add_argument('--api_port', help=('Set the agent port. By default, will try to use {0}, and if not '
-                                           'available will switch to another port.').format(DEFAULT_PORT), type=int, default=DEFAULT_PORT)
-    parser.add_argument('--diag', help='Run self diagnostic', action='store_true', default=False)
-    parser.add_argument('--diag-http', help='Check server connection', action='store_true', default=False)
-    parser.add_argument('--diag-imports', help='Check imports and exit', action='store_true', default=False)
+    parser.add_argument(
+        '--api_user',
+        help='Set the agent API username (instead of random)',
+        type=unicode, default=None
+    )
+    parser.add_argument(
+        '--api_password',
+        help='Set the agent API password (instead of random)',
+        type=unicode, default=None
+    )
+    parser.add_argument(
+        '--api_address', help=('Set the agent IP address. By default, no '
+                               'address means that local access only is '
+                               'allowed.'),
+        type=str, default=None,
+    )
+    parser.add_argument(
+        '--api_port',
+        help=('Set the agent port. By default, will try to use {0}, and if not '
+              'available will switch to another port.').format(DEFAULT_PORT),
+        type=int, default=DEFAULT_PORT,
+        )
+    parser.add_argument(
+        '--diag',
+        help='Run self diagnostic',
+        action='store_true', default=False
+    )
+    parser.add_argument(
+        '--diag-http',
+        help='Check server connection',
+        action='store_true', default=False
+    )
+    parser.add_argument(
+        '--diag-imports',
+        help='Check imports and exit',
+        action='store_true', default=False
+    )
     parser.add_argument('--save-cfg', action='store_true', default=True)
-    parser.add_argument('--extract_html', help='Utils for extracting HTML strings and compiling po files to json',
-                        type=unicode, default=False)
+    parser.add_argument(
+        '--extract_html',
+        help='Utils for extracting HTML strings and compiling po files to json',
+        type=unicode, default=False,
+    )
     parser.add_argument('--auto-start', action='store_true')
     parser.add_argument('-v', '--verbose', action='count', default=1)
+
     args, _ = parser.parse_known_args(sys.argv)
     return args
 
@@ -291,7 +350,7 @@ def main(argv=sys.argv[1:]):
         return
 
     ports_detector = PortsDetector(
-        store_file=osp.join(jobs_root_path, "ports_config"),
+        store_file=osp.join(jobs_root, "ports_config"),
         username=args.api_user,
         password=args.api_password,
         default_port=args.api_port
@@ -299,7 +358,7 @@ def main(argv=sys.argv[1:]):
     ports_detector.create_config_file()
 
     scheduler = PydioScheduler.Instance(
-        jobs_root_path=jobs_root_path,
+        jobs_root_path=jobs_root,
         jobs_loader=jobs_loader
     )
 
