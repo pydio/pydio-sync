@@ -17,6 +17,8 @@
 #
 
 import os
+import os.path as osp
+
 import sys
 import time
 import json
@@ -79,9 +81,9 @@ DEFAULT_DATA_PATH = appdirs.user_data_dir(APP_NAME, roaming=True)
 DEFAULT_PARENT_PATH = get_user_home(APP_NAME)
 DEFAULT_PORT = 5556
 
-if sys.platform == 'win32' and DEFAULT_DATA_PATH.endswith(os.path.join(APP_NAME, APP_NAME)):
+if sys.platform == 'win32' and DEFAULT_DATA_PATH.endswith(osp.join(APP_NAME, APP_NAME)):
     # Remove double folder Pydio/Pydio on windows
-    DEFAULT_DATA_PATH = DEFAULT_DATA_PATH.replace(os.path.join(APP_NAME, APP_NAME), APP_NAME)
+    DEFAULT_DATA_PATH = DEFAULT_DATA_PATH.replace(osp.join(APP_NAME, APP_NAME), APP_NAME)
 elif sys.platform == 'linux2':
     # According to XDG specification
     # http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
@@ -89,9 +91,9 @@ elif sys.platform == 'linux2':
     if CONFIGDIR:
         logging.info('Linux CONFIG DIR XDG_DATA_HOME: ' + CONFIGDIR)
     if not CONFIGDIR:
-        CONFIGDIR = os.path.expanduser('~/.local/share')
+        CONFIGDIR = osp.expanduser('~/.local/share')
         logging.info('Linux CONFIG DIR EXPANDED: ' + CONFIGDIR)
-    DEFAULT_DATA_PATH = os.path.join(CONFIGDIR, APP_NAME)
+    DEFAULT_DATA_PATH = osp.join(CONFIGDIR, APP_NAME)
     logging.info('Linux DEFAULT_DATA_PATH: ' + DEFAULT_DATA_PATH)
 
 global_config_manager = GlobalConfigManager.Instance(configs_path=DEFAULT_DATA_PATH)
@@ -157,18 +159,16 @@ def _parse_cli_args():
     args, _ = parser.parse_known_args(sys.argv)
     return args
 
-def main(argv=sys.argv[1:]):
-    args = _parse_cli_args()
-
-    jobs_root_path = os.path.join(os.path.dirname(__file__), "data")
-    if not os.path.isdir(jobs_root_path):
+def _init_jobs_root():
+    jobs_root_path = osp.join(osp.dirname(__file__), "data")
+    if not osp.isdir(jobs_root_path):
         jobs_root_path = DEFAULT_DATA_PATH.encode(guess_filesystemencoding())
-        if not os.path.isdir(jobs_root_path):
+        if not osp.isdir(jobs_root_path):
             os.makedirs(jobs_root_path)
 
             logging.debug("configuring first run")
             user_dir = unicode(get_user_home(APP_NAME))
-            if not os.path.exists(user_dir):
+            if not osp.exists(user_dir):
                 try:
                     os.makedirs(user_dir)
                 except Exception as e:
@@ -177,14 +177,19 @@ def main(argv=sys.argv[1:]):
                 from utils.favorites_manager import add_to_favorites
                 add_to_favorites(user_dir, APP_NAME)
 
-    setup_logging(args.verbose, jobs_root_path)
+def main(argv=sys.argv[1:]):
+    args = _parse_cli_args()
+
+    jobs_root = _init_jobs_root()
+    setup_logging(args.verbose, jobs_root)
 
     if args.auto_start:
         import pydio.autostart
         pydio.autostart.setup(argv)
         return
 
-    u_jobs_root_path = jobs_root_path.decode(guess_filesystemencoding())
+    u_jobs_root_path = jobs_root.decode(guess_filesystemencoding())
+
     config_manager = ConfigManager.Instance(
         configs_path=u_jobs_root_path,
         data_path=DEFAULT_PARENT_PATH
@@ -213,7 +218,7 @@ def main(argv=sys.argv[1:]):
         job_config.load_from_cliargs(args)
         data = {job_config.id: job_config}
         if args.save_cfg:
-            logging.info("Storing config in %s", os.path.join(u_jobs_root_path, 'configs.json'))
+            logging.info("Storing config in %s", osp.join(u_jobs_root_path, 'configs.json'))
             jobs_loader.save_jobs(data)
     else:
         fp = args.file
@@ -235,11 +240,11 @@ def main(argv=sys.argv[1:]):
     if args.extract_html:
         proc = PoProcessor()
         languages = ['fr', 'de', 'nl', 'it']
-        root = os.path.dirname(__file__)
+        root = osp.dirname(__file__)
         if args.extract_html == 'extract':
             count = proc.extract_all_html_strings(
-                os.path.join(root, "ui"),
-                os.path.join(root, "res/i18n/html_strings.py")
+                osp.join(root, "ui"),
+                osp.join(root, "res/i18n/html_strings.py")
             )
             logging.info(("Wrote %i strings to html_strings.py - "
                           "Now update PO files using standard tools") % count)
@@ -254,14 +259,14 @@ def main(argv=sys.argv[1:]):
                 # wrong translations
                 cmd = 'msgmerge -vU --no-fuzzy-matching ' + l + '.po pydio.pot'
                 logging.info('Running ' + cmd)
-                subprocess.check_output(cmd, cwd=os.path.join(root, "res/i18n"), shell=True)
+                subprocess.check_output(cmd, cwd=osp.join(root, "res/i18n"), shell=True)
 
         elif args.extract_html == "compile":
             for l in languages:
                 cmd = "msgfmt {0}.po --output-file {0}/LC_MESSAGES/pydio.mo".format(l)
                 logging.info('Running {0}'.format(cmd))
-                subprocess.check_output(cmd, cwd=os.path.join(root, "res/i18n"), shell=True)
-            proc.po_to_json(os.path.join(root, "res/i18n/*.po", os.path.join(root, "ui/app/i18n.js")))
+                subprocess.check_output(cmd, cwd=osp.join(root, "res/i18n"), shell=True)
+            proc.po_to_json(osp.join(root, "res/i18n/*.po", osp.join(root, "ui/app/i18n.js")))
 
         return
 
@@ -286,7 +291,7 @@ def main(argv=sys.argv[1:]):
         return
 
     ports_detector = PortsDetector(
-        store_file=os.path.join(jobs_root_path, "ports_config"),
+        store_file=osp.join(jobs_root_path, "ports_config"),
         username=args.api_user,
         password=args.api_password,
         default_port=args.api_port
@@ -321,12 +326,12 @@ def main(argv=sys.argv[1:]):
 def setup_logging(verbosity=None, application_path=None):
     if not application_path:
         application_path = appdirs.user_log_dir("pydio", "pydio")
-        if not os.path.isdir(application_path):
+        if not osp.isdir(application_path):
             os.makedirs(application_path)
 
     general_config = global_config_manager.get_general_config()
 
-    log_file = os.path.join(
+    log_file = osp.join(
         DEFAULT_DATA_PATH,
         str(general_config['log_configuration']['log_file_name'])
     )
