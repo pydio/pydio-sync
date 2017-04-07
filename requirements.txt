@@ -4,7 +4,6 @@ PyYAML==3.10
 appdirs==1.4.0
 argh==0.24.1
 keyring==4.0
-pathlib==0.97
 pathtools==0.1.2
 requests==2.5.1
 watchdog==0.8.1
@@ -16,3 +15,4 @@ memory-profiler>=0.32
 netifaces==0.10.4
 Jinja2==2.8.1
 websocket
+docopt

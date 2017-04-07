@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 # Copyright 2007-2014 Charles du Jeu - Abstrium SAS <team (at) pyd.io>
 #  This file is part of Pydio.
 #
@@ -15,6 +17,36 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Pydio.  If not, see <http://www.gnu.org/licenses/>.
 #
+"""Pydio : file synchronization for Pydio
+
+Usage:
+  main.py
+
+Options:
+  -h --help           Show this screen.
+  -s --server=<str>   Server URL incl. scheme & path [default: http://localhost]
+  -d --dir            Local directory to be synchronized
+  -w --wspace         ID or alias of remote workspace to be synchronized
+  -r --rdir           Path to an existing workspace subfolder to be synchronized
+  -u --user           User name
+  -p --passwd         Password
+  -x --proxy          E.g.: http::username::password::proxyIP::proxyPort::...::check_proxy_flag
+  --memprof           Generate the memory profile
+  --flow=<str>        Sync direction.  Can be up, down, or [default: bi]
+  -f --file           Path to JSON file containing job configurations
+  -i --rdiff          Path to rdiff executable
+  --api-user          Set the agent-API username (instead of random)
+  --api-passwd        Set the agent-API password (instead of random)
+  --api-addr=<str>    Set the agent IP address.  [default: 127.0.0.1]
+  --api-port=<int>    Set the agent port.  [default: 5556]
+  --diag              Run self-diagnostic suite
+  --diag-http         Check server connection
+  --diag-imports      Check imports & exit
+  --save-cfg          *** Undocumented ***
+  --extract_html      Utils for extracting HTML strings & compiling po to JSON
+  --auto-start        *** Undocumented ***
+  -v --verbosity      Logging verbosity level [default: 1]
+"""
 
 import os
 import os.path as osp
@@ -25,7 +57,6 @@ import json
 import thread
 import appdirs
 import logging
-import argparse
 import subprocess
 
 from utils.functions import get_user_home, guess_filesystemencoding
@@ -101,123 +132,6 @@ global_config_manager.configs_path = DEFAULT_DATA_PATH
 global_config_manager.set_general_config(global_config_manager.default_settings)
 
 
-def _parse_cli_args():
-    """Use argparse (stdlib) to parse command line arguments, returning a dict
-    """
-    parser = argparse.ArgumentParser('Pydio Synchronization Tool')
-    # Pass a server configuration via arguments
-    parser.add_argument(
-        '-s', '--server',
-        help='Server URL, with http(s) and path to pydio',
-        type=unicode, default='http://localhost'
-    )
-    parser.add_argument(
-        '-d', '--directory',
-        help='Local directory',
-        type=unicode, default=None
-    )
-    parser.add_argument(
-        '-w', '--workspace',
-        help='Id or Alias of workspace to synchronize',
-        type=unicode, default=None
-    )
-    parser.add_argument(
-        '-r', '--remote_folder',
-        help='Path to an existing folder of the workspace to synchronize',
-        type=unicode, default=None
-    )
-    parser.add_argument(
-        '-u', '--user',
-        help='User name',
-        type=unicode, default=None
-    )
-    parser.add_argument(
-        '-p', '--password',
-        help='Password',
-        type=unicode, default=None
-    )
-    parser.add_argument(
-        '-px', '--proxy',
-        help=('Enter like http::username::password::proxyIP::proxyPort::...::'
-              'check_proxy_flag.  By default proxy connection test happens, to '
-              'avoid mention 0 or False'),
-        type=unicode, default=None
-    )
-    parser.add_argument(
-        '-mp', '--memory_profile',
-        help="To Generate the memory profile :: use <<-mp True >> as argument",
-        type=unicode, default=False
-    )
-    parser.add_argument(
-        '-dir', '--direction',
-        help='Synchro Direction',
-        type=str, default='bi'
-    )
-
-    # Pass a configuration file
-    parser.add_argument(
-        '-f', '--file',
-        help='Json file containing jobs configurations',
-        type=unicode,
-    )
-
-    # Pass a path to rdiff binary
-    parser.add_argument(
-        '-i', '--rdiff',
-        help='Path to rdiff executable',
-        type=unicode, default=None
-    )
-
-    # Configure API access
-    parser.add_argument(
-        '--api_user',
-        help='Set the agent API username (instead of random)',
-        type=unicode, default=None
-    )
-    parser.add_argument(
-        '--api_password',
-        help='Set the agent API password (instead of random)',
-        type=unicode, default=None
-    )
-    parser.add_argument(
-        '--api_address', help=('Set the agent IP address. By default, no '
-                               'address means that local access only is '
-                               'allowed.'),
-        type=str, default=None,
-    )
-    parser.add_argument(
-        '--api_port',
-        help=('Set the agent port. By default, will try to use {0}, and if not '
-              'available will switch to another port.').format(DEFAULT_PORT),
-        type=int, default=DEFAULT_PORT,
-        )
-    parser.add_argument(
-        '--diag',
-        help='Run self diagnostic',
-        action='store_true', default=False
-    )
-    parser.add_argument(
-        '--diag-http',
-        help='Check server connection',
-        action='store_true', default=False
-    )
-    parser.add_argument(
-        '--diag-imports',
-        help='Check imports and exit',
-        action='store_true', default=False
-    )
-    parser.add_argument('--save-cfg', action='store_true', default=True)
-    parser.add_argument(
-        '--extract_html',
-        help='Utils for extracting HTML strings and compiling po files to json',
-        type=unicode, default=False,
-    )
-    parser.add_argument('--auto-start', action='store_true')
-    parser.add_argument('-v', '--verbose', action='count', default=1)
-
-    args, _ = parser.parse_known_args(sys.argv)
-    return args
-
 def _init_jobs_root():
     jobs_root_path = osp.join(osp.dirname(__file__), "data")
     if not osp.isdir(jobs_root_path):
@@ -236,15 +150,18 @@ def _init_jobs_root():
                 from utils.favorites_manager import add_to_favorites
                 add_to_favorites(user_dir, APP_NAME)
 
-def main(argv=sys.argv[1:]):
-    args = _parse_cli_args()
+def main(args):
+    if args["--diag-imports"]:
+        # If we made it here, imports didn't raise an exception,
+        # so nothing more to do.
+        return
 
     jobs_root = _init_jobs_root()
-    setup_logging(args.verbose, jobs_root)
+    setup_logging(args["--verbosity"], jobs_root)
 
-    if args.auto_start:
+    if args["--auto-start"]:
         import pydio.autostart
-        pydio.autostart.setup(argv)
+        pydio.autostart.setup(sys.argv[1:])
         return
 
     u_jobs_root_path = jobs_root.decode(guess_filesystemencoding())
@@ -255,7 +172,7 @@ def main(argv=sys.argv[1:]):
     )
 
     jobs_loader = JobsLoader.Instance(data_path=u_jobs_root_path)
-    config_manager.set_rdiff_path(args.rdiff)
+    config_manager.set_rdiff_path(args["--rdiff"])
 
     logging.info(
         "Product Version Number {0:s} and Version Date {1:s}".format(
@@ -263,16 +180,28 @@ def main(argv=sys.argv[1:]):
             str(config_manager.get_version_data()['date']))
         )
 
-    if args.proxy is not None:
-        data = args.proxy.split('::') if len(args.proxy.split('::'))%5 in range(0, 2) else logging.error("Wrong number of parameters pased for proxy")
+    if args["--proxy"]:
+        data = None
+        px_args = args["--proxy"].split("::")
+        n_px_args = len(px_args)
+        if (n_px_args % 5) in (0, 1):
+            data = px_args
+        else:
+            logging.error("Wrong number of parameters pased for proxy")
+
         msg = {}
-        for i in range(len(args.proxy.split('::'))/5):
-            msg[data[i*5]] = {"username": data[i*5+1], "password": data[i*5+2], "hostname": data[i*5+3], "port": data[i*5+4]}
+        for i in range(n_px_args / 5):
+            msg[data[i * 5]] = {
+                "username": data[i * 5 + 1],
+                "password": data[i * 5 + 2],
+                "hostname": data[i * 5 + 3],
+                "port": data[i * 5 + 4]
+            }
         # setting != testing, please
         config_manager.set_user_proxy(msg)
-        return 0
+        return
 
-    if args.server and args.directory and args.workspace:
+    if args["--server"] and args["--dir"] and args["--wspace"]:
         job_config = JobConfig()
         job_config.load_from_cliargs(args)
         data = {job_config.id: job_config}
@@ -280,27 +209,24 @@ def main(argv=sys.argv[1:]):
             logging.info("Storing config in %s", osp.join(u_jobs_root_path, 'configs.json'))
             jobs_loader.save_jobs(data)
     else:
-        fp = args.file
+        fp = args["--file"]
         if fp and fp != '.':
             logging.info("Loading config from %s", fp)
             jobs_loader.config_file = fp
             jobs_loader.load_config()
         data = jobs_loader.get_jobs()
 
-    logging.debug("data: %s" % json.dumps(data, default=JobConfig.encoder, indent=2))
+    datas = json.dumps(data, default=JobConfig.encoder, indent=2)
+    logging.debug("data: %s" % datas)
 
-    if args.diag_imports:
-        # nothing more to do
-        return sys.exit(0)
+    if args["--memprof"]:
+        sys.stdout = LogFile('stdout')  # TODO fix this atrocity
 
-    if args.memory_profile:
-        sys.stdout = LogFile('stdout')
-
-    if args.extract_html:
+    if args["--extract-html"]:
         proc = PoProcessor()
         languages = ['fr', 'de', 'nl', 'it']
         root = osp.dirname(__file__)
-        if args.extract_html == 'extract':
+        if args["--extract-html"] == "extract":
             count = proc.extract_all_html_strings(
                 osp.join(root, "ui"),
                 osp.join(root, "res/i18n/html_strings.py")
@@ -320,7 +246,7 @@ def main(argv=sys.argv[1:]):
                 logging.info('Running ' + cmd)
                 subprocess.check_output(cmd, cwd=osp.join(root, "res/i18n"), shell=True)
 
-        elif args.extract_html == "compile":
+        elif args["--extract-html"] == "compile":
             for l in languages:
                 cmd = "msgfmt {0}.po --output-file {0}/LC_MESSAGES/pydio.mo".format(l)
                 logging.info('Running {0}'.format(cmd))
@@ -329,7 +255,7 @@ def main(argv=sys.argv[1:]):
 
         return
 
-    if args.diag_http:
+    if args["--diag-http"]:
         keys = data.keys()
         smoke_test_args = [
             data[keys[0]].server,
@@ -337,8 +263,8 @@ def main(argv=sys.argv[1:]):
             data[keys[0]].remote_folder,
             data[keys[0]].user_id,
         ]
-        if args.password:
-            smoke_test_args.append(args.password)
+        if args["--passwd"]:
+            smoke_test_args.append(args["--passwd"])
 
         smoke_tests = PydioDiagnostics(*smoke_test_args)
 
@@ -351,9 +277,9 @@ def main(argv=sys.argv[1:]):
 
     ports_detector = PortsDetector(
         store_file=osp.join(jobs_root, "ports_config"),
-        username=args.api_user,
-        password=args.api_password,
-        default_port=args.api_port
+        username=args["--api-user"],
+        password=args["--api-passwd"],
+        default_port=args["--api-port"],
     )
     ports_detector.create_config_file()
 
@@ -366,7 +292,7 @@ def main(argv=sys.argv[1:]):
         ports_detector.get_port(),
         ports_detector.get_username(),
         ports_detector.get_password(),
-        external_ip=args.api_address
+        external_ip=args["--api-addr"]
     )
     manager.api_server = server
 
@@ -420,5 +346,8 @@ def setup_logging(verbosity=None, application_path=None):
 
 
 if __name__ == "__main__":
-    main()
+    from docopt import docopt
+    args = docopt(__doc__)
+
+    main(args)
     manager.wait()
