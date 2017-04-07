@@ -21,55 +21,52 @@
 # install current version of distribute setuptools
 # http://pythonhosted.org/distribute/setuptools.html#using-setuptools-without-bundling-it
 
-import os, platform, uuid
-from setuptools import setup, find_packages
+import os
+from uuid import uuid1
+from platform import platform
+from pip.req import parse_requirements
 
-if platform.platform().startswith('Linux'):
-    req_lines = [line.strip() for line in open('requirements.txt').readlines()]
-    install_reqs = list(filter(None, req_lines))
-else:
-    from pip.req import parse_requirements
-    install_requires = parse_requirements(os.path.join(os.path.dirname(__file__), "requirements.txt"), None, None,
-                                          None, uuid.uuid1())
-    install_reqs = [str(r.req) for r in install_requires]
+from setuptools import setup
 
-setup_kwargs = {
-    'name': "pydio",
-    'version': "0.1",
-    'packages': find_packages("src"),
-    # 'scripts':  ['py/pydio.py'],
-    'package_dir': {'': 'src'},
-    'install_requires': install_reqs,
+def get_deps():
+    if platform().startswith('Linux'):
+        with open('requirements.txt') as f:
+            return filter(None, map(str.strip, f.readlines()))
 
-    "package_data": {
-        'pydio': ['res/*.sql',
-                  'ui/app/*.html',
-                  'ui/app/*.js',
-                  'ui/app/assets/*.js',
-                  'ui/app/assets/*.css',
-                  'ui/app/assets/images/*.png',
-                  'ui/app/src/jobs/view/*.html',
-                  'ui/app/src/jobs/*.js',
-                  'ui/app/assets/md/material-icons.css',
-                  'ui/app/assets/Roboto/roboto.css',
-                  ]
-    },
+    abspath = os.path.join(os.path.dirname(__file__), "requirements.txt")
+    install_requires = parse_requirements(
+        abspath,
+        None,
+        None,
+        None,
+        uuid1()
+    )
+    return [str(r.req) for r in install_requires]
+
+setup(
+    name="pydio",
+    version="0.1",
+    author="Louis Thibault",
+    author_email="contact@pyd.io",
+    description="Pydio synchronization client.",
+
+    packages=["pydio"],
+    install_requires=get_deps(),
+    package_data= {'pydio': ['res/*.sql',
+                             'ui/app/*.html',
+                             'ui/app/*.js',
+                             'ui/app/assets/*.js',
+                             'ui/app/assets/*.css',
+                             'ui/app/assets/images/*.png',
+                             'ui/app/src/jobs/view/*.html',
+                             'ui/app/src/jobs/*.js',
+                             'ui/app/assets/md/material-icons.css',
+                             'ui/app/assets/Roboto/roboto.css',]},
 
     # metadata for upload to PyPI
-    'author': "Charles du Jeu",
-    'author_email': "contact@pyd.io",
-    'description': "Python version of the Pydio synchronization client [experimental].",
-    'license': "todo",
-    'keywords': "todo",
-    'url': "http://pyd.io/",
+    license="Copyright 2017, Abstrium SAS.  All rights reserved.",
+    keywords=["pydio", "file", "sync", "synchronization"],
+    url="http://pydio.com/",
 
-    # Create an entry programs for this package
-    "entry_points": {
-        'console_scripts': [
-            'pydio = pydio.main:main',
-        ],
-    },
-}
-
-setup(**setup_kwargs)
-
+    entry_points={'console_scripts': ['pydio = pydio.main:main']},
+)
