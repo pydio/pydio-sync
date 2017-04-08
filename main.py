@@ -17,10 +17,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Pydio.  If not, see <http://www.gnu.org/licenses/>.
 #
-"""Pydio : file synchronization for Pydio
+"""Pydio : file synchronization for Pydio.
 
-Usage:
-  main.py
+Usage:  main [options]
 
 Options:
   -h --help           Show this screen.
@@ -43,7 +42,7 @@ Options:
   --diag-http         Check server connection
   --diag-imports      Check imports & exit
   --save-cfg          *** Undocumented ***
-  --extract_html      Utils for extracting HTML strings & compiling po to JSON
+  --extract-html      Utils for extracting HTML strings & compiling po to JSON
   --auto-start        *** Undocumented ***
   -v --verbosity      Logging verbosity level [default: 1]
 """
@@ -59,16 +58,16 @@ import appdirs
 import logging
 import subprocess
 
-from utils.functions import get_user_home, guess_filesystemencoding
-from job.job_config import JobConfig, JobsLoader
-from job import manager
-from test.diagnostics import PydioDiagnostics
-from utils.config_ports import PortsDetector
-from utils.global_config import ConfigManager, GlobalConfigManager
-from ui.web_api import PydioApi
-from job.scheduler import PydioScheduler
-from utils.i18n import PoProcessor
-from utils.pydio_profiler import LogFile
+from pydio.utils.functions import get_user_home, guess_filesystemencoding
+from pydio.job.job_config import JobConfig, JobsLoader
+from pydio.job import manager
+from pydio.test.diagnostics import PydioDiagnostics
+from pydio.utils.config_ports import PortsDetector
+from pydio.utils.global_config import ConfigManager, GlobalConfigManager
+from pydio.ui.web_api import PydioApi
+from pydio.job.scheduler import PydioScheduler
+from pydio.utils.i18n import PoProcessor
+from pydio.utils.pydio_profiler import LogFile
 
 try:
     import encodings as _
@@ -76,8 +75,6 @@ try:
 except ImportError:
     logging.error("Encodings not bundled with packaged pydio version. Exiting.")
     sys.exit(1)
-
-
 
 
 APP_NAME='Pydio'
@@ -115,13 +112,11 @@ def _init_jobs_root():
             logging.debug("configuring first run")
             user_dir = unicode(get_user_home(APP_NAME))
             if not osp.exists(user_dir):
-                try:
-                    os.makedirs(user_dir)
-                except Exception as e:
-                    logging.exception(e)  # TODO : maybe it's better to crash & burn?
+                os.makedirs(user_dir)
             else:
                 from utils.favorites_manager import add_to_favorites
                 add_to_favorites(user_dir, APP_NAME)
+    return jobs_root_path
 
 def main(args):
     if args["--diag-imports"]:
@@ -254,7 +249,7 @@ def main(args):
         store_file=osp.join(jobs_root, "ports_config"),
         username=args["--api-user"],
         password=args["--api-passwd"],
-        default_port=args["--api-port"],
+        default_port=int(args["--api-port"]),
     )
     ports_detector.create_config_file()
 
@@ -313,22 +308,17 @@ def report_environment():
     logging.debug("sys.getfilesystemencoding(): %s" % sys.getfilesystemencoding())
 
     # log environment variables
-    _env = ("{k} : {v}".format(k, v) for (k, v) in os.environ.iteritems())
+    _env = ("{0} : {1}".format(k, v) for (k, v) in os.environ.iteritems())
     logging.debug("os.environ: \n\t%s" % "\n\t".join(sorted(_env)))
 
 def _load_verbosity_data(cfg, verbosity):
+    log_level_mapping = {'WARNING' : logging.WARNING,
+                         'INFO' : logging.INFO,
+                         'DEBUG' : logging.DEBUG,}
 
-    # TODO:  redo more cleanly
-
-    log_level_mapping = {
-        'WARNING'  : logging.WARNING,
-        'INFO'     : logging.INFO,
-        'DEBUG'    : logging.DEBUG
-    }
-
-    genconf = cfg['log_configuration']['log_levels'].iteritems()
-
-    levels = {int(k) : log_level_mapping[v] for (k, v) in genconf}
+    levels = {}
+    for k, v in cfg['log_configuration']['log_levels'].iteritems():
+        levels[int(k)] = log_level_mapping[v]
 
     return levels.get(verbosity, logging.NOTSET)
 
@@ -362,7 +352,6 @@ def setup_logging(cfg, verbosity, application_path):
 if __name__ == "__main__":
     from docopt import docopt
     args = docopt(__doc__)
-    import pdb; pdb.set_trace()
 
     main(args)
     manager.wait()
