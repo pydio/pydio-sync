@@ -15,3 +15,7 @@ src/pydio.egg-info/
 .pve/
 src/run.cmd
 .python-version
+pydio/ui/node_modules
+*.min.js
+pydio/ui/app/assets/md/
+*.min.css
