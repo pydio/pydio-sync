@@ -30,7 +30,6 @@ Options:
   -u --user           User name
   -p --passwd         Password
   -x --proxy          E.g.: http::username::password::proxyIP::proxyPort::...::check_proxy_flag
-  --memprof           Generate the memory profile
   --flow=<str>        Sync direction.  Can be up, down, or [default: bi]
   -f --file           Path to JSON file containing job configurations
   -i --rdiff          Path to rdiff executable
@@ -40,7 +39,6 @@ Options:
   --api-port=<int>    Set the agent port.  [default: 5556]
   --diag              Run self-diagnostic suite
   --diag-http         Check server connection
-  --diag-imports      Check imports & exit
   --save-cfg          *** Undocumented ***
   --extract-html      Utils for extracting HTML strings & compiling po to JSON
   --auto-start        *** Undocumented ***
@@ -56,302 +54,288 @@ import json
 import thread
 import appdirs
 import logging
-import subprocess
 
 from pydio.utils.functions import get_user_home, guess_filesystemencoding
 from pydio.job.job_config import JobConfig, JobsLoader
 from pydio.job import manager
-from pydio.test.diagnostics import PydioDiagnostics
 from pydio.utils.config_ports import PortsDetector
 from pydio.utils.global_config import ConfigManager, GlobalConfigManager
 from pydio.ui.web_api import PydioApi
 from pydio.job.scheduler import PydioScheduler
 from pydio.utils.i18n import PoProcessor
-from pydio.utils.pydio_profiler import LogFile
 
-try:
-    import encodings as _
-    logging.debug("Encodings installed:  {0}".format(_))
-except ImportError:
-    logging.error("Encodings not bundled with packaged pydio version. Exiting.")
-    sys.exit(1)
-
-
-APP_NAME='Pydio'
-DEFAULT_DATA_PATH = appdirs.user_data_dir(APP_NAME, roaming=True)
-DEFAULT_PARENT_PATH = get_user_home(APP_NAME)
-DEFAULT_PORT = 5556
-
-if sys.platform == 'win32' and DEFAULT_DATA_PATH.endswith(osp.join(APP_NAME, APP_NAME)):
-    # Remove double folder Pydio/Pydio on windows
-    DEFAULT_DATA_PATH = DEFAULT_DATA_PATH.replace(osp.join(APP_NAME, APP_NAME), APP_NAME)
-elif sys.platform == 'linux2':
-    # According to XDG specification
-    # http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
-    CONFIGDIR = os.getenv('XDG_DATA_HOME')
-    if CONFIGDIR:
-        logging.info('Linux CONFIG DIR XDG_DATA_HOME: ' + CONFIGDIR)
-    if not CONFIGDIR:
-        CONFIGDIR = osp.expanduser('~/.local/share')
-        logging.info('Linux CONFIG DIR EXPANDED: ' + CONFIGDIR)
-    DEFAULT_DATA_PATH = osp.join(CONFIGDIR, APP_NAME)
-    logging.info('Linux DEFAULT_DATA_PATH: ' + DEFAULT_DATA_PATH)
-
-global_config_manager = GlobalConfigManager.Instance(configs_path=DEFAULT_DATA_PATH)
-global_config_manager.configs_path = DEFAULT_DATA_PATH
-global_config_manager.set_general_config(global_config_manager.default_settings)
+APP_NAME = "Pydio"
+APP_DATA = dict(
+    DEFAULT_DATA_PATH=appdirs.user_data_dir(APP_NAME, roaming=True),
+    DEFAULT_PARENT_PATH=get_user_home(APP_NAME),
+    DEFAULT_PORT=5556,
+)
 
 
-def _init_jobs_root():
-    jobs_root_path = osp.join(osp.dirname(__file__), "data")
-    if not osp.isdir(jobs_root_path):
-        jobs_root_path = DEFAULT_DATA_PATH.encode(guess_filesystemencoding())
-        if not osp.isdir(jobs_root_path):
-            os.makedirs(jobs_root_path)
+def init_logging():
+    logging.disable(logging.NOTSET)
 
-            logging.debug("configuring first run")
-            user_dir = unicode(get_user_home(APP_NAME))
-            if not osp.exists(user_dir):
-                os.makedirs(user_dir)
-            else:
-                from utils.favorites_manager import add_to_favorites
-                add_to_favorites(user_dir, APP_NAME)
-    return jobs_root_path
+    if os.getenv("PYDIO_ENV") == "dev":
+        lvl = logging.DEBUG
+    else:
+        lvl = logging.INFO
+
+    log = logging.getLogger()
+    log.setLevel(lvl)
+
+    hdlr = logging.StreamHandler()
+    hdlr.setLevel(lvl)
+
+    fmt = logging.Formatter(
+        "%(asctime)s - %(name)s - [ %(levelname)s ] - %(message)s'"
+    )
+
+    hdlr.setFormatter(fmt)
+    log.addHandler(hdlr)
+
+
+def init_application_data():
+    """Initialize appdata directory in an OS-compliant way."""
+
+    appname_dir = osp.join(APP_NAME, APP_NAME)
+    default_dpath = APP_DATA["DEFAULT_DATA_PATH"]
+
+    if sys.platform == "win32" and default_dpath.endswith(appname_dir):
+        # Remove double folder Pydio/Pydio on windows
+        APP_DATA["DEFAULT_DATA_PATH"] = default_dpath.replace(appname_dir, APP_NAME)
+    elif sys.platform == "linux2":
+        l = logging.getLogger(__name__)
+
+        # According to XDG specification
+        # http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+        cfgdir = APP_DATA["config_dir"] = os.getenv('XDG_DATA_HOME')
+        if cfgdir:
+            l.info("Linux CONFIG DIR XDG_DATA_HOME: {0}".format(cfgdir))
+        if not cfgdir:
+            cfgdir = osp.expanduser("~/.local/share")
+            l.info("Linux CONFIG DIR EXPANDED: {0}".format(cfgdir))
+        APP_DATA["DEFAULT_DATA_PATH"] = default_dpath = osp.join(cfgdir, APP_NAME)
+        l.info("Linux default data path: {0}".format(default_dpath))
+
+
+def init_global_config(dpath):
+    global_config_manager = GlobalConfigManager.Instance(configs_path=dpath)
+    global_config_manager.configs_path = dpath
+    global_config_manager.set_general_config(
+        global_config_manager.default_settings
+    )
+
+
+class Application(object):
+    """Pydio-Sync application class"""
+    log = logging.getLogger('.'.join((__name__, "Application")))
+
+    def __init__(self, jobs_root, jobs_loader, cfg, **kw):
+        self.cfg = cfg
+        self._jobs_root = jobs_root
+        self.config_manager = ConfigManager.Instance(
+            configs_path=self.jobs_root,  # use property to get decoded path
+            data_path=APP_DATA["DEFAULT_PARENT_PATH"]
+        )
+        self.jobs_loader = jobs_loader
+        if args.get("--rdiff"):
+            self.config_manager.set_rdiff_path(args.pop("--rdiff"))
+
+        self.log_release_info()
+
+        self._ports_detector = self._configure_ports_detector()
+        self._scheduler = PydioScheduler.Instance(
+            jobs_root_path=self.jobs_root,
+            jobs_loader=self.jobs_loader,
+        )
+        self._svr = PydioApi(
+            self._ports_detector.get_port(),
+            self._ports_detector.get_username(),
+            self._ports_detector.get_password(),
+            external_ip=kw["--api-addr"],
+        )
+        manager.api_server = self._svr
+
+    @classmethod
+    def from_cli_args(cls, **kw):
+        jobs_root = cls.configure_jobs_root(kw)
+        jobs_load = JobsLoader.Instance(data_path=jobs_root)
+
+        job_config = JobConfig()
+        job_config.load_from_cliargs(args)
+        cfg = {job_config.id: job_config}
+        if args.save_cfg:
+            cls.log.info("Storing config in {0}".format(
+                osp.join(jobs_root, 'configs.json')
+            ))
+            jobs_load.save_jobs(cfg)
+
+        return cls(jobs_root, jobs_load, cfg, **kw)
+
+    @classmethod
+    def from_cfg_file(cls, **kw):
+        jobs_root = cls.configure_jobs_root(kw)
+        jobs_load = JobsLoader.Instance(data_path=jobs_root)
+
+        fp = args["--file"]
+        if fp and fp != '.':
+            cls.log.info("Loading config from {0}".format(fp))
+            jobs_load.config_file = fp
+            jobs_load.load_config()
+
+        cfg = jobs_load.get_jobs()
+        return cls(jobs_root, jobs_load, cfg, **kw)
+
+    @property
+    def jobs_root(self):
+        return self._jobs_root.decode(guess_filesystemencoding())
+
+    @staticmethod
+    def configure_jobs_root(kw):
+        jroot = kw.get(
+            "jobs_root",
+            osp.join(osp.dirname(__file__), "data")
+        )
+
+        if not osp.isdir(jroot):
+            jroot = APP_DATA["DEFAULT_DATA_PATH"].encode(guess_filesystemencoding())
+            if not osp.isdir(jroot):
+                os.makedirs(jroot)
+
+                Application.log.debug("configuring first run")
+                user_dir = get_user_home(APP_NAME)
+                if not osp.exists(user_dir):
+                    os.makedirs(user_dir)
+                else:
+                    from utils.favorites_manager import add_to_favorites
+                    add_to_favorites(user_dir, APP_NAME)
+
+        return jroot
+
+    def run(self):
+        thread.start_new_thread(self._svr.start_server, ())
+        time.sleep(0.3)
+        if not self._svr.running:
+            raise RuntimeError("Cannot start web server, exiting application")
+        self._scheduler.start_all()
+
+    def halt(self):
+        self._svr.shutdown_server()
+
+    def log_release_info(self):
+        vdat = self.config_manager.get_version_data()
+        self.log.info("Version Number {0:s}".format(vdat["version"]))
+        self.log.info("Release Date {0:s}".format(vdat["date"]))
+
+    def configure_proxy(self):
+        prx_args = args["--proxy"].split("::")
+        n_prx_args = len(prx_args)
+        if (n_prx_args % 5) not in (0, 1):
+            self.log.error("Wrong number of parameters pased for proxy")
+            return
+
+        prx_cfg = {}
+        for i in range(n_prx_args / 5):
+            prx_cfg[prx_args[i * 5]] = {
+                "username": prx_args[i * 5 + 1],
+                "password": prx_args[i * 5 + 2],
+                "hostname": prx_args[i * 5 + 3],
+                "port": prx_args[i * 5 + 4]
+            }
+
+        self.config_manager.set_user_proxy(prx_cfg)
+
+    def log_config_data(self):
+        self.log.debug("data: {0}".format(json.dumps(
+            self.cfg,
+            default=JobConfig.encoder,
+            indent=2,
+        )))
+
+    def _configure_ports_detector(self):
+        ports_detector = PortsDetector(
+            store_file=osp.join(self.jobs_root, "ports_config"),
+            username=args["--api-user"],
+            password=args["--api-passwd"],
+            default_port=int(args["--api-port"]),
+        )
+        ports_detector.create_config_file()
+        return ports_detector
+
 
 def main(args):
-    if args["--diag-imports"]:
-        # If we made it here, imports didn't raise an exception,
-        # so nothing more to do.
-        return
-
-    jobs_root = _init_jobs_root()
-    cfg = global_config_manager.get_general_config()
-    setup_logging(cfg, args["--verbosity"], jobs_root)
-    report_environment()
+    if args["--server"] and args["--dir"] and args["--wspace"]:
+        app = Application.from_cli_args(**args)
+    else:
+        app = Application.from_cfg_file(**args)
 
     if args["--auto-start"]:
         import pydio.autostart
         pydio.autostart.setup(sys.argv[1:])
         return
 
-    u_jobs_root_path = jobs_root.decode(guess_filesystemencoding())
-
-    config_manager = ConfigManager.Instance(
-        configs_path=u_jobs_root_path,
-        data_path=DEFAULT_PARENT_PATH
-    )
-
-    jobs_loader = JobsLoader.Instance(data_path=u_jobs_root_path)
-    config_manager.set_rdiff_path(args["--rdiff"])
-
-    logging.info(
-        "Product Version Number {0:s} and Version Date {1:s}".format(
-            str(config_manager.get_version_data()['version']),
-            str(config_manager.get_version_data()['date']))
-        )
-
     if args["--proxy"]:
-        data = None
-        px_args = args["--proxy"].split("::")
-        n_px_args = len(px_args)
-        if (n_px_args % 5) in (0, 1):
-            data = px_args
-        else:
-            logging.error("Wrong number of parameters pased for proxy")
-
-        msg = {}
-        for i in range(n_px_args / 5):
-            msg[data[i * 5]] = {
-                "username": data[i * 5 + 1],
-                "password": data[i * 5 + 2],
-                "hostname": data[i * 5 + 3],
-                "port": data[i * 5 + 4]
-            }
-        # setting != testing, please
-        config_manager.set_user_proxy(msg)
+        app.configure_proxy()
         return
 
-    if args["--server"] and args["--dir"] and args["--wspace"]:
-        job_config = JobConfig()
-        job_config.load_from_cliargs(args)
-        data = {job_config.id: job_config}
-        if args.save_cfg:
-            logging.info("Storing config in %s", osp.join(u_jobs_root_path, 'configs.json'))
-            jobs_loader.save_jobs(data)
-    else:
-        fp = args["--file"]
-        if fp and fp != '.':
-            logging.info("Loading config from %s", fp)
-            jobs_loader.config_file = fp
-            jobs_loader.load_config()
-        data = jobs_loader.get_jobs()
-
-    datas = json.dumps(data, default=JobConfig.encoder, indent=2)
-    logging.debug("data: %s" % datas)
-
-    if args["--memprof"]:
-        sys.stdout = LogFile('stdout')  # TODO fix this atrocity
-
+    app.log_config_data()
     if args["--extract-html"]:
-        proc = PoProcessor()
-        languages = ['fr', 'de', 'nl', 'it']
-        root = osp.dirname(__file__)
-        if args["--extract-html"] == "extract":
-            count = proc.extract_all_html_strings(
-                osp.join(root, "ui"),
-                osp.join(root, "res/i18n/html_strings.py")
-            )
-            logging.info(("Wrote %i strings to html_strings.py - "
-                          "Now update PO files using standard tools") % count)
-
-            # nothing more to do
-            cmd = ('xgettext --language=Python --keyword=_ '
-                   '--output=res/i18n/pydio.pot `find . -name "*.py"`')
-            subprocess.check_output(cmd, shell=True, cwd=root)
-
-            for l in languages:
-                # Sometimes fuzzy matching should be used but mostly results in
-                # wrong translations
-                cmd = 'msgmerge -vU --no-fuzzy-matching ' + l + '.po pydio.pot'
-                logging.info('Running ' + cmd)
-                subprocess.check_output(cmd, cwd=osp.join(root, "res/i18n"), shell=True)
-
-        elif args["--extract-html"] == "compile":
-            for l in languages:
-                cmd = "msgfmt {0}.po --output-file {0}/LC_MESSAGES/pydio.mo".format(l)
-                logging.info('Running {0}'.format(cmd))
-                subprocess.check_output(cmd, cwd=osp.join(root, "res/i18n"), shell=True)
-            proc.po_to_json(osp.join(root, "res/i18n/*.po", osp.join(root, "ui/app/i18n.js")))
-
+        extract_html(args["--extract-html"])
         return
-
-    if args["--diag-http"]:
-        keys = data.keys()
-        smoke_test_args = [
-            data[keys[0]].server,
-            data[keys[0]].workspace,
-            data[keys[0]].remote_folder,
-            data[keys[0]].user_id,
-        ]
-        if args["--passwd"]:
-            smoke_test_args.append(args["--passwd"])
-
-        smoke_tests = PydioDiagnostics(*smoke_test_args)
-
-        rc = smoke_tests.run()
-        if rc != 0:
-            msg = "Diagnostics failed: {0} {1}"
-            logging.error(msg.format(rc, smoke_tests.status_message))
-
-        return
-
-    ports_detector = PortsDetector(
-        store_file=osp.join(jobs_root, "ports_config"),
-        username=args["--api-user"],
-        password=args["--api-passwd"],
-        default_port=int(args["--api-port"]),
-    )
-    ports_detector.create_config_file()
-
-    scheduler = PydioScheduler.Instance(
-        jobs_root_path=jobs_root,
-        jobs_loader=jobs_loader
-    )
-
-    server = PydioApi(
-        ports_detector.get_port(),
-        ports_detector.get_username(),
-        ports_detector.get_password(),
-        external_ip=args["--api-addr"]
-    )
-    manager.api_server = server
 
     try:
-        thread.start_new_thread(server.start_server, ())
-        time.sleep(0.3)
-        if not server.running:
-            logging.error('Cannot start web server, exiting application')
-            sys.exit(1)
-        scheduler.start_all()
-    except (KeyboardInterrupt, SystemExit):
-        server.shutdown_server()
-        sys.exit()
+        app.run()
+        manager.wait()
+    finally:
+        app.halt()
 
 
-def _setup_logging_config():
-    if os.getenv("PYDIO_ENV") == "dev":
-        _loglvl = logging.DEBUG
-    else:
-        _loglvl = logging.INFO
+def extract_html(extraction_method):
+    from functools import partial
+    from subprocess import check_output
+    checkoutpt = partial(check_output, shell=True)
 
-    # configure loggers
-    logging.basicConfig(
-        level=_loglvl,
-        format='%(asctime)s [%(levelname)-7s] - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
+    logger = logging.getLogger(__name__)
+    languages = ['fr', 'de', 'nl', 'it']
 
-    # configure loggers
-    logging.getLogger().setLevel(logging.DEBUG)
-    logging.disable(logging.NOTSET)
-    logging.getLogger("requests").setLevel(logging.WARNING)
+    root = osp.dirname(__file__)
+    i18n = osp.join(root, "res/i18n")
+    ui = osp.join(root, "ui")
 
+    proc = PoProcessor()
+    if extraction_method == "extract":
+        html_strings = osp.join(i18n, "html_strings.py")
+        count = proc.extract_all_html_strings(ui, html_strings)
+        msg = "Wrote %i strings to html_strings.py.  Updating PO files."
+        logger.log.info(msg % count)
 
-def report_environment():
-    # log PATH info
-    logging.debug("sys.path: %s", "\n\t".join(sys.path))
-    _python_path = os.getenv('PYTHONPATH', "").split(';')
-    logging.debug("PYTHONPATH: %s", "\n\t".join(_python_path))
+        # nothing more to do
+        cmd = ('xgettext --language=Python --keyword=_ '
+               '--output=res/i18n/pydio.pot `find . -name "*.py"`')
+        checkoutpt(cmd, cwd=root)
 
-    # log encoding info
-    logging.debug("sys.getdefaultencoding(): %s" % sys.getdefaultencoding())
-    logging.debug("sys.getfilesystemencoding(): %s" % sys.getfilesystemencoding())
+        for l in languages:
+            # Sometimes fuzzy matching should be used but mostly results in
+            # wrong translations
+            cmd = "msgmerge -vU --no-fuzzy-matching {lang}.po pydio.pot"
+            logger.log.info('Running %s'.format(cmd.format(lang=l)))
+            checkoutpt(cmd, cwd=i18n)
 
-    # log environment variables
-    _env = ("{0} : {1}".format(k, v) for (k, v) in os.environ.iteritems())
-    logging.debug("os.environ: \n\t%s" % "\n\t".join(sorted(_env)))
+    elif extraction_method == "compile":
+        for l in languages:
+            cmd = "msgfmt {lang}.po --output-file {lang}/LC_MESSAGES/pydio.mo"
+            logger.log.info('Running %s' % cmd.format(lang=l))
+            checkoutpt(cmd, cwd=i18n)
 
-def _load_verbosity_data(cfg, verbosity):
-    log_level_mapping = {'WARNING' : logging.WARNING,
-                         'INFO' : logging.INFO,
-                         'DEBUG' : logging.DEBUG,}
-
-    levels = {}
-    for k, v in cfg['log_configuration']['log_levels'].iteritems():
-        levels[int(k)] = log_level_mapping[v]
-
-    return levels.get(verbosity, logging.NOTSET)
-
-
-def setup_logging(cfg, verbosity, application_path):
-    _setup_logging_config()
-
-    if not application_path:
-        application_path = appdirs.user_log_dir("pydio", "pydio")
-        if not osp.isdir(application_path):
-            os.makedirs(application_path)
-
-    log_file = osp.join(
-        DEFAULT_DATA_PATH,
-        str(cfg['log_configuration']['log_file_name'])
-    )
-
-    level = _load_verbosity_data(cfg, verbosity)
-    cfg['log_configuration']['disable_existing_loggers'] = bool(
-        cfg['log_configuration']['disable_existing_loggers']
-    )
-    cfg['log_configuration']['handlers']['file']['filename'] = log_file
-    cfg['log_configuration']['handlers']['console']['level'] = level
-
-
-    from logging.config import dictConfig
-    dictConfig(cfg['log_configuration'])
-    logging.debug("verbosity: %s" % verbosity)
+        proc.po_to_json(osp.join(i18n, "*.po", osp.join(ui, "app/i18n.js")))
 
 
 if __name__ == "__main__":
     from docopt import docopt
     args = docopt(__doc__)
 
+    init_logging()
+    init_application_data()
+    init_global_config(APP_DATA["DEFAULT_DATA_PATH"])
+
     main(args)
-    manager.wait()

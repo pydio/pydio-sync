@@ -32,7 +32,7 @@ from pydio.job import manager
 
 
 @Singleton
-class PydioScheduler():
+class PydioScheduler(object):
     def __init__(self, jobs_root_path, jobs_loader):
         self.control_threads = {}
         self.jobs_loader = jobs_loader
@@ -44,6 +44,7 @@ class PydioScheduler():
     @pydio_profile
     def start_all(self):
         for job_id in self.job_configs:
+            logging.debug("Starting job {0}".format(job_id))
             job_config = self.job_configs[job_id]
             self.start_from_config(job_config)
 
@@ -70,9 +71,9 @@ class PydioScheduler():
             return
 
         job_data_path = osp.join(self.jobs_root_path, job_config.id)
-        if not job_data_path.exists():
-            job_data_path.mkdir(parents=True)
-        job_data_path = str(job_data_path).decode(guess_filesystemencoding())
+        if not osp.isdir(job_data_path):
+            os.makedirs(job_data_path)
+        job_data_path = job_data_path.decode(guess_filesystemencoding())
 
         merger = ContinuousDiffMerger(job_config, job_data_path=job_data_path)
         try:

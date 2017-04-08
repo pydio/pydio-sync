@@ -18,24 +18,8 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 from memory_profiler import profile
-import logging
 import sys
 
-class LogFile(object):
-    """File-like object to log text using the `logging` module."""
-
-    def __init__(self, name=None):
-        self.logger = logging.getLogger(name)
-
-    def write(self, msg, level=logging.INFO):
-        if "MiB" in msg and float(msg.split("MiB")[1].strip())>0:
-            self.logger.log(level, msg)
-        elif msg.__contains__("Filename:") or msg.__contains__("Line Contents"):
-            self.logger.log(level, msg)
-
-    def flush(self):
-        for handler in self.logger.handlers:
-            handler.flush()
 
 def pydio_profile(func=None, stream=None, precision=6):
     """
@@ -53,4 +37,3 @@ def pydio_profile(func=None, stream=None, precision=6):
         return profile(func, stream, precision) if (str(sys.argv[index+1]).lower() == 'true') else func
     else:
         return func
-

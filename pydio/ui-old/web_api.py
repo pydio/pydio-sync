@@ -93,6 +93,7 @@ class FlaskRealmDigestDB(authdigest.RealmDigestDB):
 authDB = FlaskRealmDigestDB('PydioSyncAuthRealm')
 
 class PydioApi(Api):
+    log = logging.getLogger(".".join((__file__, "PydioApi")))
 
     def __init__(self, server_port, user, password, external_ip=None):
         logging.info('-----------------------------------------------')

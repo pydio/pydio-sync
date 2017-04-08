@@ -42,32 +42,19 @@ import pickle
 import zlib
 import platform
 import base64
-try:
-    from pydio.job.job_config import JobConfig, JobsLoader
-    from pydio.job.EventLogger import EventLogger
-    from pydio.job.scheduler import PydioScheduler
-    from pydio.job.localdb import LocalDbHandler, SqlEventHandler
-    from pydio.utils.global_config import ConfigManager, GlobalConfigManager
-    from pydio.utils.functions import connection_helper
-    from pydio.sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException
-    from pydio.sdkremote.remote import PydioSdk
-    from pydio.sdklocal.local import SystemSdk
-    from pydio.utils.check_sync import SyncChecker
-    from pydio.utils.i18n import get_languages
-    from pydio.utils import i18n
-    from pydio.utils.pydio_profiler import pydio_profile
-except ImportError:
-    from job.EventLogger import EventLogger
-    from job.localdb import LocalDbHandler, SqlEventHandler
-    from job.scheduler import PydioScheduler
-    from job.job_config import JobConfig, JobsLoader
-    from utils.global_config import ConfigManager, GlobalConfigManager
-    from utils.functions import connection_helper
-    from utils.pydio_profiler import pydio_profile
-    from sdkremote.remote import PydioSdk
-    from utils import check_sync
-    from utils.i18n import get_languages
-    from utils import i18n
+
+from pydio.job.job_config import JobConfig, JobsLoader
+from pydio.job.EventLogger import EventLogger
+from pydio.job.scheduler import PydioScheduler
+from pydio.job.localdb import LocalDbHandler, SqlEventHandler
+from pydio.utils.global_config import ConfigManager, GlobalConfigManager
+from pydio.utils.functions import connection_helper
+from pydio.sdkremote.remote import PydioSdk
+from pydio.utils.check_sync import SyncChecker
+from pydio.utils.i18n import get_languages
+from pydio.utils import i18n
+from pydio.utils.pydio_profiler import pydio_profile
+
 try:
     #raise ImportError
     from pydio.endpoint.resolver import EndpointResolver, RESOLVER_CONFIG, EndpointException
@@ -303,22 +290,19 @@ class PydioApi(Api):
 
     @pydio_profile
     def start_server(self):
+        self.running = True
         try:
-            self.running = True
             self.app.run(port=self.port, host=self.external_ip)
-        except Exception as e:
-            logging.exception(e)
+        except:
             self.running = False
-            logging.exception("Error while starting web server")
+            raise
 
     @pydio_profile
     def shutdown_server(self):
-        logging.debug("Shutdown api server: %s" % self.app)
+        logging.warning("Shutdown api server: %s" % self.app)
         with self.app.test_request_context():
-            func = request.environ.get('werkzeug.server.shutdown')
-            if func is None:
-                raise RuntimeError('Not running with the Werkzeug Server')
-            func()
+            fn = request.environ.get('werkzeug.server.shutdown', lambda: None)
+            fn()
 
     @authDB.requires_auth
     def check_sync(self, job_id=None):
@@ -1115,10 +1099,6 @@ class HistoryManager(Resource):
         jobs = JobsLoader.Instance().get_jobs()
         if not job_id in jobs:
             return {"error": "Cannot find job"}
-        try:
-            from pydio.job.change_history import ChangeHistory
-        except ImportError:
-            from job.change_history import ChangeHistory
         scheduler = PydioScheduler.Instance()
         job = scheduler.control_threads[job_id]
         args = request.args
