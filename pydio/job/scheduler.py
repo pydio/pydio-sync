@@ -18,22 +18,18 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 import os
+import os.path as osp
+
 import logging
 
 from pydispatch import dispatcher
-try:
-    from pydio.job.continous_merger import ContinuousDiffMerger
-    from pydio import COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
-    from pydio.utils.pydio_profiler import pydio_profile
-    from pydio.utils.functions import Singleton, guess_filesystemencoding
-    from pydio.job import manager
-except ImportError:
-    from job.continous_merger import ContinuousDiffMerger
-    from job import manager
-    from utils.functions import Singleton, guess_filesystemencoding
-    from utils.pydio_profiler import pydio_profile
-    COMMAND_SIGNAL = 'command'
-    JOB_COMMAND_SIGNAL = 'job_command'
+
+from pydio.job.continous_merger import ContinuousDiffMerger
+from pydio import COMMAND_SIGNAL, JOB_COMMAND_SIGNAL
+from pydio.utils.pydio_profiler import pydio_profile
+from pydio.utils.functions import Singleton, guess_filesystemencoding
+from pydio.job import manager
+
 
 @Singleton
 class PydioScheduler():
@@ -72,7 +68,8 @@ class PydioScheduler():
     def start_from_config(self, job_config):
         if not job_config.active:
             return
-        job_data_path = self.jobs_root_path / str(job_config.id)
+
+        job_data_path = osp.join(self.jobs_root_path, job_config.id)
         if not job_data_path.exists():
             job_data_path.mkdir(parents=True)
         job_data_path = str(job_data_path).decode(guess_filesystemencoding())
@@ -139,11 +136,11 @@ class PydioScheduler():
             self.disable_job(job_id)
             logging.info("R E S Y N C " + job_id)
             # delete databases
-            job_folder = os.path.join(str(self.jobs_root_path), job_id)
+            job_folder = osp.join(str(self.jobs_root_path), job_id)
             for file in os.listdir(job_folder):
                 if file in ["pydio.sqlite", "changes.sqlite", "sequences", "history.sqlite", "pydio.sqlite-journal", "changes.sqlite-journal"]:
                     try:
-                        os.unlink(os.path.join(job_folder, file))
+                        os.unlink(osp.join(job_folder, file))
                     except Exception as e:
                         logging.exception(e)
             self.enable_job(job_id)
