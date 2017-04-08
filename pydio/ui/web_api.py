@@ -21,8 +21,20 @@ from flask import Flask, request, redirect, Response
 from flask_restful import Api, reqparse
 from flask.ext.restful import Resource
 import flask
-from requests.exceptions import SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, \
-    InvalidSchema, InvalidURL, Timeout, RequestException
+from requests.exceptions import (
+    SSLError,
+    ProxyError,
+    TooManyRedirects,
+    ChunkedEncodingError,
+    ContentDecodingError,
+    InvalidSchema,
+    InvalidURL,
+    Timeout,
+    RequestException
+)
+
+import os
+import os.path as osp
 import json
 import requests
 import keyring
@@ -30,12 +42,10 @@ import xmltodict
 import types
 import logging
 import sys
-import os
 import time
 import urllib2
 import posixpath
 import unicodedata
-from pathlib import *
 from functools import wraps
 import authdigest
 import pickle
@@ -52,17 +62,7 @@ from pydio.utils.functions import connection_helper
 from pydio.sdkremote.remote import PydioSdk
 from pydio.utils.check_sync import SyncChecker
 from pydio.utils.i18n import get_languages
-from pydio.utils import i18n
 from pydio.utils.pydio_profiler import pydio_profile
-
-try:
-    #raise ImportError
-    from pydio.endpoint.resolver import EndpointResolver, RESOLVER_CONFIG, EndpointException
-except ImportError:
-    EndpointResolver = False
-    RESOLVER_CONFIG = False
-    EndpointException = False
-_ = i18n.language.ugettext
 
 
 class FlaskRealmDigestDB(authdigest.RealmDigestDB):
@@ -96,14 +96,16 @@ class PydioApi(Api):
         authDB.add_user(user, password)
         self.running = False
         if getattr(sys, 'frozen', False):
-            self.real_static_folder = Path(sys._MEIPASS) / 'pydio' / 'ui' / 'app'
+            self.real_static_folder = osp.join(sys._MEIPASS, "pydio/ui/app")
             logging.info('FROZEN ' + str(self.real_static_folder))
             logging.info(self.real_static_folder)
             static_folder = str(self.real_static_folder)
         else:
-            logging.info('NOT FROZEN ' + str(Path(__file__).parent / 'app'))
-            logging.info(Path(__file__).parent)
-            self.real_static_folder = Path(__file__).parent / 'app'
+            d = osp.dirname(__file__)
+            appdir = osp.join(d, "app")
+            logging.info('NOT FROZEN {0}'.format(appdir))
+            logging.info(d)
+            self.real_static_folder = appdir
             static_folder = 'app'
 
         logging.debug('Starting Flask server with following static folder : '+ static_folder)
@@ -138,17 +140,6 @@ class PydioApi(Api):
         self.app.add_url_rule('/streamlifesign', 'streamlifesign', self.stream_life_sign)
         self.app.add_url_rule('/welcome', 'dynamic_welcome', self.serve_welcome)
         self.app.add_url_rule('/about', 'dynamic_about', self.serve_about_content)
-        # Add the static deps here
-        """
-        logging.info(str(Path(__file__).parent) + '/app')
-        logging.info(os.listdir(str(Path(__file__).parent) + '/app'))
-        logging.info(str(Path(__file__).parent) + '/app/assets')
-        logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets'))
-        logging.info(str(Path(__file__).parent) + '/app/src/jobs')
-        logging.info(os.listdir(str(Path(__file__).parent) + '/app/src/jobs'))
-        logging.info(str(Path(__file__).parent) + '/app/assets/md')
-        logging.info(os.listdir(str(Path(__file__).parent) + '/app/assets/md'))
-        """
         deps = [
                     '/app/assets/angular-material.min.css',
                     '/app/assets/app.less',
@@ -184,8 +175,8 @@ class PydioApi(Api):
                     '/app/src/jobs/view/conflict.html',
         ]
 
-        if EndpointResolver:
-            EndpointResolver.Instance().finalize_init(self, JobsLoader.Instance().data_path, str(self.real_static_folder.parent.parent), ConfigManager.Instance())
+        # if EndpointResolver:
+        #     EndpointResolver.Instance().finalize_init(self, JobsLoader.Instance().data_path, str(self.real_static_folder.parent.parent), ConfigManager.Instance())
 
         # a map 'dep_path' -> function to serve it
         self.app.serv_deps = {}
@@ -195,26 +186,21 @@ class PydioApi(Api):
             self.app.add_url_rule(d, d, self.app.serv_deps[d])
 
     def gen_serv_dep(self, path):
-        fp = str(Path(__file__).parent) + path
-        # adapt path for window$
-        if platform.system().lower().startswith("win"):
-            fp = fp.replace('/', '\\')
-        try:
-            with open(fp, 'rb') as f:
-                    content = f.read()
-        except IOError as e:
-            logging.exception(e)
-            logging.info(os.listdir(os.path.dirname(fp)))
-            logging.info("did you run the gruntfile?")
+        path = osp.join(osp.dirname(__file__), path.strip("/"))
+        with open(path, 'rb') as f:
+            content = f.read()
+
         if path.endswith('.css'):
                 mime = "text/css"
         elif path.endswith('.js'):
             mime = "text/javascript"
         else:
             mime = "text"
+
         @authDB.requires_auth
         def func():
             return Response(response=content, status=200, mimetype=mime)
+
         return func
 
     @pydio_profile
@@ -228,14 +214,9 @@ class PydioApi(Api):
             if lang_part:
                 short_lang.append(lang_part)
         if short_lang != [u"en"]:
-            with open(str(self.real_static_folder / 'i18n.js')) as js:
+            with open(osp.join(self.real_static_folder, 'i18n.js')) as js:
                 for line in js:
                     s += line
-        if EndpointResolver:
-            additional_strings = EndpointResolver.Instance().load_additional_strings()
-            if additional_strings:
-                s += '\nvar PydioAdditionalStrings = ' + json.dumps(additional_strings) + ';'
-                s += '\nwindow.PydioLangs = merge(PydioAdditionalStrings, PydioLangs);'
         s += '\n'
         s += 'window.PydioEnvLanguages = ' + json.dumps(short_lang) + ';'
         return Response(response=s,
@@ -244,46 +225,29 @@ class PydioApi(Api):
 
     def server_js_config(self):
         content = "window.ui_config = {'login_mode':'standard', 'proxy_enabled':'false'}"
-        if EndpointResolver:
-            content = EndpointResolver.Instance().get_ui_config()
         return Response(response=content,
                         status=200,
                         mimetype="text/javascript")
 
     def serve_dynamic_css(self):
-        content = ''
-        if EndpointResolver:
-            content = EndpointResolver.Instance().load_css()
-        return Response(response=content,
+        return Response(response="",
                         status=200,
                         mimetype="text/css")
 
-    def serve_dynamic_image(self):
-        # This is called only if there is a resolved.
-        return Response(response=EndpointResolver.Instance().load_image_content(),
-                        status=200,
-                        mimetype="image/png")
-
     def serve_about_content(self):
-        content = ''
-        if EndpointResolver:
-            content = EndpointResolver.Instance().load_about_content()
-        else:
-            about_file = str(self.real_static_folder / 'about.html')
-            with open(about_file, 'r') as handle:
-                content = handle.read()
+        about_file = osp.join(self.real_static_folder, 'about.html')
+        with open(about_file) as handle:
+            content = handle.read()
+
         return Response(response=content,
                         status=200,
                         mimetype="text/html")
 
     def serve_welcome(self):
-        content = ''
-        if EndpointResolver:
-            content = EndpointResolver.Instance().load_welcome_content()
-        else:
-            about_file = str(self.real_static_folder / 'src/jobs/view/welcome.html')
-            with open(about_file, 'r') as handle:
-                content = handle.read()
+        about_file = osp.join(self.real_static_folder, 'src/jobs/view/welcome.html')
+        with open(about_file) as handle:
+            content = handle.read()
+
         return Response(response=content,
                         status=200,
                         mimetype="text/html")
@@ -426,49 +390,49 @@ class WorkspacesManager(Resource):
             return data
         except requests.HTTPError:
             r = resp.status_code
-            message = _("Couldn't load your workspaces, check your server !")
+            message = "Couldn't load your workspaces, check your server !"
             if r == 404:
-                message = _("Server not found (404), is it up and has it Pydio installed ?")
+                message = "Server not found (404), is it up and has it Pydio installed ?"
             elif r == 401:
-                message = _("Authentication failed: please verify your login and password")
+                message = "Authentication failed: please verify your login and password"
                 r = 400  # trick to avoid prompting for creds again
             elif r == 403:
-                message = _("Access to the server is forbidden")
+                message = "Access to the server is forbidden"
             elif r == 500 or r == 408:
-                message = _("Server seems to be encountering problems (500)")
+                message = "Server seems to be encountering problems (500)"
             logging.debug("Error while loading workspaces : " + message)
             return {'error': message}, r
         except SSLError as rt:
             logging.error(rt.message)
-            return {'error': _("An SSL error happened! Is your server using a self-signed certificate? In that case please check 'Trust SSL certificate'")}, 400
+            return {'error': "An SSL error happened! Is your server using a self-signed certificate? In that case please check 'Trust SSL certificate'"}, 400
         except ProxyError as rt:
             logging.error(rt.message)
-            return {'error': _('A proxy error happened, please check the logs')}, 400
+            return {'error': 'A proxy error happened, please check the logs'}, 400
         except TooManyRedirects as rt:
             logging.error(rt.message)
-            return {'error': _('Connection error: too many redirects')}, 400
+            return {'error': 'Connection error: too many redirects'}, 400
         except ChunkedEncodingError as rt:
             logging.error(rt.message)
-            return {'error': _('Chunked encoding error, please check the logs')}, 400
+            return {'error': 'Chunked encoding error, please check the logs'}, 400
         except ContentDecodingError as rt:
             logging.error(rt.message)
-            return {'error': _('Content Decoding error, please check the logs')}, 400
+            return {'error': 'Content Decoding error, please check the logs'}, 400
         except InvalidSchema as rt:
             logging.error(rt.message)
-            return {'error': _('Http connection error: invalid schema.')}, 400
+            return {'error': 'Http connection error: invalid schema.'}, 400
         except InvalidURL as rt:
             logging.error(rt.message)
-            return {'error': _('Http connection error: invalid URL.')}, 400
+            return {'error': 'Http connection error: invalid URL.'}, 400
         except ValueError:
             message = "Error while parsing request result:" + resp.content
             logging.debug(message)
             return {'error': message}, 400
         except Timeout as to:
             logging.error(to)
-            return {'error': _('Connection timeout!')}, 400
+            return {'error': 'Connection timeout!'}, 400
         except RequestException as ree:
             logging.error(ree.message)
-            return {'error': _('Cannot resolve domain!')}, 400
+            return {'error': 'Cannot resolve domain!'}, 400
 
 class EtaSize(Resource):
 
@@ -476,12 +440,7 @@ class EtaSize(Resource):
     @pydio_profile
     def get(self):
         args = request.args
-        base = args['url'].rstrip('/')
         verify = False if args['trust_ssl'] == 'true' else True
-        if 'password' in args:
-            auth = (args['user'], args['password'])
-        else:
-            auth = (args['user'], keyring.get_password(base, args['user']))
         if verify and "REQUESTS_CA_BUNDLE" in os.environ:
             verify = os.environ["REQUESTS_CA_BUNDLE"]
         # GET REMOTE SIZE
@@ -774,6 +733,7 @@ class CmdManager(Resource):
             return PydioScheduler.Instance().handle_generic_signal(self, cmd)
         return ('success',)
 
+
 class TaskInfoManager(Resource):
 
     @authDB.requires_auth
@@ -803,10 +763,10 @@ class TaskInfoManager(Resource):
 
             # Get the status of the file idle/busy... by join of ajxp_index and ajxp_node_status tables
             db_handler = LocalDbHandler(base_path, directory_path)
-            if Path(str(path.encode("utf-8"))).is_dir():
-                node_status = db_handler.get_directory_node_status("/" + relative_path)
+            if osp.isdir(path.encode("utf-8")):
+                node_status = db_handler.get_directory_node_status(osp.join("/", relative_path))
             else:
-                node_status = db_handler.get_node_status("/" + relative_path)
+                node_status = db_handler.get_node_status(osp.join("/", relative_path))
 
             return {"node_status": node_status}
 
@@ -838,6 +798,7 @@ class UpdateManager(Resource):
             return json.loads(resp.content)
         else:
             return noupdate_msg
+
 
 class ShareManager(Resource):
     """
@@ -884,7 +845,7 @@ class ShareManager(Resource):
                         if "minisite" in res and res["minisite"]["public"]:
                             return {"link": res["minisite"]["public_link"], "existingLinkFlag": "true"}
                         elif "repositoryId" in res:
-                            return {"link": _("The folder is already shared as a workspace!"), "existingLinkFlag": "true"}
+                            return {"link": "The folder is already shared as a workspace!", "existingLinkFlag": "true"}
                     except ValueError:
                         pass  # No json received -> assuming no share...
                 elif args["checkExistingLinkFlag"]:
@@ -906,6 +867,7 @@ class ShareManager(Resource):
             else:
                 res = remote_instance.unshare(job.remote_folder + "/" + args["path"]).replace('\\', '/')
                 return {"response": res, "existingLinkFlag": "false"}
+
 
 class ShareLinkManager(Resource):
     """
@@ -945,6 +907,7 @@ class ShareLinkManager(Resource):
         except Exception as e:
             logging.exception(e)
             return {"status": "error", "message": str(e)}
+
 
 class ShareCopyManager(Resource):
     """
@@ -992,6 +955,7 @@ class ShareCopyManager(Resource):
             return {"status": "error", "message": str(e.message)}
         return {"status": "success", "message": "Copy was succesful"}
 
+
 class GeneralConfigManager(Resource):
     @authDB.requires_auth
     @pydio_profile
@@ -1014,6 +978,7 @@ class GeneralConfigManager(Resource):
         if len(data) > 0:
             global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
             return global_config_manager.update_general_config(data=data)
+
 
 class Feedback(Resource):
     def get(self):
@@ -1091,7 +1056,7 @@ class Feedback(Resource):
                 resp[job_id]['lastseq'] = -1
                 resp[job_id]['remotelastseq'] = -1
         return resp
-# end of feedback
+
 
 class HistoryManager(Resource):
     @authDB.requires_auth
@@ -1116,4 +1081,3 @@ class HistoryManager(Resource):
             for failed in job.current_store.change_history.get_all():
                     res += failed
         return res
-#end of HistoryManager
