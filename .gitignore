@@ -15,4 +15,3 @@ src/pydio.egg-info/
 .pve/
 src/run.cmd
 .python-version
-pydio/sdkremote/*
