@@ -20,9 +20,16 @@
 from .functions import Singleton
 import pickle
 import os
+import os.path as osp
 import time
 import uuid, json,logging
 import keyring
+
+DEFAULT_CONFIG = dict(update_info={"enable_update_check": "True",
+                                   "update_check_frequency_days": 1,
+                                   "last_update_date": 0},
+                      max_wait_time_for_local_db_access=30,
+                      language="")
 
 
 @Singleton
@@ -58,7 +65,7 @@ class ConfigManager:
         if self.device_id:
             return self.device_id
 
-        if os.path.exists(self.configs_path + '/device_id'):
+        if osp.exists(self.configs_path + '/device_id'):
             with open(self.configs_path + '/device_id', 'rb') as f:
                 self.device_id = pickle.load(f)
             return self.device_id
@@ -80,7 +87,7 @@ class ConfigManager:
             # Try to load data from self.configs_path/proxies.json
             proxies_file = self.configs_path + '/proxies.json'
             data = ""
-            if os.path.exists(proxies_file):
+            if osp.exists(proxies_file):
                 try:
                     with open(proxies_file, 'r') as handle:
                         data = json.load(handle)
@@ -120,7 +127,6 @@ class ConfigManager:
             """
             Check if the proxy is up by trying to open a well known url via proxy
             """
-            #logging.info(data)
             try:
                 proxies = {}
                 for protocol in data.keys():
@@ -147,7 +153,7 @@ class ConfigManager:
         :param data: list with 4 entries [username,password,proxyIP,proxyPort]
         :return: response
         """
-        file_name = os.path.join(self.configs_path, 'proxies.json')
+        file_name = osp.join(self.configs_path, 'proxies.json')
         try:
             with open(file_name, 'w') as f:
                 json.dump(data, f, indent=4, separators=(',', ': '))
@@ -161,65 +167,18 @@ class GlobalConfigManager:
     def __init__(self, configs_path=None):
         if configs_path is not None:
             self.configs_path = configs_path
-        self.default_settings = {
-            "log_configuration": {
-                "log_file_name": "pydio.log",
-                "version": 1,
-                "disable_existing_loggers": "True",
-                "formatters": {
-                    "short": {
-                        "format": u"%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(message)s",
-                        "datefmt": "%H:%M:%S"
-                    },
-                    "verbose": {
-                        "format": u"%(asctime)s %(levelname)-7s %(thread)-5d %(threadName)-8s %(filename)s : %(lineno)s | %(funcName)s | %(message)s",
-                        "datefmt": "%Y-%m-%d %H:%M:%S"
-                    }
-                },
-                "handlers": {
-                    "file": {
-                        "level": "INFO",
-                        "class": "logging.handlers.RotatingFileHandler",
-                        "formatter": "verbose",
-                        "backupCount": 8,
-                        "maxBytes": 4194304,
-                        "filename": "log_file"
-                    },
-                    "console": {
-                        "level": "level",
-                        "class": "logging.StreamHandler",
-                        "formatter": "short"
-                    }
-                },
-                "root": {
-                    "level": "DEBUG",
-                    "handlers": [ "console", "file" ]
-                },
-                "log_levels": {
-                    "0": "WARNING",
-                    "1": "INFO",
-                    "2": "DEBUG"
-                }
-            },
-            "update_info": {
-                "enable_update_check": "True",
-                "update_check_frequency_days": 1,
-                "last_update_date": 0
-            },
-            "max_wait_time_for_local_db_access": 30,
-            "language": ""
-        }
+        self.default_settings = DEFAULT_CONFIG
 
     def set_general_config(self, data):
         """
         Put the global configurations into general_config.json if it doesn't exist
         :param data: dict object with configuration data
         """
-        global_config_file = os.path.join(self.configs_path, 'general_config.json')
+        global_config_file = osp.join(self.configs_path, 'general_config.json')
         self.last_load = 0
         # Set the global config only if no prior settings exists
-        if not os.path.exists(global_config_file) or os.stat(global_config_file).st_size == 0:
-            if not os.path.exists(self.configs_path):
+        if not osp.exists(global_config_file) or os.stat(global_config_file).st_size == 0:
+            if not osp.exists(self.configs_path):
                 os.makedirs(self.configs_path)
             with open(global_config_file, 'w') as conf_file:
                 json.dump(data, conf_file, indent=4, separators=(',', ': '))
@@ -230,7 +189,7 @@ class GlobalConfigManager:
         :param data: dict object with configuration data
         """
         self.last_load = 0
-        with open(os.path.join(self.configs_path, 'general_config.json'), 'w') as conf_file:
+        with open(osp.join(self.configs_path, 'general_config.json'), 'w') as conf_file:
             json.dump(data, conf_file, indent=4, separators=(',', ': '))
 
     def get_general_config(self):
@@ -238,7 +197,7 @@ class GlobalConfigManager:
         Fetch the config details from general_config.json file
         :return: dict object with configuration data
         """
-        with open(os.path.join(self.configs_path, 'general_config.json')) as conf_file:  # memoize general config, don't reload the file more than every 3 seconds
+        with open(osp.join(self.configs_path, 'general_config.json')) as conf_file:  # memoize general config, don't reload the file more than every 3 seconds
             if time.time() - self.last_load > 5:
                 self.last_load = time.time()
                 self.general_config = json.load(conf_file)
