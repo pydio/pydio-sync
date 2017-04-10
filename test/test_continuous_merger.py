@@ -24,7 +24,7 @@ def init():
     # data path is something like ~/Pydio (equiv. to the dropbox folder ?)
     gcm =  GlobalConfigManager.Instance(configs_path=TMP_PATH)
     gcm.configs_path = TMP_PATH
-    gcm.set_general_config(gcm.default_settings)
+    gcm.set_general_config = gcm.default_settings
     ConfigManager.Instance(configs_path=TMP_PATH, data_path="")
 
 

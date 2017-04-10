@@ -254,7 +254,7 @@ class ChangeProcessor:
         self.update_node_status(path, 'DOWN')
         full_path = self.job_config.directory + path
         message = path + ' <====DOWNLOAD==== ' + path
-        if is_mod and self.remote_sdk.is_rsync_supported() and ConfigManager.Instance().get_rdiff_path():
+        if is_mod and self.remote_sdk.is_rsync_supported() and ConfigManager.Instance().rdiff_path:
             sig_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".signature")
             delta_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".delta")
             try:
@@ -285,7 +285,7 @@ class ChangeProcessor:
 
         full_path = self.job_config.directory + path
         message = path + ' =====UPLOAD====> ' + path
-        if is_mod and self.remote_sdk.is_rsync_supported() and ConfigManager.Instance().get_rdiff_path():
+        if is_mod and self.remote_sdk.is_rsync_supported() and ConfigManager.Instance().rdiff_path:
             sig_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".signature")
             delta_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".delta")
             try:

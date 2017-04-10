@@ -58,7 +58,7 @@ class SqliteChangeStore(object):
         self.create = False
         global_config_manager = GlobalConfigManager.Instance(configs_path=os.path.dirname(os.path.dirname(filename)))
         # Increasing the timeout (default 5 seconds), to avoid database is locked error
-        self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
+        self.timeout = global_config_manager.general_config['max_wait_time_for_local_db_access']
         if not os.path.exists(self.db):
             self.create = True
         self.last_commit = time.time()

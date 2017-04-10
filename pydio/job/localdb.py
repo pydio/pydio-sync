@@ -55,7 +55,7 @@ class SqlSnapshot(object):
         self.sub_folder = sub_folder
         global_config_manager = GlobalConfigManager.Instance(configs_path=job_data_path)
         # Increasing the timeout (default 5 seconds), to avoid database is locked error
-        self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
+        self.timeout = global_config_manager.general_config['max_wait_time_for_local_db_access']
         try:
             self.load_from_db()
         except OperationalError as oe:
@@ -147,7 +147,7 @@ class LocalDbHandler(object):
         self.event_handler = None
         global_config_manager = GlobalConfigManager.Instance(configs_path=job_data_path)
         # Increasing the timeout (default 5 seconds), to avoid database is locked error
-        self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
+        self.timeout = global_config_manager.general_config['max_wait_time_for_local_db_access']
         if not os.path.exists(self.db):
             self.init_db()
 

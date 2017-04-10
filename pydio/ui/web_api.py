@@ -528,7 +528,7 @@ class JobManager(Resource):
         json_req = request.get_json()
         new_job = JobConfig.object_decoder(json_req)
         if 'test_path' in json_req:
-            json_req['directory'] = os.path.join(ConfigManager.Instance().get_data_path(), json_req['repoObject']['label'])
+            json_req['directory'] = os.path.join(ConfigManager.Instance().data_path, json_req['repoObject']['label'])
             return json_req
         elif 'compute_sizes' in json_req:
             dl_rate = 2 * 1024 * 1024
@@ -779,8 +779,8 @@ class UpdateManager(Resource):
     @authDB.requires_auth
     @pydio_profile
     def get(self, complete_url):
-        global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
-        general_config = global_config_manager.get_general_config()
+        global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().configs_path)
+        general_config = global_config_manager.general_config
         noupdate_msg = {u'noupdate': u'No update available'}
         if bool(general_config['update_info']['enable_update_check']):
             import time
@@ -964,8 +964,8 @@ class GeneralConfigManager(Resource):
         retrieves the general config info from general config file
         :returns a json response
         """
-        global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
-        return global_config_manager.get_general_config()
+        global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().configs_path)
+        return global_config_manager.general_config
 
     @authDB.requires_auth
     @pydio_profile
@@ -976,7 +976,7 @@ class GeneralConfigManager(Resource):
         """
         data = request.get_json()
         if len(data) > 0:
-            global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
+            global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().configs_path)
             return global_config_manager.update_general_config(data=data)
 
 
@@ -989,7 +989,7 @@ class Feedback(Resource):
         resp = {"errors": "zlib_blob", "nberrors": 0, "platform": platform.system()}
         for job_id in jobs:
             resp[job_id] = {"nbsyncedfiles": 0, "lastseq": 0, "serverInfo": {}}
-        globalconfig = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
+        globalconfig = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().configs_path)
         resp["pydiosync_version"] = ConfigManager.Instance().version_info["version"]
         # parse logs for Errors, zip the errors
         logdir = globalconfig.configs_path

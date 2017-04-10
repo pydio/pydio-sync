@@ -105,9 +105,7 @@ def init_application_data():
 def init_global_config(dpath):
     global_config_manager = GlobalConfigManager.Instance(configs_path=dpath)
     global_config_manager.configs_path = dpath
-    global_config_manager.set_general_config(
-        global_config_manager.default_settings
-    )
+    global_config_manager.general_config = global_config_manager.default_settings
 
 
 def main(args):

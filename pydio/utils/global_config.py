@@ -34,32 +34,36 @@ DEFAULT_CONFIG = dict(update_info={"enable_update_check": "True",
 
 @Singleton
 class ConfigManager:
-    _device_id = ''
-    data_path = ''
-    rdiff_path = ''
-    proxies = {}
-    proxies_loaded = False
+    def __init__(self, configs_path, data_path=""):
+        self._configs_path = configs_path
+        self._data_path = data_path
 
-    def __init__(self, configs_path, data_path):
-        self.configs_path = configs_path
-        self.data_path = data_path
+        self._device_id = ""
+        self.rdiff_path = ""
+        self.proxies = {}
+        self.proxies_loaded = False
+
         self.general_config = None
         self.last_load = 0
 
+    @property
     def get_configs_path(self):
-        return self.configs_path
+        return self._configs_path
 
-    def get_data_path(self):
-        return self.data_path
+    @property
+    def data_path(self):
+        return self._data_path
 
-    def set_rdiff_path(self, rdiff_path):
+    @property
+    def rdiff_path(self):
+        return self.rdiff_path
+
+    @rdiff_path.setter
+    def rdiff_path(self, rdiff_path):
         if rdiff_path is None:
             self.rdiff_path = False
         else:
             self.rdiff_path = rdiff_path
-
-    def get_rdiff_path(self):
-        return self.rdiff_path
 
     @property
     def device_id(self):
@@ -192,7 +196,20 @@ class GlobalConfigManager:
             self.configs_path = configs_path
         self.default_settings = DEFAULT_CONFIG
 
-    def set_general_config(self, data):
+    @property
+    def general_config(self):
+        """
+        Fetch the config details from general_config.json file
+        :return: dict object with configuration data
+        """
+        with open(osp.join(self.configs_path, 'general_config.json')) as conf_file:  # memoize general config, don't reload the file more than every 3 seconds
+            if time.time() - self.last_load > 5:
+                self.last_load = time.time()
+                self.general_config = json.load(conf_file)
+            return self.general_config
+
+    @general_config.setter
+    def general_config(self, data):
         """
         Put the global configurations into general_config.json if it doesn't exist
         :param data: dict object with configuration data
@@ -214,14 +231,3 @@ class GlobalConfigManager:
         self.last_load = 0
         with open(osp.join(self.configs_path, 'general_config.json'), 'w') as conf_file:
             json.dump(data, conf_file, indent=4, separators=(',', ': '))
-
-    def get_general_config(self):
-        """
-        Fetch the config details from general_config.json file
-        :return: dict object with configuration data
-        """
-        with open(osp.join(self.configs_path, 'general_config.json')) as conf_file:  # memoize general config, don't reload the file more than every 3 seconds
-            if time.time() - self.last_load > 5:
-                self.last_load = time.time()
-                self.general_config = json.load(conf_file)
-            return self.general_config

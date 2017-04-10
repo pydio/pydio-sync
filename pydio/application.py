@@ -40,7 +40,7 @@ class Application(object):
         )
         self.jobs_loader = jobs_loader
         if kw.get("--rdiff"):
-            self.config_manager.set_rdiff_path(kw.pop("--rdiff"))
+            self.config_manager.rdiff_path = kw.pop("--rdiff")
 
         self.log_release_info()
 
