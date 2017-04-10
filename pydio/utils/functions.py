@@ -19,7 +19,6 @@
 #
 import os,sys
 import urllib2
-import logging
 import time
 
 def hashfile(afile, hasher, blocksize=65536):
@@ -38,14 +37,12 @@ def hashfile(afile, hasher, blocksize=65536):
     res = hasher.hexdigest()
     if res == "d41d8cd98f00b204e9800998ecf8427e":  # empty file
         time.sleep(.2)
-        #logging.info("DOUBLE HASH")
         afile.seek(0)
         buf = afile.read(blocksize)
         while len(buf) > 0:
             hasher.update(buf)
             buf = afile.read(blocksize)
         res = hasher.hexdigest()
-    #logging.info(" HASHED " + afile.name + " " + str(res) + " in " + str(time.time()-ts) + "s")
     return res
 
 
@@ -70,25 +67,22 @@ def guess_filesystemencoding():
     return fse
 
 
-class ConnectionHelper:
+class connection_helper:
+    internet_ok = True
 
-    def __init__(self):
-        self.internet_ok = True
-
-    def is_connected_to_internet(self, proxies):
+    @staticmethod
+    def is_connected_to_internet(proxies):
         try:
             proxy = urllib2.ProxyHandler(proxies)
             opener = urllib2.build_opener(proxy)
             urllib2.install_opener(opener)
             urllib2.urlopen('http://www.google.com', timeout=1)
-            self.internet_ok = True
-            return True
-        except Exception as e:
-            pass
-        self.internet_ok = False
-        return False
+            connection_helper.internet_ok = True
+        except urllib2.URLError:
+            connection_helper.internet_ok = False
 
-connection_helper = ConnectionHelper()
+        return connection_helper.internet_ok
+
 
 class Singleton:
 
