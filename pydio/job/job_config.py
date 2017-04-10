@@ -44,7 +44,7 @@ class JobsLoader(object):
         else:
             self.config_file = config_file
 
-    def contains_job(self, id):
+    def __contains__(self, id):
         if self.jobs:
             if id in self.jobs:
                 return True
@@ -151,7 +151,7 @@ class JobConfig(object):
         i = 1
         base_id = urlparse.urlparse(self.server).hostname + '-' + self.workspace
         test_id = base_id
-        while JobsLoader.Instance().contains_job(test_id):
+        while test_id in JobsLoader.Instance():
             test_id = base_id + '-' + str(i)
             i += 1
         self.id = test_id
