@@ -24,6 +24,7 @@ APP_DATA = dict(
     DEFAULT_DATA_PATH=appdirs.user_data_dir(APP_NAME, roaming=True),
     DEFAULT_PARENT_PATH=get_user_home(APP_NAME),
     DEFAULT_PORT=5556,
+    DEFAULT_JOBS_ROOT = osp.join(osp.dirname(__file__), "data"),
 )
 
 
@@ -58,9 +59,13 @@ class Application(object):
         manager.api_server = self._svr
 
     @classmethod
+    def init_jobs(cls, kw):
+        root = cls.configure_jobs_root(kw)
+        return root, JobsLoader(data_path=root)
+
+    @classmethod
     def from_cli_args(cls, **kw):
-        jobs_root = cls.configure_jobs_root(kw)
-        jobs_load = JobsLoader(data_path=jobs_root)
+        jobs_root, jobs_load = cls.init_jobs(kw)
 
         job_config = JobConfig()
         job_config.load_from_cliargs(kw)
@@ -75,8 +80,7 @@ class Application(object):
 
     @classmethod
     def from_cfg_file(cls, **kw):
-        jobs_root = cls.configure_jobs_root(kw)
-        jobs_load = JobsLoader(data_path=jobs_root)
+        jobs_root, jobs_load = cls.init_jobs(kw)
 
         fp = kw.pop("--file")
         if fp and fp != '.':
@@ -95,7 +99,7 @@ class Application(object):
     def configure_jobs_root(kw):
         job_root = kw.pop(
             "jobs_root",
-            osp.join(osp.dirname(__file__), "data")
+            APP_DATA["DEFAULT_JOBS_ROOT"]
         )
 
         if not osp.isdir(job_root):
