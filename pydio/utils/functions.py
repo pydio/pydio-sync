@@ -84,20 +84,10 @@ class connection_helper:
         return connection_helper.internet_ok
 
 
-class Singleton:
+class Singleton(type):
+    _instances = {}
 
-    def __init__(self, decorated):
-        self._decorated = decorated
-
-    def Instance(self, **kwargs):
-        try:
-            return self._instance
-        except AttributeError:
-            self._instance = self._decorated(**kwargs)
-            return self._instance
-
-    def __call__(self):
-        raise TypeError('Singletons must be accessed through `Instance()`.')
-
-    def __instancecheck__(self, inst):
-        return isinstance(inst, self._decorated)
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]

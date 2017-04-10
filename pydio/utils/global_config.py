@@ -32,14 +32,15 @@ DEFAULT_CONFIG = dict(update_info={"enable_update_check": "True",
                       language="")
 
 
-@Singleton
 class ConfigManager:
+    __metaclass__ = Singleton
+
     def __init__(self, configs_path, data_path=""):
         self._configs_path = configs_path
         self._data_path = data_path
 
         self._device_id = ""
-        self.rdiff_path = ""
+        self._rdiff_path = ""
         self.proxies = {}
         self.proxies_loaded = False
 
@@ -47,7 +48,7 @@ class ConfigManager:
         self.last_load = 0
 
     @property
-    def get_configs_path(self):
+    def configs_path(self):
         return self._configs_path
 
     @property
@@ -56,14 +57,14 @@ class ConfigManager:
 
     @property
     def rdiff_path(self):
-        return self.rdiff_path
+        return self._rdiff_path
 
     @rdiff_path.setter
     def rdiff_path(self, rdiff_path):
         if rdiff_path is None:
-            self.rdiff_path = False
+            self._rdiff_path = False
         else:
-            self.rdiff_path = rdiff_path
+            self._rdiff_path = rdiff_path
 
     @property
     def device_id(self):
@@ -188,10 +189,14 @@ class ConfigManager:
             logging.exception(ex)
         return "write to Proxies.json file is successful"
 
-@Singleton
+
 class GlobalConfigManager:
+    __metaclass__ = Singleton
 
     def __init__(self, configs_path=None):
+        self.last_load = 0
+        self._general_config = None
+
         if configs_path is not None:
             self.configs_path = configs_path
         self.default_settings = DEFAULT_CONFIG
@@ -205,8 +210,8 @@ class GlobalConfigManager:
         with open(osp.join(self.configs_path, 'general_config.json')) as conf_file:  # memoize general config, don't reload the file more than every 3 seconds
             if time.time() - self.last_load > 5:
                 self.last_load = time.time()
-                self.general_config = json.load(conf_file)
-            return self.general_config
+                self._general_config = json.load(conf_file)
+            return self._general_config
 
     @general_config.setter
     def general_config(self, data):

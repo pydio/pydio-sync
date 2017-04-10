@@ -52,7 +52,7 @@ class SystemSdk(object):
         self.delta_extension = '.sync_delta'
         self.path_extension = '.sync_patched'
         self.basepath = basepath
-        self.rdiff_path = ConfigManager.Instance().rdiff_path
+        self.rdiff_path = ConfigManager().rdiff_path
 
     def check_basepath(self):
         """

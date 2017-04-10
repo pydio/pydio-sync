@@ -55,7 +55,7 @@ JOB_CONFIG_DICT = {
 
 
 def init():
-    JobsLoader.Instance(data_path=JOBS_ROOT_PATH).jobs = {}
+    JobsLoader(data_path=JOBS_ROOT_PATH).jobs = {}
 
 
 class TestJobConfig(TestCase):
@@ -72,7 +72,7 @@ class TestJobConfig(TestCase):
         self.cfg.workspace = WORKSPACE_NAME
 
     def tearDown(self):
-        JobsLoader.Instance().jobs.clear()
+        JobsLoader().jobs.clear()
 
     def test_filters(self):
         self.assertEqual(self.cfg.filters["includes"], ["*"])
@@ -111,7 +111,7 @@ class TestJobConfig(TestCase):
         self.assertEqual(self.cfg.id, TEST_ID, "malformed base id")
 
         # test incrementation
-        JobsLoader.Instance().jobs[TEST_ID] = None
+        JobsLoader().jobs[TEST_ID] = None
         self.cfg.make_id()
         self.assertEqual(self.cfg.id, "foo.com-test-1", "improper id incrementation")
 

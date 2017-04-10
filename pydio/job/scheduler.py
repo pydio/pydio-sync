@@ -31,8 +31,9 @@ from pydio.utils.functions import Singleton, guess_filesystemencoding
 from pydio.job import manager
 
 
-@Singleton
 class PydioScheduler(object):
+    __metaclass__ = Singleton
+
     def __init__(self, jobs_root_path, jobs_loader):
         self.control_threads = {}
         self.jobs_loader = jobs_loader

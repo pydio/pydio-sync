@@ -22,10 +22,10 @@ TMP_PATH = "/tmp"
 def init():
     # configs path is the appdata path
     # data path is something like ~/Pydio (equiv. to the dropbox folder ?)
-    gcm =  GlobalConfigManager.Instance(configs_path=TMP_PATH)
+    gcm =  GlobalConfigManager(configs_path=TMP_PATH)
     gcm.configs_path = TMP_PATH
     gcm.set_general_config = gcm.default_settings
-    ConfigManager.Instance(configs_path=TMP_PATH, data_path="")
+    ConfigManager(configs_path=TMP_PATH, data_path="")
 
 
 class TestContinuousDiffMerger(TestCase):

@@ -120,9 +120,9 @@ class ContinuousDiffMerger(threading.Thread):
             ws_id=self.ws_id,
             remote_folder=job_config.remote_folder,
             user_id=job_config.user_id,
-            device_id=ConfigManager.Instance().device_id,
+            device_id=ConfigManager().device_id,
             skip_ssl_verify=job_config.trust_ssl,
-            proxies=ConfigManager.Instance().defined_proxies,
+            proxies=ConfigManager().defined_proxies,
             timeout=job_config.timeout
         )
         self.system = SystemSdk(job_config.directory)
@@ -340,7 +340,7 @@ class ContinuousDiffMerger(threading.Thread):
         :return:
         """
         self.job_status_running = True
-        self.sdk.proxies = ConfigManager.Instance().defined_proxies
+        self.sdk.proxies = ConfigManager().defined_proxies
         self.sdk.remove_interrupt()
         self.info(_('Job Started'), toUser='START', channel='status')
 
@@ -893,7 +893,7 @@ class ContinuousDiffMerger(threading.Thread):
                     self.watcher.check_from_snapshot(state_callback=status_callback)
                 except DBCorruptedException as e:
                     self.stop()
-                    JobsLoader.Instance().clear_job_data(self.job_config.id)
+                    JobsLoader().clear_job_data(self.job_config.id)
                     logging.error(e)
                     return
                 except Exception as e:

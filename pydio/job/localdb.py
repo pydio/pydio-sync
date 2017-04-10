@@ -53,7 +53,7 @@ class SqlSnapshot(object):
         self._inode_to_path = {}
         self.is_recursive = True
         self.sub_folder = sub_folder
-        global_config_manager = GlobalConfigManager.Instance(configs_path=job_data_path)
+        global_config_manager = GlobalConfigManager(configs_path=job_data_path)
         # Increasing the timeout (default 5 seconds), to avoid database is locked error
         self.timeout = global_config_manager.general_config['max_wait_time_for_local_db_access']
         try:
@@ -145,7 +145,7 @@ class LocalDbHandler(object):
         self.db = job_data_path + '/pydio.sqlite'
         self.job_data_path = job_data_path
         self.event_handler = None
-        global_config_manager = GlobalConfigManager.Instance(configs_path=job_data_path)
+        global_config_manager = GlobalConfigManager(configs_path=job_data_path)
         # Increasing the timeout (default 5 seconds), to avoid database is locked error
         self.timeout = global_config_manager.general_config['max_wait_time_for_local_db_access']
         if not os.path.exists(self.db):

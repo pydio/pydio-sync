@@ -90,7 +90,7 @@ class PydioApi(Api):
             logging.info('Starting agent locally on http://localhost:' + str(server_port) + '/')
         logging.info('------------------------------------------------')
 
-        self.user_data_path = JobsLoader.Instance().data_path
+        self.user_data_path = JobsLoader().data_path
         self.port = server_port
         self.external_ip = external_ip
         authDB.add_user(user, password)
@@ -176,7 +176,7 @@ class PydioApi(Api):
         ]
 
         # if EndpointResolver:
-        #     EndpointResolver.Instance().finalize_init(self, JobsLoader.Instance().data_path, str(self.real_static_folder.parent.parent), ConfigManager.Instance())
+        #     EndpointResolver().finalize_init(self, JobsLoader().data_path, str(self.real_static_folder.parent.parent), ConfigManager())
 
         # a map 'dep_path' -> function to serve it
         self.app.serv_deps = {}
@@ -271,7 +271,7 @@ class PydioApi(Api):
     @authDB.requires_auth
     def check_sync(self, job_id=None):
         # load conf
-        conf = JobsLoader.Instance()
+        conf = JobsLoader()
         jobs = conf.jobs
         if job_id is None:
             return Response(str(jobs.keys()), status=200, mimetype="text")
@@ -283,9 +283,9 @@ class PydioApi(Api):
                        ws_id=job.workspace,
                        remote_folder=job.remote_folder,
                        user_id=job.user_id,
-                       device_id=ConfigManager.Instance().device_id,
+                       device_id=ConfigManager().device_id,
                        skip_ssl_verify=job.trust_ssl,
-                       proxies=ConfigManager.Instance().defined_proxies,
+                       proxies=ConfigManager().defined_proxies,
                        timeout=380)
         checker = SyncChecker(job_id, jobs, sdk)
         resp = checker.dofullcheck()
@@ -312,7 +312,7 @@ class WorkspacesManager(Resource):
     @pydio_profile
     def get(self, job_id):
         if job_id != 'request':
-            jobs = JobsLoader.Instance().get_jobs()
+            jobs = JobsLoader().get_jobs()
             if not job_id in jobs:
                 return {"error": "Cannot find job"}
             job = jobs[job_id]
@@ -338,7 +338,7 @@ class WorkspacesManager(Resource):
             # TRY TO GET APPLICATION TITLE
             if app_name_url:
                 resp = requests.get(app_name_url, stream=False, auth=auth, verify=verify,
-                                    proxies=ConfigManager.Instance().defined_proxies)
+                                    proxies=ConfigManager().defined_proxies)
                 resp.raise_for_status()
                 try:
                     app_data = json.loads(resp.content)
@@ -358,7 +358,7 @@ class WorkspacesManager(Resource):
             # TRY TO GET USER DISPLAY NAME
             if display_name_url:
                 resp = requests.get(display_name_url, stream=False, auth=auth, verify=verify,
-                                    proxies=ConfigManager.Instance().defined_proxies)
+                                    proxies=ConfigManager().defined_proxies)
                 resp.raise_for_status()
                 try:
                     user_data = json.loads(resp.content)
@@ -376,7 +376,7 @@ class WorkspacesManager(Resource):
 
 
             resp = requests.get(url, stream=True, auth=auth, verify=verify,
-                                proxies=ConfigManager.Instance().defined_proxies)
+                                proxies=ConfigManager().defined_proxies)
             resp.raise_for_status()
             data = json.loads(resp.content)
             if 'repositories' in data and 'repo' in data['repositories']:
@@ -452,9 +452,9 @@ class EtaSize(Resource):
         remote_folder = "" if args['remote_folder'] == "/" else args['remote_folder']
         sdk = PydioSdk(args['url'], args['ws'], remote_folder, '',
                        auth=(args['user'], args['password']),
-                       device_id=ConfigManager.Instance().device_id,
+                       device_id=ConfigManager().device_id,
                        skip_ssl_verify=trust_ssl,
-                       proxies=ConfigManager.Instance().defined_proxies,
+                       proxies=ConfigManager().defined_proxies,
                        timeout=20)
         up = [0.0]
         def callback(location, change, info):
@@ -483,7 +483,7 @@ class FoldersManager(Resource):
     @pydio_profile
     def get(self, job_id):
         if job_id != 'request':
-            jobs = JobsLoader.Instance().get_jobs()
+            jobs = JobsLoader().get_jobs()
             if not job_id in jobs:
                 return {"error":"Cannot find job"}
             job = jobs[job_id]
@@ -506,7 +506,7 @@ class FoldersManager(Resource):
         if verify and "REQUESTS_CA_BUNDLE" in os.environ:
             verify = os.environ["REQUESTS_CA_BUNDLE"]
         resp = requests.get( url, stream=True, auth=auth, verify=verify,
-                             proxies=ConfigManager.Instance().defined_proxies)
+                             proxies=ConfigManager().defined_proxies)
         o = xmltodict.parse(resp.content)
         if not 'tree' in o or not o['tree'] or 'message' in o['tree']:
             return [{'error':'Cannot load workspace'}]
@@ -524,11 +524,11 @@ class JobManager(Resource):
     @authDB.requires_auth
     @pydio_profile
     def post(self):
-        JobsLoader.Instance().get_jobs()
+        JobsLoader().get_jobs()
         json_req = request.get_json()
         new_job = JobConfig.object_decoder(json_req)
         if 'test_path' in json_req:
-            json_req['directory'] = os.path.join(ConfigManager.Instance().data_path, json_req['repoObject']['label'])
+            json_req['directory'] = os.path.join(ConfigManager().data_path, json_req['repoObject']['label'])
             return json_req
         elif 'compute_sizes' in json_req:
             dl_rate = 2 * 1024 * 1024
@@ -544,9 +544,9 @@ class JobManager(Resource):
                 _timeout = 20 # default to 20
             sdk = PydioSdk(json_req['server'], json_req['workspace'], json_req['remote_folder'], '',
                            auth=(json_req['user'], json_req['password']),
-                           device_id=ConfigManager.Instance().device_id,
+                           device_id=ConfigManager().device_id,
                            skip_ssl_verify=trust_ssl,
-                           proxies=ConfigManager.Instance().defined_proxies,
+                           proxies=ConfigManager().defined_proxies,
                            timeout=_timeout)
             up = [0.0]
             def callback(location, change, info):
@@ -567,12 +567,12 @@ class JobManager(Resource):
             json_req['byte_size'] = up[0] + down
             json_req['eta'] = up[0] * 8 / dl_rate + down * 8 / up_rate
             return json_req
-        JobsLoader.Instance().update_job(new_job)
-        scheduler = PydioScheduler.Instance()
+        JobsLoader().update_job(new_job)
+        scheduler = PydioScheduler()
         scheduler.reload_configs()
         scheduler.disable_job(new_job.id)
         if not 'toggle_status' in json_req:
-            JobsLoader.Instance().clear_job_data(new_job.id)
+            JobsLoader().clear_job_data(new_job.id)
         scheduler.enable_job(new_job.id)
         return JobConfig.encoder(new_job)
 
@@ -581,7 +581,7 @@ class JobManager(Resource):
     def get(self, job_id=None):
         if request.path == '/':
             return redirect("/app/index.html", code=302)
-        jobs = JobsLoader.Instance().get_jobs()
+        jobs = JobsLoader().get_jobs()
         if not job_id:
             json_jobs = []
             for k in jobs:
@@ -607,9 +607,9 @@ class JobManager(Resource):
 
     @pydio_profile
     def enrich_job(self, job_data, job_id, get_notification=False):
-        running = PydioScheduler.Instance().is_job_running(job_id)
+        running = PydioScheduler().is_job_running(job_id)
         job_data['running'] = running
-        logger = EventLogger(JobsLoader.Instance().build_job_data_path(job_id))
+        logger = EventLogger(JobsLoader().build_job_data_path(job_id))
         if get_notification:
             notification = logger.consume_notification()
             if notification:
@@ -618,9 +618,9 @@ class JobManager(Resource):
         if len(last_events):
             job_data['last_event'] = last_events.pop()
         if running:
-            job_data['state'] = PydioScheduler.Instance().get_job_progress(job_id)
+            job_data['state'] = PydioScheduler().get_job_progress(job_id)
         try:
-            job_data['last_action'] = EventLogger(JobsLoader.Instance().build_job_data_path(job_id)).get_last_action()[-1][-1]
+            job_data['last_action'] = EventLogger(JobsLoader().build_job_data_path(job_id)).get_last_action()[-1][-1]
         except IndexError:
             pass
 
@@ -628,11 +628,11 @@ class JobManager(Resource):
     @authDB.requires_auth
     @pydio_profile
     def delete(self, job_id):
-        JobsLoader.Instance().delete_job(job_id)
-        scheduler = PydioScheduler.Instance()
+        JobsLoader().delete_job(job_id)
+        scheduler = PydioScheduler()
         scheduler.reload_configs()
         scheduler.disable_job(job_id)
-        JobsLoader.Instance().clear_job_data(job_id, parent=True)
+        JobsLoader().clear_job_data(job_id, parent=True)
         return job_id + "deleted", 204
 
     def getIcon(self, internet, jobs):
@@ -669,17 +669,17 @@ class ConflictsManager(Resource):
         json_conflict = request.get_json()
         job_id = json_conflict['job_id']
         try:
-            job_config = JobsLoader.Instance().get_job(job_id)
+            job_config = JobsLoader().get_job(job_id)
         except Exception as e:
             logging.exception(e)
             return "Can't find any job config with this ID.", 404
 
-        dbHandler = LocalDbHandler(JobsLoader.Instance().build_job_data_path(job_id))
+        dbHandler = LocalDbHandler(JobsLoader().build_job_data_path(job_id))
         dbHandler.update_node_status(json_conflict['node_path'], str(json_conflict['status']))
 
         # only once all the conflicts are resolved, we do the conflict resolution
         if not dbHandler.count_conflicts() and job_config.active:
-            t = PydioScheduler.Instance().get_thread(job_id)
+            t = PydioScheduler().get_thread(job_id)
             if t:
                 t.start_now()
         return json_conflict
@@ -687,10 +687,10 @@ class ConflictsManager(Resource):
     @authDB.requires_auth
     @pydio_profile
     def get(self, job_id):
-        if not job_id in JobsLoader.Instance().get_jobs():
+        if not job_id in JobsLoader().get_jobs():
             return "Can't find any job config with this ID.", 404
 
-        dbHandler = LocalDbHandler(JobsLoader.Instance().build_job_data_path(job_id))
+        dbHandler = LocalDbHandler(JobsLoader().build_job_data_path(job_id))
         return dbHandler.list_conflict_nodes()
 
 
@@ -702,10 +702,10 @@ class LogManager(Resource):
     @authDB.requires_auth
     @pydio_profile
     def get(self, job_id):
-        if not job_id in JobsLoader.Instance().get_jobs():
+        if not job_id in JobsLoader().get_jobs():
             return "Can't find any job config with this ID.", 404
 
-        logger = EventLogger(JobsLoader.Instance().build_job_data_path(job_id))
+        logger = EventLogger(JobsLoader().build_job_data_path(job_id))
         if not request.args:
             logs = logger.get_all(20,0)
         else:
@@ -713,7 +713,7 @@ class LogManager(Resource):
             filter_parameter = request.args.get(filter)
             logs = logger.filter(filter, filter_parameter)
 
-        tasks = PydioScheduler.Instance().get_job_progress(job_id)
+        tasks = PydioScheduler().get_job_progress(job_id)
         return {"logs":logs, "running":tasks}
 
 
@@ -724,13 +724,13 @@ class CmdManager(Resource):
     def get(self, cmd, job_id=None):
         if job_id:
             if cmd == 'enable' or cmd == 'disable':
-                job_config = JobsLoader.Instance().get_job(job_id)
+                job_config = JobsLoader().get_job(job_id)
                 job_config.active = True if cmd == 'enable' else False
-                JobsLoader.Instance().update_job(job_config)
-                PydioScheduler.Instance().reload_configs()
-            PydioScheduler.Instance().handle_job_signal(self, cmd, job_id)
+                JobsLoader().update_job(job_config)
+                PydioScheduler().reload_configs()
+            PydioScheduler().handle_job_signal(self, cmd, job_id)
         else:
-            return PydioScheduler.Instance().handle_generic_signal(self, cmd)
+            return PydioScheduler().handle_generic_signal(self, cmd)
         return ('success',)
 
 
@@ -747,7 +747,7 @@ class TaskInfoManager(Resource):
         :returns a json response
         """
         if request.path == '/stat':
-            jobs = JobsLoader.Instance().get_jobs()
+            jobs = JobsLoader().get_jobs()
             json_jobs = {}
             for job in jobs:
                 if jobs[job].active:
@@ -755,8 +755,8 @@ class TaskInfoManager(Resource):
             return json_jobs
         else:
 
-            directory_path = JobsLoader.Instance().get_job(job_id).directory
-            base_path = JobsLoader.Instance().build_job_data_path(job_id)
+            directory_path = JobsLoader().get_job(job_id).directory
+            base_path = JobsLoader().build_job_data_path(job_id)
             path = os.path.join(directory_path, relative_path)
 
             #r = os.stat(path)
@@ -779,7 +779,7 @@ class UpdateManager(Resource):
     @authDB.requires_auth
     @pydio_profile
     def get(self, complete_url):
-        global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().configs_path)
+        global_config_manager = GlobalConfigManager(configs_path=ConfigManager().configs_path)
         general_config = global_config_manager.general_config
         noupdate_msg = {u'noupdate': u'No update available'}
         if bool(general_config['update_info']['enable_update_check']):
@@ -794,7 +794,7 @@ class UpdateManager(Resource):
                 general_config['update_info']['last_update_date'] = time.time() * 1000
                 global_config_manager.update_general_config(general_config)
 
-            resp = requests.get(complete_url, stream=False, proxies=ConfigManager.Instance().defined_proxies)
+            resp = requests.get(complete_url, stream=False, proxies=ConfigManager().defined_proxies)
             return json.loads(resp.content)
         else:
             return noupdate_msg
@@ -815,7 +815,7 @@ class ShareManager(Resource):
                         on success: returns a shared link
             """
             args = request.args
-            jobs = JobsLoader.Instance().get_jobs()
+            jobs = JobsLoader().get_jobs()
             if not job_id in jobs:
                 return {"error": "Cannot find job"}
             job = jobs[job_id]
@@ -823,9 +823,9 @@ class ShareManager(Resource):
             from pydio.sdkremote.remote import PydioSdk
             remote_instance = PydioSdk(job.server, job.workspace, job.remote_folder, job.user_id,
                            auth="",
-                           device_id=ConfigManager.Instance().device_id,
+                           device_id=ConfigManager().device_id,
                            skip_ssl_verify=job.trust_ssl,
-                           proxies=ConfigManager.Instance().defined_proxies,
+                           proxies=ConfigManager().defined_proxies,
                            timeout=job.timeout)
 
             if args['action'] == 'share':
@@ -964,7 +964,7 @@ class GeneralConfigManager(Resource):
         retrieves the general config info from general config file
         :returns a json response
         """
-        global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().configs_path)
+        global_config_manager = GlobalConfigManager(configs_path=ConfigManager().configs_path)
         return global_config_manager.general_config
 
     @authDB.requires_auth
@@ -976,7 +976,7 @@ class GeneralConfigManager(Resource):
         """
         data = request.get_json()
         if len(data) > 0:
-            global_config_manager = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().configs_path)
+            global_config_manager = GlobalConfigManager(configs_path=ConfigManager().configs_path)
             return global_config_manager.update_general_config(data=data)
 
 
@@ -985,12 +985,12 @@ class Feedback(Resource):
         """
         :return: {} containing some basic usage information
         """
-        jobs = JobsLoader.Instance().get_jobs()
+        jobs = JobsLoader().get_jobs()
         resp = {"errors": "zlib_blob", "nberrors": 0, "platform": platform.system()}
         for job_id in jobs:
             resp[job_id] = {"nbsyncedfiles": 0, "lastseq": 0, "serverInfo": {}}
-        globalconfig = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().configs_path)
-        resp["pydiosync_version"] = ConfigManager.Instance().version_info["version"]
+        globalconfig = GlobalConfigManager(configs_path=ConfigManager().configs_path)
+        resp["pydiosync_version"] = ConfigManager().version_info["version"]
         # parse logs for Errors, zip the errors
         logdir = globalconfig.configs_path
         files = os.listdir(logdir)
@@ -1061,10 +1061,10 @@ class Feedback(Resource):
 class HistoryManager(Resource):
     @authDB.requires_auth
     def get(self, job_id):
-        jobs = JobsLoader.Instance().get_jobs()
+        jobs = JobsLoader().get_jobs()
         if not job_id in jobs:
             return {"error": "Cannot find job"}
-        scheduler = PydioScheduler.Instance()
+        scheduler = PydioScheduler()
         job = scheduler.control_threads[job_id]
         args = request.args
         res = ""

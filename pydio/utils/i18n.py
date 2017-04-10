@@ -69,7 +69,7 @@ def get_languages():
     except ImportError:
         from utils.global_config import GlobalConfigManager
     try:
-        conf = GlobalConfigManager.Instance().general_config
+        conf = GlobalConfigManager().general_config
     except Exception:
         # languages not ready, default to English
         return ["en_US"]

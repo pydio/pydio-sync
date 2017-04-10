@@ -34,7 +34,7 @@ class Application(object):
     def __init__(self, jobs_root, jobs_loader, cfg, **kw):
         self.cfg = cfg
         self._jobs_root = jobs_root
-        self.config_manager = ConfigManager.Instance(
+        self.config_manager = ConfigManager(
             configs_path=self.jobs_root,  # use property to get decoded path
             data_path=APP_DATA["DEFAULT_PARENT_PATH"]
         )
@@ -45,7 +45,7 @@ class Application(object):
         self.log_release_info()
 
         self._ports_detector = self._configure_ports_detector(kw)
-        self._scheduler = PydioScheduler.Instance(
+        self._scheduler = PydioScheduler(
             jobs_root_path=self.jobs_root,
             jobs_loader=self.jobs_loader,
         )
@@ -60,7 +60,7 @@ class Application(object):
     @classmethod
     def from_cli_args(cls, **kw):
         jobs_root = cls.configure_jobs_root(kw)
-        jobs_load = JobsLoader.Instance(data_path=jobs_root)
+        jobs_load = JobsLoader(data_path=jobs_root)
 
         job_config = JobConfig()
         job_config.load_from_cliargs(kw)
@@ -76,7 +76,7 @@ class Application(object):
     @classmethod
     def from_cfg_file(cls, **kw):
         jobs_root = cls.configure_jobs_root(kw)
-        jobs_load = JobsLoader.Instance(data_path=jobs_root)
+        jobs_load = JobsLoader(data_path=jobs_root)
 
         fp = kw.pop("--file")
         if fp and fp != '.':

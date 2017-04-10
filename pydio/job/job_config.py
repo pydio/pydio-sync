@@ -31,8 +31,9 @@ except ImportError:
     from utils.functions import Singleton
 
 
-@Singleton
 class JobsLoader(object):
+    __metaclass__ = Singleton
+
     config_file = ''
     jobs = None
     data_path = None
@@ -151,7 +152,7 @@ class JobConfig(object):
         i = 1
         base_id = urlparse.urlparse(self.server).hostname + '-' + self.workspace
         test_id = base_id
-        while test_id in JobsLoader.Instance():
+        while test_id in JobsLoader():
             test_id = base_id + '-' + str(i)
             i += 1
         self.id = test_id
