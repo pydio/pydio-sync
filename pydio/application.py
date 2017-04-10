@@ -124,7 +124,7 @@ class Application(object):
         self._svr.shutdown_server()
 
     def log_release_info(self):
-        vdat = self.config_manager.get_version_data()
+        vdat = self.config_manager.version_info
         self.log.info("Version Number {0:s}".format(vdat["version"]))
         self.log.info("Release Date {0:s}".format(vdat["date"]))
 
@@ -144,7 +144,7 @@ class Application(object):
                 "port": prx_args[i * 5 + 4]
             }
 
-        self.config_manager.set_user_proxy(prx_cfg)
+        self.config_manager.save_proxy_config(prx_cfg)
 
     def log_config_data(self):
         self.log.debug("data: {0}".format(json.dumps(

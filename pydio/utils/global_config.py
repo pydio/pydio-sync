@@ -34,10 +34,10 @@ DEFAULT_CONFIG = dict(update_info={"enable_update_check": "True",
 
 @Singleton
 class ConfigManager:
-    device_id = ''
+    _device_id = ''
     data_path = ''
     rdiff_path = ''
-    proxies = None
+    proxies = {}
     proxies_loaded = False
 
     def __init__(self, configs_path, data_path):
@@ -61,92 +61,115 @@ class ConfigManager:
     def get_rdiff_path(self):
         return self.rdiff_path
 
-    def get_device_id(self):
-        if self.device_id:
-            return self.device_id
+    @property
+    def device_id(self):
+        if self._device_id:
+            return self._device_id
 
-        if osp.exists(self.configs_path + '/device_id'):
-            with open(self.configs_path + '/device_id', 'rb') as f:
-                self.device_id = pickle.load(f)
-            return self.device_id
+        dvc_id = os.path.join(self.configs_path, 'device_id')
+        if osp.exists(dvc_id):
+            with open(dvc_id, 'rb') as f:
+                self._device_id = pickle.load(f)
+            return self._device_id
 
-        self.device_id = str(uuid.uuid1())
-        with open(self.configs_path + '/device_id', 'wb') as f:
-            pickle.dump(self.device_id, f)
-        return self.device_id
+        self._device_id = str(uuid.uuid1())
+        with open(dvc_id, 'wb') as f:
+            pickle.dump(self._device_id, f)
 
-    def get_version_data(self):
+        return self._device_id
+
+    @property
+    def version_info(self):
         try:
             from pydio.version import version, build, version_date
         except ImportError:
             from version import version, build, version_date
-        return {'version': version, 'build':build, 'date':version_date}
+        return {'version': version, 'build': build, 'date': version_date}
 
-    def get_defined_proxies(self):
+    def _format_proxy(self, proxy_data, proto, short=False):
+        hostnm = proxy_data[proto]["hostname"]
+        pnumbr = proxy_data[proto]["port"]
+        usrname = proxy_data[proto].get("username")
+        passwd = keyring.get_password(hostnm, usrname)
+        if short:
+            return "{scheme}://{host}:{port}".format(
+                scheme=proto,
+                host=hostnm,
+                port=pnumbr,
+            )
+        return "{scheme}://{usr}:{pwd}@{host}:{port}".format(
+            scheme=proto,
+            usr=usrname,
+            pwd=passwd,
+            host=hostnm,
+            port=pnumbr
+        )
+
+    def _load_proxies(self):
+        """Try to load data from self.configs_path/proxies.json"""
+        proxies_file = osp.join(self.configs_path, "proxies.json")
+        data = None
+        if osp.exists(proxies_file):
+            with open(proxies_file) as f:
+                data = json.load(f)
+
+            if not isinstance(data, dict):
+                emsg = "Proxy data must be dict, got {0}"
+                raise TypeError(emsg.format(type(data)))
+
+            proxies = {}
+            for proto in data:
+                if data[proto]["password"] == "__pydio_proxy_pwd__":
+                    proxy = self._format_proxy(data, proto)
+                elif data[proto]["password"] and data[proto]["username"]:
+                    proxy = self._format_proxy(data, proto, short=True)
+                else:
+                    proxy = self._format_proxy(data, proto)
+
+                proxies[proto] = proxy
+
+            self.proxies = proxies
+
+        if data:
+            for k in data:
+                if data[k].get("active") or data[k]["active"] == "true":
+                    self.check_proxy(data)
+                else: # if proxies aren't marked active forget about them
+                    data = "" # !! dangerous mutation
+                    self.proxies = {}
+                    break
+
+    @property
+    def defined_proxies(self):
         if not self.proxies_loaded:
-            # Try to load data from self.configs_path/proxies.json
-            proxies_file = self.configs_path + '/proxies.json'
-            data = ""
-            if osp.exists(proxies_file):
-                try:
-                    with open(proxies_file, 'r') as handle:
-                        data = json.load(handle)
-                    if isinstance(data, dict):
-                        proxies = {}
-                        for protocol in data.keys():
-                            if data[protocol]["password"] =="__pydio_proxy_pwd__":
-                                proxy = protocol + '://' + data[protocol]["username"] + ':' + keyring.get_password(data[protocol]["hostname"], data[protocol]["username"]) + '@' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
-                            elif data[protocol]["password"] == "" and data[protocol]["username"] == "":
-                                proxy = protocol + '://' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
-                            else:
-                                proxy = protocol + '://' + data[protocol]["username"] + ':' + data[protocol]["password"] + '@' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
-                            proxies[protocol] = proxy
-                        self.proxies = proxies
-                    else:
-                        logging.error('The proxy data is not the form of dict obj')
-                except Exception as e:
-                    logging.exception(e)
-                    logging.error('Error while trying to load proxies.json file')
-
-            if data != "":
-                for k in data.keys():
-                    if "active" in data[k]:
-                        if data[k]["active"] == True or data[k]["active"] == "true":
-                            self.check_proxy(data)
-                        else: # if proxies aren't marked active forget about them
-                            data = "" # !! dangerous mutation
-                            self.proxies = {}
-                            break
+            self._load_proxies()
             self.proxies_loaded = True
-            #logging.info("[Proxy info] " + str(self.proxies))
-        if not self.proxies:
-            self.proxies = {}
+
         return self.proxies
 
     def check_proxy(self, data):
-            """
-            Check if the proxy is up by trying to open a well known url via proxy
-            """
-            try:
-                proxies = {}
-                for protocol in data.keys():
-                    if data[protocol]["password"] =="__pydio_proxy_pwd__":
-                        proxy = protocol + '://' + data[protocol]["username"] + ':' + keyring.get_password(data[protocol]["hostname"], data[protocol]["username"]) + '@' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
-                    elif data[protocol]["password"] == "" and data[protocol]["username"] == "":
-                        proxy = protocol + '://' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
-                    else:
-                        proxy = protocol + '://' + data[protocol]["username"] + ':' + data[protocol]["password"] + '@' + data[protocol]["hostname"] + ':' + data[protocol]["port"]
-                    proxies[protocol] = proxy
+        """Check if the proxy is up by trying to open a well known url."""
+        try:
+            proxies = {}
+            for proto in data.keys():
+                if data[proto]["password"] =="__pydio_proxy_pwd__":
+                    proxy = self._format_proxy(data, proto)
+                elif data[proto]["password"] == "" and data[proto]["username"] == "":
+                    proxy = self._format_proxy(data, proto, short=True)
+                else:
+                    proxy = self._format_proxy(data, proto)
+                proxies[proto] = proxy
 
-                import requests
-                resp = requests.get("http://www.google.com", proxies=proxies)
-                logging.info("[Proxy info] Server is reachable via proxy from client")
-                return resp.status_code == 200
-            except IOError:
-                logging.error("[Proxy info] Connection error! (Check proxy)")
-            return False
+            import requests
+            resp = requests.get("http://www.google.com", proxies=proxies)
+            logging.info("[ Proxy Info ] Server is reachable via proxy")
+            return resp.status_code == 200
+        except IOError:
+            logging.error("[ Proxy Info ] Connection error! (Check proxy)")
 
-    def set_user_proxy(self, data):
+        return False
+
+    def save_proxy_config(self, data):
         """
         Set the proxy by writing the contents to a file (usually proxies.json)
 

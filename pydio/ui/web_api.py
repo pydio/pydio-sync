@@ -283,9 +283,9 @@ class PydioApi(Api):
                        ws_id=job.workspace,
                        remote_folder=job.remote_folder,
                        user_id=job.user_id,
-                       device_id=ConfigManager.Instance().get_device_id(),
+                       device_id=ConfigManager.Instance().device_id,
                        skip_ssl_verify=job.trust_ssl,
-                       proxies=ConfigManager.Instance().get_defined_proxies(),
+                       proxies=ConfigManager.Instance().defined_proxies,
                        timeout=380)
         checker = SyncChecker(job_id, jobs, sdk)
         resp = checker.dofullcheck()
@@ -338,7 +338,7 @@ class WorkspacesManager(Resource):
             # TRY TO GET APPLICATION TITLE
             if app_name_url:
                 resp = requests.get(app_name_url, stream=False, auth=auth, verify=verify,
-                                    proxies=ConfigManager.Instance().get_defined_proxies())
+                                    proxies=ConfigManager.Instance().defined_proxies)
                 resp.raise_for_status()
                 try:
                     app_data = json.loads(resp.content)
@@ -358,7 +358,7 @@ class WorkspacesManager(Resource):
             # TRY TO GET USER DISPLAY NAME
             if display_name_url:
                 resp = requests.get(display_name_url, stream=False, auth=auth, verify=verify,
-                                    proxies=ConfigManager.Instance().get_defined_proxies())
+                                    proxies=ConfigManager.Instance().defined_proxies)
                 resp.raise_for_status()
                 try:
                     user_data = json.loads(resp.content)
@@ -376,7 +376,7 @@ class WorkspacesManager(Resource):
 
 
             resp = requests.get(url, stream=True, auth=auth, verify=verify,
-                                proxies=ConfigManager.Instance().get_defined_proxies())
+                                proxies=ConfigManager.Instance().defined_proxies)
             resp.raise_for_status()
             data = json.loads(resp.content)
             if 'repositories' in data and 'repo' in data['repositories']:
@@ -452,9 +452,9 @@ class EtaSize(Resource):
         remote_folder = "" if args['remote_folder'] == "/" else args['remote_folder']
         sdk = PydioSdk(args['url'], args['ws'], remote_folder, '',
                        auth=(args['user'], args['password']),
-                       device_id=ConfigManager.Instance().get_device_id(),
+                       device_id=ConfigManager.Instance().device_id,
                        skip_ssl_verify=trust_ssl,
-                       proxies=ConfigManager.Instance().get_defined_proxies(),
+                       proxies=ConfigManager.Instance().defined_proxies,
                        timeout=20)
         up = [0.0]
         def callback(location, change, info):
@@ -506,7 +506,7 @@ class FoldersManager(Resource):
         if verify and "REQUESTS_CA_BUNDLE" in os.environ:
             verify = os.environ["REQUESTS_CA_BUNDLE"]
         resp = requests.get( url, stream=True, auth=auth, verify=verify,
-                             proxies=ConfigManager.Instance().get_defined_proxies())
+                             proxies=ConfigManager.Instance().defined_proxies)
         o = xmltodict.parse(resp.content)
         if not 'tree' in o or not o['tree'] or 'message' in o['tree']:
             return [{'error':'Cannot load workspace'}]
@@ -544,9 +544,9 @@ class JobManager(Resource):
                 _timeout = 20 # default to 20
             sdk = PydioSdk(json_req['server'], json_req['workspace'], json_req['remote_folder'], '',
                            auth=(json_req['user'], json_req['password']),
-                           device_id=ConfigManager.Instance().get_device_id(),
+                           device_id=ConfigManager.Instance().device_id,
                            skip_ssl_verify=trust_ssl,
-                           proxies=ConfigManager.Instance().get_defined_proxies(),
+                           proxies=ConfigManager.Instance().defined_proxies,
                            timeout=_timeout)
             up = [0.0]
             def callback(location, change, info):
@@ -794,7 +794,7 @@ class UpdateManager(Resource):
                 general_config['update_info']['last_update_date'] = time.time() * 1000
                 global_config_manager.update_general_config(general_config)
 
-            resp = requests.get(complete_url, stream=False, proxies=ConfigManager.Instance().get_defined_proxies())
+            resp = requests.get(complete_url, stream=False, proxies=ConfigManager.Instance().defined_proxies)
             return json.loads(resp.content)
         else:
             return noupdate_msg
@@ -823,9 +823,9 @@ class ShareManager(Resource):
             from pydio.sdkremote.remote import PydioSdk
             remote_instance = PydioSdk(job.server, job.workspace, job.remote_folder, job.user_id,
                            auth="",
-                           device_id=ConfigManager.Instance().get_device_id(),
+                           device_id=ConfigManager.Instance().device_id,
                            skip_ssl_verify=job.trust_ssl,
-                           proxies=ConfigManager.Instance().get_defined_proxies(),
+                           proxies=ConfigManager.Instance().defined_proxies,
                            timeout=job.timeout)
 
             if args['action'] == 'share':
@@ -990,7 +990,7 @@ class Feedback(Resource):
         for job_id in jobs:
             resp[job_id] = {"nbsyncedfiles": 0, "lastseq": 0, "serverInfo": {}}
         globalconfig = GlobalConfigManager.Instance(configs_path=ConfigManager.Instance().get_configs_path())
-        resp["pydiosync_version"] = ConfigManager.Instance().get_version_data()["version"]
+        resp["pydiosync_version"] = ConfigManager.Instance().version_info["version"]
         # parse logs for Errors, zip the errors
         logdir = globalconfig.configs_path
         files = os.listdir(logdir)
