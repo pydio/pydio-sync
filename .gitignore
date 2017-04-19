@@ -20,3 +20,4 @@ pydio/ui/node_modules
 pydio/ui/app/assets/md/
 *.min.css
 pydio.egg-info/
+*/node_modules
