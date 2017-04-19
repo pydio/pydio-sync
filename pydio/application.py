@@ -52,12 +52,23 @@ def configure_jobs_root(app_name, job_root, fallback):
     return job_root
 
 
+def configure_ports(jobs_root, kw):
+    ports_detector = PortsDetector(
+        store_file=osp.join(jobs_root, "ports_config"),
+        username=kw.pop("--api-user"),
+        password=kw.pop("--api-passwd"),
+        default_port=int(kw.pop("--api-port")),
+    )
+    ports_detector.create_config_file()
+    return ports_detector
+
+
 class Application(object):
     """Pydio-Sync application class"""
     log = logging.getLogger('.'.join((__name__, "Application")))
 
     def __init__(self, jobs_root, jobs_loader, cfg, **kw):
-        self.cfg = cfg
+        self.cfg = cfg  # job_id : JobConfig // e.g.:  {u'sandbox.pydio.com-my-files': <pydio.job.job_config.JobConfig object at 0x10f5ebd10>}
         self._jobs_root = jobs_root
         self.config_manager = ConfigManager(
             configs_path=self.jobs_root,  # use property to get decoded path
@@ -69,15 +80,16 @@ class Application(object):
 
         self.log_release_info()
 
-        self._ports_detector = self._configure_ports_detector(kw)
         self._scheduler = PydioScheduler(
             jobs_root_path=self.jobs_root,
             jobs_loader=self.jobs_loader,
         )
+
+        ports_detector = configure_ports(jobs_root, kw)
         self._svr = PydioApi(
-            self._ports_detector.get_port(),
-            self._ports_detector.get_username(),
-            self._ports_detector.get_password(),
+            ports_detector.get_port(),
+            ports_detector.get_username(),
+            ports_detector.get_password(),
             external_ip=kw.pop("--api-addr"),
         )
         manager.api_server = self._svr
@@ -153,13 +165,3 @@ class Application(object):
             default=JobConfig.encoder,
             indent=2,
         )))
-
-    def _configure_ports_detector(self, kw):
-        ports_detector = PortsDetector(
-            store_file=osp.join(self.jobs_root, "ports_config"),
-            username=kw.pop("--api-user"),
-            password=kw.pop("--api-passwd"),
-            default_port=int(kw.pop("--api-port")),
-        )
-        ports_detector.create_config_file()
-        return ports_detector

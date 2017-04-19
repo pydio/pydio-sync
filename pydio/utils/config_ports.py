@@ -21,8 +21,7 @@
 # sync the client/UI connection ports
 import random, string
 
-class PortsDetector():
-
+class PortsDetector(object):
     def __init__(self, store_file, username=None, password=None, default_port=5556):
         self.store = store_file
         self.default_port = default_port
@@ -75,7 +74,6 @@ class PortsDetector():
     def create_config_file(self):
         with open(self.store, 'w') as config_file:
             config_file.write("Pydio port config file \n")
-
 
     def save_config(self, port_to_save):
         with open(self.store, 'a') as config_file:
