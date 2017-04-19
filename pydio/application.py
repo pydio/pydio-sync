@@ -59,13 +59,9 @@ class Application(object):
         manager.api_server = self._svr
 
     @classmethod
-    def init_jobs(cls, kw):
-        root = cls.configure_jobs_root(kw)
-        return root, JobsLoader(data_path=root)
-
-    @classmethod
     def from_cli_args(cls, **kw):
-        jobs_root, jobs_load = cls.init_jobs(kw)
+        jobs_root = cls.configure_jobs_root(kw)
+        jobs_load = JobsLoader(data_path=jobs_root)
 
         job_config = JobConfig()
         job_config.from_cli_args(kw)
@@ -80,7 +76,8 @@ class Application(object):
 
     @classmethod
     def from_cfg_file(cls, **kw):
-        jobs_root, jobs_load = cls.init_jobs(kw)
+        jobs_root = cls.configure_jobs_root(kw)
+        jobs_load = JobsLoader(data_path=jobs_root)
 
         fp = kw.pop("--file")
         if fp and fp != '.':
