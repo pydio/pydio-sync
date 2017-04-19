@@ -113,6 +113,9 @@ class Application(object):
     def from_cfg_file(cls, **kw):
         jobs_root, jobs_load = init_jobs(APP_NAME, APP_DATA, kw)
 
+        # TODO:  this method should raise an exception if a suitable config
+        #        file is not found.  At present, it implicitly loads a default
+        #        from *somewhere*.
         fp = kw.pop("--file")
         if fp and fp != '.':
             cls.log.info("Loading config from {0}".format(fp))
