@@ -106,6 +106,7 @@ class JobsLoader(object):
             import shutil
             shutil.rmtree(job_data_path)
 
+
 class JobConfig(object):
     __type__ = "JobConfig"
 
@@ -158,31 +159,28 @@ class JobConfig(object):
         self.id = test_id
 
     @staticmethod
-    def encoder(obj):
-        if isinstance(obj, JobConfig):
-            return {"__type__": 'JobConfig',
-                    "server": obj.server,
-                    "id": obj.id,
-                    "label": obj.label if obj.label else obj.id,
-                    "workspace": obj.workspace,
-                    "directory": obj.directory,
-                    "remote_folder": obj.remote_folder,
-                    "user": obj.user_id,
-                    "direction": obj.direction,
-                    "frequency": obj.frequency,
-                    "solve": obj.solve,
-                    "start_time": obj.start_time,
-                    "trust_ssl":obj.trust_ssl,
-                    "active": obj.active,
-                    "filters": obj.filters,
-                    "timeout": obj.timeout,
-                    "hide_up_dir": obj.hide_up_dir,
-                    "hide_bi_dir": obj.hide_bi_dir,
-                    "hide_down_dir": obj.hide_down_dir,
-                    "poolsize": obj.poolsize
-                    }
-
-        raise TypeError(repr(JobConfig) + " can't be encoded")
+    def encoder(self):
+        return {"__type__": 'JobConfig',
+                "server": self.server,
+                "id": self.id,
+                "label": self.label if self.label else self.id,
+                "workspace": self.workspace,
+                "directory": self.directory,
+                "remote_folder": self.remote_folder,
+                "user": self.user_id,
+                "direction": self.direction,
+                "frequency": self.frequency,
+                "solve": self.solve,
+                "start_time": self.start_time,
+                "trust_ssl":self.trust_ssl,
+                "active": self.active,
+                "filters": self.filters,
+                "timeout": self.timeout,
+                "hide_up_dir": self.hide_up_dir,
+                "hide_bi_dir": self.hide_bi_dir,
+                "hide_down_dir": self.hide_down_dir,
+                "poolsize": self.poolsize
+                }
 
     def load_from_cliargs(self, args):
         self.server = args.server
@@ -203,63 +201,63 @@ class JobConfig(object):
         self.make_id()
 
     @staticmethod
-    def object_decoder(obj):
-        if '__type__' in obj and obj['__type__'] == 'JobConfig':
+    def object_decoder(d):
+        if d.get("__type__") == "JobConfig":
             job_config = JobConfig()
-            job_config.server = obj['server']
-            job_config.directory = obj['directory'].rstrip('/').rstrip('\\')
+            job_config.server = d['server']
+            job_config.directory = d['directory'].rstrip('/').rstrip('\\')
             if os.name in ["nt", "ce"]:
                 job_config.directory = job_config.directory.replace('/', '\\')
-            job_config.workspace = obj['workspace']
-            if 'remote_folder' in obj:
-                job_config.remote_folder = obj['remote_folder'].rstrip('/').rstrip('\\')
-            if 'user' in obj:
-                job_config.user_id = obj['user']
-            if 'label' in obj:
-                job_config.label = obj['label']
-            if 'password' in obj:
+            job_config.workspace = d['workspace']
+            if 'remote_folder' in d:
+                job_config.remote_folder = d['remote_folder'].rstrip('/').rstrip('\\')
+            if 'user' in d:
+                job_config.user_id = d['user']
+            if 'label' in d:
+                job_config.label = d['label']
+            if 'password' in d:
                 try:
-                    keyring.set_password(job_config.server, job_config.user_id, obj['password'])
+                    keyring.set_password(job_config.server, job_config.user_id, d['password'])
                 except keyring.errors.PasswordSetError as e:
                     logging.error(
                         "Error while storing password in keychain, should we store it cyphered in the config?")
-            if 'filters' in obj:
+            if 'filters' in d:
                 if platform.system() == "Darwin":
-                    if isinstance(obj['filters']['excludes'], list):
+                    if isinstance(d['filters']['excludes'], list):
                         job_config.filters['excludes'] = []
-                        for e in obj['filters']['excludes']:
+                        for e in d['filters']['excludes']:
                             job_config.filters['excludes'].append(unicodedata.normalize('NFD', e))
-                    elif isinstance(obj['filters']['excludes'], str):
-                        job_config.filters['excludes'] = unicodedata.normalize('NFD', obj['filters']['excludes'])
-                    if isinstance(obj['filters']['includes'], list):
+                    elif isinstance(d['filters']['excludes'], str):
+                        job_config.filters['excludes'] = unicodedata.normalize('NFD', d['filters']['excludes'])
+                    if isinstance(d['filters']['includes'], list):
                         job_config.filters['includes'] = []
-                        for i in obj['filters']['includes']:
+                        for i in d['filters']['includes']:
                             job_config.filters['includes'].append(unicodedata.normalize('NFD', i))
-                    elif isinstance(obj['filters']['includes'], str):
-                        job_config.filters['includes'] = unicodedata.normalize('NFD', obj['filters']['includes'])
+                    elif isinstance(d['filters']['includes'], str):
+                        job_config.filters['includes'] = unicodedata.normalize('NFD', d['filters']['includes'])
                 else:
-                    job_config.filters = obj['filters']
-            if 'direction' in obj and obj['direction'] in ['up', 'down', 'bi']:
-                job_config.direction = obj['direction']
-            if 'trust_ssl' in obj and obj['trust_ssl'] in [True, False]:
-                job_config.trust_ssl = obj['trust_ssl']
-            if 'monitor' in obj and obj['monitor'] in [True, False]:
-                job_config.monitor = obj['monitor']
-            if 'frequency' in obj and obj['frequency'] in ['auto', 'manual', 'time']:
-                job_config.frequency = obj['frequency']
-                if job_config.frequency == 'time' and 'start_time' in obj:
-                    job_config.start_time = obj['start_time']
-            if 'solve' in obj and obj['solve'] in ['manual', 'remote', 'local', 'both']:
-                job_config.solve = obj['solve']
-            if 'active' in obj and obj['active'] in [True, False]:
-                job_config.active = obj['active']
-            if 'id' not in obj:
+                    job_config.filters = d['filters']
+            if 'direction' in d and d['direction'] in ['up', 'down', 'bi']:
+                job_config.direction = d['direction']
+            if 'trust_ssl' in d and d['trust_ssl'] in [True, False]:
+                job_config.trust_ssl = d['trust_ssl']
+            if 'monitor' in d and d['monitor'] in [True, False]:
+                job_config.monitor = d['monitor']
+            if 'frequency' in d and d['frequency'] in ['auto', 'manual', 'time']:
+                job_config.frequency = d['frequency']
+                if job_config.frequency == 'time' and 'start_time' in d:
+                    job_config.start_time = d['start_time']
+            if 'solve' in d and d['solve'] in ['manual', 'remote', 'local', 'both']:
+                job_config.solve = d['solve']
+            if 'active' in d and d['active'] in [True, False]:
+                job_config.active = d['active']
+            if 'id' not in d:
                 job_config.make_id()
             else:
-                job_config.id = obj['id']
-            if 'timeout' in obj:
+                job_config.id = d['id']
+            if 'timeout' in d:
                 try:
-                    job_config.timeout = int(obj['timeout'])
+                    job_config.timeout = int(d['timeout'])
                 except ValueError:
                     job_config.timeout = 20
             else:
@@ -268,19 +266,19 @@ class JobConfig(object):
                 job_config.monitor = True
             else:
                 job_config.monitor = False
-            if 'hide_up_dir' in obj:
-                job_config.hide_up_dir = obj['hide_up_dir']
-            if 'hide_bi_dir' in obj:
-                job_config.hide_bi_dir = obj['hide_bi_dir']
-            if 'hide_down_dir' in obj:
-                job_config.hide_down_dir = obj['hide_down_dir']
-            if 'poolsize' in obj:
-                job_config.poolsize = obj['poolsize']
+            if 'hide_up_dir' in d:
+                job_config.hide_up_dir = d['hide_up_dir']
+            if 'hide_bi_dir' in d:
+                job_config.hide_bi_dir = d['hide_bi_dir']
+            if 'hide_down_dir' in d:
+                job_config.hide_down_dir = d['hide_down_dir']
+            if 'poolsize' in d:
+                job_config.poolsize = d['poolsize']
             else:
                 job_config.poolsize = 4
-            if 'poll_interval' in obj:
-                job_config.online_timer = obj['poll_interval']
+            if 'poll_interval' in d:
+                job_config.online_timer = d['poll_interval']
             else:
                 job_config.online_timer = 10
             return job_config
-        return obj
+        return d
