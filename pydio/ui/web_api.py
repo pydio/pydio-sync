@@ -678,7 +678,7 @@ class ConflictsManager(Resource):
         dbHandler.update_node_status(json_conflict['node_path'], str(json_conflict['status']))
 
         # only once all the conflicts are resolved, we do the conflict resolution
-        if not dbHandler.count_conflicts() and job_config.active:
+        if not dbHandler.count_conflicts() and job_config["active"]:
             t = PydioScheduler().get_thread(job_id)
             if t:
                 t.start_now()
@@ -725,7 +725,7 @@ class CmdManager(Resource):
         if job_id:
             if cmd == 'enable' or cmd == 'disable':
                 job_config = JobsLoader().get_job(job_id)
-                job_config.active = True if cmd == 'enable' else False
+                job_config["active"] = True if cmd == 'enable' else False
                 JobsLoader().update_job(job_config)
                 PydioScheduler().reload_configs()
             PydioScheduler().handle_job_signal(self, cmd, job_id)

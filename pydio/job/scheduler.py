@@ -68,10 +68,10 @@ class PydioScheduler(object):
 
     @pydio_profile
     def start_from_config(self, job_config):
-        if not job_config.active:
+        if not job_config["active"]:
             return
 
-        job_data_path = osp.join(self.jobs_root_path, job_config.id)
+        job_data_path = osp.join(self.jobs_root_path, job_config["id"])
         if not osp.isdir(job_data_path):
             os.makedirs(job_data_path)
         job_data_path = job_data_path.decode(guess_filesystemencoding())
@@ -79,7 +79,7 @@ class PydioScheduler(object):
         merger = ContinuousDiffMerger(job_config, job_data_path=job_data_path)
         try:
             merger.start()
-            self.control_threads[job_config.id] = merger
+            self.control_threads[job_config["id"]] = merger
         except (KeyboardInterrupt, SystemExit):
             merger.stop()
 

@@ -17,8 +17,10 @@
 #
 #  The latest code can be found at <http://pyd.io/>.
 #
-COMMAND_SIGNAL = 'command'
-JOB_COMMAND_SIGNAL = 'job_command'
-PUBLISH_SIGNAL = 'publish'
-TRANSFER_RATE_SIGNAL = 'transfer_rate'
-TRANSFER_CALLBACK_SIGNAL = 'transfer_callback'
+from pydio.signals import (
+    COMMAND_SIGNAL,
+    JOB_COMMAND_SIGNAL,
+    PUBLISH_SIGNAL,
+    TRANSFER_CALLBACK_SIGNAL,
+    TRANSFER_RATE_SIGNAL
+)

@@ -18,22 +18,19 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 import os
+import os.path as osp
 import logging
 import shutil
 import sys
 import re
 
 import xml.etree.ElementTree as ET
-try:
-    from pydio.utils.global_config import ConfigManager
-    from pydio.utils.pydio_profiler import pydio_profile
-    from pydio.utils import i18n
-    _ = i18n.language.ugettext
-except ImportError:
-    from utils.global_config import ConfigManager
-    from utils.pydio_profiler import pydio_profile
-    from utils import i18n
-    _ = i18n.language.ugettext
+from pydio.utils.global_config import ConfigManager
+from pydio.utils.pydio_profiler import pydio_profile
+from pydio.utils import i18n
+
+_ = i18n.language.ugettext
+
 
 class ChangeProcessor:
     def __init__(self, change, change_store, job_config, local_sdk, remote_sdk, status_handler, event_logs_handler):
@@ -81,9 +78,9 @@ class ChangeProcessor:
         """
         location = item['location']
         item['progress'] = 0
-        if self.job_config.direction == 'up' and location == 'remote':
+        if self.job_config["direction"] == 'up' and location == 'remote':
             return
-        if self.job_config.direction == 'down' and location == 'local':
+        if self.job_config["direction"] == 'down' and location == 'local':
             return
 
         if item['type'] == 'create' or item['type'] == 'content':
@@ -150,7 +147,7 @@ class ChangeProcessor:
         else:
             logging.debug('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
             if location == 'remote':
-                if os.path.exists(self.job_config.directory + item['source']):
+                if osp.exists(osp.join(self.job_config["directory"], item['source'])):
                     if self.process_local_move(item['source'], item['target']) and self.change_store is not None:
                         self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'])
                 else:
@@ -176,11 +173,18 @@ class ChangeProcessor:
                         self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
 
     def process_local_mkdir(self, path):
-        message = path + ' <============ MKDIR'
-        if not os.path.exists(self.job_config.directory + path):
-            os.makedirs(self.job_config.directory + path)
-        self.log(type='local', action='mkdir', status='success',
-                 target=path, console_message=message, message=(_('New folder created at %s') % path))
+        p = osp.join(self.job_config["directory"], path)
+        if not osp.exists(p):
+            os.makedirs(p)
+
+        self.log(
+            type='local',
+            action='mkdir',
+            status='success',
+            target=path,
+            console_message="{0} <============ MKDIR".format(path),
+            message=(_('New folder created at %s') % path)
+        )
 
     def process_remote_mkdir(self, path):
         message = 'MKDIR ============> ' + path
@@ -196,13 +200,13 @@ class ChangeProcessor:
                      console_message=message, message=(_('Folder created at %s') % path))
 
     def process_local_delete(self, path):
-        if os.path.isdir(self.job_config.directory + path):
+        if os.path.isdir(self.job_config["directory"] + path):
             self.local_sdk.rmdir(path)
             message = path + ' <============ DELETE'
             self.log(type='local', action='delete_folder', status='success',
                      target=path, message='Deleted folder ' + path, console_message=message)
-        elif os.path.isfile(self.job_config.directory + path):
-            os.unlink(self.job_config.directory + path)
+        elif os.path.isfile(self.job_config["directory"] + path):
+            os.unlink(self.job_config["directory"] + path)
             message = path + ' <============ DELETE'
             self.log(type='local', action='delete_file', status='success',
                      target=path, console_message=message, message=(_('Deleted file %s') % path))
@@ -227,10 +231,10 @@ class ChangeProcessor:
     @pydio_profile
     def process_local_move(self, source, target):
         try:
-            if os.path.exists(self.job_config.directory + source):
-                if not os.path.exists(self.job_config.directory + os.path.dirname(target)):
-                    os.makedirs(self.job_config.directory + os.path.dirname(target))
-                shutil.move(self.job_config.directory + source, self.job_config.directory + target)
+            if os.path.exists(self.job_config["directory"] + source):
+                if not os.path.exists(self.job_config["directory"] + os.path.dirname(target)):
+                    os.makedirs(self.job_config["directory"] + os.path.dirname(target))
+                shutil.move(self.job_config["directory"] + source, self.job_config["directory"] + target)
                 message = source + ' to ' + target + ' <============ MOVE'
                 self.log(type='local', action='move', status='success', target=target,
                          source=source, console_message=message,
@@ -252,7 +256,7 @@ class ChangeProcessor:
     @pydio_profile
     def process_download(self, path, is_mod=False, callback_dict=None):
         self.update_node_status(path, 'DOWN')
-        full_path = self.job_config.directory + path
+        full_path = self.job_config["directory"] + path
         message = path + ' <====DOWNLOAD==== ' + path
         if is_mod and self.remote_sdk.is_rsync_supported() and ConfigManager().rdiff_path:
             sig_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".signature")
@@ -264,13 +268,13 @@ class ChangeProcessor:
                 message = path + ' <====PATCH====== ' + path
             except Exception as e:
                 logging.exception(e)
-                self.remote_sdk.stat_and_download(path, self.job_config.directory + path, callback_dict)
+                self.remote_sdk.stat_and_download(path, self.job_config["directory"] + path, callback_dict)
             if os.path.exists(sig_path):
                 os.remove(sig_path)
             if os.path.exists(delta_path):
                 os.remove(delta_path)
         else:
-            self.remote_sdk.stat_and_download(path, self.job_config.directory + path, callback_dict)
+            self.remote_sdk.stat_and_download(path, self.job_config["directory"] + path, callback_dict)
 
         self.update_node_status(path, 'IDLE')
         self.log(type='local', action='download', status='success',
@@ -280,10 +284,10 @@ class ChangeProcessor:
     def process_upload(self, path, is_mod=False, callback_dict=None):
         self.update_node_status(path, 'UP')
         max_upload_size = -1
-        if self.job_config.server_configs and 'UPLOAD_MAX_SIZE' in self.job_config.server_configs:
-            max_upload_size = int(self.job_config.server_configs['UPLOAD_MAX_SIZE'])
+        if self.job_config["server_configs"] and 'UPLOAD_MAX_SIZE' in self.job_config["server_configs"]:
+            max_upload_size = int(self.job_config["server_configs"]['UPLOAD_MAX_SIZE'])
 
-        full_path = self.job_config.directory + path
+        full_path = self.job_config["directory"] + path
         message = path + ' =====UPLOAD====> ' + path
         if is_mod and self.remote_sdk.is_rsync_supported() and ConfigManager().rdiff_path:
             sig_path = os.path.join(os.path.dirname(full_path), "." + os.path.basename(path)+".signature")

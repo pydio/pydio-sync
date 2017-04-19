@@ -68,8 +68,8 @@ class Application(object):
         jobs_root, jobs_load = cls.init_jobs(kw)
 
         job_config = JobConfig()
-        job_config.load_from_cliargs(kw)
-        cfg = {job_config.id: job_config}
+        job_config.from_cli_args(kw)
+        cfg = {job_config["id"]: job_config}
         if kw.pop("--save-cfg"):
             cls.log.info("Storing config in {0}".format(
                 osp.join(jobs_root, 'configs.json')

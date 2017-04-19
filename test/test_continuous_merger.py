@@ -35,7 +35,7 @@ class TestContinuousDiffMerger(TestCase):
 
     def setUp(self):
         job_config = JobConfig()
-        job_config.online_timer = 10
+        job_config["online_timer"] = 10
         self.cdm = ContinuousDiffMerger(job_config, WORKSPACE_PATH)
 
     def test_update_sequence_file(self):

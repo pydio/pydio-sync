@@ -18,54 +18,35 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 
-import time
-import datetime
 import os
 import sys
-import threading
+import time
 import pickle
 import logging
+import datetime
+import threading
 from functools import partial
+
 from pydispatch import dispatcher
-from requests.exceptions import RequestException, Timeout, SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, InvalidSchema, InvalidURL
-try:
-    from pydio.job.change_processor import ChangeProcessor, StorageChangeProcessor
-    from pydio.job.job_config import JobsLoader
-    from pydio.job.localdb import LocalDbHandler, SqlEventHandler, DBCorruptedException
-    from pydio.job.local_watcher import LocalWatcher
-    from pydio.job.change_stores import SqliteChangeStore
-    from pydio.job.EventLogger import EventLogger
-    from pydio.sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException
-    from pydio.sdkremote.remote import PydioSdk
-    from pydio.sdklocal.local import SystemSdk
-    from pydio.utils.functions import connection_helper
-    from pydio.utils.global_config import ConfigManager
-    from pydio.utils.pydio_profiler import pydio_profile
-    from pydio.utils.check_sqlite import check_sqlite_file
-    from pydio import PUBLISH_SIGNAL, TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
-    from pydio.utils import i18n
-    _ = i18n.language.ugettext
-except ImportError:
-    from job.change_processor import ChangeProcessor, StorageChangeProcessor
-    from job.job_config import JobsLoader
-    from job.localdb import LocalDbHandler, SqlEventHandler, DBCorruptedException
-    from job.change_stores import SqliteChangeStore
-    from job.EventLogger import EventLogger
-    from job.local_watcher import LocalWatcher
-    from sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException
-    from sdkremote.remote import PydioSdk
-    from sdklocal.local import SystemSdk
-    from utils.functions import connection_helper
-    from utils.global_config import ConfigManager
-    from utils.pydio_profiler import pydio_profile
-    from utils.check_sqlite import check_sqlite_file
-    from utils import i18n
-    _ = i18n.language.ugettext
-    COMMAND_SIGNAL = 'command'
-    JOB_COMMAND_SIGNAL = 'job_command'
-    PUBLISH_SIGNAL = 'publish'
-    TRANSFER_RATE_SIGNAL = 'transfer_rate'
-    TRANSFER_CALLBACK_SIGNAL = 'transfer_callback'
+from requests import exceptions as rexpcept
+
+from pydio.job.change_processor import ChangeProcessor, StorageChangeProcessor
+from pydio.job.job_config import JobsLoader
+from pydio.job.localdb import LocalDbHandler, SqlEventHandler, DBCorruptedException
+from pydio.job.local_watcher import LocalWatcher
+from pydio.job.change_stores import SqliteChangeStore
+from pydio.job.EventLogger import EventLogger
+from pydio.sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException
+from pydio.sdkremote.remote import PydioSdk
+from pydio.sdklocal.local import SystemSdk
+from pydio.utils.functions import connection_helper
+from pydio.utils.global_config import ConfigManager
+from pydio.utils.pydio_profiler import pydio_profile
+from pydio.utils.check_sqlite import check_sqlite_file
+from pydio import PUBLISH_SIGNAL, TRANSFER_RATE_SIGNAL, TRANSFER_CALLBACK_SIGNAL
+from pydio.utils import i18n
+
+_ = i18n.language.ugettext
 
 
 class SigContinue(Exception):
@@ -113,33 +94,33 @@ class ContinuousDiffMerger(threading.Thread):
 
         self.init_global_progress()
 
-        self.basepath = job_config.directory
-        self.ws_id = job_config.workspace
+        self.basepath = job_config["directory"]
+        self.ws_id = job_config["workspace"]
         self.sdk = PydioSdk(
-            job_config.server,
+            job_config["server"],
             ws_id=self.ws_id,
-            remote_folder=job_config.remote_folder,
-            user_id=job_config.user_id,
+            remote_folder=job_config["remote_folder"],
+            user_id=job_config["user_id"],
             device_id=ConfigManager().device_id,
-            skip_ssl_verify=job_config.trust_ssl,
+            skip_ssl_verify=job_config["trust_ssl"],
             proxies=ConfigManager().defined_proxies,
-            timeout=job_config.timeout
+            timeout=job_config["timeout"]
         )
-        self.system = SystemSdk(job_config.directory)
+        self.system = SystemSdk(job_config["directory"])
         self.remote_seq = 0
         self.local_seq = 0
         self.local_target_seq = 0
         self.remote_target_seq = 0
         self.local_seqs = []
         self.remote_seqs = []
-        self.db_handler = LocalDbHandler(self.configs_path, job_config.directory)
+        self.db_handler = LocalDbHandler(self.configs_path, job_config["directory"])
         self.interrupt = False
         self.event_timer = 2
-        self.online_timer = job_config.online_timer
+        self.online_timer = job_config["online_timer"]
         self.offline_timer = 60
         self.online_status = True
         self.job_status_running = True
-        self.direction = job_config.direction
+        self.direction = job_config["direction"]
         self.event_logger = EventLogger(self.configs_path)
         self.processing_signals = {}
         self.current_tasks = []
@@ -147,18 +128,18 @@ class ContinuousDiffMerger(threading.Thread):
         self.watcher = None
         self.watcher_first_run = True
         # TODO: TO BE LOADED FROM CONFIG
-        self.storage_watcher = job_config.label.startswith('LSYNC')
+        self.storage_watcher = job_config["label"].startswith('LSYNC')
         self.wait_for_changes = False  # True when no changes detected in last cycle, can be used to disable websockets
         self.marked_for_snapshot_pathes = []
         self.processing = False  # indicates whether changes are being processed
 
         dispatcher.send(signal=PUBLISH_SIGNAL, sender=self, channel='status', message='START')
-        if job_config.direction != 'down' or (self.job_config.direction == 'down' and self.job_config.solve != 'remote'):
-            self.event_handler = SqlEventHandler(includes=job_config.filters['includes'],
-                                                 excludes=job_config.filters['excludes'],
-                                                 basepath=job_config.directory,
+        if job_config["direction"] != 'down' or (self.job_config["direction"] == 'down' and self.job_config["solve"] != 'remote'):
+            self.event_handler = SqlEventHandler(includes=job_config["filters"]['includes'],
+                                                 excludes=job_config["filters"]['excludes'],
+                                                 basepath=job_config["directory"],
                                                  job_data_path=self.configs_path)
-            self.watcher = LocalWatcher(job_config.directory,
+            self.watcher = LocalWatcher(job_config["directory"],
                                         self.configs_path,
                                         event_handler=self.event_handler)
             self.db_handler.check_lock_on_event_handler(self.event_handler)
@@ -180,7 +161,7 @@ class ContinuousDiffMerger(threading.Thread):
         dispatcher.connect(self.handle_transfer_rate_event, signal=TRANSFER_RATE_SIGNAL, sender=self.sdk)
         dispatcher.connect(self.handle_transfer_callback_event, signal=TRANSFER_CALLBACK_SIGNAL, sender=self.sdk)
 
-        if self.job_config.frequency == 'manual':
+        if self.job_config["frequency"] == 'manual':
             self.job_status_running = False
         self.logger = EventLogger(self.configs_path)
     # end init
@@ -371,7 +352,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.current_store.close()
         self.init_global_progress()
         logger.log_state(_('Synchronized'), 'success')
-        if self.job_config.frequency == 'manual':
+        if self.job_config["frequency"] == 'manual':
             self.job_status_running = False
             self.sleep(online=False)
         else:
@@ -395,11 +376,11 @@ class ContinuousDiffMerger(threading.Thread):
 
         returns None or datetime object
         """
-        if self.job_config.frequency != "time":
+        if self.job_config["frequency"] != "time":
             return None
         return datetime.time(
-            int(self.job_config.start_time['h']),
-            int(self.job_config.start_time['m']),
+            int(self.job_config["start_time"]['h']),
+            int(self.job_config["start_time"]['m']),
         )
 
     def _check_ready_for_sync_run(self):
@@ -500,10 +481,10 @@ class ContinuousDiffMerger(threading.Thread):
             time.sleep(writewait)
 
     def _fetch_remote_changes(self):
-        if self.job_config.direction != 'up':
+        if self.job_config["direction"] != 'up':
             logging.info(
                 'Loading remote changes with sequence {0:s} for job id {1:s}'.format(str(self.remote_seq),
-                                                                                       str(self.job_config.id)))
+                                                                                       str(self.job_config["id"])))
             if self.remote_seq == 0:
                 self.logger.log_state(_('Gathering data from remote workspace, this can take a while...'), 'sync')
                 self.very_first = True
@@ -514,12 +495,12 @@ class ContinuousDiffMerger(threading.Thread):
             self.ping_remote()
 
     def _fetch_local_changes(self):
-        down = self.job_config.direction == "down"
-        local = self.job_config.solve != 'remote'
+        down = self.job_config["direction"] == "down"
+        local = self.job_config["solve"] != 'remote'
         if not down or (down and local):
             msg = 'Loading local changes with sequence {0} for job id {1}'.format(
                 self.local_seq,
-                self.job_config.id
+                self.job_config["id"]
             )
             logging.info(msg)
 
@@ -545,16 +526,16 @@ class ContinuousDiffMerger(threading.Thread):
         if not self.watcher.isAlive() and not self.interrupt:
             logging.info("File watcher died, restarting...")
             self.watcher.stop()
-            self.watcher = LocalWatcher(self.job_config.directory,
+            self.watcher = LocalWatcher(self.job_config["directory"],
                                         self.configs_path,
                                         event_handler=self.event_handler)
             self.start_watcher()
 
     def _preprocess_changes(self):
-        logging.debug('[CMERGER] Delete Copies ' + self.job_config.id)
+        logging.debug('[CMERGER] Delete Copies ' + self.job_config["id"])
         self.current_store.delete_copies()
         self.update_min_seqs_from_store()
-        logging.debug('[CMERGER] Dedup changes ' + self.job_config.id)
+        logging.debug('[CMERGER] Dedup changes ' + self.job_config["id"])
         self.current_store.dedup_changes()
         self.update_min_seqs_from_store()
         if not self.storage_watcher or self.very_first:
@@ -564,27 +545,27 @@ class ContinuousDiffMerger(threading.Thread):
             logging.debug('[CMERGER] Done detecting unnecessary changes')
             self.logger.log_state(_('Done detecting unecessary changes...'), 'sync')
         self.update_min_seqs_from_store()
-        logging.debug('Clearing op and pruning folders moves ' + self.job_config.id)
+        logging.debug('Clearing op and pruning folders moves ' + self.job_config["id"])
         self.current_store.clear_operations_buffer()
         self.current_store.prune_folders_moves()
         self.update_min_seqs_from_store()
 
-        logging.debug('Store conflicts ' + self.job_config.id)
+        logging.debug('Store conflicts ' + self.job_config["id"])
         return self.current_store.clean_and_detect_conflicts(self.db_handler)
 
     def _resolve_conflicts(self, conflicts):
         if conflicts:
-            if self.job_config.solve == 'both':
+            if self.job_config["solve"] == 'both':
                 logging.info('Marking nodes SOLVED:KEEPBOTH')
                 for row in self.db_handler.list_conflict_nodes():
                     self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPBOTH')
                 conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
-            if self.job_config.solve == 'local':
+            if self.job_config["solve"] == 'local':
                 logging.info('Marking nodes SOLVED:KEEPLOCAL')
                 for row in self.db_handler.list_conflict_nodes():
                     self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPLOCAL')
                 conflicts = self.current_store.clean_and_detect_conflicts(self.db_handler)
-            if self.job_config.solve == 'remote':
+            if self.job_config["solve"] == 'remote':
                 logging.info('Marking nodes SOLVED:KEEPREMOTE')
                 for row in self.db_handler.list_conflict_nodes():
                     self.db_handler.update_node_status(row['node_path'], 'SOLVED:KEEPREMOTE')
@@ -638,7 +619,7 @@ class ContinuousDiffMerger(threading.Thread):
         # REMOTE CHANGES
         try:
             self._fetch_remote_changes()
-        except RequestException as ce:
+        except rexcept.RequestException as ce:
             logging.exception(ce)
             if not connection_helper.is_connected_to_internet(self.sdk.proxies):
                 error = _('No Internet connection detected! Waiting for %s seconds to retry') % self.offline_timer
@@ -658,9 +639,9 @@ class ContinuousDiffMerger(threading.Thread):
             raise SigContinue("_compute_changes: generic exception")
 
         self.online_status = True
-        if not self.job_config.server_configs:
-            self.job_config.server_configs = self.sdk.load_server_configs()
-        self.sdk.set_server_configs(self.job_config.server_configs)
+        if not self.job_config["server_configs"]:
+            self.job_config["server_configs"] = self.sdk.load_server_configs()
+        self.sdk.set_server_configs(self.job_config["server_configs"])
 
         # LOCAL CHANGES
         self._fetch_local_changes()
@@ -669,7 +650,7 @@ class ContinuousDiffMerger(threading.Thread):
         # EVALUATE CHANGES
         if not len(self.current_store):
             logging.info(
-                'No changes detected in {0}'.format(self.job_config.id)
+                'No changes detected in {0}'.format(self.job_config["id"])
             )
 
             self.very_first = False
@@ -679,7 +660,7 @@ class ContinuousDiffMerger(threading.Thread):
             raise SigContinue("_merge: no changes to commit")
 
         # START MERGE LOGIC
-        logging.info('Reducing changes for ' + self.job_config.id)
+        logging.info('Reducing changes for ' + self.job_config["id"])
         self.logger.log_state(_(
             'Merging changes between remote and local, please wait...'
         ), 'sync')
@@ -709,16 +690,16 @@ class ContinuousDiffMerger(threading.Thread):
             self.logger.log_notif(_('Conflicts detected, cannot continue!'), 'error')
             raise SigContinue("_merge: conflicts detected. cannot continue.")
 
-        if self.job_config.direction == 'down' and self.job_config.solve != 'remote':
+        if self.job_config["direction"] == 'down' and self.job_config["solve"] != 'remote':
             self.current_store.remove_based_on_location('local')
             self.update_min_seqs_from_store()
 
         changes_length = len(self.current_store)
         if not changes_length:
-            logging.info('No changes detected for ' + self.job_config.id)
+            logging.info('No changes detected for ' + self.job_config["id"])
             self.exit_loop_clean(self.logger)
             self.very_first = False
-            raise SigContinue("_merge: no changes detected for {0}".format(self.job_config.id))
+            raise SigContinue("_merge: no changes detected for {0}".format(self.job_config["id"]))
 
         self.current_store.update_pending_status(self.db_handler, self.local_seq)
         self._do_sync(changes_length)
@@ -745,9 +726,9 @@ class ContinuousDiffMerger(threading.Thread):
                 # Load local and/or remote changes, depending on the direction
                 self.current_store = SqliteChangeStore(
                     self.configs_path + '/changes.sqlite',
-                    self.job_config.filters['includes'],
-                    self.job_config.filters['excludes'],
-                    self.job_config.poolsize,
+                    self.job_config["filters"]['includes'],
+                    self.job_config["filters"]['excludes'],
+                    self.job_config["poolsize"],
                     local_sdk=self.system,
                     remote_sdk=self.sdk,
                     job_config=self.job_config,
@@ -781,31 +762,31 @@ class ContinuousDiffMerger(threading.Thread):
             except PydioSdkDefaultException as re:
                 logging.error(re.message)
                 self.logger.log_state(re.message, 'error')
-            except SSLError as rt:
+            except rexcept.SSLError as rt:
                 logging.error(rt.message)
                 self.logger.log_state(_('An SSL error happened, please check the logs'), 'error')
-            except ProxyError as rt:
+            except rexcept.ProxyError as rt:
                 logging.error(rt.message)
                 self.logger.log_state(_('A proxy error happened, please check the logs'), 'error')
-            except TooManyRedirects as rt:
+            except rexcept.TooManyRedirects as rt:
                 logging.error(rt.message)
                 self.logger.log_state(_('Connection error: too many redirects'), 'error')
-            except ChunkedEncodingError as rt:
+            except rexcept.ChunkedEncodingError as rt:
                 logging.error(rt.message)
                 self.logger.log_state(_('Chunked encoding error, please check the logs'), 'error')
-            except ContentDecodingError as rt:
+            except rexcept.ContentDecodingError as rt:
                 logging.error(rt.message)
                 self.logger.log_state(_('Content Decoding error, please check the logs'), 'error')
-            except InvalidSchema as rt:
+            except rexcept.InvalidSchema as rt:
                 logging.error(rt.message)
                 self.logger.log_state(_('Http connection error: invalid schema.'), 'error')
-            except InvalidURL as rt:
+            except rexcept.InvalidURL as rt:
                 logging.error(rt.message)
                 self.logger.log_state(_('Http connection error: invalid URL.'), 'error')
-            except Timeout as to:
+            except rexcept.Timeout as to:
                 logging.error(to)
-                self.logger.log_state(_('Connection timeout, will retry later.'), 'error')
-            except RequestException as ree:
+                self.logger.log_state(_('Connection rexcept.Timeout, will retry later.'), 'error')
+            except rexcept.RequestException as ree:
                 logging.error(ree.message)
                 self.logger.log_state(_('Cannot resolve domain!'), 'error')
                 self.sleep(online=False)
@@ -893,7 +874,7 @@ class ContinuousDiffMerger(threading.Thread):
                     self.watcher.check_from_snapshot(state_callback=status_callback)
                 except DBCorruptedException as e:
                     self.stop()
-                    JobsLoader().clear_job_data(self.job_config.id)
+                    JobsLoader().clear_job_data(self.job_config["id"])
                     logging.error(e)
                     return
                 except Exception as e:
@@ -939,7 +920,7 @@ class ContinuousDiffMerger(threading.Thread):
             timereq = time.time()
             try:
                 if self.sdk.waiter is None:
-                    self.sdk.websocket_connect(last_seq, str(self.job_config.id))
+                    self.sdk.websocket_connect(last_seq, str(self.job_config["id"]))
                 if self.sdk.waiter and self.sdk.waiter.ws.connected:
                     self.sdk.waiter.should_fetch_changes = False
                     while not self.sdk.waiter.should_fetch_changes and not self.interrupt:

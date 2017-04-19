@@ -477,7 +477,7 @@ class SqliteChangeStore(object):
                 #logging.info("[DEBUG] work in progress -- keepboth " + node['node_path'])
                 # remove conflict from table, effect: FILES out of sync,
                 #self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?', ('remote', node['node_path'].replace('\\', '/')))
-                self.local_sdk.duplicateWith(node['node_path'], self.job_config.user_id)
+                self.local_sdk.duplicateWith(node['node_path'], self.job_config["user_id"])
                 self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
                                   ('local', node['node_path'].replace('\\', '/')))
 

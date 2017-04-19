@@ -112,6 +112,8 @@ class JobConfig(object):
 
     def __init__(self, **kw):
         # define instance attributes
+        self.id = None  # type int; to-be-initialized
+
         self.server = kw.get('server', '')
         self.directory = kw.get('directory', '')
         self.workspace = kw.get('workspace', '')
@@ -148,6 +150,12 @@ class JobConfig(object):
         self.hide_down_dir = kw.get("hide_down_dir", 'false')
 
         self.poolsize = kw.get("poolsize", 4)
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
 
     def make_id(self):
         i = 1
@@ -204,81 +212,81 @@ class JobConfig(object):
     def object_decoder(d):
         if d.get("__type__") == "JobConfig":
             job_config = JobConfig()
-            job_config.server = d['server']
-            job_config.directory = d['directory'].rstrip('/').rstrip('\\')
+            job_config["server"] = d['server']
+            job_config["directory"] = d['directory'].rstrip('/').rstrip('\\')
             if os.name in ["nt", "ce"]:
-                job_config.directory = job_config.directory.replace('/', '\\')
-            job_config.workspace = d['workspace']
+                job_config["directory"] = job_config["directory"].replace('/', '\\')
+            job_config["workspace"] = d['workspace']
             if 'remote_folder' in d:
-                job_config.remote_folder = d['remote_folder'].rstrip('/').rstrip('\\')
+                job_config["remote_folder"] = d['remote_folder'].rstrip('/').rstrip('\\')
             if 'user' in d:
-                job_config.user_id = d['user']
+                job_config["user_id"] = d['user']
             if 'label' in d:
-                job_config.label = d['label']
+                job_config["label"] = d['label']
             if 'password' in d:
                 try:
-                    keyring.set_password(job_config.server, job_config.user_id, d['password'])
+                    keyring.set_password(job_config["server"], job_config["user_id"], d['password'])
                 except keyring.errors.PasswordSetError as e:
                     logging.error(
                         "Error while storing password in keychain, should we store it cyphered in the config?")
             if 'filters' in d:
                 if platform.system() == "Darwin":
                     if isinstance(d['filters']['excludes'], list):
-                        job_config.filters['excludes'] = []
+                        job_config["filters"]['excludes'] = []
                         for e in d['filters']['excludes']:
-                            job_config.filters['excludes'].append(unicodedata.normalize('NFD', e))
+                            job_config["filters"]['excludes'].append(unicodedata.normalize('NFD', e))
                     elif isinstance(d['filters']['excludes'], str):
-                        job_config.filters['excludes'] = unicodedata.normalize('NFD', d['filters']['excludes'])
+                        job_config["filters"]['excludes'] = unicodedata.normalize('NFD', d['filters']['excludes'])
                     if isinstance(d['filters']['includes'], list):
-                        job_config.filters['includes'] = []
+                        job_config["filters"]['includes'] = []
                         for i in d['filters']['includes']:
-                            job_config.filters['includes'].append(unicodedata.normalize('NFD', i))
+                            job_config["filters"]['includes'].append(unicodedata.normalize('NFD', i))
                     elif isinstance(d['filters']['includes'], str):
-                        job_config.filters['includes'] = unicodedata.normalize('NFD', d['filters']['includes'])
+                        job_config["filters"]['includes'] = unicodedata.normalize('NFD', d['filters']['includes'])
                 else:
-                    job_config.filters = d['filters']
+                    job_config["filters"] = d['filters']
             if 'direction' in d and d['direction'] in ['up', 'down', 'bi']:
-                job_config.direction = d['direction']
+                job_config["direction"] = d['direction']
             if 'trust_ssl' in d and d['trust_ssl'] in [True, False]:
-                job_config.trust_ssl = d['trust_ssl']
+                job_config["trust_ssl"] = d['trust_ssl']
             if 'monitor' in d and d['monitor'] in [True, False]:
-                job_config.monitor = d['monitor']
+                job_config["monitor"] = d['monitor']
             if 'frequency' in d and d['frequency'] in ['auto', 'manual', 'time']:
-                job_config.frequency = d['frequency']
-                if job_config.frequency == 'time' and 'start_time' in d:
-                    job_config.start_time = d['start_time']
+                job_config["frequency"] = d['frequency']
+                if job_config["frequency"] == 'time' and 'start_time' in d:
+                    job_config["start_time"] = d['start_time']
             if 'solve' in d and d['solve'] in ['manual', 'remote', 'local', 'both']:
-                job_config.solve = d['solve']
+                job_config["solve"] = d['solve']
             if 'active' in d and d['active'] in [True, False]:
-                job_config.active = d['active']
+                job_config["active"] = d['active']
             if 'id' not in d:
-                job_config.make_id()
+                job_config["make_id"]()
             else:
-                job_config.id = d['id']
+                job_config["id"] = d['id']
             if 'timeout' in d:
                 try:
-                    job_config.timeout = int(d['timeout'])
+                    job_config["timeout"] = int(d['timeout'])
                 except ValueError:
-                    job_config.timeout = 20
+                    job_config["timeout"] = 20
             else:
-                job_config.timeout = 20
-            if job_config.frequency == 'auto' or job_config.frequency == 'time':
-                job_config.monitor = True
+                job_config["timeout"] = 20
+            if job_config["frequency"] == 'auto' or job_config["frequency"] == 'time':
+                job_config["monitor"] = True
             else:
-                job_config.monitor = False
+                job_config["monitor"] = False
             if 'hide_up_dir' in d:
-                job_config.hide_up_dir = d['hide_up_dir']
+                job_config["hide_up_dir"] = d['hide_up_dir']
             if 'hide_bi_dir' in d:
-                job_config.hide_bi_dir = d['hide_bi_dir']
+                job_config["hide_bi_dir"] = d['hide_bi_dir']
             if 'hide_down_dir' in d:
-                job_config.hide_down_dir = d['hide_down_dir']
+                job_config["hide_down_dir"] = d['hide_down_dir']
             if 'poolsize' in d:
-                job_config.poolsize = d['poolsize']
+                job_config["poolsize"] = d['poolsize']
             else:
-                job_config.poolsize = 4
+                job_config["poolsize"] = 4
             if 'poll_interval' in d:
-                job_config.online_timer = d['poll_interval']
+                job_config["online_timer"] = d['poll_interval']
             else:
-                job_config.online_timer = 10
+                job_config["online_timer"] = 10
             return job_config
         return d
