@@ -28,6 +28,30 @@ APP_DATA = dict(
 )
 
 
+def init_jobs(appname, appdata, kw):
+    path = kw.pop("jobs_root", appdata["DEFAULT_JOBS_ROOT"])
+    default_path = appdata["DEFAULT_DATA_PATH"]
+    jobs_root = configure_jobs_root(appname, path, default_path)
+    return jobs_root, JobsLoader(data_path=jobs_root)
+
+
+def configure_jobs_root(app_name, job_root, fallback):
+    if not osp.isdir(job_root):
+        job_root = fallback.encode(guess_filesystemencoding())
+        if not osp.isdir(job_root):
+            logging.getLogger(__name__).debug("configuring first run")
+
+            user_dir = get_user_home(app_name)
+            os.makedirs(job_root)
+            if not osp.exists(user_dir):
+                os.makedirs(user_dir)
+            else:
+                from utils.favorites_manager import add_to_favorites
+                add_to_favorites(user_dir, app_name)
+
+    return job_root
+
+
 class Application(object):
     """Pydio-Sync application class"""
     log = logging.getLogger('.'.join((__name__, "Application")))
@@ -60,8 +84,7 @@ class Application(object):
 
     @classmethod
     def from_cli_args(cls, **kw):
-        jobs_root = cls.configure_jobs_root(kw)
-        jobs_load = JobsLoader(data_path=jobs_root)
+        jobs_root, jobs_load = init_jobs(APP_NAME, APP_DATA, kw)
 
         job_config = JobConfig()
         job_config.from_cli_args(kw)
@@ -76,8 +99,7 @@ class Application(object):
 
     @classmethod
     def from_cfg_file(cls, **kw):
-        jobs_root = cls.configure_jobs_root(kw)
-        jobs_load = JobsLoader(data_path=jobs_root)
+        jobs_root, jobs_load = init_jobs(APP_NAME, APP_DATA, kw)
 
         fp = kw.pop("--file")
         if fp and fp != '.':
@@ -91,28 +113,6 @@ class Application(object):
     @property
     def jobs_root(self):
         return self._jobs_root.decode(guess_filesystemencoding())
-
-    @staticmethod
-    def configure_jobs_root(kw):
-        job_root = kw.pop(
-            "jobs_root",
-            APP_DATA["DEFAULT_JOBS_ROOT"]
-        )
-
-        if not osp.isdir(job_root):
-            job_root = APP_DATA["DEFAULT_DATA_PATH"].encode(guess_filesystemencoding())
-            if not osp.isdir(job_root):
-                os.makedirs(job_root)
-
-                Application.log.debug("configuring first run")
-                user_dir = get_user_home(APP_NAME)
-                if not osp.exists(user_dir):
-                    os.makedirs(user_dir)
-                else:
-                    from utils.favorites_manager import add_to_favorites
-                    add_to_favorites(user_dir, APP_NAME)
-
-        return job_root
 
     def run(self):
         thread.start_new_thread(self._svr.start_server, ())
