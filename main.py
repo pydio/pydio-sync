@@ -152,7 +152,7 @@ def extract_html(extraction_method):
         html_strings = osp.join(i18n, "html_strings.py")
         count = proc.extract_all_html_strings(ui, html_strings)
         msg = "Wrote %i strings to html_strings.py.  Updating PO files."
-        logger.log.info(msg % count)
+        logger.info(msg % count)
 
         # nothing more to do
         cmd = ('xgettext --language=Python --keyword=_ '
@@ -163,13 +163,13 @@ def extract_html(extraction_method):
             # Sometimes fuzzy matching should be used but mostly results in
             # wrong translations
             cmd = "msgmerge -vU --no-fuzzy-matching {lang}.po pydio.pot"
-            logger.log.info('Running %s'.format(cmd.format(lang=l)))
+            logger.info('Running %s'.format(cmd.format(lang=l)))
             checkoutpt(cmd, cwd=i18n)
 
     elif extraction_method == "compile":
         for l in languages:
             cmd = "msgfmt {lang}.po --output-file {lang}/LC_MESSAGES/pydio.mo"
-            logger.log.info('Running %s' % cmd.format(lang=l))
+            logger.info('Running %s' % cmd.format(lang=l))
             checkoutpt(cmd, cwd=i18n)
 
         proc.po_to_json(osp.join(i18n, "*.po", osp.join(ui, "app/i18n.js")))
