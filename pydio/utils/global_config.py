@@ -187,7 +187,7 @@ class ConfigManager:
                 json.dump(data, f, indent=4, separators=(',', ': '))
         except Exception as ex:
             logging.exception(ex)
-        return "write to Proxies.json file is successful"
+        return "write to proxies.json file is successful"
 
 
 class GlobalConfigManager:
