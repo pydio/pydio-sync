@@ -6,9 +6,13 @@
 from unittest import TestCase
 
 import os.path as osp
+from shutil import rmtree
+from tempfile import mkdtemp
 
+from pydio.job.localdb import LocalDbHandler
 from pydio.job.continous_merger import ContinuousDiffMerger
 from pydio.utils.global_config import ConfigManager, GlobalConfigManager
+
 from pydio.job.job_config import JobConfig
 
 from fixtures.sdklocal import SystemSdkStub
@@ -160,6 +164,7 @@ class TestContinuousDiffMerger(TestCase):
 class TestSyncRun(TestCase):
     """Test file synchronization logic."""
 
+    _prefix = "pydio_test_"
     _db_filename = ":memory:"
     current_store = None
 
@@ -167,21 +172,33 @@ class TestSyncRun(TestCase):
         from pydio.job.change_stores import SqliteChangeStore
         from test_job_config import BLACKLIST, WHITELIST
 
+        self.cfgdir = mkdtemp(prefix=self._prefix)
+        self.jobdir = mkdtemp(prefix=self._prefix)
+
+        self.db_handler = LocalDbHandler(self.cfgdir, self.jobdir)
+
         self.current_store = SqliteChangeStore(
             filename=self._db_filename,
             includes=WHITELIST,
             excludes=BLACKLIST,
+            local_sdk=SystemSdkStub(),
             # TODO : replace with stubs
             # local_sdk=self.system, remote_sdk=self.sdk,
             # job_config=self.job_config,
             # END TODO
             db_handler=self.db_handler,
         )
+        self.current_store.open()
 
     def tearDown(self):
         self.current_store.close()
         self.current_store = None
+        rmtree(self.jobdir)
+        rmtree(self.cfgdir)
 
+
+    def test_canary(self):
+        pass
 
 if __name__ != "__main__":
     init()

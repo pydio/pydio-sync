@@ -25,16 +25,12 @@ import logging
 import fnmatch
 import math
 import time
-try:
-    from pydio.sdkremote.pydio_exceptions import InterruptException
-    from pydio.utils.pydio_profiler import pydio_profile
-    from pydio.utils.global_config import GlobalConfigManager
-    from pydio.job.change_history import ChangeHistory
-except ImportError:
-    from sdkremote.pydio_exceptions import InterruptException
-    from utils.pydio_profiler import pydio_profile
-    from utils.global_config import GlobalConfigManager
-    from job.change_history import ChangeHistory
+
+from pydio.sdkremote.pydio_exceptions import InterruptException
+from pydio.utils.pydio_profiler import pydio_profile
+from pydio.utils.global_config import GlobalConfigManager
+from pydio.job.change_history import ChangeHistory
+
 from threading import Thread
 try:
     import resource
