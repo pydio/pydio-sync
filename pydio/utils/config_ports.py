@@ -21,25 +21,26 @@
 # sync the client/UI connection ports
 import random, string
 
+def random_string(n=16):
+    charspace = string.ascii_letters + string.digits
+    return ''.join([random.choice(charspace) for n in xrange(n)])
+
 class PortsDetector(object):
     def __init__(self, store_file, username=None, password=None, default_port=5556):
         self.store = store_file
         self.default_port = default_port
         if username:
-            self.username = username
+            self._username = username
         else:
-            self.username = self.random_string()
+            self._username = random_string()
         if password:
-            self.password = password
+            self._password = password
         else:
-            self.password = self.random_string()
+            self._password = random_string()
 
-    @staticmethod
-    def random_string():
-        return ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(16)])
-
-    def get_port(self):
-        if self.default_port_ok():
+    @property
+    def port(self):
+        if self._default_port_ok():
             self.save_config(self.default_port)
             return self.default_port
         else:
@@ -47,13 +48,15 @@ class PortsDetector(object):
             self.save_config(port)
             return port
 
-    def get_username(self):
-        return self.username
+    @property
+    def username(self):
+        return self._username
 
-    def get_password(self):
-        return self.password
+    @property
+    def password(self):
+        return self._password
 
-    def default_port_ok(self):
+    def _default_port_ok(self):
         import socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(0.1)
@@ -77,4 +80,7 @@ class PortsDetector(object):
 
     def save_config(self, port_to_save):
         with open(self.store, 'a') as config_file:
-            config_file.write("pydio" + ':' + str(port_to_save) + ':' + self.username + ':' + self.password +  "\n")
+            line = "pydio:{p}:{usr}:{pwd}\n".format(
+                p=port_to_save, usr=self.username, pwd=self.password
+            )
+            config_file.write(line)

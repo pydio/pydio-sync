@@ -86,10 +86,15 @@ class Application(object):
         )
 
         ports_detector = configure_ports(jobs_root, kw)
+        self.log.debug("WebUI user={0} passwd={1} port={2}".format(
+            ports_detector.username,
+            ports_detector.password,
+            ports_detector.port
+        ))
         self._svr = PydioApi(
-            ports_detector.get_port(),
-            ports_detector.get_username(),
-            ports_detector.get_password(),
+            ports_detector.port,
+            ports_detector.username,
+            ports_detector.password,
             addr=kw.pop("--api-addr"),
         )
         manager.api_server = self._svr
