@@ -90,7 +90,7 @@ class Application(object):
             ports_detector.get_port(),
             ports_detector.get_username(),
             ports_detector.get_password(),
-            external_ip=kw.pop("--api-addr"),
+            addr=kw.pop("--api-addr"),
         )
         manager.api_server = self._svr
 
