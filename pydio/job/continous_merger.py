@@ -28,7 +28,7 @@ import threading
 from functools import partial
 
 from pydispatch import dispatcher
-from requests import exceptions as rexpcept
+from requests import exceptions as rexcept
 
 from pydio.job.change_processor import ChangeProcessor, StorageChangeProcessor
 from pydio.job.job_config import JobsLoader
@@ -717,11 +717,8 @@ class ContinuousDiffMerger(threading.Thread):
             try:
                 self._check_ready_for_sync_run()
                 self._check_target_volumes()
-
                 self._load_directory_snapshots()
-
                 self._wait_db_lock()
-
                 # TODO : don't open a new SQL connection on each iteration.
                 # Load local and/or remote changes, depending on the direction
                 self.current_store = SqliteChangeStore(
@@ -735,11 +732,8 @@ class ContinuousDiffMerger(threading.Thread):
                     db_handler=self.db_handler,
                 )
                 self.current_store.open()
-
                 self._compute_changes()
-
                 self._merge()
-
                 # Log success & sleep
                 self.logger.log_state(
                     _('%i files modified') % self.global_progress['queue_done'],
