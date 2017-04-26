@@ -638,6 +638,10 @@ class SqlEventHandler(FileSystemEventHandler):
 
     @pydio_profile
     def included(self, event, base=None):
+        """
+        return : bool
+            True if the file is to be included in the synchronization.
+        """
         path = ''
         if not base:
             if hasattr(event, 'dest_path'):

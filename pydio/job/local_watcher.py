@@ -31,16 +31,11 @@ from watchdog.utils import platform
 if platform.is_linux():
     from watchdog.observers.polling import PollingObserver as Observer
 from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
-try:
-    from pydio.job.localdb import SqlEventHandler, SqlSnapshot
-    from pydio.utils.pydio_profiler import pydio_profile
-    from pydio.utils import i18n
-    _ = i18n.language.ugettext
-except ImportError:
-    from job.localdb import SqlEventHandler, SqlSnapshot
-    from utils.pydio_profiler import pydio_profile
-    from utils import i18n
-    _ = i18n.language.ugettext
+
+from pydio.job.localdb import SqlEventHandler, SqlSnapshot
+from pydio.utils.pydio_profiler import pydio_profile
+from pydio.utils import i18n
+_ = i18n.language.ugettext
 
 
 class SnapshotDiffStart(DirectorySnapshotDiff):
