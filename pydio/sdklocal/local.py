@@ -48,9 +48,6 @@ class SystemSdk(object):
         :param basepath: root folder path
         :return:
         """
-        self.signature_extension = '.sync_signature'
-        self.delta_extension = '.sync_delta'
-        self.path_extension = '.sync_patched'
         self.basepath = basepath
         self.rdiff_path = ConfigManager().rdiff_path
 
