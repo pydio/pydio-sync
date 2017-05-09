@@ -18,6 +18,8 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 
+import os.path as osp
+
 import sqlite3
 from sqlite3 import OperationalError
 import sys
@@ -28,7 +30,7 @@ import fnmatch
 import pickle
 import logging
 import threading
-from pathlib import *
+# from pathlib import *
 from watchdog.events import FileSystemEventHandler
 from watchdog.utils.dirsnapshot import DirectorySnapshotDiff
 try:
@@ -164,11 +166,12 @@ class LocalDbHandler(object):
     def init_db(self):
         conn = sqlite3.connect(self.db, timeout=self.timeout)
         cursor = conn.cursor()
-        if getattr(sys, 'frozen', False):
-            respath = (Path(sys._MEIPASS)) / 'res' / 'create.sql'
-        else:
-            respath = (Path(__file__)).parent.parent / 'res' / 'create.sql'
+
+        frozen = getattr(sys, 'frozen', False)
+        respath = sys._MEIPASS if frozen else osp.dirname(__file__)
+        respath = osp.join(respath, "res/create.sql")
         logging.debug("respath: %s" % respath)
+
         with open(str(respath), 'r') as inserts:
             for statement in inserts:
                 cursor.execute(statement)
