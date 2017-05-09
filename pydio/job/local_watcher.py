@@ -22,17 +22,25 @@ import logging
 import stat
 import sys
 import os
-import time
 
-from watchdog.events import DirCreatedEvent, DirDeletedEvent, DirMovedEvent, \
-    FileCreatedEvent, FileDeletedEvent, FileMovedEvent, FileModifiedEvent
-from watchdog.observers import Observer
+from watchdog.events import (
+    DirCreatedEvent,
+    DirDeletedEvent,
+    DirMovedEvent,
+    FileCreatedEvent,
+    FileDeletedEvent,
+    FileMovedEvent,
+    FileModifiedEvent
+)
+
 from watchdog.utils import platform
+from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
 if platform.is_linux():
     from watchdog.observers.polling import PollingObserver as Observer
-from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
+else:
+    from watchdog.observers import Observer
 
-from pydio.job.localdb import SqlEventHandler, SqlSnapshot
+from pydio.job.localdb import SqlSnapshot
 from pydio.utils.pydio_profiler import pydio_profile
 from pydio.utils import i18n
 _ = i18n.language.ugettext
@@ -56,7 +64,7 @@ class SnapshotDiffStart(DirectorySnapshotDiff):
         for path, stat_info in dirsnap._stat_info.items():
             if path in ref_dirsnap.stat_snapshot:
                 ref_stat_info = ref_dirsnap.stat_info(path)
-                if long(stat_info.st_mtime) != long(ref_stat_info.st_mtime):
+                if int(stat_info.st_mtime) != int(ref_stat_info.st_mtime):
                     if stat.S_ISDIR(stat_info.st_mode):
                         self._dirs_modified.append(path)
                     else:
