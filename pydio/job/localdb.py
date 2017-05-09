@@ -18,29 +18,26 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 
+import os
 import os.path as osp
 
-import sqlite3
-from sqlite3 import OperationalError
 import sys
-import os
 import hashlib
 import time
 import fnmatch
 import pickle
 import logging
 import threading
-# from pathlib import *
+
+import sqlite3
+from sqlite3 import OperationalError
+
 from watchdog.events import FileSystemEventHandler
 from watchdog.utils.dirsnapshot import DirectorySnapshotDiff
-try:
-    from pydio.utils.pydio_profiler import pydio_profile
-    from pydio.utils.functions import hashfile, set_file_hidden, guess_filesystemencoding
-    from pydio.utils.global_config import GlobalConfigManager
-except ImportError:
-    from utils.pydio_profiler import pydio_profile
-    from utils.functions import hashfile, set_file_hidden, guess_filesystemencoding
-    from utils.global_config import GlobalConfigManager
+from utils.pydio_profiler import pydio_profile
+from utils.functions import hashfile, set_file_hidden, guess_filesystemencoding
+from utils.global_config import GlobalConfigManager
+
 
 class DBCorruptedException(Exception):
     pass
