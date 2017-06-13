@@ -3,7 +3,7 @@ pydio-sync
 
 New Python version of the Pydio synchronization client [beta]
 
-The work is still in progress. Make sure your server is recent and properly configured. This https://pydio.com/en/docs/v6/checking-sync can help.
+The work is still in progress. Make sure your server is recent and properly configured. This https://pydio.com/en/docs/v8/checking-sync can help.
 
 This is a python rewrite of the former java-based synchro client.
 
