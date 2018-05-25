@@ -14,7 +14,7 @@ Pydio server needs the following to be turned on:
  * *Meta.syncable plugin* applied to the workspace you want to synchronize. This will track all the changes in a specific db-table, making it very quick for the sync client to load the last changes.
  * *php_rsync* extension on the server to allow transferring files deltas instead of complete files contents when modified. Not yet implemented but will be back at one point.
 
-##Client Setup
+## Client Setup
 
 ### Installing
 
@@ -39,16 +39,16 @@ python -m pydio.main --api_user=UsernameForTheWebInterface --api_password=Passwo
 Alternatively, you can start the program with the following parameters:
  * Pass a server configuration through parameters (will be added to the config file)
 ```
-python -m pydio.main 
-        --server=http://yourserver 
-        --directory=/path/to/local/dir 
-        --workspace=workspace-alias 
-        --user=rest_user 
+python -m pydio.main
+        --server=http://yourserver
+        --directory=/path/to/local/dir
+        --workspace=workspace-alias
+        --user=rest_user
         --password=rest_password
 ```
- * Pass a path to a json file containing the server configs: 
+ * Pass a path to a json file containing the server configs:
 ```
-python -m pydio.main 
+python -m pydio.main
         --file=/path/to/config.json
 ```
 In that case, the JSON file must contain an array of "jobs configs" objects, including a __type__ key with value "JobConfig":
