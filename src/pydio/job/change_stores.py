@@ -830,7 +830,10 @@ class SqliteChangeStore():
                     change['node'] = row
                 else:
                     dp = PathOperation.path_sub(target, source)
-                    change['dp'] = PathOperation.path_add(change['dp'], dp)
+                    if content == 'create':
+                        change['dp'] = PathOperation.path_add('/', dp)
+                    else:
+                        change['dp'] = PathOperation.path_add(change['dp'], dp)
                     change['dc'] = ((content == 'content') or change['dc'])
                     change['seq'] = seq
 

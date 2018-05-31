@@ -589,8 +589,11 @@
                 //logTheme()
                 NewJobService.server = response.endpoints[0].url;
                 // update less
-                updateTheme()
-                document.getElementById('app_icon').src += '?'
+                updateTheme();
+                document.getElementById('app_icon').src += '?';
+
+                // Try to use the dedicated QT reload method,
+                // as it will reopen the channel (qt=>js) just after reloading.
                 if (self.PydioQtFileDialog)
                     self.PydioQtFileDialog.qtReload()
                 else

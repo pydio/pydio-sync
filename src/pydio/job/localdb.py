@@ -677,13 +677,13 @@ class SqlEventHandler(FileSystemEventHandler):
         try:
 
             if not self.included(event):
-                logging.debug('ignoring move event ' + event.src_path + " " + event.dest_path)
+                logging.debug('ignoring move event ' + self.get_unicode_path(event.src_path) + " " + self.get_unicode_path(event.dest_path))
                 return
 
             self.lock_db()
-            logging.debug("Event: move noticed: " + event.event_type + " on file " + event.dest_path + " at " + time.asctime())
             target_key = self.remove_prefix(self.get_unicode_path(event.dest_path))
             source_key = self.remove_prefix(self.get_unicode_path(event.src_path))
+            logging.debug("Event: move noticed: " + event.event_type + " on file " + target_key + " at " + time.asctime())
 
             if self.prevent_atomic_commit:
                 conn = self.transaction_conn
@@ -724,13 +724,13 @@ class SqlEventHandler(FileSystemEventHandler):
     @pydio_profile
     def on_created(self, event):
         if not self.included(event):
-            logging.debug('ignoring create event %s ' % event.src_path)
+            logging.debug('ignoring create event %s ' % self.get_unicode_path(event.src_path))
             return
-        logging.debug("Event: creation noticed: " + event.event_type +
-                         " on file " + event.src_path + " at " + time.asctime())
         self.lock_db()
         try:
             src_path = self.get_unicode_path(event.src_path)
+            logging.debug("Event: creation noticed: " + event.event_type +
+                          " on file " + src_path + " at " + time.asctime())
             if not os.path.exists(src_path):
                 return
         except Exception as ex:
@@ -748,7 +748,7 @@ class SqlEventHandler(FileSystemEventHandler):
     def on_deleted(self, event):
         if not self.included(event):
             return
-        logging.debug("Event: deletion noticed: " + event.event_type + " on file " + event.src_path + " at " + time.asctime())
+        logging.debug("Event: deletion noticed: " + event.event_type + " on file " + self.get_unicode_path(event.src_path) + " at " + time.asctime())
         self.lock_db()
         while True:
             try:
@@ -773,7 +773,7 @@ class SqlEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
         super(SqlEventHandler, self).on_modified(event)
         if not self.included(event):
-            logging.debug('ignoring modified event ' + event.src_path)
+            logging.debug('ignoring modified event ' + self.get_unicode_path(event.src_path))
             return
         self.lock_db()
         while True:

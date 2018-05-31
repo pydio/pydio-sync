@@ -45,10 +45,11 @@
             </span>
         </div>
         <div ng-view>
-            <!-- routed ng-views -->
+            <!-- routed ng-views: Settings, Shares (miniview or not...) : pages that must be accessed from outside with a specific URL. -->
         </div>
         <div flex layout="column">
-            <!-- md-is-locked-open="$mdMedia('gt-md')" -->
+
+            <!-- NOT USED HIDDEN LEFT MENU (SIDE BAR)-->
             <md-sidenav  ng-click="JC.toggleList()" md-component-id="left" class="md-whiteframe-z2" >
                 <md-list>
                     <md-list-item>
@@ -69,16 +70,15 @@
                     <md-icon aria-hidden="true">add</md-icon>
                 </md-button>
             </md-sidenav>
+
             <span ng-hide="showAllJobs || ShowGeneralSettings.show" style="height: 100%;">
                 <ng-include src="'./src/jobs/view/fulljob.html'"/>
             </span>
             <span ng-show="showAllJobs && !ShowGeneralSettings.show">
                 <ng-include src="'./src/jobs/view/alljobs.html'"/>
             </span>
-            <!--<span ng-show="showGeneralSettings" style="height: 100%;">
-                <ng-include src="'./src/jobs/view/general_configs.html'"/>
-            </span>-->
         </div>
+
     <script type="text/javascript" src="bundle.min.js"></script>
 
     <script type="text/javascript" src="./src/jobs/JobController.js"></script>
