@@ -305,11 +305,11 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     return;
                 }
                 $scope.jobs = all;
-                //t2 = $timeout(tickJobs, 2000);
+                t2 = $timeout(tickJobs, 2000);
             }, function(response){
                 if(!response.status){
                     $scope.error = window.translate('Ooops, cannot contact agent! Make sure it is running correctly, process will try to reconnect in 20s');
-                    //t2 = $timeout(tickJobs, 20000);
+                    t2 = $timeout(tickJobs, 20000);
                 }
             });
         })();
@@ -351,12 +351,12 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                     $scope.error = null;
                     $scope.logs = all.logs;
                     $scope.running = all.running;
-                    //t0 = $timeout(tickLog, 2000);
+                    t0 = $timeout(tickLog, 2000);
                 }, function(response){
                     if(!response.status){
                         if($scope.opened_logs_panel != jobId) return;
                         $scope.error = window.translate('Ooops, cannot contact agent! Make sure it is running correctly, process will try to reconnect in 20s');
-                        //t0 = $timeout(tickLog, 20000);
+                        t0 = $timeout(tickLog, 20000);
                     }
                 });
             })();
