@@ -12,7 +12,7 @@
 </script>
         <div ng-show="!job.state">
 
-            <h3>{{_('Ready for ignition!')}}</h3>
+            <h3 class="createTitle" >{{_('Ready for ignition!')}}</h3>
             <div style="text-align: center" class="well">
 
                 {{_('Are you ready to launch the synchronization?')}}
@@ -42,7 +42,7 @@
         </div>
 
         <div ng-show="job.state">
-            <h3>{{_('Synchronization running...')}}</h3>
+            <h3 class="createTitle">{{_('Synchronization running...')}}</h3>
             <div style="text-align: center" class="well">
 
                 <img src="images/rocket.png" class="pulse">

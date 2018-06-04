@@ -1,6 +1,6 @@
-<div>
+<div class="well-section">
     <h4>{{_('Sync Direction')}}</h4>
-    <div class="well">
+    <div>
         <p class="small" ng-show=" job.direction=='up' ">{{_('Modifications are sent to the server but the client does not download anything.')}}</p>
         <p class="small" ng-show=" job.direction=='bi' ">{{_('Modifications from both sides (local/remote) are automatically reflected on the other side.')}}</p>
         <p class="small" ng-show=" job.direction=='down' ">{{_('Modifications from the server are downloaded buth nothing is sent to the server.')}}</p>
@@ -18,9 +18,9 @@
     </div>
 </div>
 
-<div style="">
+<div class="well-section">
     <h4>{{_('Sync Frequency')}}</h4>
-    <div class="well">
+    <div>
         <p class="small">{{_('By default, the application will synchronize automatically')}}</p>
         <div style="text-align: center;">
             <div class="advanced_radio_box" ng-class="{'label-radio-selected':job.frequency=='auto'}" ng-click="job.frequency='auto'">
@@ -42,9 +42,9 @@
 </div>
 
 
-<div style="clear: left;" ng-hide="job.direction=='up'">
+<div class="well-section" style="clear: left;" ng-hide="job.direction=='up'">
     <h4>{{_('Conflicts')}}</h4>
-    <div class="well">
+    <div>
         <p class="small">{{_('When files were modified on both the server and your computer at the same time, a conflict is detected.')}}</p>
         <div style="text-align: center;">
             <div class="advanced_radio_box conflict"
@@ -75,31 +75,33 @@
     </div>
     </div>
 </div>
-<div style="">
-<h4>{{_('Connection settings')}}</h4>
-<div class="well">
-    <p class="small">{{_('Increase the timeout in case of slow responsive server')}}</p>
-    <div class="input-group">
+
+<div  class="well-section">
+    <h4>{{_('Connection settings')}}</h4>
+    <div>
+        <p class="small">{{_('Increase the timeout in case of slow responsive server')}}</p>
         <div class="input-group">
-            <span style="padding-right:3em;" class="input-group-addon">{{_('Timeout in seconds')}}</span>
-            <input type="number" min="0" ng-model="job.timeout"  class="form-control">
+            <div class="input-group">
+                <span style="padding-right:3em;" class="input-group-addon">{{_('Timeout in seconds')}}</span>
+                <input type="number" min="0" ng-model="job.timeout"  class="form-control">
+            </div>
         </div>
-    </div>
-    <p class="small" style="margin-top: 1em;">{{_('You can increase or reduce the number of concurrent connections. More means a faster sync but requires a server with more resources. (Default: 4)')}}</p>
-    <div class="input-group">
+        <p class="small" style="margin-top: 1em;">{{_('You can increase or reduce the number of concurrent connections. More means a faster sync but requires a server with more resources. (Default: 4)')}}</p>
         <div class="input-group">
-            <span style="padding-right:1em;" class="input-group-addon">{{_('Concurrent connections')}}</span>
-            <input type="number" class="form-control" ng-model="job.poolsize" min="1" max="99" required ng-style="
-        job.poolsize <= 4 && {'background-color': 'LightGreen'} ||
-        job.poolsize <= 8 && job.poolsize > 4 && {'background-color': 'LightSalmon'} ||
-        job.poolsize > 8 && {'background-color': 'FireBrick'}">
+            <div class="input-group">
+                <span style="padding-right:1em;" class="input-group-addon">{{_('Concurrent connections')}}</span>
+                <input type="number" class="form-control" ng-model="job.poolsize" min="1" max="99" required ng-style="
+            job.poolsize <= 4 && {'background-color': 'LightGreen'} ||
+            job.poolsize <= 8 && job.poolsize > 4 && {'background-color': 'LightSalmon'} ||
+            job.poolsize > 8 && {'background-color': 'FireBrick'}">
+            </div>
         </div>
     </div>
 </div>
 
-<div style="">
+<div  class="well-section">
 <h4>{{_('Include/Exclude from Sync')}}</h4>
-<div class="well">
+<div>
     <div style="">
             <p class="small">{{_('Syncronise, use a list of files or patterns to include in the sync')}}</p>
             <input type="text" ng-model="job.filters.includes"  class="form-control">

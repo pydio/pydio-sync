@@ -1,32 +1,31 @@
 <script id="job_2.html" type="text/ng-template">
     <div class="panel panel-primary" style="clear: both;">
-        <p class="panel-heading" style="background-color: #77b8e2;" >{{job.label?job.label:job.id}}
-            <a class="pull-right" href="#/change/{{job.id}}" title="Edit parameters"><span style="color: white;" class="small glyphicon glyphicon-wrench"></span></a>
+        <p class="panel-heading">{{job.label?job.label:job.id}}
+            <a class="pull-right" href="#/change/{{job.id}}" title="Edit parameters"><span class="small glyphicon glyphicon-wrench"></span></a>
         </p>
         <table style="width: 100%;margin-bottom: 10px;">
             <tr>
                 <td style="width:100px; padding-left: 10px;">
                     <img src="images/rocket.png" width="80" ng-class="{'pulse':job.state.tasks && job.state.tasks.total}" style="margin-top: -5px;"/>
                 </td>
-                <td style="vertical-align: middle; padding-bottom: 5px;">
+                <td style="vertical-align: middle; padding-bottom: 5px; color: #9e9e9e;">
                     <div class="" ng-if="job.state.tasks && job.state.tasks.total">
-                        <span style="font-size: 1.2em;">{{_('Status')}}: {{_('syncing')}}</span>
+                        <span style="font-size: 15px; color: #555">{{_('Status')}}: {{_('syncing')}}</span>
                         <br>{{_('Size')}}: {{job.state.global['queue_bytesize'] | bytes:1}} -
                         {{_('Estimated time')}}: {{job.state.global['eta'] | seconds}}
                         <!--{{_('Status')}}: {{_('syncing')}}-->
                     </div>
                     <div class="" ng-if="(!job.state.tasks || !job.state.tasks.total) && job.last_event">
-                        <span ng-if="job.state.global.status_indexing" style="font-size: 1.2em;">{{_('Status')}}: {{_('syncing')}}<br></span>
-                        <span ng-if="!job.state.global.status_indexing" style="font-size: 1.2em;" ng-if="job.last_event.type != 'error'">{{_('Last sync')}} {{job.last_event.date | moment }}<br></span>
+                        <span ng-if="job.state.global.status_indexing" style="font-size: 15px; color: #555">{{_('Status')}}: {{_('syncing')}}<br></span>
+                        <span ng-if="!job.state.global.status_indexing" style="font-size: 15px; color: #555" ng-if="job.last_event.type != 'error'">{{_('Last sync')}} {{job.last_event.date | moment }}<br></span>
                         <span ng-if="job.last_event.type == 'error'" style="word-wrap: break-word;">{{_('ERROR')}}: </span>{{job.last_event.message}}
                         <!--<br>{{_('Status')}}: {{_('idle')}}-->
                     </div>
                 </td>
                 <td style="width:100px; text-align: right;padding-right: 15px;">
                     <div style="position: relative;" ng-if="job.active">
-                        <progress-circle progress-circle-model="job.state.global"
-                                         element-width=80 element-height=80></progress-circle>
-                        <a style="font-size: 2em; position: absolute; left: 27px;top: 20px;" href ng-if="job.active" ng-click="job.last_event.type=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
+                        <progress-circle progress-circle-model="job.state.global" element-width=80 element-height=80></progress-circle>
+                        <a style="font-size: 2em; position: absolute; left: 28px;top: 20px;" href ng-if="job.active" ng-click="job.last_event.type=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
                         <span class="glyphicon" ng-if="job.last_event.type != 'error'" ng-class="{'glyphicon-pause':job.running,'glyphicon-play':!job.running, 'display_on_hover':job.state.tasks && job.state.tasks.total}"
                               style="display: inline-block; padding:5px; border-radius: 200px;"></span>
                         <span ng-if="job.last_event.type == 'error'" style="display: inline-block; padding: 0 15px; border-radius: 200px;">!</span>
@@ -36,41 +35,41 @@
                 </td>
             </tr>
         </table>
-    </div>
-    <div ng-if="opened_logs_panel == job.id" class="well well-sm" style="margin: 0 5px 20px;border-top: 0;border-radius: 0;margin-top: -21px;">
-        <div ng-if="conflicts.length">
-            <h4>{{_('Conflicts')}}</h4>
+        <div ng-if="opened_logs_panel == job.id" class="logsDrawer">
+            <div ng-if="conflicts.length">
+                <h4>{{_('Conflicts')}}</h4>
+                <table style="width: 100%;">
+                    <tr ng-repeat="conflict in conflicts">
+                        <td style="padding:2px 0;">{{conflict.node_path | basename}}</td>
+                        <td style="text-align: right;padding:2px 0;">
+                            <a href ng-if="conflict.status.indexOf('SOLVED:') === -1" class="small" style="text-decoration: none;" ng-click="conflict_solver.current=conflict">{{_('Solve Conflict')}}</a>
+                            <span ng-if="conflict.status.indexOf('SOLVED:') === 0" class="small">{{_('Solved')}}</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <h4 ng-if="(logs | filter: {action:'!loop'} ).length">{{_('Last files synced')}}<span style="font-size:80%; float:right; text-overflow: ellipsis;">{{ job["last_action"] | moment }}</span></h4>
+            <div class="logsListContainer" ng-init="limit=100;">
             <table style="width: 100%;">
-                <tr ng-repeat="conflict in conflicts">
-                    <td style="padding:2px 0;">{{conflict.node_path | basename}}</td>
-                    <td style="text-align: right;padding:2px 0;">
-                        <a href ng-if="conflict.status.indexOf('SOLVED:') === -1" class="small" style="text-decoration: none;" ng-click="conflict_solver.current=conflict">{{_('Solve Conflict')}}</a>
-                        <span ng-if="conflict.status.indexOf('SOLVED:') === 0" class="small">{{_('Solved')}}</span>
+                <tr ng-repeat="log in logs | filter: {action:'!loop'} | orderBy:'id':true  | limitTo: limit">
+                    <td style="width: 20px;">
+                        <span ng-if="log.action=='delete'" class="glyphicon glyphicon-trash"></span>
+                        <span ng-if="log.action!=='delete' && log.type=='remote'" class="glyphicon glyphicon-cloud-upload"></span>
+                        <span ng-if="log.action!=='delete' && log.type=='local'" class="glyphicon glyphicon-cloud-download"></span>
                     </td>
+                    <td>{{log.source && log.source!='NULL' ? log.source:log.target | basename}}</td>
+                    <td ng-show="QtObject && log.action!='delete'" ng-click="openFile(job.directory + (log.source && log.source!='NULL' ? log.source:log.target))" style="text-align: right;padding:2px 0; width: 15%;"><a style="text-decoration: none;" class="small" href="">{{_('Open File')}}</a></td>
                 </tr>
             </table>
-        </div>
-        <h4 ng-if="(logs | filter: {action:'!loop'} ).length">{{_('Last files synced')}}<span style="font-size:80%; float:right; text-overflow: ellipsis;">{{ job["last_action"] | moment }}</span></h4>
-        <div style="height:95px; overflow-y: scroll;" ng-init="limit=100;">
-        <table style="width: 100%;">
-            <tr ng-repeat="log in logs | filter: {action:'!loop'} | orderBy:'id':true  | limitTo: limit">
-                <td style="padding: 2px 0; width: 20px;">
-                    <span ng-if="log.action=='delete'" class="glyphicon glyphicon-trash"></span>
-                    <span ng-if="log.action!=='delete' && log.type=='remote'" class="glyphicon glyphicon-cloud-upload"></span>
-                    <span ng-if="log.action!=='delete' && log.type=='local'" class="glyphicon glyphicon-cloud-download"></span>
-                </td>
-                <td style="padding:2px 0;">{{log.source && log.source!='NULL' ? log.source:log.target | basename}}</td>
-                <td ng-show="QtObject && log.action!='delete'" ng-click="openFile(job.directory + (log.source && log.source!='NULL' ? log.source:log.target))" style="text-align: right;padding:2px 0; width: 15%;"><a style="text-decoration: none;" class="small" href="">{{_('Open File')}}</a></td>
-            </tr>
-        </table>
-        </div>
+            </div>
 
-        <h4 ng-if="running.tasks.total && running.tasks.current.length"  >{{_('Transfers in progress')}} <span class="small">({{running.tasks.total}})</span></h4>
-        <div ng-if="running.tasks.total && running.tasks.current.length" ng-repeat="task in running.tasks.current" style="padding:2px 0;">
-            <span ng-if="task.total_bytes_sent"><span class="badge">{{ task.bytesize > 0 ? Math.min(100, 100 * task.total_bytes_sent / task.bytesize) : 0 | number: 0}}%</span></span>
-            <span ng-if="!task.total_bytes_sent && task.location == 'local'" class="glyphicon glyphicon-cloud-upload"></span>
-            <span ng-if="!task.total_bytes_sent && task.location == 'remote'" class="glyphicon glyphicon-cloud-download"></span>
-            <span>{{task.target && task.target != 'NULL'?task.target:task.source | basename}}</span>
+            <h4 ng-if="running.tasks.total && running.tasks.current.length"  >{{_('Transfers in progress')}} <span class="small">({{running.tasks.total}})</span></h4>
+            <div ng-if="running.tasks.total && running.tasks.current.length" ng-repeat="task in running.tasks.current" style="padding:2px 0;">
+                <span ng-if="task.total_bytes_sent"><span class="badge">{{ task.bytesize > 0 ? Math.min(100, 100 * task.total_bytes_sent / task.bytesize) : 0 | number: 0}}%</span></span>
+                <span ng-if="!task.total_bytes_sent && task.location == 'local'" class="glyphicon glyphicon-cloud-upload"></span>
+                <span ng-if="!task.total_bytes_sent && task.location == 'remote'" class="glyphicon glyphicon-cloud-download"></span>
+                <span>{{task.target && task.target != 'NULL'?task.target:task.source | basename}}</span>
+            </div>
         </div>
     </div>
     <div class="openDrawer">
@@ -105,7 +104,7 @@
 
 
 <!-- NAV BAR -->
-<div  class="navbar-inverse navbar-fixed-bottom" style="padding: 6px;">
-    <a ng-if="ui_config.login_mode=='standard'" href="#/new" class="btn btn-default btn-lg btn-block"><span class="glyphicon glyphicon-plus-sign"></span> {{_('Create a new synchronization')}}</a>
-    <a ng-if="ui_config.login_mode=='alias'" href="#/welcome" class="btn btn-default btn-lg btn-block"><span class="glyphicon glyphicon-plus-sign"></span> {{_('Create a new synchronization')}}</a>
+<div  class="navbar-inverse navbar-fixed-bottom">
+    <a ng-if="ui_config.login_mode=='standard'" href="#/new" class="btn"><span class="glyphicon glyphicon-plus-sign"></span> {{_('Create a new synchronization')}}</a>
+    <a ng-if="ui_config.login_mode=='alias'" href="#/welcome" class="btn"><span class="glyphicon glyphicon-plus-sign"></span> {{_('Create a new synchronization')}}</a>
 </div>
