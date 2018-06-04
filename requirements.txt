@@ -14,3 +14,5 @@ flask-restful==0.2.12
 six>=1.9.0
 memory-profiler>=0.32
 netifaces==0.10.4
+Jinja2==2.8.1
+websocket-client==0.44.0
