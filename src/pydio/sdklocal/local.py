@@ -23,9 +23,9 @@ import hashlib
 import stat
 import netifaces
 try:
-    from pydio.sdkremote.exceptions import SystemSdkException
+    from pydio.sdkremote.pydio_exceptions import SystemSdkException
 except ImportError:
-    from sdkremote.exceptions import SystemSdkException
+    from sdkremote.pydio_exceptions import SystemSdkException
 import shutil
 import logging
 try:

@@ -95,7 +95,11 @@ class PydioScheduler():
         thread = self.get_thread(job_id)
         if not thread:
             return False
-        return {"global": thread.get_global_progress(), "tasks": thread.get_current_tasks()}
+        return {
+            "global": thread.get_global_progress(),
+            "tasks": thread.get_current_tasks(),
+            "websocket": thread.get_websocket_status()
+        }
 
     @pydio_profile
     def pause_job(self, job_id):

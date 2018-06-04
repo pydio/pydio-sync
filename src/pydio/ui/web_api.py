@@ -49,7 +49,7 @@ try:
     from pydio.job.localdb import LocalDbHandler, SqlEventHandler
     from pydio.utils.global_config import ConfigManager, GlobalConfigManager
     from pydio.utils.functions import connection_helper
-    from pydio.sdkremote.exceptions import ProcessException, InterruptException, PydioSdkDefaultException
+    from pydio.sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException
     from pydio.sdkremote.remote import PydioSdk
     from pydio.sdklocal.local import SystemSdk
     from pydio.utils.check_sync import SyncChecker
@@ -65,6 +65,7 @@ except ImportError:
     from utils.functions import connection_helper
     from utils.pydio_profiler import pydio_profile
     from sdkremote.remote import PydioSdk
+    from sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException
     from utils import check_sync
     from utils.i18n import get_languages
     from utils import i18n
@@ -803,7 +804,7 @@ class ShareManager(Resource):
                 )
                 return {"link": res}
             else:
-                res = remote_instance.unshare(job.remote_folder + "/" + args["path"])
+                res = remote_instance.unshare((job.remote_folder + "/" + args["path"]).replace('\\', '/'))
                 return {"response": res, "existingLinkFlag": "false"}
 
 class ShareLinkManager(Resource):

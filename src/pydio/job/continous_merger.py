@@ -34,7 +34,7 @@ try:
     from pydio.job.local_watcher import LocalWatcher
     from pydio.job.change_stores import SqliteChangeStore
     from pydio.job.EventLogger import EventLogger
-    from pydio.sdkremote.exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException
+    from pydio.sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException, PydioSdkBasicAuthException
     from pydio.sdkremote.remote import PydioSdk
     from pydio.sdklocal.local import SystemSdk
     from pydio.utils.functions import connection_helper
@@ -52,7 +52,7 @@ except ImportError:
     from job.change_stores import SqliteChangeStore
     from job.EventLogger import EventLogger
     from job.local_watcher import LocalWatcher
-    from sdkremote.exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException
+    from sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException, PydioSdkException, PydioSdkBasicAuthException
     from sdkremote.remote import PydioSdk
     from sdklocal.local import SystemSdk
     from utils.functions import connection_helper
@@ -135,7 +135,7 @@ class ContinuousDiffMerger(threading.Thread):
         self.watcher_first_run = True
         # TODO: TO BE LOADED FROM CONFIG
         self.storage_watcher = job_config.label.startswith('LSYNC')
-
+        self.wait_for_changes = False  # True when no changes detected in last cycle, can be used to disable websockets
         self.marked_for_snapshot_pathes = []
         self.processing = False  # indicates whether changes are being processed
 
@@ -183,6 +183,10 @@ class ContinuousDiffMerger(threading.Thread):
     def handle_transfer_callback_event(self, sender, change):
         self.processing_signals[change['target']] = change
         self.global_progress["queue_bytesize"] -= change['bytes_sent']
+        # The following 3 lines are a dirty fix, only working for one file at a time size relaining... Better than NaN  
+        if self.global_progress["queue_bytesize"] < 0:
+            self.global_progress["queue_bytesize"] = abs(self.global_progress["queue_bytesize"])
+        self.global_progress["queue_bytesize"] = max(change['total_size'] - change['total_bytes_sent'], self.global_progress["queue_bytesize"])
         self.global_progress["queue_done"] += float(change['bytes_sent']) / float(change["total_size"])
 
     @pydio_profile
@@ -273,6 +277,9 @@ class ContinuousDiffMerger(threading.Thread):
             'total': self.global_progress['queue_length'],
             'current': self.current_tasks
         }
+
+    def get_websocket_status(self):
+        return self.sdk.waiter and self.sdk.waiter.ws.connected
 
     @pydio_profile
     def compute_queue_bytesize(self):
@@ -421,6 +428,7 @@ class ContinuousDiffMerger(threading.Thread):
                         continue
                     except Exception as e:
                         logging.exception(e)
+                        self.sleep_offline()
                     if not self.sdk.check_basepath():
                         log = _('Cannot find remote folder, maybe it was renamed? Sync cannot start, please check the configuration.')
                         logging.error(log)
@@ -437,13 +445,13 @@ class ContinuousDiffMerger(threading.Thread):
                     self.marked_for_snapshot_pathes = []
 
                 writewait = .5  # To avoid reading events before they're written (db lock) wait for writing to finish
-                while self.event_handler.locked:
+                while self.event_handler and self.event_handler.locked:
                     logging.info("Waiting for changes to be written before retrieving remote changes.")
                     if writewait < 5:
                         writewait += .5
                     time.sleep(writewait)
                 # Load local and/or remote changes, depending on the direction
-                self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'], self.job_config.poolsize, local_sdk=self.system, remote_sdk=self.sdk, job_config=self.job_config)
+                self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'], self.job_config.poolsize, local_sdk=self.system, remote_sdk=self.sdk, job_config=self.job_config, db_handler=self.db_handler)
                 self.current_store.open()
                 try:
                     if self.job_config.direction != 'up':
@@ -467,6 +475,11 @@ class ContinuousDiffMerger(threading.Thread):
                     self.marked_for_snapshot_pathes = []
                     logging.error(error)
                     self.logger.log_state(error, "wait")
+                    self.sleep_offline()
+                    continue
+                except PydioSdkBasicAuthException as e:
+                    self.logger.log_state(_('Authentication Error'), 'error')
+                    self.logger.log_notif(_('Authentication Error'), 'error')
                     self.sleep_offline()
                     continue
                 except Exception as e:
@@ -497,6 +510,7 @@ class ContinuousDiffMerger(threading.Thread):
                     self.processing = False
                     logging.info('No changes detected in ' + self.job_config.id)
                     self.update_min_seqs_from_store()
+                    self.wait_for_changes = True
                     self.exit_loop_clean(self.logger)
                     very_first = False
                     #logging.info("CheckSync of " + self.job_config.id)
@@ -698,6 +712,11 @@ class ContinuousDiffMerger(threading.Thread):
             except RequestException as ree:
                 logging.error(ree.message)
                 self.logger.log_state(_('Cannot resolve domain!'), 'error')
+                self.sleep_offline()
+            except PydioSdkBasicAuthException as e:
+                self.logger.log_state(_('Authentication Error'), 'error')
+                self.logger.log_notif(_('Authentication Error'), 'error')
+                self.sleep_offline()
             except Exception as e:
                 if not (e.message.lower().count('[quota limit reached]') or e.message.lower().count('[file permissions]')):
                     logging.exception('Unexpected Error: %s' % e.message)
@@ -765,8 +784,25 @@ class ContinuousDiffMerger(threading.Thread):
     @pydio_profile
     def load_remote_changes_in_store(self, seq_id, store):
         last_seq = self.sdk.changes_stream(seq_id, store.flatten_and_store)
-        """try:
-            self.sdk.websocket_send()
-        except Exception as e:
-            logging.exception(e)"""
+        if self.wait_for_changes:
+            timereq = time.time()
+            try:
+                if self.sdk.waiter is None:
+                    self.sdk.websocket_connect(last_seq, str(self.job_config.id))
+
+                if self.sdk.waiter and self.sdk.waiter.ws.connected:
+                    self.sdk.waiter.should_fetch_changes = False
+                    while not self.sdk.waiter.should_fetch_changes and not self.interrupt:
+                        time.sleep(2)
+                        # these break only after one run
+                        if self.local_seq != self.db_handler.get_max_seq():
+                            # There was a local change
+                            break
+                        if not self.sdk.waiter.ws.connected:
+                            # websocket disconnected
+                            break
+            except Exception as e:
+                logging.exception(e)
+            if time.time() - timereq > 10:  # if last_seq was updated more than 10s ago, update it
+                last_seq = self.sdk.changes_stream(seq_id, store.flatten_and_store)
         return last_seq

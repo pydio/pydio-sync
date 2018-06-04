@@ -13,9 +13,12 @@
 <div style="margin-top: 120px;">
     <div class="small pull-left" style="text-align: center; width: 40%; overflow: visible;">
         <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
-        <span ng-if="ui_config.login_mode == 'standard'">{{_('Server')}}: {{job.server}}<br></span>
-        {{_('Workspace')}}: {{job.workspace}} <a href="{{job.server}}" target="_blank"><span class="glyphicon glyphicon-new-window"></span></a><br>
-        <span ng-if="job.remote_folder">{{_('Folder')}}: {{job.remote_folder}}</span>
+        <table style="text-align:left; width:100%;">
+            <tr ng-if="ui_config.login_mode == 'standard'"><td style="text-align:right;">{{_('Server')}}:&nbsp;</td><td>{{job.server}}</td></tr>
+            <tr><td style="text-align:right;">{{_('Workspace')}}:&nbsp;</td><td>{{job.workspace}} <a href="{{job.server}}" target="_blank"><span class="glyphicon glyphicon-new-window"></span></a></td><tr>
+            <tr ng-if="job.remote_folder"><td style="text-align:right;">{{_('Folder')}}:&nbsp;</td><td> {{job.remote_folder}}</td></tr>
+            <tr ng-if="job.state.websocket"><td style="text-align:right;">{{_('WS')}}:&nbsp;</td><td> {{_('Active')}}</td><td></td></tr>
+        </table>
     </div>
 
     <div ng-show="job.resynctimeout >= 0" style="">

@@ -20,7 +20,14 @@
 from functools import wraps
 import logging
 import threading
+import sys
 import time
+try:
+    from pydio.sdkremote.remote import Waiter
+    from pydio.job.local_watcher import LocalWatcher
+except ImportError:
+    from sdkremote.remote import Waiter
+    from job.local_watcher import LocalWatcher
 
 
 class ThreadManager(object):
@@ -56,9 +63,17 @@ class ThreadManager(object):
 
     def shutdown_wait(self):
         while self.are_threads_running():
-            logging.debug("There are %d threads still running" % threading.active_count())
-            logging.debug("Threads: \n\t%s" % "\n\t".join([str(t) for t in threading.enumerate()]))
-            time.sleep(2)
+            potential_important_thread = False
+            for t in self.managed_threads():
+                if type(t) != Waiter and type(t) != LocalWatcher:
+                    potential_important_thread = True
+            if potential_important_thread:
+                logging.debug("There are %d threads still running" % threading.active_count())
+                logging.debug("Threads: \n\t%s" % "\n\t".join([str(t) for t in threading.enumerate()]))
+                time.sleep(2)
+            else:
+                # force exit when only websocket and localwatcher threads are running
+                sys.exit(0)
 
     def wait(self):
         try:

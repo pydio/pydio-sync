@@ -832,6 +832,36 @@ angular.module('project', ['ngRoute', 'ngResource', 'ui.bootstrap', 'ui.bootstra
                 $location.path('/');
             }
         };
+        $scope.checkTask = function(){
+            // checks that a similar task doesn't already exist
+            for (task in $scope.jobs){
+                if($scope.jobs[task].__type__ === "JobConfig"){
+                    if ( ((typeof($scope.jobs[task]['remote_folder']) === "undefined") || ($scope.jobs[task]['remote_folder'].replace('\\', '/') === $scope.job['remote_folder'].replace('\\', '/') || $scope.jobs[task]['remote_folder'].replace('\\', '/') + "/" === $scope.job['remote_folder'].replace('\\', '/') ||
+                         ( $scope.jobs[task]['remote_folder'].replace('\\', '/') === $scope.job['remote_folder'].replace('\\', '/') + "/")) )&&
+                         ( $scope.jobs[task]['user'].replace('\\', '/') === $scope.job['user'].replace('\\', '/') )&&
+                         ($scope.jobs[task]['directory'].replace('\\', '/') === $scope.job['directory'].replace('\\', '/') || $scope.jobs[task]['directory'].replace('\\', '/') +"/" === $scope.job['directory'].replace('\\', '/') || $scope.jobs[task]['directory'].replace('\\', '/') === $scope.job['directory'].replace('\\', '/') +"/") &&
+                         ($scope.jobs[task]['server'].replace('\\', '/') === $scope.job['server'].replace('\\', '/') || $scope.jobs[task]['server'].replace('\\', '/') +"/" === $scope.job['server'].replace('\\', '/') || $scope.jobs[task]['server'].replace('\\', '/') === $scope.job['server'].replace('\\', '/') +"/") &&
+                         $scope.jobs[task]['workspace'].replace('\\', '/') === $scope.job['workspace'].replace('\\', '/')
+                        ){
+                            $scope.checkTaskFailed = true;
+                            return false;
+
+                        }
+                }
+            }
+            $scope.checkTaskFailed = false;
+            return true;
+        }
+
+        $scope.checkTaskFolder = function(){
+            // check that a task with the same local folder doesn't exist
+            for (task in $scope.jobs){
+                if ($scope.jobs[task]['directory'] === $scope.job['directory'] || $scope.jobs[task]['directory'] +"/" === $scope.job['directory'] || $scope.jobs[task]['directory'] === $scope.job['directory'] +"/")
+                    return false;
+            }
+            return true;
+        }
+
         $scope.triggerResync = function () {
             $scope.job.resynctimeout = 10;
             $scope.resynctimer = setInterval(function () {
