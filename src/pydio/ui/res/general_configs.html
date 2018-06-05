@@ -11,8 +11,8 @@
             <p class="small" style="margin-top:2%;">
                 <div class="pull-right">
                     <div class="btn-group">
-                        <button type="button" class="btn" ng-click="general_configs_data.update_info.enable_update_check='true'" ng-class="{'btn-success':general_configs_data.update_info.enable_update_check=='true','btn-default':general_configs_data.update_info.enable_update_check=='true'}">On</button>
-                        <button type="button" class="btn" ng-click="general_configs_data.update_info.enable_update_check='false'" ng-class="{'btn-danger':general_configs_data.update_info.enable_update_check=='false','btn-default':general_configs_data.update_info.enable_update_check=='false'}">Off</button>
+                        <button type="button" class="btn" ng-click="general_configs_data.update_info.enable_update_check='true'" ng-class="{'btn-success':general_configs_data.update_info.enable_update_check=='true'||general_configs_data.update_info.enable_update_check===true,'btn-default':general_configs_data.update_info.enable_update_check=='false'||general_configs_data.update_info.enable_update_check===false}">On</button>
+                        <button type="button" class="btn btn-default" ng-click="general_configs_data.update_info.enable_update_check='false'" ng-class="{'btn-default':general_configs_data.update_info.enable_update_check=='true'||general_configs_data.update_info.enable_update_check===true}">Off</button>
                     </div>
                 </div>
             {{_('Enable / Disable update here.')}}</p>

@@ -129,11 +129,14 @@
 
     </div>
 
-    <h3 style="margin-top: 30px; font-size: 18px; cursor:pointer;" ng-click="edit_show_advanced=!edit_show_advanced">
-        <span ng-class="{'glyphicon-chevron-right':!edit_show_advanced,'glyphicon-chevron-down':edit_show_advanced}" class="small glyphicon"></span> {{_('Advanced parameters')}}<span ng-if="!edit_show_advanced">...</span>
-    </h3>
-    <div ng-show="edit_show_advanced" class="well" style="padding: 0">
-        <ng-include src="'advanced.html'" onload="job = job"></ng-include>
+    <div class="well" style="padding: 0; margin-top: 0;">
+        <h3 style="padding: 16px; font-size: 18px; cursor:pointer; margin-top: 0; display: flex;align-items: center;" ng-click="edit_show_advanced=!edit_show_advanced">
+            <span style="flex: 1;">{{_('Advanced parameters')}}<span ng-if="!edit_show_advanced">...</span></span>
+            <span ng-class="{'glyphicon-chevron-right':!edit_show_advanced,'glyphicon-chevron-down':edit_show_advanced}" class="small glyphicon" style="margin-right: 5px;"></span>
+        </h3>
+        <div ng-show="edit_show_advanced" style="padding: 0">
+            <ng-include src="'advanced.html'" onload="job = job"></ng-include>
+        </div>
     </div>
 
     <div>

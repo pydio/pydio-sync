@@ -6,7 +6,7 @@
         <table style="width: 100%;margin-bottom: 10px;">
             <tr>
                 <td style="width:100px; padding-left: 10px;">
-                    <img src="images/rocket.png" width="80" ng-class="{'pulse':job.state.tasks && job.state.tasks.total}" style="margin-top: -5px;"/>
+                    <img src="images/rocket.png" width="80" ng-class="{'pulse':job.state.tasks && job.state.tasks.total, 'disabled':!job.active}" style="margin-top: -5px;"/>
                 </td>
                 <td style="vertical-align: middle; padding-bottom: 5px; color: #9e9e9e;">
                     <div class="" ng-if="job.state.tasks && job.state.tasks.total">
@@ -48,9 +48,10 @@
                     </tr>
                 </table>
             </div>
-            <h4 ng-if="(logs | filter: {action:'!loop'} ).length">{{_('Last files synced')}}<span style="font-size:80%; float:right; text-overflow: ellipsis;">{{ job["last_action"] | moment }}</span></h4>
+            <h4>{{_('Last files synced')}}<span ng-if="(logs | filter: {action:'!loop'} ).length" style="font-size:80%; float:right; text-overflow: ellipsis;">{{ job["last_action"] | moment }}</span></h4>
             <div class="logsListContainer" ng-init="limit=100;">
             <table style="width: 100%;">
+                <tr ng-if="!(logs | filter: {action:'!loop'} ).length"><td style="border-bottom: 0;">{{_('No recent records')}}</td></tr>
                 <tr ng-repeat="log in logs | filter: {action:'!loop'} | orderBy:'id':true  | limitTo: limit">
                     <td style="width: 20px;">
                         <span ng-if="log.action=='delete'" class="glyphicon glyphicon-trash"></span>
