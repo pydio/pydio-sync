@@ -1,12 +1,12 @@
-<div style="display:flex; margin-bottom:10px; margin-top: 20px; align-items: center;">
-    <h2 class="editHeader" style="flex: 1;">
+<div class="editJobHeader">
+    <h2 class="editHeader" style="padding-top: 0px;">
         {{_('SYNC %1 parameters', job.label?job.label:job.id)}}
     </h2>
-    <div style="padding: 5px;">
-        <div class="btn-group">
-            <button type="button" ng-click="toggleJobActive()" class="btn" ng-class="{'btn-success':job.active,'btn-default':!job.active}">On</button>
-            <button type="button" ng-click="toggleJobActive()" class="btn" ng-class="{'btn-danger':!job.active,'btn-default':job.active}">Off</button>
-        </div>
+    <div style="text-align: right; position: relative;">
+        <a href="#" title="Cancel" style="float: left;"><span class="glyphicon glyphicon-chevron-left"></span></a>
+        <a href="#" title="{{_('Save Parameters')}}" ng-click="save('full')"><span class="glyphicon glyphicon-floppy-disk"></span></a>
+        <a href="#" title="{{_('On/Off')}}" ng-click="toggleJobActive()"><span ng-class="{'glyphicon-play':!job.active,'glyphicon-stop':job.active}" class="glyphicon glyphicon-play"></span></a>
+        <a href="#" title="{{_('Delete Sync')}}" ng-click="deleteJob()"><span class="glyphicon glyphicon-trash"></span></a>
     </div>
 </div>
 
@@ -143,11 +143,4 @@
         <br style="clear: both">
     </div>
 
-</div>
-
-<div  class="navbar-inverse navbar-fixed-bottom">
-    <a href="#" title="Cancel"><span class="glyphicon glyphicon-arrow-left" style="font-size: 16px;position: absolute;left: 16px;top: 20px;"></span></a>
-    <button type="button"  class="btn btn-default" ng-click="deleteJob()" style="width: 40%;margin:0 1%;" href>{{_('Delete Sync')}}</button>
-    <button type="button" ng-click="save('full')" class="btn btn-info" style="width: 40%;margin:0 1%;">{{_('Save Parameters')}}</button>
-</div>
 </div>

@@ -1,6 +1,6 @@
 <script id="job_2.html" type="text/ng-template">
     <div class="panel panel-primary" style="clear: both;">
-        <p class="panel-heading">{{job.label?job.label:job.id}}
+        <p class="panel-heading" ng-class="{'disabled':!job.active}"><span ng-if="!job.active">{{_('[DISABLED]')|lowercase}} </span>{{job.label?job.label:job.id}}
             <a class="pull-right" href="#/change/{{job.id}}" title="Edit parameters"><span class="small glyphicon glyphicon-wrench"></span></a>
         </p>
         <table style="width: 100%;margin-bottom: 10px;">
@@ -31,37 +31,38 @@
                         <span ng-if="job.last_event.type == 'error'" style="display: inline-block; padding: 0 15px; border-radius: 200px;">!</span>
                         </a>
                     </div>
-                    <span ng-if="!job.active">{{_('[DISABLED]')}}</span>
                 </td>
             </tr>
         </table>
         <div ng-if="opened_logs_panel == job.id" class="logsDrawer">
             <div ng-if="conflicts.length">
                 <h4>{{_('Conflicts')}}</h4>
-                <table style="width: 100%;">
-                    <tr ng-repeat="conflict in conflicts">
-                        <td style="padding:2px 0;">{{conflict.node_path | basename}}</td>
-                        <td style="text-align: right;padding:2px 0;">
-                            <a href ng-if="conflict.status.indexOf('SOLVED:') === -1" class="small" style="text-decoration: none;" ng-click="conflict_solver.current=conflict">{{_('Solve Conflict')}}</a>
-                            <span ng-if="conflict.status.indexOf('SOLVED:') === 0" class="small">{{_('Solved')}}</span>
-                        </td>
-                    </tr>
-                </table>
+                <div class="conflictsListContainer">
+                    <table style="width: 100%;">
+                        <tr ng-repeat="conflict in conflicts">
+                            <td style="padding:2px 0; width: 50%;">{{conflict.node_path | basename}}</td>
+                            <td style="text-align: right;padding:2px 0;">
+                                <a href ng-if="conflict.status.indexOf('SOLVED:') === -1" class="small" style="text-decoration: none;" ng-click="conflict_solver.current=conflict">{{_('Solve Conflict')}}</a>
+                                <span ng-if="conflict.status.indexOf('SOLVED:') === 0" class="small">{{_('Solved')}}</span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
             </div>
             <h4>{{_('Last files synced')}}<span ng-if="(logs | filter: {action:'!loop'} ).length" style="font-size:80%; float:right; text-overflow: ellipsis;">{{ job["last_action"] | moment }}</span></h4>
             <div class="logsListContainer" ng-init="limit=100;">
-            <table style="width: 100%;">
-                <tr ng-if="!(logs | filter: {action:'!loop'} ).length"><td style="border-bottom: 0;">{{_('No recent records')}}</td></tr>
-                <tr ng-repeat="log in logs | filter: {action:'!loop'} | orderBy:'id':true  | limitTo: limit">
-                    <td style="width: 20px;">
-                        <span ng-if="log.action=='delete'" class="glyphicon glyphicon-trash"></span>
-                        <span ng-if="log.action!=='delete' && log.type=='remote'" class="glyphicon glyphicon-cloud-upload"></span>
-                        <span ng-if="log.action!=='delete' && log.type=='local'" class="glyphicon glyphicon-cloud-download"></span>
-                    </td>
-                    <td>{{log.source && log.source!='NULL' ? log.source:log.target | basename}}</td>
-                    <td ng-show="QtObject && log.action!='delete'" ng-click="openFile(job.directory + (log.source && log.source!='NULL' ? log.source:log.target))" style="text-align: right;padding:2px 0; width: 15%;"><a style="text-decoration: none;" class="small" href="">{{_('Open File')}}</a></td>
-                </tr>
-            </table>
+                <table style="width: 100%;">
+                    <tr ng-if="!(logs | filter: {action:'!loop'} ).length"><td style="border-bottom: 0;">{{_('No recent records')}}</td></tr>
+                    <tr ng-repeat="log in logs | filter: {action:'!loop'} | orderBy:'id':true  | limitTo: limit">
+                        <td style="width: 20px;">
+                            <span ng-if="log.action=='delete'" class="glyphicon glyphicon-trash"></span>
+                            <span ng-if="log.action!=='delete' && log.type=='remote'" class="glyphicon glyphicon-cloud-upload"></span>
+                            <span ng-if="log.action!=='delete' && log.type=='local'" class="glyphicon glyphicon-cloud-download"></span>
+                        </td>
+                        <td>{{log.source && log.source!='NULL' ? log.source:log.target | basename}}</td>
+                        <td ng-show="QtObject && log.action!='delete'" ng-click="openFile(job.directory + (log.source && log.source!='NULL' ? log.source:log.target))" style="text-align: right;padding:2px 0; width: 15%;"><a style="text-decoration: none;" class="small" href="">{{_('Open File')}}</a></td>
+                    </tr>
+                </table>
             </div>
 
             <h4 ng-if="running.tasks.total && running.tasks.current.length"  >{{_('Transfers in progress')}} <span class="small">({{running.tasks.total}})</span></h4>
@@ -85,10 +86,10 @@
     {{_('An element named %1 was modified on both the server and on your local computer. Select how you want to solve this conflicting case:', conflict_solver.current.node_path)}}
     <div style="text-align: center; margin: 20px 0 0;">
         <span ng-click="conflict_solver.applyToAll=!conflict_solver.applyToAll;"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!conflict_solver.applyToAll,'glyphicon-ok':conflict_solver.applyToAll}"></span> <label >{{_('Apply to all conflicts')}}</label></span>
-        <div class="btn btn-group">
-            <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPLOCAL');" class="btn btn-default" tabindex="0">{{_('Mine')}}</a>
+        <div style="text-align: center;margin-top: 10px;">
+            <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPLOCAL');" class="btn btn-default" tabindex="0" style="margin-right: 10px;">{{_('Mine')}}</a>
             <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPBOTH');" class="btn btn-default" tabindex="0">{{_('Both Versions')}}</a>
-            <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPREMOTE');" class="btn btn-default" tabindex="0">{{_('Theirs')}}</a>
+            <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPREMOTE');" class="btn btn-default" tabindex="0" style="margin-left: 10px;">{{_('Theirs')}}</a>
         </div>
     </div>
 </div>
