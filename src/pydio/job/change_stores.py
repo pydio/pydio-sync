@@ -92,7 +92,6 @@ class SqliteChangeStore():
             self.conn.commit()
         except sqlite3.OperationalError as oe:
             # Catch Database locked errors and try again
-            logging.info("Could not open SqliteChangeStore in " + self.db[:self.db.rfind("/")])
             logging.exception(oe)
             time.sleep(.5)
             self.open()
@@ -533,7 +532,11 @@ class SqliteChangeStore():
                 conflicts += 1
                 path = row['target']
                 logging.debug('[change store] Storing CONFLICT on node %s' % path)
-                status_handler.update_node_status(path, 'CONFLICT', self.sqlite_row_to_dict(row, load_node=True))
+                try:
+                    status_handler.update_node_status(path, 'CONFLICT', self.sqlite_row_to_dict(row, load_node=True))
+                except Exception as e:
+                    logging.exception(e)
+                    logging.info("Problem with " + path)
 
         return conflicts
 
