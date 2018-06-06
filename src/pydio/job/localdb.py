@@ -138,6 +138,39 @@ class SqlSnapshot(object):
         return set(self._stat_snapshot)
 
 
+class ClosingCursor():
+
+    def __init__(self, file='', timeout=4, write=False, withCommit=False, retries=100):
+        self.file=file
+        self.timeout = timeout
+        self.retries = retries
+        self.write = write
+        self.withCommit = withCommit
+
+    def open(self, retry=0):
+        try:
+            self.conn = sqlite3.connect(self.file, timeout=self.timeout)
+        except sqlite3.OperationalError as e:
+            time.sleep(.2)
+            if retry < self.retries:
+                self.open(retry + 1)
+            else:
+                raise e
+
+    def __enter__(self):
+        self.open()
+        if self.write:
+            return self.conn
+        else:
+            self.conn.row_factory = sqlite3.Row
+            return self.conn.cursor()
+
+    def __exit__(self, type, value, traceback):
+        if self.write and self.withCommit:
+            self.conn.commit()
+        self.conn.close()
+
+
 class LocalDbHandler():
 
     def __init__(self, job_data_path='', base=''):
@@ -176,11 +209,8 @@ class LocalDbHandler():
 
     @pydio_profile
     def find_node_by_id(self, node_path, with_status=False):
-        try:
-            node_path = self.normpath(node_path)
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
+        node_path = self.normpath(node_path)
+        with ClosingCursor(self.db, timeout=self.timeout) as c:
             id = False
             q = "SELECT node_id FROM ajxp_index WHERE node_path LIKE ?"
             if with_status:
@@ -188,11 +218,7 @@ class LocalDbHandler():
             for row in c.execute(q, (node_path,)):
                 id = row['node_id']
                 break
-            c.close()
             return id
-        except sqlite3.OperationalError:
-            time.sleep(.2)
-            return self.find_node_by_id(node_path, with_status)
 
     @pydio_profile
     def get_node_md5(self, node_path):
@@ -200,30 +226,24 @@ class LocalDbHandler():
         WARNING NOT USED
         """
         node_path = self.normpath(node_path)
-        conn = sqlite3.connect(self.db, timeout=self.timeout)
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        for row in c.execute("SELECT md5 FROM ajxp_index WHERE node_path LIKE ?", (node_path,)):
-            md5 = row['md5']
-            c.close()
-            return md5
-        c.close()
+        with ClosingCursor(self.db, timeout=self.timeout) as c:
+            for row in c.execute("SELECT md5 FROM ajxp_index WHERE node_path LIKE ?", (node_path,)):
+                md5 = row['md5']
+                c.close()
+                return md5
         return hashfile(self.base + node_path, hashlib.md5())
 
     @pydio_profile
     def get_node_status(self, node_path):
         try:
             node_path = self.normpath(node_path)
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
-            status = "False"
-            for row in c.execute("SELECT ajxp_node_status.status FROM ajxp_index,ajxp_node_status "
-                                 "WHERE ajxp_index.node_path = ? AND ajxp_node_status.node_id = ajxp_index.node_id", (node_path,)):
-                status = row['status']
-                break
-            c.close()
-            return status
+            with ClosingCursor(self.db, timeout=self.timeout) as c:
+                status = "False"
+                for row in c.execute("SELECT ajxp_node_status.status FROM ajxp_index,ajxp_node_status "
+                                     "WHERE ajxp_index.node_path = ? AND ajxp_node_status.node_id = ajxp_index.node_id", (node_path,)):
+                    status = row['status']
+                    break
+                return status
         except sqlite3.OperationalError:
             # If the database was locked return PENDING state, better than nothing ^_^
             return "PENDING"
@@ -233,18 +253,15 @@ class LocalDbHandler():
     def get_directory_node_status(self, node_path):
         node_path = "" if self.normpath('/') == self.normpath(node_path) else self.normpath(node_path)
         try:
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
             status = "IDLE"
-            if [r[0] for r in c.execute("SELECT COUNT(ajxp_index.node_id) \
-                         FROM ajxp_index \
-                         LEFT JOIN ajxp_node_status \
-                         ON ajxp_node_status.node_id = ajxp_index.node_id\
-                         WHERE ajxp_node_status.status<>'IDLE' \
-                         AND ajxp_index.node_path LIKE ?", (self.normpath(node_path + '/%'),))][0] > 0:
-                status = "PENDING"
-            c.close()
+            with ClosingCursor(self.db, timeout=self.timeout) as c:
+                if [r[0] for r in c.execute("SELECT COUNT(ajxp_index.node_id) \
+                             FROM ajxp_index \
+                             LEFT JOIN ajxp_node_status \
+                             ON ajxp_node_status.node_id = ajxp_index.node_id\
+                             WHERE ajxp_node_status.status<>'IDLE' \
+                             AND ajxp_index.node_path LIKE ?", (self.normpath(node_path + '/%'),))][0] > 0:
+                    status = "PENDING"
             return status
         except sqlite3.OperationalError:
             # If the database was locked return PENDING state, better than nothing ^_^
@@ -252,62 +269,53 @@ class LocalDbHandler():
 
     @pydio_profile
     def list_conflict_nodes(self):
-        conn = sqlite3.connect(self.db, timeout=self.timeout)
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
         rows = []
-        for row in c.execute("SELECT * FROM ajxp_index,ajxp_node_status "
-                             "WHERE (ajxp_node_status.status='CONFLICT' OR ajxp_node_status.status LIKE 'SOLVED%' ) AND ajxp_node_status.node_id = ajxp_index.node_id"):
-            d = {}
-            for idx, col in enumerate(c.description):
-                if col[0] == 'stat_result':
-                    continue
-                if col[0] == 'detail' and row[idx]:
-                    try:
-                        decoded_detail = pickle.loads(row[idx])
-                        d[col[0]] = decoded_detail
-                    except ValueError:
-                        pass
-                else:
-                    d[col[0]] = row[idx]
-            rows.append(d)
-        c.close()
+        with ClosingCursor(self.db, timeout=self.timeout) as c:
+            for row in c.execute("SELECT * FROM ajxp_index,ajxp_node_status "
+                                 "WHERE (ajxp_node_status.status='CONFLICT' OR ajxp_node_status.status LIKE 'SOLVED%' ) AND ajxp_node_status.node_id = ajxp_index.node_id"):
+                d = {}
+                for idx, col in enumerate(c.description):
+                    if col[0] == 'stat_result':
+                        continue
+                    if col[0] == 'detail' and row[idx]:
+                        try:
+                            decoded_detail = pickle.loads(row[idx])
+                            d[col[0]] = decoded_detail
+                        except ValueError:
+                            pass
+                    else:
+                        d[col[0]] = row[idx]
+                rows.append(d)
         return rows
 
     @pydio_profile
     def count_conflicts(self):
-        conn = sqlite3.connect(self.db, timeout=self.timeout)
-        conn.row_factory = sqlite3.Row
         c = 0
-        for row in conn.execute("SELECT count(node_id) FROM ajxp_node_status WHERE status='CONFLICT'"):
-            c = int(row[0])
-        conn.close()
+        with ClosingCursor(self.db, timeout=self.timeout) as conn:
+            for row in conn.execute("SELECT count(node_id) FROM ajxp_node_status WHERE status='CONFLICT'"):
+                c = int(row[0])
         return c
 
     @pydio_profile
     def list_solved_nodes_w_callback(self, cb):
-        conn = sqlite3.connect(self.db, timeout=self.timeout)
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        for row in c.execute("SELECT * FROM ajxp_index,ajxp_node_status "
-                             "WHERE ajxp_node_status.status LIKE 'SOLVED%' AND ajxp_node_status.node_id = ajxp_index.node_id"):
-            d = {}
-            for idx, col in enumerate(c.description):
-                if col[0] == 'stat_result':
-                    continue
-                d[col[0]] = row[idx]
-            cb(d)
-        c.close()
+        with ClosingCursor(self.db, timeout=self.timeout) as c:
+            for row in c.execute("SELECT * FROM ajxp_index,ajxp_node_status "
+                                 "WHERE ajxp_node_status.status LIKE 'SOLVED%' AND ajxp_node_status.node_id = ajxp_index.node_id"):
+                d = {}
+                for idx, col in enumerate(c.description):
+                    if col[0] == 'stat_result':
+                        continue
+                    d[col[0]] = row[idx]
+                cb(d)
 
     @pydio_profile
     def update_node_status(self, node_path, status='IDLE', detail=''):
-        try:
-            node_path = self.normpath(node_path)
-            if detail:
-                detail = pickle.dumps(detail)
-            node_id = self.find_node_by_id(node_path, with_status=True)
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            conn.row_factory = sqlite3.Row
+        node_path = self.normpath(node_path)
+        if detail:
+            detail = pickle.dumps(detail)
+        node_id = self.find_node_by_id(node_path, with_status=True)
+
+        with ClosingCursor(self.db, timeout=self.timeout, write=True, withCommit=True) as conn:
             if not isinstance(status, str):
                 logging.info("The status type is not string by default, explicitly assigning it a string value")
                 status = "False"
@@ -322,23 +330,11 @@ class LocalDbHandler():
                     conn.execute("INSERT OR IGNORE INTO ajxp_node_status (node_id,status,detail) VALUES (?,?,?)", (node_id, status, detail))
             else:
                 conn.execute("UPDATE ajxp_node_status SET status=?, detail=? WHERE node_id=?", (status, detail, node_id))
-            conn.commit()
-            conn.close()
-        except sqlite3.OperationalError:
-            time.sleep(.1)
-            self.update_node_status(node_path, status, detail)
 
     @pydio_profile
     def update_bulk_node_status_as_idle(self):
-        try:
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            conn.row_factory = sqlite3.Row
+        with ClosingCursor(self.db, timeout=self.timeout, write=True, withCommit=True) as conn:
             conn.execute('UPDATE ajxp_node_status SET status="IDLE" WHERE ajxp_node_status.status="NEW"')
-            conn.commit()
-            conn.close()
-        except sqlite3.OperationalError:
-            time.sleep(.1)
-            self.update_bulk_node_status_as_idle()
 
     @pydio_profile
     def update_bulk_node_status_as_pending(self, list_seq_ids):
@@ -380,65 +376,34 @@ class LocalDbHandler():
 
     @pydio_profile
     def get_last_operations(self):
-        try:
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
-            operations = []
+        operations = []
+        with ClosingCursor(self.db, timeout=self.timeout) as c:
             for row in c.execute("SELECT type,location,source,target FROM ajxp_last_buffer"):
                 dRow = dict()
-                #location = row['location']
                 dRow['location'] = row['location']
                 dRow['type'] = row['type']
                 dRow['source'] = row['source']
                 dRow['target'] = row['target']
                 operations.append(dRow)
-            c.close()
-            return operations
-        except sqlite3.OperationalError:
-            time.sleep(.1)
-            return self.get_last_operations()
+        return operations
 
     @pydio_profile
     def is_last_operation(self, location, type, source, target):
-        try:
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
+        with ClosingCursor(self.db, timeout=self.timeout) as c:
             for row in c.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (type,location,source.replace("\\", "/"),target.replace("\\", "/"))):
-                c.close()
                 return True
-            c.close()
             return False
-        except sqlite3.OperationalError:
-            time.sleep(.1)
-            return self.is_last_operation(location, type, source, target)
 
     @pydio_profile
     def buffer_real_operation(self, location, type, source, target):
-        try:
-            location = 'remote' if location == 'local' else 'local'
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            conn.row_factory = sqlite3.Row
+        location = 'remote' if location == 'local' else 'local'
+        with ClosingCursor(self.db, timeout=self.timeout, write=True, withCommit=True) as conn:
             conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (type, location, source.replace("\\", "/"), target.replace("\\", "/")))
-            conn.commit()
-            conn.close()
-        except sqlite3.OperationalError:
-            time.sleep(.1)
-            self.buffer_real_operation(location, type, source, target)
 
     @pydio_profile
     def clear_operations_buffer(self):
-        try:
-            #logging.info("CLEARING local db ajxp_last_buffer")
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            conn.row_factory = sqlite3.Row
+        with ClosingCursor(self.db, timeout=self.timeout, write=True, withCommit=True) as conn:
             conn.execute("DELETE FROM ajxp_last_buffer")
-            conn.commit()
-            conn.close()
-        except sqlite3.OperationalError:
-            time.sleep(.1)
-            self.clear_operations_buffer()
 
     @pydio_profile
     def get_local_changes_as_stream(self, seq_id, flatten_and_store_callback):
@@ -451,23 +416,20 @@ class LocalDbHandler():
                 time.sleep(i*self.event_handler.db_wait_duration)
                 i += 1
             self.event_handler.reading = True
+        info = dict()
+        info['max_seq'] = seq_id
         try:
             logging.debug("Local sequence " + str(seq_id))
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
-            info = dict()
-            info['max_seq'] = seq_id
-
-            for line in c.execute("SELECT seq , ajxp_changes.node_id ,  type ,  "
-                                 "source , target, ajxp_index.bytesize, ajxp_index.md5, ajxp_index.mtime, "
-                                 "ajxp_index.node_path, ajxp_index.stat_result FROM ajxp_changes LEFT JOIN ajxp_index "
-                                 "ON ajxp_changes.node_id = ajxp_index.node_id "
-                                 "WHERE seq > ? ORDER BY ajxp_changes.node_id, seq ASC", (seq_id,)):
-                row = dict(line)
-                flatten_and_store_callback('local', row, info)
-                if info:
-                    self.event_handler.last_seq_id = info['max_seq']
+            with ClosingCursor(self.db, timeout=self.timeout) as c:
+                for line in c.execute("SELECT seq , ajxp_changes.node_id ,  type ,  "
+                                     "source , target, ajxp_index.bytesize, ajxp_index.md5, ajxp_index.mtime, "
+                                     "ajxp_index.node_path, ajxp_index.stat_result FROM ajxp_changes LEFT JOIN ajxp_index "
+                                     "ON ajxp_changes.node_id = ajxp_index.node_id "
+                                     "WHERE seq > ? ORDER BY ajxp_changes.node_id, seq ASC", (seq_id,)):
+                    row = dict(line)
+                    flatten_and_store_callback('local', row, info)
+                    if info:
+                        self.event_handler.last_seq_id = info['max_seq']
 
             flatten_and_store_callback('local', None, info)
             if info:
@@ -480,127 +442,24 @@ class LocalDbHandler():
             logging.exception(ex)
             if self.event_handler:
                 self.event_handler.reading = False
-            return info['seq_id']
-
-    @pydio_profile
-    def get_local_changes(self, seq_id, accumulator=dict()):
-        logging.debug("Local sequence " + str(seq_id))
-        last = seq_id
-        conn = sqlite3.connect(self.db, timeout=self.timeout)
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        previous_node_id = -1
-        previous_row = None
-        deletes = []
-
-        for row in c.execute("SELECT seq , ajxp_changes.node_id ,  type ,  "
-                             "source , target, ajxp_index.bytesize, ajxp_index.md5, ajxp_index.mtime, "
-                             "ajxp_index.node_path, ajxp_index.stat_result FROM ajxp_changes LEFT JOIN ajxp_index "
-                             "ON ajxp_changes.node_id = ajxp_index.node_id "
-                             "WHERE seq > ? ORDER BY ajxp_changes.node_id, seq ASC", (seq_id,)):
-            drow = dict(row)
-            drow['node'] = dict()
-            if not row['node_path'] and (not row['source'] or row['source'] == 'NULL') and (not row['target'] or row['source'] == 'NULL'):
-                continue
-            if self.is_last_operation('local', row['type'], row['source'], row['target']):
-                continue
-            for att in ('mtime', 'md5', 'bytesize', 'node_path',):
-                drow['node'][att] = row[att]
-                drow.pop(att, None)
-            if drow['node_id'] == previous_node_id and self.compare_raw_pathes(drow, previous_row):
-                previous_row['target'] = drow['target']
-                previous_row['seq'] = drow['seq']
-                if drow['type'] == 'path' or drow['type'] == 'content':
-                    if previous_row['type'] == 'delete':
-                        previous_row['type'] = drow['type']
-                    elif previous_row['type'] == 'create':
-                        previous_row['type'] = 'create'
-                    else:
-                        previous_row['type'] = drow['type']
-                elif drow['type'] == 'create':
-                    previous_row['type'] = 'create'
-                else:
-                    previous_row['type'] = drow['type']
-
-            else:
-                if previous_row is not None and (previous_row['source'] != previous_row['target'] or previous_row['type'] == 'content'):
-                    previous_row['location'] = 'local'
-                    accumulator['data'][previous_row['seq']] = previous_row
-                    key = previous_row['source'] if previous_row['source'] != 'NULL' else previous_row['target']
-                    if not key in accumulator['path_to_seqs']:
-                        accumulator['path_to_seqs'][key] = []
-                    accumulator['path_to_seqs'][key].append(previous_row['seq'])
-                    if previous_row['type'] == 'delete':
-                        deletes.append(previous_row['seq'])
-
-                previous_row = drow
-                previous_node_id = drow['node_id']
-            last = max(row['seq'], last)
-
-        if previous_row is not None and (previous_row['source'] != previous_row['target'] or previous_row['type'] == 'content'):
-            previous_row['location'] = 'local'
-            accumulator['data'][previous_row['seq']] = previous_row
-            key = previous_row['source'] if previous_row['source'] != 'NULL' else previous_row['target']
-            if not key in accumulator['path_to_seqs']:
-                accumulator['path_to_seqs'][key] = []
-            accumulator['path_to_seqs'][key].append(previous_row['seq'])
-            if previous_row['type'] == 'delete':
-                deletes.append(previous_row['seq'])
-
-        #refilter: create + delete or delete + create must be ignored
-        for to_del_seq in deletes:
-            to_del_item = accumulator['data'][to_del_seq]
-            key = to_del_item['source']
-            for del_seq in accumulator['path_to_seqs'][key]:
-                item = accumulator['data'][del_seq]
-                if item == to_del_item:
-                    continue
-                if item['seq'] > to_del_seq:
-                    if to_del_seq in accumulator['data']:
-                        del accumulator['data'][to_del_seq]
-                        accumulator['path_to_seqs'][key].remove(to_del_seq)
-                else:
-                    if item['seq'] in accumulator['data']:
-                        del accumulator['data'][item['seq']]
-                        accumulator['path_to_seqs'][key].remove(item['seq'])
-
-        for seq, row in accumulator['data'].items():
-            logging.debug('LOCAL CHANGE : ' + str(row['seq']) + '-' + row['type'] + '-' + row['source'] + '-' + row['target'])
-
-        conn.close()
-        return last
+            return info['max_seq']
 
     def list_non_idle_nodes(self):
         logging.info("Listing non IDLE nodes")
-        try:
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
+        with ClosingCursor(self.db, timeout=self.timeout) as c:
             q = "SELECT ajxp_index.node_id FROM ajxp_index,ajxp_node_status WHERE ajxp_node_status.status <> 'IDLE'  AND ajxp_node_status.node_id = ajxp_index.node_id"
             for row in c.execute(q):
                 logging.info(row)
-            c.close()
-            return ""
-        except sqlite3.OperationalError:
-            time.sleep(.2)
-            return self.list_non_idle_nodes()
 
     def get_max_seq(self):
         """
         :return: the max_id from index
         """
-        try:
-            conn = sqlite3.connect(self.db, timeout=self.timeout)
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
+        with ClosingCursor(self.db, timeout=self.timeout) as c:
             res = c.execute("SELECT MAX(seq) FROM ajxp_changes").fetchone()[0]
-            c.close()
             if res is None:
                 res = 0
             return res
-        except sqlite3.OperationalError:
-            time.sleep(.2)
-            return self.get_max_seq()
 
 
 class SqlEventHandler(FileSystemEventHandler):
