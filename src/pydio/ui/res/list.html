@@ -66,11 +66,18 @@
             </div>
 
             <h4 ng-if="running.tasks.total && running.tasks.current.length"  >{{_('Transfers in progress')}} <span class="small">({{running.tasks.total}})</span></h4>
-            <div ng-if="running.tasks.total && running.tasks.current.length" ng-repeat="task in running.tasks.current" style="padding:2px 0;">
-                <span ng-if="task.total_bytes_sent"><span class="badge">{{ task.bytesize > 0 ? Math.min(100, 100 * task.total_bytes_sent / task.bytesize) : 0 | number: 0}}%</span></span>
-                <span ng-if="!task.total_bytes_sent && task.location == 'local'" class="glyphicon glyphicon-cloud-upload"></span>
-                <span ng-if="!task.total_bytes_sent && task.location == 'remote'" class="glyphicon glyphicon-cloud-download"></span>
-                <span>{{task.target && task.target != 'NULL'?task.target:task.source | basename}}</span>
+            <div class="logsListContainer" ng-if="running.tasks.total && running.tasks.current.length">
+                <table style="width: 100%;">
+                    <tr ng-repeat="task in running.tasks.current">
+                        <td style="width: 20px;">
+                            <span ng-if="!task.total_bytes_sent && task.location == 'local'" class="glyphicon glyphicon-cloud-upload"></span>
+                            <span ng-if="!task.total_bytes_sent && task.location == 'remote'" class="glyphicon glyphicon-cloud-download"></span>
+                        </td>
+                        <td>{{task.target && task.target != 'NULL'?task.target:task.source | basename}}
+                            <span ng-if="task.total_bytes_sent" class="badge">{{ task.bytesize > 0 ? Math.min(100, 100 * task.total_bytes_sent / task.bytesize) : 0 | number: 0}}%</span>
+                        </td>
+                    </tr>
+                </table>
             </div>
         </div>
     </div>
