@@ -1,21 +1,3 @@
-@font-face{
-    font-family: 'Open Sans Regular';
-    src: url('../fonts/open-sans-fontfacekit/opensans_regular/OpenSans-Regular-webfont.eot');
-    src: url('../fonts/open-sans-fontfacekit/opensans_regular/OpenSans-Regular-webfont.eot?iefix') format('eot'),
-    url('../fonts/open-sans-fontfacekit/opensans_regular/OpenSans-Regular-webfont.woff') format('woff'),
-    url('../fonts/open-sans-fontfacekit/opensans_regular/OpenSans-Regular-webfont.ttf') format('truetype'),
-    url('../fonts/open-sans-fontfacekit/opensans_regular/OpenSans-Regular-webfont.svg#webfont') format('svg');
-}
-
-@font-face{
-    font-family: 'Open Sans Light';
-    src: url('../fonts/open-sans-fontfacekit/opensans_light/OpenSans-Light-webfont.eot');
-    src: url('../fonts/open-sans-fontfacekit/opensans_light/OpenSans-Light-webfont.eot?iefix') format('eot'),
-    url('../fonts/open-sans-fontfacekit/opensans_light/OpenSans-Light-webfont.woff') format('woff'),
-    url('../fonts/open-sans-fontfacekit/opensans_light/OpenSans-Light-webfont.ttf') format('truetype'),
-    url('../fonts/open-sans-fontfacekit/opensans_light/OpenSans-Light-webfont.svg#webfont') format('svg');
-}
-
 @font-face {
     font-family: 'Roboto';
     font-weight: 300;
@@ -30,4 +12,11 @@
     font-family: 'Roboto';
     font-weight: 500;
     src: url(../fonts/roboto-font/roboto-medium.woff2) format('woff2'), url(../roboto-font/roboto-medium.woff) format('woff');
+}
+@font-face {
+  font-family: "Material Design Icons";
+  src: url("../fonts/mdi/materialdesignicons-webfont.eot?v=2.4.85");
+  src: url("../fonts/mdi/materialdesignicons-webfont.eot?#iefix&v=2.4.85") format("embedded-opentype"), url("../fonts/mdi/materialdesignicons-webfont.woff2?v=2.4.85") format("woff2"), url("../fonts/mdi/materialdesignicons-webfont.woff?v=2.4.85") format("woff"), url("../fonts/mdi/materialdesignicons-webfont.ttf?v=2.4.85") format("truetype");
+  font-weight: normal;
+  font-style: normal;
 }

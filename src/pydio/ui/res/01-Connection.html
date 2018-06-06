@@ -55,5 +55,5 @@
     </div>
     <div style="text-align: center; margin-top: 40px;">
         <a href="" ng-click="next()" class="btn btn-primary" tabindex="0" ng-disabled="myForm.$invalid">{{_('Connect')}}</a>
-         <span ng-show="error && inline_protocol == 'https://'">&nbsp;&nbsp;&nbsp; <span ng-click="job.trust_ssl=!job.trust_ssl"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!job.trust_ssl,'glyphicon-ok':job.trust_ssl}"></span> <label >{{_('Trust SSL certificate')}}</label></span></span>
+         <span ng-show="error && inline_protocol == 'https://'">&nbsp;&nbsp;&nbsp; <span ng-click="job.trust_ssl=!job.trust_ssl"><span class="mdi" ng-class="{'mdi-checkbox-blank-outline':!job.trust_ssl,'mdi-checkbox-marked-outline':job.trust_ssl}"></span> <label >{{_('Trust SSL certificate')}}</label></span></span>
     </div>

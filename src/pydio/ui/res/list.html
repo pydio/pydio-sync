@@ -1,14 +1,26 @@
 <script id="job_2.html" type="text/ng-template">
     <div class="panel panel-primary" style="clear: both;">
-        <p class="panel-heading" ng-class="{'disabled':!job.active}"><span ng-if="!job.active">{{_('[DISABLED]')|lowercase}} </span>{{job.label?job.label:job.id}}
-            <a class="pull-right" href="#/change/{{job.id}}" title="Edit parameters"><span class="small glyphicon glyphicon-wrench"></span></a>
+        <p class="panel-heading" ng-class="{'disabled':!job.active}">
+            <a href title="See logs" ng-click="opened_logs_panel != job.id ? openLogsForJob(job.id) : closeLogs()">
+                <span class="mdi" ng-class="{'mdi-chevron-right':opened_logs_panel != job.id,'mdi-chevron-down':opened_logs_panel == job.id}"></span>
+                <span>{{job.label?job.label:job.id}}</span>
+            </a>
+            <a class="pull-right" href="#/change/{{job.id}}" title="Edit parameters"><span class="mdi mdi-dots-vertical"></span></a>
         </p>
-        <table style="width: 100%;margin-bottom: 10px;">
+        <table style="width: 100%;margin-bottom: 5px;">
             <tr>
-                <td style="width:100px; padding-left: 10px;">
-                    <img src="images/rocket.png" width="80" ng-class="{'pulse':job.state.tasks && job.state.tasks.total, 'disabled':!job.active}" style="margin-top: -5px;"/>
+                <td style="width:80px; text-align: center;">
+                    <span ng-if="!job.active">{{_('[DISABLED]')|lowercase}} </span>
+                    <div style="position: relative;" ng-if="job.active">
+                        <progress-circle progress-circle-model="job.state.global" element-width=70 element-height=70 outer-circle-radius=22 outer-circle-width=4></progress-circle>
+                        <a style="font-size: 22px; position: absolute; left: 24px;top: 15px;" href ng-if="job.active" ng-click="job.last_event.type=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
+                        <span class="mdi" ng-if="job.last_event.type != 'error'" ng-class="{'mdi-pause':job.running,'mdi-play':!job.running, 'display_on_hover':job.state.tasks && job.state.tasks.total}"
+                              style="display: inline-block; padding:5px; border-radius: 200px;"></span>
+                        <span ng-if="job.last_event.type == 'error'" style="display: inline-block; padding: 0 15px; border-radius: 200px;">!</span>
+                        </a>
+                    </div>
                 </td>
-                <td style="vertical-align: middle; padding-bottom: 5px; color: #9e9e9e;">
+                <td style="vertical-align: middle; padding-bottom: 5px; color: #9e9e9e; padding-right: 5px;">
                     <div class="" ng-if="job.state.tasks && job.state.tasks.total">
                         <span style="font-size: 15px; color: #555">{{_('Status')}}: {{_('syncing')}}</span>
                         <br>{{_('Size')}}: {{job.state.global['queue_bytesize'] | bytes:1}} -
@@ -20,16 +32,6 @@
                         <span ng-if="!job.state.global.status_indexing" style="font-size: 15px; color: #555" ng-if="job.last_event.type != 'error'">{{_('Last sync')}} {{job.last_event.date | moment }}<br></span>
                         <span ng-if="job.last_event.type == 'error'" style="word-wrap: break-word;">{{_('ERROR')}}: </span>{{job.last_event.message}}
                         <!--<br>{{_('Status')}}: {{_('idle')}}-->
-                    </div>
-                </td>
-                <td style="width:100px; text-align: right;padding-right: 15px;">
-                    <div style="position: relative;" ng-if="job.active">
-                        <progress-circle progress-circle-model="job.state.global" element-width=80 element-height=80></progress-circle>
-                        <a style="font-size: 2em; position: absolute; left: 28px;top: 20px;" href ng-if="job.active" ng-click="job.last_event.type=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
-                        <span class="glyphicon" ng-if="job.last_event.type != 'error'" ng-class="{'glyphicon-pause':job.running,'glyphicon-play':!job.running, 'display_on_hover':job.state.tasks && job.state.tasks.total}"
-                              style="display: inline-block; padding:5px; border-radius: 200px;"></span>
-                        <span ng-if="job.last_event.type == 'error'" style="display: inline-block; padding: 0 15px; border-radius: 200px;">!</span>
-                        </a>
                     </div>
                 </td>
             </tr>
@@ -55,9 +57,9 @@
                     <tr ng-if="!(logs | filter: {action:'!loop'} ).length"><td style="border-bottom: 0;">{{_('No recent records')}}</td></tr>
                     <tr ng-repeat="log in logs | filter: {action:'!loop'} | orderBy:'id':true  | limitTo: limit">
                         <td style="width: 20px;">
-                            <span ng-if="log.action=='delete'" class="glyphicon glyphicon-trash"></span>
-                            <span ng-if="log.action!=='delete' && log.type=='remote'" class="glyphicon glyphicon-cloud-upload"></span>
-                            <span ng-if="log.action!=='delete' && log.type=='local'" class="glyphicon glyphicon-cloud-download"></span>
+                            <span ng-if="log.action=='delete'" class="mdi mdi-delete"></span>
+                            <span ng-if="log.action!=='delete' && log.type=='remote'" class="mdi mdi-upload"></span>
+                            <span ng-if="log.action!=='delete' && log.type=='local'" class="mdi mdi-download"></span>
                         </td>
                         <td>{{log.source && log.source!='NULL' ? log.source:log.target | basename}}</td>
                         <td ng-show="QtObject && log.action!='delete'" ng-click="openFile(job.directory + (log.source && log.source!='NULL' ? log.source:log.target))" style="text-align: right;padding:2px 0; width: 15%;"><a style="text-decoration: none;" class="small" href="">{{_('Open File')}}</a></td>
@@ -70,8 +72,8 @@
                 <table style="width: 100%;">
                     <tr ng-repeat="task in running.tasks.current">
                         <td style="width: 20px;">
-                            <span ng-if="!task.total_bytes_sent && task.location == 'local'" class="glyphicon glyphicon-cloud-upload"></span>
-                            <span ng-if="!task.total_bytes_sent && task.location == 'remote'" class="glyphicon glyphicon-cloud-download"></span>
+                            <span ng-if="!task.total_bytes_sent && task.location == 'local'" class="mdi mdi-upload"></span>
+                            <span ng-if="!task.total_bytes_sent && task.location == 'remote'" class="mdi mdi-download"></span>
                         </td>
                         <td>{{task.target && task.target != 'NULL'?task.target:task.source | basename}}
                             <span ng-if="task.total_bytes_sent" class="badge">{{ task.bytesize > 0 ? Math.min(100, 100 * task.total_bytes_sent / task.bytesize) : 0 | number: 0}}%</span>
@@ -81,9 +83,11 @@
             </div>
         </div>
     </div>
+    <!--
     <div class="openDrawer">
         <a href title="See logs" ng-click="opened_logs_panel != job.id ? openLogsForJob(job.id) : closeLogs()"><span class="glyphicon" ng-class="{'glyphicon-chevron-down':opened_logs_panel != job.id,'glyphicon-chevron-up':opened_logs_panel == job.id}"></span></a>
     </div>
+    -->
 </script>
 
 
@@ -92,7 +96,7 @@
     <button type="button" class="close" data-dismiss="alert" aria-hidden="true" ng-click="conflict_solver.current=false">&times;</button>
     {{_('An element named %1 was modified on both the server and on your local computer. Select how you want to solve this conflicting case:', conflict_solver.current.node_path)}}
     <div style="text-align: center; margin: 20px 0 0;">
-        <span ng-click="conflict_solver.applyToAll=!conflict_solver.applyToAll;"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!conflict_solver.applyToAll,'glyphicon-ok':conflict_solver.applyToAll}"></span> <label >{{_('Apply to all conflicts')}}</label></span>
+        <span ng-click="conflict_solver.applyToAll=!conflict_solver.applyToAll;"><span class="mdi" ng-class="{'mdi-checkbox-blank-outline':!conflict_solver.applyToAll,'mdi-checkbox-marked-outline':conflict_solver.applyToAll}"></span> <label >{{_('Apply to all conflicts')}}</label></span>
         <div style="text-align: center;margin-top: 10px;">
             <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPLOCAL');" class="btn btn-default" tabindex="0" style="margin-right: 10px;">{{_('Mine')}}</a>
             <a href="" ng-click="solveConflict(conflict_solver.current.node_id, 'SOLVED:KEEPBOTH');" class="btn btn-default" tabindex="0">{{_('Both Versions')}}</a>
@@ -114,6 +118,6 @@
 
 <!-- NAV BAR -->
 <div  class="navbar-inverse navbar-fixed-bottom">
-    <a ng-if="ui_config.login_mode=='standard'" href="#/new" class="btn"><span class="glyphicon glyphicon-plus-sign"></span> {{_('Create a new synchronization')}}</a>
-    <a ng-if="ui_config.login_mode=='alias'" href="#/welcome" class="btn"><span class="glyphicon glyphicon-plus-sign"></span> {{_('Create a new synchronization')}}</a>
+    <a ng-if="ui_config.login_mode=='standard'" href="#/new" class="btn"><span class="mdi mdi-plus"></span> {{_('Create a new synchronization')}}</a>
+    <a ng-if="ui_config.login_mode=='alias'" href="#/welcome" class="btn"><span class="mdi mdi-plus"></span> {{_('Create a new synchronization')}}</a>
 </div>

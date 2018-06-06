@@ -30,7 +30,7 @@
         <div class="form-group">
             <div class="input-group">
                 <input type="text" ng-model="job.directory" readonly class="form-control">
-                <span class="input-group-addon" ng-click="openDirChooser()" style="cursor: pointer;" ><span class="glyphicon glyphicon-list-alt"></span> {{_('Change')}} </span>
+                <span class="input-group-addon" ng-click="openDirChooser()" style="cursor: pointer;" ><span class="mdi mdi-folder-search"></span> {{_('Change')}} </span>
             </div>
         </div>
 
@@ -72,7 +72,7 @@
 
     <!-- ADVANCED LINK AND PARAMS -->
     <p style="margin-top: 21px;">
-        <a ng-click="showAdvanced=!showAdvanced;" style="cursor: pointer;"><span class="glyphicon" ng-class="{'glyphicon-chevron-right': !showAdvanced, 'glyphicon-chevron-down': showAdvanced}"></span> {{_('Advanced Parameters')}}</a>
+        <a ng-click="showAdvanced=!showAdvanced;" style="cursor: pointer;"><span class="mdi" ng-class="{'mdi-chevron-right': !showAdvanced, 'mdi-chevron-down': showAdvanced}"></span> {{_('Advanced Parameters')}}</a>
     </p>
 
 </div>

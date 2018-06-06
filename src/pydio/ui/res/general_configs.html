@@ -1,9 +1,13 @@
 <h2 class="generalConfigHeader" ng-value="GetGeneralConfigsDetails()" style="margin-top: 30px;overflow: visible; padding: 6px 0;">
-    <button type="button" ng-click="about_page()" class="btn" ng-class="{'btn-info':'true','btn-default':'true'}" style="float: right; margin-top: -10px; margin-right: 2px;">{{_('About')}}</button>
+    <span class="pull-right">
+        <a href style="color: #424242; margin-right: 5px;" title="{{_('Update Settings')}}" ng-click="SaveGeneralConfig()"><span class="mdi mdi-content-save"></span></a>
+        <a href style="color: #424242; margin-right: 5px;" title="{{_('About')}}" ng-click="about_page()"><span class="mdi mdi-information"></span></a>
+    </span>
+    <a href="#"  style="color: #424242" title="Back"><span class="mdi mdi-chevron-left"></span></a>
     <span style="padding-top: 30px;">{{_('General configurations page')}}</span>
 </h2>
 
-<div  style="padding-bottom: 40px; margin: 0;">
+<div  style="margin: 0;">
 
     <div class="well">
         <h4>{{_('Update settings')}}</h4>
@@ -17,11 +21,11 @@
                 </div>
             {{_('Enable / Disable update here.')}}</p>
 
-            <div ng-show="general_configs_data.update_info.enable_update_check=='true'" style="margin-top:5%;">
+            <div ng-show="general_configs_data.update_info.enable_update_check=='true'||general_configs_data.update_info.enable_update_check===true" style="margin-top:30px;">
                 <p class="small" style="margin-top:2%;">{{_('Set the update check frequency (here 1 means update check only once a day, default value 0 means it check for update each time agent establishes a new connection with UI) ')}}</p>
                 <div class="input-group">
                     <span class="input-group-addon" >{{_('Update check frequency in days')}}</span>
-                    <input type="number" min="0" max="1000000" ng-model="general_configs_data.update_info.update_check_frequency_days" class="form-control" >
+                    <input type="number" min="0" max="365" ng-model="general_configs_data.update_info.update_check_frequency_days" class="form-control" >
                 </div>
 
                 <p class="small" style="margin-top:2%;">{{_('Date on which last update check happened')}}</p>
@@ -59,7 +63,7 @@
                                 <input type="password" name="https_password" ng-model="proxies.https.password" class="form-control" placeholder="P*ssw*rd">
                         </div>
                     </form>
-                <h4 ng-click="showBlock=!showBlock; scroll(0,10);" ng-init="showBlock = false" style="cursor:pointer;"><span style="font-size: 75%;" class="glyphicon" ng-class="{'glyphicon-chevron-right': !showBlock, 'glyphicon-chevron-down': showBlock}"></span>&nbsp;Http settings...</h4>
+                <h4 ng-click="showBlock=!showBlock; scroll(0,10);" ng-init="showBlock = false" style="cursor:pointer;"><span style="font-size: 75%;" class="mdi" ng-class="{'mdi-chevron-right': !showBlock, 'mdi-chevron-down': showBlock}"></span>&nbsp;Http settings...</h4>
                 <div ng-show="showBlock">
                     <form name="settingsHTTP" class="form-inline">
                         <div class="form-group">
@@ -145,9 +149,4 @@
         </div>
     </div>
 
-</div>
-
-<div  class="navbar-inverse navbar-fixed-bottom">
-    <a href="#" title="Cancel"><span class="glyphicon glyphicon-arrow-left" style="font-size: 16px;position: absolute;left: 16px;top: 20px;"></span></a>
-    <button type="button" ng-click="SaveGeneralConfig()" class="btn btn-info" style="width: 40%;margin:0 1%;">{{_('Update Settings')}}</button>
 </div>

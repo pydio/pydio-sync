@@ -71,8 +71,8 @@
     </thead>
     <tbody>
     <tr ng-repeat="log in logs">
-        <td ng-if="log[1] == 'remote'"><span class="glyphicon glyphicon-cloud-upload"></span></td>
-        <td ng-if="log[1] == 'local'"><span class="glyphicon glyphicon-cloud-download"></span></td>
+        <td ng-if="log[1] == 'remote'"><span class="mdi mdi-cloud-upload"></span></td>
+        <td ng-if="log[1] == 'local'"><span class="mdi mdi-cloud-download"></span></td>
         <td>{{log[7]}}</td>
         <td>{{log[5]}}</td>
         <td>{{log[4] && log[4]!=NULL ? log[4]:log[3]}}</td>

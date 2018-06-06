@@ -13,7 +13,7 @@
         <span ng-show="myForm.user.$error.required && !myForm.user.$pristine" class="help-inline">{{_('Required')}}</span>
     </div>
     <div ng-show="ui_config.proxy_enabled" style="margin:200px 50% 0 50%;" title="{{_('Proxy settings')}}">
-            <a href="#/general_configs" style="display: block;"><span class="glyphicon glyphicon-cog" style="margin-top: 17px; color:white;" aria-hidden="true"></span></a>
+            <a href="#/general_configs" style="display: block;"><span class="mdi mdi-settings" style="margin-top: 17px; color:white;" aria-hidden="true"></span></a>
     </div>
     <div class="alert alert-danger alert-dismissable" style="position: absolute; top: auto; bottom: -22px; width: 100%;" ng-if="error">{{error}}</div>
     <a  ng-if="ui_config.login_mode == 'standard'" style="margin-top: 100px;" class="btn btn-primary" href="#/new">{{_('Get Started')}}</a>

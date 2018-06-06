@@ -95,13 +95,13 @@
             </ul>
         </div>
         <div class="input-group" ng-show="folders && folders.length" style="padding: 7px;">
-            <span ng-click="showFoldersBox=!showFoldersBox;job.remote_folder=''"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!showFoldersBox,'glyphicon-ok':showFoldersBox}"></span><label style="margin-left:2px;">{{_('Synchronise only a subfolder of this workspace')}}</label></span>
+            <span ng-click="showFoldersBox=!showFoldersBox;job.remote_folder=''"><span class="mdi" ng-class="{'mdi-checkbox-blank-outline':!showFoldersBox,'mdi-checkbox-marked-outline':showFoldersBox}"></span>{{_('Synchronise only a subfolder of this workspace')}}</span>
         </div>
         <div style="padding:7px 10px;" ng-if="folders_loading"> [{{_('loading')}}...]</div>
         <div style="padding:7px 10px;" ng-if="folders_loading_error">{{folders_loading_error}}</div>
         <div ng-show="folders && folders.length && showFoldersBox" class="well" style="background-color: white; padding: 10px; margin-top: 7px;">
             <div ng-click="job.remote_folder = ''" ng-class="{'list-group-item-success':!job.remote_folder}" style="cursor: pointer;padding: 5px;border-radius: 3px; display: none;">
-                <span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;{{_('Whole workspace')}}<span ng-if="folders_loading"> [{{_('loading')}}...]</span> <span>{{folders_loading_error}}</span>
+                <span class="mdi mdi-folder-open"></span>&nbsp;&nbsp;{{_('Whole workspace')}}<span ng-if="folders_loading"> [{{_('loading')}}...]</span> <span>{{folders_loading_error}}</span>
             </div>
                 <!-- Want to loose the div in the repeat as well -->
                 <!-- {{job}} {{ folders }} -->

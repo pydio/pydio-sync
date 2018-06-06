@@ -21,8 +21,8 @@
             {{ _('by creating a public link that can easily be sent to your contacts.') }}
             <br />{{ _('You can customize the link parameters using the forms below.') }}</p>
         <h3 style="margin-top: 50px; cursor:pointer;" ng-class="{'minititle': miniview}" ng-click="share_show_accessibility=!share_show_accessibility">
-            <span ng-hide="miniview" ng-class="{'glyphicon-chevron-right':!share_show_accessibility,'glyphicon-chevron-down':share_show_accessibility}"
-                  class="small glyphicon"></span>
+            <span ng-hide="miniview" ng-class="{'mdi-chevron-right':!share_show_accessibility,'mdi-chevron-down':share_show_accessibility}"
+                  class="mdi"></span>
         {{_('Secure Link Access')}}<span ng-if="!share_show_accessibility">...</span>
     </h3>
     <div ng-show="share_show_accessibility" ng-class="{'miniview_margin': miniview}">
@@ -56,8 +56,8 @@
     </div>
 
     <h3 style="margin-top: 50px; cursor:pointer;" ng-class="{'minititle': miniview}" ng-click="share_show_advanced=!share_show_advanced">
-        <span ng-hide="miniview" ng-class="{'glyphicon-chevron-right':!share_show_advanced,'glyphicon-chevron-down':share_show_advanced}"
-              class="small glyphicon"></span>
+        <span ng-hide="miniview" ng-class="{'mdi-chevron-right':!share_show_advanced,'mdi-chevron-down':share_show_advanced}"
+              class="mdi"></span>
         {{_('Advanced parameters')}}<span ng-if="!share_show_advanced">...</span>
     </h3>
     <div ng-show="share_show_advanced" ng-class="{'miniview_margin': miniview}">

@@ -3,10 +3,10 @@
         {{_('SYNC %1 parameters', job.label?job.label:job.id)}}
     </h2>
     <div style="text-align: right; position: relative;">
-        <a href="#" title="Cancel" style="float: left;"><span class="glyphicon glyphicon-chevron-left"></span></a>
-        <a href="#" title="{{_('Save Parameters')}}" ng-click="save('full')"><span class="glyphicon glyphicon-floppy-disk"></span></a>
-        <a href="#" title="{{_('On/Off')}}" ng-click="toggleJobActive()"><span ng-class="{'glyphicon-play':!job.active,'glyphicon-stop':job.active}" class="glyphicon glyphicon-play"></span></a>
-        <a href="#" title="{{_('Delete Sync')}}" ng-click="deleteJob()"><span class="glyphicon glyphicon-trash"></span></a>
+        <a href="#" title="Cancel" style="float: left;"><span class="mdi mdi-chevron-left"></span></a>
+        <a href="#" title="{{_('Save Parameters')}}" ng-click="save('full')"><span class="mdi mdi-content-save"></span></a>
+        <a href="#" title="{{_('On/Off')}}" ng-click="toggleJobActive()"><span ng-class="{'mdi-play':!job.active,'mdi-stop':job.active}" class="mdi"></span></a>
+        <a href="#" title="{{_('Delete Sync')}}" ng-click="deleteJob()"><span class="mdi mdi-delete"></span></a>
     </div>
 </div>
 
@@ -16,7 +16,7 @@
             <img src="images/earth.png" style="width: 100px;margin-top: -4px;"><br>
             <table style="text-align:left; width:100%;">
                 <tr ng-if="ui_config.login_mode == 'standard'"><td style="text-align:right;">{{_('Server')}}:&nbsp;</td><td>{{job.server}}</td></tr>
-                <tr><td style="text-align:right;">{{_('Workspace')}}:&nbsp;</td><td>{{job.workspace}} <a href="{{job.server}}" target="_blank"><span class="glyphicon glyphicon-new-window"></span></a></td><tr>
+                <tr><td style="text-align:right;">{{_('Workspace')}}:&nbsp;</td><td>{{job.workspace}} <a href="{{job.server}}" target="_blank"><span class="mdi mdi-link"></span></a></td><tr>
                 <tr ng-if="job.remote_folder"><td style="text-align:right;">{{_('Folder')}}:&nbsp;</td><td> {{job.remote_folder}}</td></tr>
                 <tr ng-if="job.state.websocket"><td style="text-align:right;">{{_('WS')}}:&nbsp;</td><td> {{_('Active')}}</td><td></td></tr>
             </table>
@@ -30,8 +30,8 @@
                             <div class="modal-title">{{_('Resync task')}}</div>
                         </div>
                         <div class="modal-body">
-                            <span class="glyphicon glyphicon-warning-sign" style="font-size:2em;"></span>
-                            <div style="margin-top: -2em; margin-left:3em;">
+                            <span class="mdi mdi-alert-outline" style="display: block; margin-right: 10px; font-size:3em; float: left;"></span>
+                            <div>
                                 <span style="font-size:1em">{{_('This operation will make sure that your server and local folder are correctly synchronized. Beware, this can take a while, and may be resource intensive.')}}</span>
                             </div>
                         </div>
@@ -46,12 +46,12 @@
         </div>
 
         <span style="float:left; width: 3.6%; margin-top: 50px; border-top: 1px dashed #000000;"></span>
-        <span href="#" ng-click="showResync=!showResync; triggerResync()" class="glyphicon glyphicon-refresh btn btn-default btn-resync" data-toggle="tooltip" data-placement="bottom" title="{{_('Trigger a full re-indexation')}}" data-original-title="Beware, resyncing is resource intensive for the server and the client."></span>
+        <span href="#" ng-click="showResync=!showResync; triggerResync()" class="mdi mdi-sync btn btn-default btn-resync" data-toggle="tooltip" data-placement="bottom" title="{{_('Trigger a full re-indexation')}}" data-original-title="Beware, resyncing is resource intensive for the server and the client."></span>
         <span style="float:left; width: 3.6%; margin-top: 50px; border-top: 1px dashed #000000;"></span>
 
         <div class="small pull-right" style="text-align: center; width: 40%; overflow: visible; word-break: break-all;">
             <img src="images/desktop.png" style="width: 100px;"><br>
-            {{job.directory_label?job.directory_label:job.directory}} <a ng-show="QtObject" ng-click="openFile(job.directory+'/')"><span class="glyphicon glyphicon-new-window"></span></a><br>
+            {{job.directory_label?job.directory_label:job.directory}} <a ng-show="QtObject" ng-click="openFile(job.directory+'/')"><span class="mdi mdi-link"></span></a><br>
         </div>
 
     </div>
@@ -111,11 +111,11 @@
             </div>
 
             <div class="input-group" ng-show="folders && folders.length" style="padding: 7px;">
-                <span ng-click="showFoldersBox=!showFoldersBox;job.remote_folder=''"><span class="glyphicon" ng-class="{'glyphicon-unchecked':!showFoldersBox,'glyphicon-ok':showFoldersBox}"></span> <label >{{_('Synchronise only a subfolder of this workspace')}}</label></span>
+                <span ng-click="showFoldersBox=!showFoldersBox;job.remote_folder=''"><span class="mdi" ng-class="{'mdi-checkbox-blank-outline':!showFoldersBox,'mdi-checkbox-marked-outline':showFoldersBox}"></span> {{_('Synchronise only a subfolder of this workspace')}}</span>
             </div>
             <div ng-show="folders && folders.length && showFoldersBox" class="well" style="background-color: white; padding: 10px; margin-top: 7px;">
                 <div ng-click="job.remote_folder = ''" ng-class="{'list-group-item-success':!job.remote_folder}" style="cursor: pointer;padding: 5px;border-radius: 3px; display: none;">
-                    <span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;{{_('Whole workspace')}}<span ng-if="folders_loading"> {{_('[loading...]')}}</span> <span>{{folders_loading_error}}</span>
+                    <span class="mdi mdi-folder-open"></span>&nbsp;&nbsp;{{_('Whole workspace')}}<span ng-if="folders_loading"> {{_('[loading...]')}}</span> <span>{{folders_loading_error}}</span>
                 </div>
                 <!-- Want to loose the div in the repeat as well -->
                 <div>
@@ -132,7 +132,7 @@
     <div class="well" style="padding: 0; margin-top: 0;">
         <h3 style="padding: 16px; font-size: 18px; cursor:pointer; margin-top: 0; display: flex;align-items: center;" ng-click="edit_show_advanced=!edit_show_advanced">
             <span style="flex: 1;">{{_('Advanced parameters')}}<span ng-if="!edit_show_advanced">...</span></span>
-            <span ng-class="{'glyphicon-chevron-right':!edit_show_advanced,'glyphicon-chevron-down':edit_show_advanced}" class="small glyphicon" style="margin-right: 5px;"></span>
+            <span ng-class="{'mdi-chevron-right':!edit_show_advanced,'mdi-chevron-down':edit_show_advanced}" class="mdi" style="margin-right: 5px;"></span>
         </h3>
         <div ng-show="edit_show_advanced" style="padding: 0">
             <ng-include src="'advanced.html'" onload="job = job"></ng-include>
