@@ -672,24 +672,28 @@ class SqlEventHandler(FileSystemEventHandler):
     @pydio_profile
     def updateOrInsert(self, src_path, is_directory, skip_nomodif, force_insert=False):
         search_key = self.remove_prefix(src_path)
-        hash_key = 'directory'
+        size = 0
+        mtime = 0
 
-        if is_directory:
-            hash_key = 'directory'
-        else:
-            if os.path.exists(src_path):
-                try:
-                    if self.prevent_atomic_commit:
-                        hash_key = "HASHME"  # Will be hashed when transaction ends
-                    else:
-                        hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
-                except IOError:
-                    # Skip the file from processing, It could be a file that is being copied or a open file!
-                    logging.debug('Skipping file %s, as it is being copied / kept open!' % src_path)
-                    return
-                except Exception as e:
-                    logging.exception(e)
-                    return
+        try:
+            stat = os.stat(src_path)
+            if is_directory:
+                hash_key = 'directory'
+            else:
+                size = stat.st_size
+                mtime = stat.st_mtime
+                if self.prevent_atomic_commit:
+                    hash_key = "HASHME"  # Will be hashed when transaction ends
+                else:
+                    hash_key = hashfile(open(src_path, 'rb'), hashlib.md5())
+        except IOError:
+            # Skip the file from processing, It could be a file that is being copied or a open file!
+            logging.debug('Skipping file %s, as it is being copied / kept open!' % src_path)
+            return
+        except Exception as e:
+            logging.exception(e)
+            return
+
         while True:
             try:
                 node_id = False
@@ -709,10 +713,10 @@ class SqlEventHandler(FileSystemEventHandler):
                 if not node_id:
                     t = (
                         search_key,
-                        os.path.getsize(src_path),
+                        size,
                         hash_key,
-                        os.path.getmtime(src_path),
-                        pickle.dumps(os.stat(src_path))
+                        mtime,
+                        pickle.dumps(stat)
                     )
                     logging.debug("Real insert %s" % search_key)
                     c = conn.cursor()
@@ -730,10 +734,10 @@ class SqlEventHandler(FileSystemEventHandler):
                         t = (
                             del_element['node_id'],
                             del_element['source'],
-                            os.path.getsize(src_path),
+                            size,
                             hash_key,
-                            os.path.getmtime(src_path),
-                            pickle.dumps(os.stat(src_path))
+                            mtime,
+                            pickle.dumps(stat)
                         )
                         c.execute("INSERT INTO ajxp_index (node_id,node_path,bytesize,md5,mtime,stat_result) "
                                   "VALUES (?,?,?,?,?,?)", t)
@@ -747,12 +751,11 @@ class SqlEventHandler(FileSystemEventHandler):
                             self.set_windows_folder_id(c.lastrowid, src_path)
                 else:
                     if skip_nomodif:
-                        bytesize = os.path.getsize(src_path)
                         t = (
-                            bytesize,
+                            size,
                             hash_key,
-                            os.path.getmtime(src_path),
-                            pickle.dumps(os.stat(src_path)),
+                            mtime,
+                            pickle.dumps(stat),
                             search_key,
                             hash_key
                         )
@@ -760,10 +763,10 @@ class SqlEventHandler(FileSystemEventHandler):
                         conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND md5!=?", t)
                     else:
                         t = (
-                            os.path.getsize(src_path),
+                            size,
                             hash_key,
-                            os.path.getmtime(src_path),
-                            pickle.dumps(os.stat(src_path)),
+                            mtime,
+                            pickle.dumps(stat),
                             search_key
                         )
                         logging.debug("Real update %s" % search_key)
@@ -774,6 +777,8 @@ class SqlEventHandler(FileSystemEventHandler):
                 break
             except sqlite3.OperationalError:
                 time.sleep(.1)
+            except IOError:
+                return
 
     @pydio_profile
     def set_windows_folder_id(self, node_id, path):

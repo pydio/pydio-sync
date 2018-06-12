@@ -136,7 +136,7 @@ class JobConfig:
             # '*.tmp' --> windows temp files
             # ~lock.* --> temp lock files
             # .DS_Store --> stores metadata information in mac
-            excludes=['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.DS_Store', '.~lock.*', '~*', '*.xlk', '*.tmp']
+            excludes=['.*', '*/.*', '/recycle_bin*', '*.pydio_dl', '*.pydio_dl.*', '*.DS_Store', '.~lock.*', '~*', '*.xlk', '*.tmp']
         )
 
         self.timeout = 20

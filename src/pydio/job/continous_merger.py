@@ -675,31 +675,40 @@ class ContinuousDiffMerger(threading.Thread):
 
             except PydioSdkDefaultException as re:
                 logging.error(re.message)
-                self.exit_loop_error(re.message)
+                self.logger.log_state(re.message, 'error')
+                self.sleep_online()
             except SSLError as rt:
                 logging.error(rt.message)
-                self.exit_loop_error(_('An SSL error happened, please check the logs'))
+                self.logger.log_state(_('An SSL error happened, please check the logs'), 'error')
+                self.sleep_offline()
             except ProxyError as rt:
                 logging.error(rt.message)
-                self.exit_loop_error(_('A proxy error happened, please check the logs'))
+                self.logger.log_state(_('A proxy error happened, please check the logs'), 'error')
+                self.sleep_offline()
             except TooManyRedirects as rt:
                 logging.error(rt.message)
-                self.exit_loop_error(_('Connection error: too many redirects'))
+                self.logger.log_state(_('Connection error: too many redirects'), 'error')
+                self.sleep_offline()
             except ChunkedEncodingError as rt:
                 logging.error(rt.message)
-                self.exit_loop_error(_('Chunked encoding error, please check the logs'))
+                self.logger.log_state(_('Chunked encoding error, please check the logs'), 'error')
+                self.sleep_offline()
             except ContentDecodingError as rt:
                 logging.error(rt.message)
-                self.exit_loop_error(_('Content Decoding error, please check the logs'))
+                self.logger.log_state(_('Content Decoding error, please check the logs'), 'error')
+                self.sleep_online()
             except InvalidSchema as rt:
                 logging.error(rt.message)
-                self.exit_loop_error(_('Http connection error: invalid schema.'))
+                self.logger.log_state(_('Http connection error: invalid schema.'), 'error')
+                self.sleep_offline()
             except InvalidURL as rt:
                 logging.error(rt.message)
-                self.exit_loop_error(_('Http connection error: invalid URL.'))
+                self.logger.log_state(_('Http connection error: invalid URL.'), 'error')
+                self.sleep_offline()
             except Timeout as to:
                 logging.error(to)
-                self.exit_loop_error(_('Connection timeout, will retry later.'))
+                self.logger.log_state(_('Connection timeout, will retry later.'), 'error')
+                self.sleep_offline()
             except RequestException as ree:
                 logging.error(ree.message)
                 self.logger.log_state(_('Cannot resolve domain!'), 'error')
