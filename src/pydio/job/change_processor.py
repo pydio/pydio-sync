@@ -121,8 +121,8 @@ class ChangeProcessor:
                 self.change_store.buffer_real_operation(location, 'delete', item['source'], 'NULL')
 
         elif item['type'] == 'bulk_mkdirs':
+            self.process_remote_bulk_mkdir(item['pathes'])
             try:
-                self.process_remote_bulk_mkdir(item['pathes'])
                 bulk_location = item['location']
                 bulk = list()
                 for path in item['pathes']:

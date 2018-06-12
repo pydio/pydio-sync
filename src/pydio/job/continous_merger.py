@@ -362,10 +362,19 @@ class ContinuousDiffMerger(threading.Thread):
         time.sleep(self.event_timer)
 
     def exit_loop_clean(self, logger):
-        #self.marked_for_snapshot_pathes = []
         self.current_store.close()
         self.init_global_progress()
         logger.log_state(_('Synchronized'), 'success')
+        if self.job_config.frequency == 'manual':
+            self.job_status_running = False
+            self.sleep_offline()
+        else:
+            self.sleep_online()
+
+    def exit_loop_error(self, message):
+        self.current_store.close()
+        self.init_global_progress()
+        self.logger.log_state(message, 'error')
         if self.job_config.frequency == 'manual':
             self.job_status_running = False
             self.sleep_offline()
@@ -638,50 +647,21 @@ class ContinuousDiffMerger(threading.Thread):
                         logging.exception(ex)
                         return False
                     return True
-                def processor_callback2(change):
-                    try:
-                        if self.interrupt or not self.job_status_running:
-                            raise InterruptException()
-                        Processor = StorageChangeProcessor if self.storage_watcher else ChangeProcessor
-                        proc = Processor(change, self.current_store, self.job_config, self.system, self.sdk,
-                                               self.db_handler, self.event_logger)
-                        proc.process_change()
-                        if self.interrupt or not self.job_status_running:
-                            raise InterruptException()
-                    except PydioSdkException as pe:
-                        if pe.message.find("Original file") > -1:
-                            pe.code = 1404
-                            raise pe
-                    except ProcessException as pe:
-                        logging.error(pe.message)
-                        return False
-                    except PydioSdkDefaultException as p:
-                        raise p
-                    except InterruptException as i:
-                        raise i
-                    return True
 
                 try:
                     if sys.platform.startswith('win'):
                         self.marked_for_snapshot_pathes = list(set(self.current_store.find_modified_parents()) - set(self.marked_for_snapshot_pathes))
                     if not self.processing:
                         self.processing = True
-                        for i in self.current_store.process_changes_with_callback(processor_callback, processor_callback2):
-                            if self.interrupt:
-                                raise InterruptException
-                            #logging.info("Updating seqs")
-                            self.current_store.process_pending_changes()
-                            self.update_min_seqs_from_store(success=True)
-                            self.global_progress['queue_done'] = float(counter[0])
-                            counter[0] += 1
-                            self.update_current_tasks()
-                            self.update_global_progress()
-                            time.sleep(0.05)  # Allow for changes to be noticeable in UI
-                        time.sleep(.5)
+                        self.current_store.process_changes_with_callback(processor_callback)
+                        #logging.info("Updating seqs")
                         self.current_store.process_pending_changes()
                         self.update_min_seqs_from_store(success=True)
+                        self.global_progress['queue_done'] = float(counter[0])
+                        counter[0] += 1
                         self.update_current_tasks()
                         self.update_global_progress()
+                        time.sleep(0.05)  # Allow for changes to be noticeable in UI
                         #logging.info("DONE WITH CHANGES")
                         self.processing = False
 
@@ -695,31 +675,31 @@ class ContinuousDiffMerger(threading.Thread):
 
             except PydioSdkDefaultException as re:
                 logging.error(re.message)
-                self.logger.log_state(re.message, 'error')
+                self.exit_loop_error(re.message)
             except SSLError as rt:
                 logging.error(rt.message)
-                self.logger.log_state(_('An SSL error happened, please check the logs'), 'error')
+                self.exit_loop_error(_('An SSL error happened, please check the logs'))
             except ProxyError as rt:
                 logging.error(rt.message)
-                self.logger.log_state(_('A proxy error happened, please check the logs'), 'error')
+                self.exit_loop_error(_('A proxy error happened, please check the logs'))
             except TooManyRedirects as rt:
                 logging.error(rt.message)
-                self.logger.log_state(_('Connection error: too many redirects'), 'error')
+                self.exit_loop_error(_('Connection error: too many redirects'))
             except ChunkedEncodingError as rt:
                 logging.error(rt.message)
-                self.logger.log_state(_('Chunked encoding error, please check the logs'), 'error')
+                self.exit_loop_error(_('Chunked encoding error, please check the logs'))
             except ContentDecodingError as rt:
                 logging.error(rt.message)
-                self.logger.log_state(_('Content Decoding error, please check the logs'), 'error')
+                self.exit_loop_error(_('Content Decoding error, please check the logs'))
             except InvalidSchema as rt:
                 logging.error(rt.message)
-                self.logger.log_state(_('Http connection error: invalid schema.'), 'error')
+                self.exit_loop_error(_('Http connection error: invalid schema.'))
             except InvalidURL as rt:
                 logging.error(rt.message)
-                self.logger.log_state(_('Http connection error: invalid URL.'), 'error')
+                self.exit_loop_error(_('Http connection error: invalid URL.'))
             except Timeout as to:
                 logging.error(to)
-                self.logger.log_state(_('Connection timeout, will retry later.'), 'error')
+                self.exit_loop_error(_('Connection timeout, will retry later.'))
             except RequestException as ree:
                 logging.error(ree.message)
                 self.logger.log_state(_('Cannot resolve domain!'), 'error')
@@ -735,6 +715,7 @@ class ContinuousDiffMerger(threading.Thread):
                 else:
                     logging.exception(e)
                 self.sleep_offline()
+            self.processing = False
             logging.debug('Finished this cycle, waiting for %i seconds' % self.online_timer)
             very_first = False
 

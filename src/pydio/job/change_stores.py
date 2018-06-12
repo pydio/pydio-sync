@@ -29,12 +29,10 @@ try:
     from pydio.sdkremote.pydio_exceptions import InterruptException
     from pydio.utils.pydio_profiler import pydio_profile
     from pydio.utils.global_config import GlobalConfigManager
-    from pydio.job.change_history import ChangeHistory
 except ImportError:
     from sdkremote.pydio_exceptions import InterruptException
     from utils.pydio_profiler import pydio_profile
     from utils.global_config import GlobalConfigManager
-    from job.change_history import ChangeHistory
 from threading import Thread
 try:
     import resource
@@ -60,9 +58,6 @@ class SqliteChangeStore():
         self.local_sdk = local_sdk
         self.remote_sdk = remote_sdk
         self.pendingoperations = []
-        self.maxpoolsize = poolsize
-        self.failingchanges = {}  # keep track of failing changes
-        self.change_history = ChangeHistory(self.db[:self.db.rfind("/")] + "/history.sqlite", self.local_sdk, self.remote_sdk, job_config, db_handler)
         self.job_config = job_config
 
     def open(self):
@@ -112,7 +107,7 @@ class SqliteChangeStore():
         return count[0]
 
     @pydio_profile
-    def process_changes_with_callback(self, callback, callback2):
+    def process_changes_with_callback(self, callback):
         c = self.conn.cursor()
 
         res = c.execute('SELECT * FROM ajxp_changes WHERE md5="directory" AND location="local" '
@@ -151,158 +146,14 @@ class SqliteChangeStore():
             logging.info("Failed to decode " + str(row))
             raise SystemExit
 
-        import threading
-        class Processor_callback(Thread):
-            def __init__(self, change):
-                threading.Thread.__init__(self)
-                self.change = change
-                self.status = ""
-
-            def run(self):
-                #logging.info("Running change " + str(threading.current_thread()) + " " + str(self.change))
-                ts = time.time()
-                try:
-                    if not callback2(self.change):
-                        self.status = "FAILED"
-                        logging.info("An error occurred processing " + str(self.change))
-                    else:
-                        self.status = "SUCCESS"
-                except InterruptException:
-                    self.status = "FAILED"
-                    # silent fail (network)
-                """except Exception as e:
-                    self.status = "FAILED"
-                    self.error = e
-                    if not hasattr(e, "code"):
-                        logging.exception(e)"""
-                #logging.info("DONE change " + str(threading.current_thread()) + " in " + str(time.time()-ts))
-
-            def stop(self):
-                pass
-        # end of Processor_callback
-
-        def lerunnable(change):
-            p = Processor_callback(change)
-            p.start()
-            return p
-
-        def processonechange(iter):
+        for r in rows_to_process:
             try:
-                change = next(iter)
-                #logging.info('PROCESSING CHANGE %s' % change)
-                proc = lerunnable(change)
-                return proc
-            except StopIteration:
-                return False
-
-        it = iter(rows_to_process)
-        logging.info("To be processed " + str(it.__length_hint__()))
-        pool = []
-        ts = time.time()
-        schedule_exit = False  # This is used to indicate that the last change was scheduled
-        self.change_history.LOCKED = True
-        while True:
-            try:
-                for i in pool:
-                    if not i.isAlive():
-                        if i.status == "SUCCESS" or (hasattr(i, "error") and hasattr(i.error, "code") and i.error.code == 1404):  # file download impossible -> Assume deleted from server
-                            self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
-                            #logging.info("DELETE CHANGE %s" % i.change)
-                            if i.change is not None and hasattr(i.change, 'status'):
-                                i.change.status = "FAILED"
-                                self.change_history.insert_change(i)
-                        elif i.status == "FAILED":
-                            self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
-                            self.change_history.insert_change(i)
-                            """ Because of consolidation this is no longer useful
-                            class Failchange:
-                                pass
-                            if i.change['row_id'] not in self.failingchanges:
-                                self.failingchanges[i.change['row_id']] = Failchange()
-                                self.failingchanges[i.change['row_id']].change = i.change
-                                self.failingchanges[i.change['row_id']].fail = 1
-                            else:
-                                if "fail" in self.failingchanges[i.change['row_id']]:
-                                    if self.failingchanges[i.change['row_id']].fail > 5:  # Try 5 times then delete it and move on, Is this ever reached ?
-                                        self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (i.change['row_id'],))
-                                        if i.change is not None:
-                                            self.change_history.insert_change(i)
-                                        del self.failingchanges[i.change['row_id']]
-                                    else:
-                                        self.failingchanges[i.change['row_id']].fail += 1
-                            """
-                        pool.remove(i)
-                        i.join()
-                        #logging.info("Change done " + str(i))
-                        yield str(i)
-                if schedule_exit and len(pool) == 0:
-                    break
-                if len(pool) >= self.maxpoolsize:
-                    time.sleep(.2)
-                    continue
-                else:
-                    output = processonechange(it)
-                    time.sleep(.01)
-                    if not output and not schedule_exit:
-                        for op in self.pendingoperations:
-                            self.buffer_real_operation(op.location, op.type, op.source, op.target)
-                        try:
-                            humanize
-                            logging.info(" @@@ TOOK " + humanize.naturaltime(time.time()-ts).replace(' ago', '') + " to process changes.")
-                            logging.info(" Fails : " + str(len(self.failingchanges)))
-                        except NameError:
-                            pass # NOP if not humanize lib
-                        schedule_exit = True
-                        continue
-                    else:
-                        # waiting for changes to be processed
-                        time.sleep(.02)
-                    if output and output.isAlive():
-                        pool.append(output)
-                    try:
-                        humanize
-                        current_change = ""
-                        if len(pool) == 1:
-                            try:
-                                current_change = pool[0].change
-                                more = ""
-                                if current_change:
-                                    if current_change['node']:
-                                        if 'node_path' in current_change['node']:
-                                            more = current_change['node']['node_path']
-                                        elif 'source' in current_change:
-                                            more = current_change['source']
-                                        elif 'target' in current_change:
-                                            more = current_change['target']
-                                logging.info(" Poolsize " + str(len(pool)) + ' Memory usage: %s' % humanize.naturalsize(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss) + " " + more)
-                            except Exception as e:
-                                logging.exception(e)
-                                logging.info(str(type(pool[0].change)) + " " + str(pool[0].change))
-                    except NameError:
-                        pass
-                    """if hasattr(output, "done"):
-                        pool.append(output)"""
+                logging.debug('PROCESSING CHANGE WITH ROW ID %i' % r['row_id'])
+                output = callback(r)
+                if output:
+                    self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (r['row_id'],))
             except InterruptException as e:
-                logging.info("@@@@@@@@@@@ Interrupted @@@@@@@@@@")
-            except Exception as e:
-                logging.exception(e)
-                time.sleep(1)
-        try:
-            self.conn.commit()
-        except Exception as e:
-            logging.exception(e)
-        while True:
-            try:
-                self.change_history.conn.commit()
                 break
-            except sqlite3.OperationalError:
-                pass
-        self.change_history.LOCKED = False
-        try:
-            self.change_history.consolidate()
-        except Exception as e:
-            logging.info("TODO: handle")
-            logging.exception(e)
 
     @pydio_profile
     def list_changes(self, cursor=0, limit=5, where=''):
@@ -706,7 +557,6 @@ class SqliteChangeStore():
         return -1
 
     def close(self):
-        self.change_history.conn.close()
         self.conn.close()
 
     def massive_store(self, location, changes):

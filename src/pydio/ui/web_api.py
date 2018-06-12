@@ -135,7 +135,6 @@ class PydioApi(Api):
         self.add_resource(ShareLinkManager, '/share_link/<string:job_id>/<string:folder_flag>/<path:relative_path>')
         self.add_resource(ShareCopyManager, '/share_cp')
         self.add_resource(GeneralConfigManager, '/general_configs')
-        self.add_resource(HistoryManager, '/change_history/<string:job_id>')
         self.add_resource(Feedback, '/feedbackinfo')
         self.app.add_url_rule('/res/i18n.js', 'i18n', self.serve_i18n_file)
         self.app.add_url_rule('/res/config.js', 'config', self.server_js_config)
@@ -992,32 +991,3 @@ class Feedback(Resource):
                 resp[job_id]['remotelastseq'] = -1
         return resp
 # end of feedback
-
-class HistoryManager(Resource):
-    @authDB.requires_auth
-    def get(self, job_id):
-        jobs = JobsLoader.Instance().get_jobs()
-        if not job_id in jobs:
-            return {"error": "Cannot find job"}
-        try:
-            from pydio.job.change_history import ChangeHistory
-        except ImportError:
-            from job.change_history import ChangeHistory
-        scheduler = PydioScheduler.Instance()
-        job = scheduler.control_threads[job_id]
-        args = request.args
-        res = ""
-        if 'status' in args:
-            if args['status'].upper() == 'SUCCESS':
-                for failed in job.current_store.change_history.get_all_success():
-                    res += failed
-            elif args['status'].upper() == 'FAILED':
-                for failed in job.current_store.change_history.get_all_failed():
-                    res += failed
-            else:
-                return {'error': "Unknown status: " + urllib2.quote(args['status'])}
-        else:
-            for failed in job.current_store.change_history.get_all():
-                    res += failed
-        return res
-#end of HistoryManager

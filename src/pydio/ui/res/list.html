@@ -13,10 +13,10 @@
                     <span ng-if="!job.active">{{_('[DISABLED]')|lowercase}} </span>
                     <div style="position: relative;" ng-if="job.active">
                         <progress-circle progress-circle-model="job.state.global" element-width=70 element-height=70 outer-circle-radius=22 outer-circle-width=4></progress-circle>
-                        <a style="font-size: 22px; position: absolute; left: 24px;top: 15px;" href ng-if="job.active" ng-click="job.last_event.type=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
-                        <span class="mdi" ng-if="job.last_event.type != 'error'" ng-class="{'mdi-pause':job.running,'mdi-play':!job.running, 'display_on_hover':job.state.tasks && job.state.tasks.total}"
+                        <a style="font-size: 22px; position: absolute; left: 24px;top: 15px;" href ng-if="job.active" ng-click="job.last_event.status=='error'?openLogsForJob(job.id):applyCmd(job.running?'pause':'resume', job.id)">
+                        <span class="mdi" ng-if="job.last_event.status != 'error'" ng-class="{'mdi-pause':job.running,'mdi-play':!job.running, 'display_on_hover':job.state.tasks && job.state.tasks.total}"
                               style="display: inline-block; padding:5px; border-radius: 200px;"></span>
-                        <span ng-if="job.last_event.type == 'error'" style="display: inline-block; padding: 0 15px; border-radius: 200px;">!</span>
+                        <span ng-if="job.last_event.status == 'error'" style="display: inline-block; padding: 5px 13px;">!</span>
                         </a>
                     </div>
                 </td>
@@ -25,13 +25,12 @@
                         <span style="font-size: 15px; color: #555">{{_('Status')}}: {{_('syncing')}}</span>
                         <br>{{_('Size')}}: {{job.state.global['queue_bytesize'] | bytes:1}} -
                         {{_('Estimated time')}}: {{job.state.global['eta'] | seconds}}
-                        <!--{{_('Status')}}: {{_('syncing')}}-->
                     </div>
                     <div class="" ng-if="(!job.state.tasks || !job.state.tasks.total) && job.last_event">
                         <span ng-if="job.state.global.status_indexing" style="font-size: 15px; color: #555">{{_('Status')}}: {{_('syncing')}}<br></span>
-                        <span ng-if="!job.state.global.status_indexing" style="font-size: 15px; color: #555" ng-if="job.last_event.type != 'error'">{{_('Last sync')}} {{job.last_event.date | moment }}<br></span>
-                        <span ng-if="job.last_event.type == 'error'" style="word-wrap: break-word;">{{_('ERROR')}}: </span>{{job.last_event.message}}
-                        <!--<br>{{_('Status')}}: {{_('idle')}}-->
+                        <span ng-if="!job.state.global.status_indexing && job.last_event.status != 'error'" style="font-size: 15px; color: #555">{{_('Last sync')}} {{job.last_event.date | moment }}<br></span>
+                        <span ng-if="job.last_event.status == 'error'" style="font-size: 15px; color: #555">[{{_('ERROR')}}] {{job.last_event.date | moment }}<br></span>
+                        <span style="display:block;max-height: 60px; overflow-y:auto; word-wrap: break-word;">{{job.last_event.message}}</span>
                     </div>
                 </td>
             </tr>
