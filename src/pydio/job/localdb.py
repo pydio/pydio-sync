@@ -759,7 +759,7 @@ class SqlEventHandler(FileSystemEventHandler):
                             search_key,
                             hash_key
                         )
-                        logging.debug("Real update %s if not the same" % search_key)
+                        logging.debug("Real update not the same (size %d)" % size)
                         conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=? AND md5!=?", t)
                     else:
                         t = (
@@ -769,7 +769,7 @@ class SqlEventHandler(FileSystemEventHandler):
                             pickle.dumps(stat),
                             search_key
                         )
-                        logging.debug("Real update %s" % search_key)
+                        logging.debug("Real update %s - size is %d" % search_key, size)
                         conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=?", t)
                 if not self.prevent_atomic_commit:
                     conn.commit()

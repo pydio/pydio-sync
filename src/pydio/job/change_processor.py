@@ -90,7 +90,7 @@ class ChangeProcessor:
                 if location == 'remote':
                     self.process_local_mkfile(item['node']['node_path'])
                 else:
-                    self.process_remote_mkfile(item['node']['node_path'])
+                    self.process_remote_mkfile(item['node']['node_path'], item)
                 if self.change_store is not None:
                     self.change_store.buffer_real_operation(location, 'create', 'NULL', item['node']['node_path'])
 
@@ -291,9 +291,14 @@ class ChangeProcessor:
         self.local_sdk.mkfile(path)
         self.log(type='local', action='mkfile', status='success', target=path, console_message=message, message=(_('New file created at %s') % path))
 
-    def process_remote_mkfile(self, path):
+    def process_remote_mkfile(self, path, item):
+        prestat = self.local_sdk.stat(path)
+        if prestat and prestat['size'] > 0:
+            logging.info('MKFILE: ' + str(path) + ' may have been detected as a mkfile but it is not empty. Switching to upload.')
+            self.process_upload(path, is_mod=False, callback_dict=item)
+            return
         message = 'MKFILE ============> ' + path
-        self.remote_sdk.mkfile(path, self.local_sdk.stat(path))
+        self.remote_sdk.mkfile(path, prestat)
         self.log(type='remote', action='mkfile', status='success', target=path,
                  console_message=message, message=(_('File created at %s') % path))
 
