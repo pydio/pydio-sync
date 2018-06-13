@@ -647,8 +647,10 @@ class SqliteChangeStore():
         source = change['source'].replace("\\", "/")
         target = change['target'].replace("\\", "/")
         action = change['type']
-        for _ in self.conn.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (action, location, source, target)):
+        for row in self.conn.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (action, location, source, target)):
             logging.info('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
+            # Now delete it - it should not be matched twice
+            self.conn.execute("DELETE FROM ajxp_last_buffer WHERE id=?", (row[0],))
             return True
         return False
 
