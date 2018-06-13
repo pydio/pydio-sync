@@ -294,7 +294,7 @@ class ChangeProcessor:
     def process_remote_mkfile(self, path, item):
         prestat = self.local_sdk.stat(path)
         if prestat and prestat['size'] > 0:
-            logging.info('MKFILE: ' + str(path) + ' may have been detected as a mkfile but it is not empty. Switching to upload.')
+            logging.info('MKFILE: ' + path + ' may have been detected as a mkfile but it is not empty. Switching to upload.')
             self.process_upload(path, is_mod=False, callback_dict=item)
             return
         message = 'MKFILE ============> ' + path
