@@ -363,6 +363,7 @@ class ContinuousDiffMerger(threading.Thread):
 
     def exit_loop_clean(self, logger):
         self.current_store.close()
+        self.processing = False
         self.init_global_progress()
         logger.log_state(_('Synchronized'), 'success')
         if self.job_config.frequency == 'manual':
@@ -484,11 +485,13 @@ class ContinuousDiffMerger(threading.Thread):
                     self.marked_for_snapshot_pathes = []
                     logging.error(error)
                     self.logger.log_state(error, "wait")
+                    self.current_store.close()
                     self.sleep_offline()
                     continue
                 except PydioSdkBasicAuthException as e:
                     self.logger.log_state(_('Authentication Error'), 'error')
                     self.logger.log_notif(_('Authentication Error'), 'error')
+                    self.current_store.close()
                     self.sleep_offline()
                     continue
                 except Exception as e:
@@ -496,6 +499,7 @@ class ContinuousDiffMerger(threading.Thread):
                     logging.exception(e)
                     self.logger.log_state(_('Error while connecting to remote server (%s)') % e.message, "error")
                     self.marked_for_snapshot_pathes = []
+                    self.current_store.close()
                     self.sleep_offline()
                     continue
                 self.online_status = True
@@ -671,7 +675,9 @@ class ContinuousDiffMerger(threading.Thread):
                 if self.global_progress['queue_done']:
                     self.logger.log_notif(_('%i files modified') % self.global_progress['queue_done'], 'success')
 
+                very_first = False
                 self.exit_loop_clean(self.logger)
+                continue
 
             except PydioSdkDefaultException as re:
                 logging.error(re.message)
@@ -724,6 +730,7 @@ class ContinuousDiffMerger(threading.Thread):
                 else:
                     logging.exception(e)
                 self.sleep_offline()
+            self.current_store.close()
             self.processing = False
             logging.debug('Finished this cycle, waiting for %i seconds' % self.online_timer)
             very_first = False
