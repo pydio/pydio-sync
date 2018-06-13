@@ -769,7 +769,7 @@ class SqlEventHandler(FileSystemEventHandler):
                             pickle.dumps(stat),
                             search_key
                         )
-                        logging.debug("Real update %s - size is %d" % search_key, size)
+                        logging.debug("Real update %s" % search_key)
                         conn.execute("UPDATE ajxp_index SET bytesize=?, md5=?, mtime=?, stat_result=? WHERE node_path=?", t)
                 if not self.prevent_atomic_commit:
                     conn.commit()
