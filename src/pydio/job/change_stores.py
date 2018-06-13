@@ -560,7 +560,7 @@ class SqliteChangeStore():
         if self.conn is not None:
             self.conn.close()
             self.conn = None
-            logging.info("Change Store closed")
+            logging.debug("Change Store closed")
 
     def massive_store(self, location, changes):
         for seq_id in changes['data']:

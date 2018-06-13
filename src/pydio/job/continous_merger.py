@@ -455,11 +455,13 @@ class ContinuousDiffMerger(threading.Thread):
                     self.marked_for_snapshot_pathes = []
 
                 writewait = .5  # To avoid reading events before they're written (db lock) wait for writing to finish
-                while self.event_handler and self.event_handler.locked:
+                totalwait = 0
+                while self.event_handler and self.event_handler.locked and totalwait < 60 * 3:
                     logging.info("Waiting for changes to be written before retrieving remote changes.")
                     if writewait < 5:
                         writewait += .5
                     time.sleep(writewait)
+                    totalwait += writewait
                 # Load local and/or remote changes, depending on the direction
                 self.current_store = SqliteChangeStore(self.configs_path + '/changes.sqlite', self.job_config.filters['includes'], self.job_config.filters['excludes'], self.job_config.poolsize, local_sdk=self.system, remote_sdk=self.sdk, job_config=self.job_config, db_handler=self.db_handler)
                 self.current_store.open()
@@ -636,7 +638,7 @@ class ContinuousDiffMerger(threading.Thread):
                         counter[0] += 1
                         self.update_current_tasks()
                         self.update_global_progress()
-                        time.sleep(0.1)
+                        time.sleep(0.01)
                         if self.interrupt or not self.job_status_running:
                             raise InterruptException()
 
