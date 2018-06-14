@@ -112,7 +112,7 @@ class LocalWatcher(threading.Thread):
         self.event_handler = event_handler
 
     @pydio_profile
-    def check_from_snapshot(self, sub_folder=None, state_callback=(lambda status: None)):
+    def check_from_snapshot(self, sub_folder=None, state_callback=(lambda status: None), use_transaction=True):
         logging.info('Scanning for changes since last application launch')
         if (not sub_folder and os.path.exists(self.basepath)) or (sub_folder and os.path.exists(self.basepath + sub_folder)):
             previous_snapshot = SqlSnapshot(self.basepath, self.job_data_path, sub_folder)
@@ -137,7 +137,8 @@ class LocalWatcher(threading.Thread):
                                                                        len(diff.files_modified) +
                                                                        len(diff.files_deleted)))
 
-            self.event_handler.begin_transaction()
+            if use_transaction:
+                self.event_handler.begin_transaction()
 
             for path in diff.dirs_created:
                 if self.interrupt:
@@ -169,7 +170,8 @@ class LocalWatcher(threading.Thread):
                     return
                 self.event_handler.on_deleted(DirDeletedEvent(path))
 
-            self.event_handler.end_transaction()
+            if use_transaction:
+                self.event_handler.end_transaction()
 
     @pydio_profile
     def stop(self):

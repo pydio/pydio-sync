@@ -451,7 +451,7 @@ class ContinuousDiffMerger(threading.Thread):
                         logging.info('LOCAL SNAPSHOT : loading snapshot for directory %s' % snap_path)
                         if self.interrupt or not self.job_status_running:
                                                         raise InterruptException()
-                        self.watcher.check_from_snapshot(snap_path)
+                        self.watcher.check_from_snapshot(snap_path, use_transaction=False)
                     self.marked_for_snapshot_pathes = []
 
                 writewait = .5  # To avoid reading events before they're written (db lock) wait for writing to finish
