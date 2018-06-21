@@ -247,7 +247,7 @@ class PydioApi(Api):
                        proxies=ConfigManager.Instance().get_defined_proxies(),
                        timeout=380
                        )
-        checker = SyncChecker(job_id, jobs, sdk)
+        checker = check_sync.SyncChecker(job_id, jobs, sdk)
         resp = checker.dofullcheck()
         return Response(json.dumps(resp),
                         status=200,

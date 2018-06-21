@@ -47,20 +47,33 @@ class SyncChecker():
             rel_path.add(p.replace(prefix, ''))
         return rel_path
 
+
+    def recursive_list(self, path):
+        ls = dict()
+        folder_queue = [path]
+
+        while len(folder_queue):
+            folder = folder_queue.pop(0)
+            result = self.sdk.list(dir=folder, recursive='false', max_depth=1)
+            del result[folder]
+            keys = list(result.keys())
+            if len(keys) == 0:
+                continue
+
+            blk_stats = self.sdk.bulk_stat(list(result.keys()), with_hash=True)
+            for p in blk_stats:
+                stats = blk_stats[p]
+                ls[p] = stats
+                if stats['hash'] == 'directory' and p != folder:
+                    folder_queue.append(p)
+        return ls
+
+
     def docheck(self, path, subfolder=""):
         """ Using PydioSdk connects to a server and compares the list of files at
             :param path: with the list of files at the :param sdk:
         """
-        try:
-            remote_ls = self.sdk.list(recursive='true')
-        except ReadTimeout:
-            logging.info("Recursive list failed")
-            # TODO: this code is untested
-            remote_ls = self.sdk.list(recursive='false', max_depth=1)
-            blk_stats = self.sdk.bulk_stat(list(remote_ls.keys()), with_hash=True)
-            for p in blk_stats:
-                if blk_stats[p]['hash'] == 'directory':
-                    remote_ls.append(self.sdk.list(recursive='true'))
+        remote_ls = self.recursive_list(path="/")
 
         if subfolder != "":
             remote2 = {}
