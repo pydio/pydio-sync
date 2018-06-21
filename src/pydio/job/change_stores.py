@@ -24,6 +24,9 @@ import os
 import logging
 import fnmatch
 import math
+import ntpath
+import os
+import sqlite3
 import time
 try:
     from pydio.sdkremote.pydio_exceptions import InterruptException
@@ -300,6 +303,44 @@ class SqliteChangeStore():
         logging.debug('[change store] Echo : pruned %i rows', res.rowcount)
         if(self.DEBUG):
             self.debug("Detecting and removing copies")
+
+    @pydio_profile
+    def detect_win_moves(self):
+        sql = "SELECT c2.source, c1.target, c1.md5 FROM (SELECT * FROM `ajxp_changes` WHERE `type`='create') as c1, (SELECT * FROM `ajxp_changes` WHERE `type`='delete') as c2 WHERE c1.`md5`=c2.`md5` AND c1.`location`=c2.`location`;"
+        moves = []
+        cursor = self.conn.cursor()
+        res = cursor.execute(sql)
+        for row in res:
+            d = dict(row)
+            source = d["c2.source"]
+            target = d["c1.target"]
+            hash = d["c1.md5"]
+            source_name = ntpath.basename(source)
+            target_name = ntpath.basename(target)
+            if source_name == target_name:
+                moves.append((source, target, hash, source_name, target_name))
+        cursor.close()
+
+        for (s, t, h, sn, tn) in moves:
+            self.conn.execute("DELETE FROM `ajxp_changes` WHERE type='delete' AND md5=? AND `source` LIKE ?", (h, "%/"+sn))
+            self.conn.execute("UPDATE `ajxp_changes` SET `source`=?, `type`='path' WHERE type='create' AND md5=? AND `target` LIKE ?", (s, h, "%/"+tn))
+        self.conn.commit()
+
+    @pydio_profile
+    def clean_echoes(self):
+        sql = "SELECT * FROM `ajxp_changes`;"
+        cursor = self.conn.cursor()
+        res = cursor.execute(sql)
+        changes = []
+        for row in res:
+            d = dict(row)
+            changes.append(d)
+        cursor.close()
+
+        for c in changes:
+            if self.echo_match(c["location"], c):
+                self.conn.execute("DELETE FROM `ajxp_changes` WHERE location=? AND type=? AND source=? AND target=?", (c["location"], c["type"], c["source"], c["target"]))
+        self.conn.commit()
 
     @pydio_profile
     def detect_unnecessary_changes(self):
@@ -592,6 +633,8 @@ class SqliteChangeStore():
 
         if change['node'] and change['node']['md5']:
             md5 = change['node']['md5']
+        elif change['node'] and change['node']['deleted_md5']:
+            md5 = change['node']['deleted_md5']
         else:
             md5 = ''
         if change['node'] and change['node']['bytesize']:
@@ -673,41 +716,40 @@ class SqliteChangeStore():
             max_seq = seq if seq > max_seq else max_seq
             last_info['max_seq'] = max_seq
 
-            if not self.echo_match(location, row):
-                logging.debug("processing " + row['source'] + " -> " + row['target'])
-                source = row.pop('source')
-                target = row.pop('target')
-                if source == 'NULL':
-                    source = os.path.sep
-                if target == 'NULL':
-                    target = os.path.sep
-                content = row.pop('type')
+            logging.debug("processing " + row['source'] + " -> " + row['target'])
+            source = row.pop('source')
+            target = row.pop('target')
+            if source == 'NULL':
+                source = os.path.sep
+            if target == 'NULL':
+                target = os.path.sep
+            content = row.pop('type')
 
-                if previous_id != row['node_id']:
-                    if previous_id != -1:
-                        first, second = self.reformat(change)
-                        if first:
-                            self.store(location, first['seq'], first)
-                        if second:
-                            self.store(location, second['seq'], second)
-                    last_info['change'] = None
-                    last_info['node_id'] = row['node_id']
-                    change = dict()
+            if previous_id != row['node_id']:
+                if previous_id != -1:
+                    first, second = self.reformat(change)
+                    if first:
+                        self.store(location, first['seq'], first)
+                    if second:
+                        self.store(location, second['seq'], second)
+                last_info['change'] = None
+                last_info['node_id'] = row['node_id']
+                change = dict()
 
-                if not change:
-                    change['source'] = source
-                    change['dp'] = PathOperation.path_sub(target, source)
-                    change['dc'] = (content == 'content')
-                    change['seq'] = seq
-                    change['node'] = row
-                else:
-                    dp = PathOperation.path_sub(target, source)
-                    change['dp'] = PathOperation.path_add(change['dp'], dp)
-                    change['dc'] = ((content == 'content') or change['dc'])
-                    change['seq'] = seq
+            if not change:
+                change['source'] = source
+                change['dp'] = PathOperation.path_sub(target, source)
+                change['dc'] = (content == 'content')
+                change['seq'] = seq
+                change['node'] = row
+            else:
+                dp = PathOperation.path_sub(target, source)
+                change['dp'] = PathOperation.path_add(change['dp'], dp)
+                change['dc'] = ((content == 'content') or change['dc'])
+                change['seq'] = seq
 
-                last_info['change'] = change
-                last_info['max_seq'] = max_seq
+            last_info['change'] = change
+            last_info['max_seq'] = max_seq
 
     # from (path, dp, dc ) to (source, target, type,...)
     def reformat(self, change):

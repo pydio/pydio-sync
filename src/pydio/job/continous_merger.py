@@ -543,6 +543,16 @@ class ContinuousDiffMerger(threading.Thread):
                 logging.info('Reducing changes for ' + self.job_config.id)
                 self.logger.log_state(_('Merging changes between remote and local, please wait...'), 'sync')
 
+
+                logging.debug('[CMERGER] DETECTING MOVES ' + self.job_config.id)
+                self.current_store.detect_win_moves()
+                self.update_min_seqs_from_store()
+
+
+                logging.debug('[CMERGER] REMOVING ECHO ' + self.job_config.id)
+                self.current_store.clean_echoes()
+                self.update_min_seqs_from_store()
+
                 # We are updating the status to IDLE here for the nodes which has status as NEW
                 # The reason is when we create a new sync on the existing folder, some of the files might
                 # already be synchronized and we ignore those files while we Dedup changes and those files
