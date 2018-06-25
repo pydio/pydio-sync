@@ -310,11 +310,16 @@ class SqliteChangeStore():
         moves = []
         cursor = self.conn.cursor()
         res = cursor.execute(sql)
+
         for row in res:
             d = dict(row)
+            if "c2.source" not in d or "c1.target" not in d:
+                continue
+
             source = d["c2.source"]
             target = d["c1.target"]
             hash = d["c1.md5"]
+
             source_name = ntpath.basename(source)
             target_name = ntpath.basename(target)
             if source_name == target_name:
@@ -698,7 +703,9 @@ class SqliteChangeStore():
         return False
 
     @pydio_profile
-    def flatten_and_store(self, location, row, last_info=dict()):
+    def flatten_and_store(self, location, row, last_info=None):
+        if last_info is None:
+            last_info = dict()
         previous_id = last_info['node_id'] if (last_info and last_info.has_key('node_id')) else -1
         change = last_info['change'] if (last_info and last_info.has_key('change')) else dict()
         max_seq = last_info['max_seq'] if (last_info and last_info.has_key('max_seq')) else -1
