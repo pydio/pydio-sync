@@ -18,9 +18,7 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 
-import sqlite3
 import json
-import os
 import logging
 import fnmatch
 import math
