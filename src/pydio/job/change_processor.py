@@ -18,8 +18,14 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 import os
+import sys
 import logging
 import shutil
+
+sys.path.insert(0, '../sdkremote')
+
+from sdkremote.pydio_exceptions import InterruptException, PydioSdkForbiddenCharactersException
+
 try:
     from pydio.utils.global_config import ConfigManager
     from pydio.utils.pydio_profiler import pydio_profile
@@ -171,12 +177,38 @@ class ChangeProcessor:
 
     def process_remote_mkdir(self, path):
         message = 'MKDIR ============> ' + path
-        self.remote_sdk.mkdir(path)
+        try:
+            self.remote_sdk.mkdir(path)
+        except PydioSdkForbiddenCharactersException:
+            self.log(type='remote', action='mkdir', status='failure', target=path,
+                     console_message=message, message=(_('Ignored folder create at %s due to presence of invalid '
+                                                         'characters in path') % path))
+            return
+
         self.log(type='remote', action='mkdir', status='success', target=path,
                  console_message=message, message=(_('Folder created at %s') % path))
 
     def process_remote_bulk_mkdir(self, pathes):
-        self.remote_sdk.bulk_mkdir(pathes)
+        try:
+            self.remote_sdk.bulk_mkdir(pathes)
+        except PydioSdkForbiddenCharactersException:
+            invalid_pathes = list()
+            self.remote_sdk.bulk_stat(pathes, with_hash=False, invalid_pathes=invalid_pathes)
+            pathes = set(pathes) - set(invalid_pathes)
+
+            self.remote_sdk.bulk_mkdir(pathes)
+            for path in pathes:
+                message = 'MKDIR ============> ' + path
+                self.log(type='remote', action='mkdir', status='success', target=path,
+                         console_message=message, message=(_('Folder created at %s') % path))
+
+            for p in invalid_pathes:
+                message = 'MKDIR ============> ' + path
+                self.log(type='remote', action='mkdir', status='failure', target=p,
+                         console_message=message, message=(_('Ignored folder create at %s due to presence of invalid '
+                                                             'characters in path') % p))
+            return
+
         for path in pathes:
             message = 'MKDIR ============> ' + path
             self.log(type='remote', action='mkdir', status='success', target=path,
@@ -195,7 +227,10 @@ class ChangeProcessor:
                      target=path, console_message=message, message=(_('Deleted file %s') % path))
 
     def process_remote_delete(self, path):
-        self.remote_sdk.delete(path)
+        try:
+            self.remote_sdk.delete(path)
+        except PydioSdkForbiddenCharactersException:
+            pass
         message = 'DELETE ============> ' + path
         self.log(type='remote', action='delete', status='success',
                  target=path, console_message=message, message=(_('Folder %s deleted') % path))
@@ -219,7 +254,22 @@ class ChangeProcessor:
     @pydio_profile
     def process_remote_move(self, source, target):
         message = 'MOVE ============> ' + source + ' to ' + target
-        self.update_node_status(target, 'IDLE')
+        try:
+            self.update_node_status(target, 'IDLE')
+        except PydioSdkForbiddenCharactersException as e:
+            try:
+                self.remote_sdk.stat(path=source)
+            except PydioSdkForbiddenCharactersException:
+                local_stat = self.local_sdk.stat(path=source, with_hash=True)
+                if local_stat["hash"] == "directory":
+                    self.remote_sdk.mkdir(path=target)
+                else:
+                    self.remote_sdk.upload_and_hashstat(path=target)
+
+
+                return
+            raise e
+
         self.log(type='remote', action='move', status='success', target=target,
                  source=source, console_message=message,
                  message=(_('Moved %(source)s to %(target)s') % ({'source': source, 'target': target})))
@@ -279,8 +329,15 @@ class ChangeProcessor:
                 if os.path.exists(delta_path):
                     os.remove(delta_path)
         else:
-            self.remote_sdk.upload_and_hashstat(full_path, self.local_sdk.stat(path), path, self.status_handler,
+            try:
+                self.remote_sdk.upload_and_hashstat(full_path, self.local_sdk.stat(path), path, self.status_handler,
                                 callback_dict, max_upload_size=max_upload_size)
+            except PydioSdkForbiddenCharactersException:
+                self.update_node_status(path, 'IDLE')
+                self.log(type='remote', action='upload', status='ignored', target=path,
+                         console_message=message, message=(_('File %s not uploaded. Ignored due to the presence of '
+                                                             'forbidden characters in path') % path))
+                return
 
         self.update_node_status(path, 'IDLE')
         self.log(type='remote', action='upload', status='success', target=path,
