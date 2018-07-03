@@ -18,20 +18,17 @@
 #  The latest code can be found at <http://pyd.io/>.
 #
 import os
-import sys
 import logging
 import shutil
 
-sys.path.insert(0, '../sdkremote')
-
-from sdkremote.pydio_exceptions import InterruptException, PydioSdkForbiddenCharactersException
-
 try:
+    from pydio.sdkremote.pydio_exceptions import InterruptException, PydioSdkForbiddenCharactersException
     from pydio.utils.global_config import ConfigManager
     from pydio.utils.pydio_profiler import pydio_profile
     from pydio.utils import i18n
     _ = i18n.language.ugettext
 except ImportError:
+    from sdkremote.pydio_exceptions import InterruptException, PydioSdkForbiddenCharactersException
     from utils.global_config import ConfigManager
     from utils.pydio_profiler import pydio_profile
     from utils import i18n
