@@ -17,4 +17,3 @@ netifaces==0.10.4
 Jinja2==2.8.1
 websocket-client==0.44.0
 boto3==1.7.36
-lxml==4.2.2
