@@ -52,7 +52,9 @@ class SqlSnapshot(object):
         self._stat_snapshot = {}
         self._inode_to_path = {}
         self.is_recursive = True
-        self.sub_folder = sub_folder
+        self.sub_folder = None
+        if sub_folder is not None and sub_folder != u"/":
+            self.sub_folder = sub_folder
         global_config_manager = GlobalConfigManager.Instance(configs_path=job_data_path)
         # Increasing the timeout (default 5 seconds), to avoid database is locked error
         self.timeout = global_config_manager.get_general_config()['max_wait_time_for_local_db_access']
