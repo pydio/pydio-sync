@@ -68,6 +68,7 @@ except ImportError:
     from sdkremote.pydio_exceptions import ProcessException, InterruptException, PydioSdkDefaultException
     from utils import check_sync
     from utils.i18n import get_languages
+    from utils.check_sync import SyncChecker
     from utils import i18n
 try:
     #raise ImportError
