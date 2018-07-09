@@ -86,7 +86,7 @@ class ChangeProcessor:
                     else:
                         self.process_remote_mkdir(item['node']['node_path'])
                     if self.change_store is not None:
-                        self.change_store.buffer_real_operation(location, item['type'], 'NULL', item['node']['node_path'])
+                        self.change_store.buffer_real_operation(location, item['type'], 'NULL', item['node']['node_path'], item['bytesize'], item['md5'])
 
             elif item['node']['bytesize'] == 0:
                 logging.debug('[' + location + '] Create file ' + item['node']['node_path'])
@@ -95,7 +95,7 @@ class ChangeProcessor:
                 else:
                     self.process_remote_mkfile(item['node']['node_path'], item)
                 if self.change_store is not None:
-                    self.change_store.buffer_real_operation(location, 'create', 'NULL', item['node']['node_path'])
+                    self.change_store.buffer_real_operation(location, 'create', 'NULL', item['node']['node_path'], item['bytesize'], item['md5'])
 
             else:
                 if item['node']['node_path']:
@@ -104,15 +104,15 @@ class ChangeProcessor:
                         if self.change_store is not None:
                             if item['type'] == 'create':
                                 self.change_store.buffer_real_operation(location, item['type'], 'NULL',
-                                                                    item['node']['node_path'])
+                                                                    item['node']['node_path'], item['bytesize'], item['md5'])
                             else:
                                 self.change_store.buffer_real_operation(location, item['type'], item['node']['node_path'],
-                                                                        item['node']['node_path'])
+                                                                        item['node']['node_path'], item['bytesize'], item['md5'])
                     else:
                         self.process_upload(item['node']['node_path'], is_mod=(item['type'] != 'create'), callback_dict=item)
                         if self.change_store is not None:
                             self.change_store.buffer_real_operation(location, item['type'], ('NULL' if item['type'] =='create' else item['node']['node_path']),
-                                                                item['node']['node_path'])
+                                                                item['node']['node_path'], item['bytesize'], item['md5'])
 
         elif item['type'] == 'delete':
             logging.debug('[' + location + '] Should delete ' + item['source'])
@@ -121,7 +121,7 @@ class ChangeProcessor:
             else:
                 self.process_remote_delete(item['source'])
             if self.change_store is not None:
-                self.change_store.buffer_real_operation(location, 'delete', item['source'], 'NULL')
+                self.change_store.buffer_real_operation(location, 'delete', item['source'], 'NULL', item['bytesize'], item['md5'])
 
         elif item['type'] == 'bulk_mkdirs':
             self.process_remote_bulk_mkdir(item['pathes'])
@@ -142,28 +142,28 @@ class ChangeProcessor:
             if location == 'remote':
                 if os.path.exists(self.job_config.directory + item['source']):
                     if self.process_local_move(item['source'], item['target']) and self.change_store is not None:
-                        self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'])
+                        self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'], item['bytesize'], item['md5'])
                 else:
                     if item["node"]["md5"] == "directory":
                         logging.debug('Cannot find folder to move, switching to creation')
                         self.process_local_mkdir(item['target'])
                         if self.change_store is not None:
-                            self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
+                            self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'], item['bytesize'], item['md5'])
                     else:
                         logging.debug('Cannot find source, switching to DOWNLOAD')
                         self.process_download(item['target'], is_mod=False, callback_dict=item)
                     if self.change_store is not None:
-                        self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
+                        self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'], item['bytesize'], item['md5'])
             else:
                 if self.remote_sdk.stat(item['source']):
                     self.process_remote_move(item['source'], item['target'])
                     if self.change_store is not None:
-                        self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'])
+                        self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'], item['bytesize'], item['md5'])
                 elif item['node']['md5'] != 'directory':
                     logging.debug('Cannot find source, switching to UPLOAD')
                     self.process_upload(item['target'], callback_dict=item, is_mod=False)
                     if self.change_store is not None:
-                        self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'])
+                        self.change_store.buffer_real_operation(location, 'create', 'NULL', item['target'], item['bytesize'], item['md5'])
 
     def process_local_mkdir(self, path):
         message = path + ' <============ MKDIR'
@@ -377,23 +377,23 @@ class StorageChangeProcessor(ChangeProcessor):
                 if item['node']['node_path']:
                     logging.debug('[' + location + '] Create folder ' + item['node']['node_path'])
                     self.remote_sdk.lsync(target=item['node']['node_path'])
-                    self.change_store.buffer_real_operation(location, item['type'], 'NULL', item['node']['node_path'])
+                    self.change_store.buffer_real_operation(location, item['type'], 'NULL', item['node']['node_path'], item['bytesize'], item['md5'])
 
             elif item['node']['bytesize'] == 0:
                 logging.debug('[' + location + '] Create file ' + item['node']['node_path'])
                 self.remote_sdk.lsync(target=item['node']['node_path'])
-                self.change_store.buffer_real_operation(location, 'create', 'NULL', item['node']['node_path'])
+                self.change_store.buffer_real_operation(location, 'create', 'NULL', item['node']['node_path'], item['bytesize'], item['md5'])
 
             else:
                 if item['node']['node_path']:
                     self.remote_sdk.lsync(target=item['node']['node_path'])
                     self.change_store.buffer_real_operation(location, item['type'], ('NULL' if item['type'] =='create' else item['node']['node_path']),
-                                                            item['node']['node_path'])
+                                                            item['node']['node_path'], item['bytesize'], item['md5'])
 
         elif item['type'] == 'delete':
             logging.debug('[' + location + '] Should delete ' + item['source'])
             self.remote_sdk.lsync(source=item['source'])
-            self.change_store.buffer_real_operation(location, 'delete', item['source'], 'NULL')
+            self.change_store.buffer_real_operation(location, 'delete', item['source'], 'NULL', item['bytesize'], item['md5'])
 
         elif item['type'] == 'bulk_mkdirs':
             try:
@@ -411,4 +411,4 @@ class StorageChangeProcessor(ChangeProcessor):
         else:
             logging.debug('[' + location + '] Should move ' + item['source'] + ' to ' + item['target'])
             self.remote_sdk.lsync(source=item['source'], target=item['target'])
-            self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'])
+            self.change_store.buffer_real_operation(location, item['type'], item['source'], item['target'], item['bytesize'], item['md5'])

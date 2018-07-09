@@ -26,6 +26,7 @@ import ntpath
 import os
 import sqlite3
 import time
+
 try:
     from pydio.sdkremote.pydio_exceptions import InterruptException
     from pydio.utils.pydio_profiler import pydio_profile
@@ -35,17 +36,20 @@ except ImportError:
     from utils.pydio_profiler import pydio_profile
     from utils.global_config import GlobalConfigManager
 from threading import Thread
+
 try:
     import resource
     import humanize
 except ImportError:
     pass
 
+
 class SqliteChangeStore():
     conn = None
     DEBUG = False
 
-    def __init__(self, filename, includes, excludes, poolsize=4, local_sdk=None, remote_sdk=None, job_config=None, db_handler=None):
+    def __init__(self, filename, includes, excludes, poolsize=4, local_sdk=None, remote_sdk=None, job_config=None,
+                 db_handler=None):
         self.db = filename
         self.includes = includes
         self.excludes = excludes
@@ -71,7 +75,7 @@ class SqliteChangeStore():
                     'type TEXT, source TEXT, target TEXT, content INTEGER, md5 TEXT, bytesize INTEGER, data TEXT)')
                 self.conn.execute(
                     "CREATE TABLE ajxp_last_buffer ( id INTEGER PRIMARY KEY AUTOINCREMENT, location TEXT, type TEXT, "
-                    "source TEXT, target TEXT )")
+                    "source TEXT, target TEXT, bytesize INTEGER, md5 TEXT)")
                 self.conn.execute("CREATE INDEX changes_seq_id ON ajxp_changes (seq_id)")
                 self.conn.execute("CREATE INDEX changes_location ON ajxp_changes (location)")
                 self.conn.execute("CREATE INDEX changes_type ON ajxp_changes (type)")
@@ -84,6 +88,15 @@ class SqliteChangeStore():
                 self.conn.execute("CREATE INDEX buffer_target ON ajxp_last_buffer (target)")
             else:
                 self.conn.execute("DELETE FROM ajxp_changes")
+                try:
+                    c = self.conn.cursor()
+                    c.execute("SELECT md5, bytesize FROM ajxp_last_buffer")
+                    c.close()
+                except:
+                    self.conn.execute("ALTER TABLE ajxp_last_buffer ADD COLUMN bytesize INTEGER")
+                    self.conn.execute("ALTER TABLE ajxp_last_buffer ADD COLUMN md5 TEXT")
+                    self.conn.commit()
+
                 self.conn.execute("vacuum")
             self.conn.commit()
         except sqlite3.OperationalError as oe:
@@ -91,7 +104,6 @@ class SqliteChangeStore():
             logging.exception(oe)
             time.sleep(.5)
             self.open()
-
 
     def __len__(self):
         return self.get_row_count()
@@ -104,7 +116,7 @@ class SqliteChangeStore():
             res = self.conn.execute("SELECT count(row_id) FROM ajxp_changes WHERE location=?", (location,))
         count = res.fetchone()
         if self.DEBUG:
-            logging.info("Changes store count #"+str(count[0]))
+            logging.info("Changes store count #" + str(count[0]))
         return count[0]
 
     @pydio_profile
@@ -113,6 +125,7 @@ class SqliteChangeStore():
 
         res = c.execute('SELECT * FROM ajxp_changes WHERE md5="directory" AND location="local" '
                         'AND type="create" ORDER BY source,target')
+
         mkdirs = []
         ids = []
         for row in res:
@@ -121,8 +134,8 @@ class SqliteChangeStore():
             mkdirs.append(r['target'])
         splitsize = 10
         for i in range(0, int(math.ceil(float(len(mkdirs)) / float(splitsize)))):
-            callback({'type': 'bulk_mkdirs', 'location': 'local', 'pathes': mkdirs[i*splitsize:(i+1)*splitsize]})
-            ids_list = str(','.join(ids[i*splitsize:(i+1)*splitsize]))
+            callback({'type': 'bulk_mkdirs', 'location': 'local', 'pathes': mkdirs[i * splitsize:(i + 1) * splitsize]})
+            ids_list = str(','.join(ids[i * splitsize:(i + 1) * splitsize]))
             self.conn.execute('DELETE FROM ajxp_changes WHERE row_id IN (' + ids_list + ')')
         self.conn.commit()
 
@@ -136,7 +149,7 @@ class SqliteChangeStore():
                 break
         self.conn.commit()
 
-        #now go to the rest
+        # now go to the rest
         res = c.execute('SELECT * FROM ajxp_changes ORDER BY seq_id ASC')
         rows_to_process = []
         try:
@@ -150,6 +163,22 @@ class SqliteChangeStore():
         for r in rows_to_process:
             try:
                 logging.debug('PROCESSING CHANGE WITH ROW ID %i' % r['row_id'])
+                already_processed = False
+
+                if r['type'] == 'content' or r['type'] == 'create':
+                    search_result = c.execute("SELECT * FROM ajxp_last_buffer WHERE location=? AND "
+                                              "(type='create' OR type='content') AND "
+                                              "bytesize=? AND md5=?",
+                                              (r['location'], r['bytesize'], r['md5']))
+
+                    for row in search_result:
+                        already_processed = True
+                        break
+
+                    if already_processed:
+                        self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (r['row_id'],))
+                        continue
+
                 output = callback(r)
                 if output:
                     self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (r['row_id'],))
@@ -166,7 +195,7 @@ class SqliteChangeStore():
         changes = []
         for row in res:
             changes.append(self.sqlite_row_to_dict(row, load_node=True))
-        if(self.DEBUG):
+        if (self.DEBUG):
             self.debug("")
         return changes
 
@@ -181,7 +210,7 @@ class SqliteChangeStore():
         for row in res:
             if row['total']:
                 total = float(row['total'])
-        if(self.DEBUG):
+        if (self.DEBUG):
             logging.info("Total size of changes:" + str(total) + " bytes")
         return total
 
@@ -210,9 +239,9 @@ class SqliteChangeStore():
             if not parent_found:
                 parents.append(dir_path)
 
-        #common_parents.append(self.commonprefix(parents))
+        # common_parents.append(self.commonprefix(parents))
         self.conn.commit()
-        if(self.DEBUG):
+        if (self.DEBUG):
             logging.info("Modified parents after the prevous operation:")
             for parent in parents:
                 logging.info(parent)
@@ -233,7 +262,7 @@ class SqliteChangeStore():
                                     (row['location'], row['type'], row['source'].replace("\\", "/") + "/%"))
         self.conn.commit()
         logging.debug('[change store] Pruning %i rows', res.rowcount)
-        if(self.DEBUG):
+        if (self.DEBUG):
             self.debug("Pruning folder moves")
 
     @pydio_profile
@@ -261,7 +290,7 @@ class SqliteChangeStore():
         self.conn.commit()
         logging.debug('[change store] Dedup: pruned %i rows', res.rowcount)
 
-        if(self.DEBUG):
+        if (self.DEBUG):
             self.debug("Removing duplicated changes (both sides)")
 
     @pydio_profile
@@ -289,7 +318,7 @@ class SqliteChangeStore():
         res = cursor.execute(sql)
         self.conn.commit()
         logging.debug('[change store] Echo : pruned %i rows', res.rowcount)
-        if(self.DEBUG):
+        if (self.DEBUG):
             self.debug("Detecting and removing echoes")
 
     @pydio_profile
@@ -299,7 +328,7 @@ class SqliteChangeStore():
         res = cursor.execute(sql)
         self.conn.commit()
         logging.debug('[change store] Echo : pruned %i rows', res.rowcount)
-        if(self.DEBUG):
+        if (self.DEBUG):
             self.debug("Detecting and removing copies")
 
     @pydio_profile
@@ -325,8 +354,11 @@ class SqliteChangeStore():
         cursor.close()
 
         for (s, t, h, sn, tn) in moves:
-            self.conn.execute("DELETE FROM `ajxp_changes` WHERE type='delete' AND md5=? AND `source` LIKE ?", (h, "%/"+sn))
-            self.conn.execute("UPDATE `ajxp_changes` SET `source`=?, `type`='path' WHERE type='create' AND md5=? AND `target` LIKE ?", (s, h, "%/"+tn))
+            self.conn.execute("DELETE FROM `ajxp_changes` WHERE type='delete' AND md5=? AND `source` LIKE ?",
+                              (h, "%/" + sn))
+            self.conn.execute(
+                "UPDATE `ajxp_changes` SET `source`=?, `type`='path' WHERE type='create' AND md5=? AND `target` LIKE ?",
+                (s, h, "%/" + tn))
         self.conn.commit()
 
     @pydio_profile
@@ -342,7 +374,8 @@ class SqliteChangeStore():
 
         for c in changes:
             if self.echo_match(c["location"], c):
-                self.conn.execute("DELETE FROM `ajxp_changes` WHERE location=? AND type=? AND source=? AND target=?", (c["location"], c["type"], c["source"], c["target"]))
+                self.conn.execute("DELETE FROM `ajxp_changes` WHERE location=? AND type=? AND source=? AND target=?",
+                                  (c["location"], c["type"], c["source"], c["target"]))
         self.conn.commit()
 
     @pydio_profile
@@ -353,21 +386,24 @@ class SqliteChangeStore():
         bulk_size = 400
         ids_to_delete = []
         for i in range(0, int(math.ceil(float(local) / float(bulk_size)))):
-            ids_to_delete = ids_to_delete + self.filter_w_stat('local', self.local_sdk, self.remote_sdk, i*bulk_size, bulk_size)
+            ids_to_delete = ids_to_delete + self.filter_w_stat('local', self.local_sdk, self.remote_sdk, i * bulk_size,
+                                                               bulk_size)
         for j in range(0, int(math.ceil(float(rem) / float(bulk_size)))):
-            ids_to_delete = ids_to_delete + self.filter_w_stat('remote', self.remote_sdk, self.local_sdk, j*bulk_size, bulk_size)
+            ids_to_delete = ids_to_delete + self.filter_w_stat('remote', self.remote_sdk, self.local_sdk, j * bulk_size,
+                                                               bulk_size)
 
         res = self.conn.execute('DELETE FROM ajxp_changes WHERE row_id IN (' + str(','.join(ids_to_delete)) + ')')
         logging.debug('[change store] Filtering unnecessary changes : pruned %i rows', res.rowcount)
         self.conn.commit()
-        if(self.DEBUG):
+        if (self.DEBUG):
             self.debug("Detecting unnecessary changes")
 
     @pydio_profile
     def filter_w_stat(self, location, sdk, opposite_sdk, offset=0, limit=1000):
         # Load 'limit' changes and filter them
         c = self.conn.cursor()
-        res = c.execute('SELECT * FROM ajxp_changes WHERE location=? ORDER BY source,target LIMIT ?,?', (location, offset, limit))
+        res = c.execute('SELECT * FROM ajxp_changes WHERE location=? ORDER BY source,target LIMIT ?,?',
+                        (location, offset, limit))
         changes = []
         for row in res:
             changes.append(self.sqlite_row_to_dict(row))
@@ -399,9 +435,9 @@ class SqliteChangeStore():
                 self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
                                   ('remote', node['node_path'].replace('\\', '/')))
             elif node['status'] == 'SOLVED:KEEPBOTH':
-                #logging.info("[DEBUG] work in progress -- keepboth " + node['node_path'])
+                # logging.info("[DEBUG] work in progress -- keepboth " + node['node_path'])
                 # remove conflict from table, effect: FILES out of sync,
-                #self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?', ('remote', node['node_path'].replace('\\', '/')))
+                # self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?', ('remote', node['node_path'].replace('\\', '/')))
                 self.local_sdk.duplicateWith(node['node_path'], self.job_config.user_id)
                 self.conn.execute('DELETE from ajxp_changes WHERE location=? AND target=?',
                                   ('local', node['node_path'].replace('\\', '/')))
@@ -463,7 +499,7 @@ class SqliteChangeStore():
 
             # If it does not exist on the original side, there might be an indexing problem,
             # Do we ignore it?
-            #if my_stat and not item['target'] in my_stat:
+            # if my_stat and not item['target'] in my_stat:
             #    return True
 
             # If it does not exist on remote side, skip
@@ -485,7 +521,7 @@ class SqliteChangeStore():
             test_stat = self.stat_path(item['source'], location=opposite, stats=other_stats)
             if not test_stat:
                 res = True
-        else:  #MOVE
+        else:  # MOVE
             source_stat = self.stat_path(item['source'], location=opposite, stats=other_stats)
             target_stat = self.stat_path(item['target'], location=opposite, stats=other_stats, with_hash=True)
             if not target_stat or source_stat:
@@ -505,11 +541,26 @@ class SqliteChangeStore():
 
         return False
 
-
-    def buffer_real_operation(self, location, type, source, target):
+    def buffer_real_operation(self, location, type, source, target, bytesize=0, md5=""):
         location = 'remote' if location == 'local' else 'local'
         try:
-            self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (type, location, source.replace("\\", "/"), target.replace("\\", "/")))
+            self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target,bytesize,md5) VALUES (?,?,?,?, ?, ?)",
+                              (type, location, source.replace("\\", "/"), target.replace("\\", "/"), bytesize, md5))
+            self.conn.commit()
+        except sqlite3.ProgrammingError:
+            self.threaded_buffer_real_operation(type, location, source, target)
+
+    def buffer_real_operation_from_change(self, change):
+        change['location'] = 'remote' if change['location'] == 'local' else 'local'
+        location = change['location']
+        source = change['source']
+        target = change['target']
+        bytesize = int(change['bytesize'])
+        md5 = change['md5']
+
+        try:
+            self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target,bytesize,md5) VALUES (?,?,?,?, ?, ?)",
+                              (type, location, source.replace("\\", "/"), target.replace("\\", "/")), bytesize, md5)
             self.conn.commit()
         except sqlite3.ProgrammingError:
             self.threaded_buffer_real_operation(type, location, source, target)
@@ -519,7 +570,9 @@ class SqliteChangeStore():
             for operation in bulk:
                 location = operation['location']
                 location = 'remote' if location == 'local' else 'local'
-                self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (operation['type'], location, operation['source'].replace("\\", "/"), operation['target'].replace("\\", "/")))
+                self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (
+                operation['type'], location, operation['source'].replace("\\", "/"),
+                operation['target'].replace("\\", "/")))
             self.conn.commit()
 
     class operation():
@@ -537,11 +590,12 @@ class SqliteChangeStore():
         """ Updates the buffer with the operations treated
         """
         # TODO lock
-        #logging.info("Processing pending changes (" + str(len(self.pendingoperations)) + ")")
+        # logging.info("Processing pending changes (" + str(len(self.pendingoperations)) + ")")
         while len(self.pendingoperations) > 0:
             op = self.pendingoperations.pop()
-            #self.buffer_real_operation(op.location, op.type, op.source, op.target)
-            self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (op.type, op.location, op.source.replace("\\", "/"), op.target.replace("\\", "/")))
+            # self.buffer_real_operation(op.location, op.type, op.source, op.target)
+            self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)",
+                              (op.type, op.location, op.source.replace("\\", "/"), op.target.replace("\\", "/")))
         self.conn.commit()
 
     def clear_operations_buffer(self):
@@ -559,7 +613,6 @@ class SqliteChangeStore():
         logging.info("$$ About to clear %d rows of ajxp_last_buffer", nbrows)"""
         self.conn.execute("DELETE FROM ajxp_last_buffer")
         self.conn.commit()
-
 
     def stat_path(self, path, location, stats=None, with_hash=False):
         """
@@ -628,7 +681,7 @@ class SqliteChangeStore():
 
     @pydio_profile
     def store(self, location, seq_id, change):
-        #if location == 'local':
+        # if location == 'local':
         #    print change['type'], " : ", change['source'], " => ", change['target']
 
         if self.filter_path(change['source']) or self.filter_path(change['target']):
@@ -642,7 +695,7 @@ class SqliteChangeStore():
             md5 = ''
         if change['node'] and change['node']['bytesize']:
             bytesize = change['node']['bytesize']
-        elif change['node'] and change['node']['bytesize']==0:
+        elif change['node'] and change['node']['bytesize'] == 0:
             # Fixing the bug: Instead of assigning the bytesize of the empty file to null, it should be set to zero, it
             # prevents from the errors on file size comparison.
             bytesize = 0
@@ -673,27 +726,30 @@ class SqliteChangeStore():
         self.conn.execute("DELETE FROM ajxp_changes WHERE location=?", (location,))
         self.conn.commit()
 
-    #showing the changes store state
+    # showing the changes store state
     def debug(self, after=""):
-        logging.info(2*"\n" + 15*"#")
-        logging.info("changes store after : "+after)
+        logging.info(2 * "\n" + 15 * "#")
+        logging.info("changes store after : " + after)
         res = self.conn.execute("SELECT * FROM ajxp_changes")
         for row in res:
-            logging.info("\t"+row['location'] + "\t|\tsource =>"+row["source"] + "\t " + "target =>"+row['target'])
-        logging.info("\n" + 15*"#" + 2*"\n")
+            logging.info(
+                "\t" + row['location'] + "\t|\tsource =>" + row["source"] + "\t " + "target =>" + row['target'])
+        logging.info("\n" + 15 * "#" + 2 * "\n")
 
     def sync(self):
         self.conn.commit()
 
     @pydio_profile
     def echo_match(self, location, change):
-        #if location == 'remote':
+        # if location == 'remote':
         #    pass
 
         source = change['source'].replace("\\", "/")
         target = change['target'].replace("\\", "/")
         action = change['type']
-        for row in self.conn.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (action, location, source, target)):
+        for row in self.conn.execute(
+                "SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?",
+                (action, location, source, target)):
             logging.info('MATCHING ECHO FOR RECORD %s - %s - %s - %s' % (location, action, source, target,))
             # Now delete it - it should not be matched twice
             self.conn.execute("DELETE FROM ajxp_last_buffer WHERE id=?", (row[0],))
@@ -778,18 +834,20 @@ class SqliteChangeStore():
             elif target != source and dc:
                 content = 'edit_move'
             elif target == source and dc:
-               content = 'content'
+                content = 'content'
 
         if content != 'edit_move':
             stat_result = change['node'].pop('stat_result') if change['node'].has_key('stat_result') else None
-            return {'location': 'local', 'node_id': change['node'].pop('node_id'), 'source':  source, 'target': target, 'type': content, 'seq':change.pop('seq'), 'stat_result': stat_result, 'node': change['node']}, None
+            return {'location': 'local', 'node_id': change['node'].pop('node_id'), 'source': source, 'target': target,
+                    'type': content, 'seq': change.pop('seq'), 'stat_result': stat_result, 'node': change['node']}, None
         else:
             seq = change.pop('seq')
             node_id = change['node'].pop('node_id')
             stat_result = change['node'].pop('stat_result') if change['node'].has_key('stat_result') else None
-            return {'location': 'local', 'node_id': node_id, 'source':  source, 'target': 'NULL', 'type': 'delete', 'seq':seq, 'stat_result':stat_result, 'node':None},\
-                   {'location': 'local', 'node_id': node_id, 'source':  'NULL', 'target': target, 'type': 'create', 'seq':seq, 'stat_result':stat_result, 'node': change['node']}
-
+            return {'location': 'local', 'node_id': node_id, 'source': source, 'target': 'NULL', 'type': 'delete',
+                    'seq': seq, 'stat_result': stat_result, 'node': None}, \
+                   {'location': 'local', 'node_id': node_id, 'source': 'NULL', 'target': target, 'type': 'create',
+                    'seq': seq, 'stat_result': stat_result, 'node': change['node']}
 
     @pydio_profile
     def update_pending_status(self, status_handler, local_seq):
