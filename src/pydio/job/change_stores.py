@@ -165,11 +165,12 @@ class SqliteChangeStore():
                 logging.debug('PROCESSING CHANGE WITH ROW ID %i' % r['row_id'])
                 already_processed = False
 
+                location = 'remote' if r['location'] == 'local' else 'local'
                 if r['type'] == 'content' or r['type'] == 'create':
                     search_result = c.execute("SELECT * FROM ajxp_last_buffer WHERE location=? AND "
-                                              "(type='create' OR type='content') AND "
+                                              "(type='create' OR type='content') AND target=? AND "
                                               "bytesize=? AND md5=?",
-                                              (r['location'], r['bytesize'], r['md5']))
+                                              (location, r['target'], r['bytesize'], r['md5']))
 
                     for row in search_result:
                         already_processed = True
