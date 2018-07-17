@@ -101,7 +101,7 @@ def reformat(location, change, type_seq):
             if flatten_change_type == "create" or flatten_change_type == "delete":
                 flatten_change_type = "create" if source == u"NULL" else "path"
 
-            elif flatten_change_type == "path":
+            elif flatten_change_type == "content":
                 flatten_change_type = "edit_move"
 
             else:

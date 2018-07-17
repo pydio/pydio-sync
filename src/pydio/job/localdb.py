@@ -377,37 +377,6 @@ class LocalDbHandler():
         return cmp1 == cmp2
 
     @pydio_profile
-    def get_last_operations(self):
-        operations = []
-        with ClosingCursor(self.db, timeout=self.timeout) as c:
-            for row in c.execute("SELECT type,location,source,target FROM ajxp_last_buffer"):
-                dRow = dict()
-                dRow['location'] = row['location']
-                dRow['type'] = row['type']
-                dRow['source'] = row['source']
-                dRow['target'] = row['target']
-                operations.append(dRow)
-        return operations
-
-    @pydio_profile
-    def is_last_operation(self, location, type, source, target):
-        with ClosingCursor(self.db, timeout=self.timeout) as c:
-            for row in c.execute("SELECT id FROM ajxp_last_buffer WHERE type=? AND location=? AND source=? AND target=?", (type,location,source.replace("\\", "/"),target.replace("\\", "/"))):
-                return True
-            return False
-
-    @pydio_profile
-    def buffer_real_operation(self, location, type, source, target):
-        location = 'remote' if location == 'local' else 'local'
-        with ClosingCursor(self.db, timeout=self.timeout, write=True, withCommit=True) as conn:
-            conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (type, location, source.replace("\\", "/"), target.replace("\\", "/")))
-
-    @pydio_profile
-    def clear_operations_buffer(self):
-        with ClosingCursor(self.db, timeout=self.timeout, write=True, withCommit=True) as conn:
-            conn.execute("DELETE FROM ajxp_last_buffer")
-
-    @pydio_profile
     def get_local_changes_as_stream(self, seq_id, flatten_and_store_callback):
         if self.event_handler:
             i = 1

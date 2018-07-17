@@ -261,9 +261,9 @@ class ChangeProcessor:
                 if local_stat["hash"] == "directory":
                     self.remote_sdk.mkdir(path=target)
                 else:
-                    self.remote_sdk.upload_and_hashstat(path=target)
-
-
+                    st = self.remote_sdk.stat(path=target)
+                    if not st or st["hash"] != local_stat["hash"]:
+                        self.remote_sdk.upload_and_hashstat(path=target)
                 return
             raise e
 

@@ -168,15 +168,16 @@ class SqliteChangeStore():
                 already_processed = False
 
                 location = 'remote' if r['location'] == 'local' else 'local'
-                if r['type'] == 'content' or r['type'] == 'create':
+                if (r['type'] == 'content' or r['type'] == 'create') and r['md5'] != 'directory' :
                     search_result = c.execute("SELECT * FROM ajxp_last_buffer WHERE location=? AND "
                                               "(type='create' OR type='content') AND target=? AND "
-                                              "bytesize=? AND md5=?",
+                                              "bytesize=? AND md5=? LIMIT 1",
                                               (location, r['target'], r['bytesize'], r['md5']))
 
                     for row in search_result:
                         already_processed = True
                         break
+                    search_result.close()
 
                     if already_processed:
                         self.conn.execute('DELETE FROM ajxp_changes WHERE row_id=?', (r['row_id'],))
