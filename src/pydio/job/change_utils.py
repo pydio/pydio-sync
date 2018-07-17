@@ -71,8 +71,6 @@ def reformat(location, change, type_seq):
     if source == os.path.sep:
         source = u"NULL"
     if target == os.path.sep:
-        if source == u"NULL":
-            print source, dp
         target = u"NULL"
 
     seq = change.pop('seq')
