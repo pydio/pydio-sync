@@ -28,10 +28,12 @@ import sqlite3
 import time
 
 try:
+    from pydio.job.change_utils import flatten
     from pydio.sdkremote.pydio_exceptions import InterruptException
     from pydio.utils.pydio_profiler import pydio_profile
     from pydio.utils.global_config import GlobalConfigManager
 except ImportError:
+    from job.change_utils import flatten
     from sdkremote.pydio_exceptions import InterruptException
     from utils.pydio_profiler import pydio_profile
     from utils.global_config import GlobalConfigManager
@@ -415,6 +417,7 @@ class SqliteChangeStore():
             if c['target'] != 'NULL': test_stats.append(c['target'])
         test_stats = list(set(test_stats))
         opposite_stats = None
+        local_stats = None
         # bulk_stat formatting problem >> recursion
         if len(test_stats):
             local_stats = sdk.bulk_stat(test_stats, with_hash=True)
@@ -545,8 +548,9 @@ class SqliteChangeStore():
     def buffer_real_operation(self, location, type, source, target, bytesize=0, md5=""):
         location = 'remote' if location == 'local' else 'local'
         try:
-            self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target,bytesize,md5) VALUES (?,?,?,?, ?, ?)",
-                              (type, location, source.replace("\\", "/"), target.replace("\\", "/"), bytesize, md5))
+            self.conn.execute(
+                "INSERT INTO ajxp_last_buffer (type,location,source,target,bytesize,md5) VALUES (?,?,?,?, ?, ?)",
+                (type, location, source.replace("\\", "/"), target.replace("\\", "/"), bytesize, md5))
             self.conn.commit()
         except sqlite3.ProgrammingError:
             self.threaded_buffer_real_operation(type, location, source, target)
@@ -560,8 +564,9 @@ class SqliteChangeStore():
         md5 = change['md5']
 
         try:
-            self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target,bytesize,md5) VALUES (?,?,?,?, ?, ?)",
-                              (type, location, source.replace("\\", "/"), target.replace("\\", "/")), bytesize, md5)
+            self.conn.execute(
+                "INSERT INTO ajxp_last_buffer (type,location,source,target,bytesize,md5) VALUES (?,?,?,?, ?, ?)",
+                (type, location, source.replace("\\", "/"), target.replace("\\", "/")), bytesize, md5)
             self.conn.commit()
         except sqlite3.ProgrammingError:
             self.threaded_buffer_real_operation(type, location, source, target)
@@ -572,8 +577,8 @@ class SqliteChangeStore():
                 location = operation['location']
                 location = 'remote' if location == 'local' else 'local'
                 self.conn.execute("INSERT INTO ajxp_last_buffer (type,location,source,target) VALUES (?,?,?,?)", (
-                operation['type'], location, operation['source'].replace("\\", "/"),
-                operation['target'].replace("\\", "/")))
+                    operation['type'], location, operation['source'].replace("\\", "/"),
+                    operation['target'].replace("\\", "/")))
             self.conn.commit()
 
     class operation():
@@ -684,13 +689,15 @@ class SqliteChangeStore():
     def store(self, location, seq_id, change):
         # if location == 'local':
         #    print change['type'], " : ", change['source'], " => ", change['target']
+        if change is None:
+            return
 
         if self.filter_path(change['source']) or self.filter_path(change['target']):
             return
 
         if change['node'] and change['node']['md5']:
             md5 = change['node']['md5']
-        elif change['node'] and change['node']['deleted_md5']:
+        elif change.has_key('node') and change["node"] is not None and change['node'].has_key('deleted_md5'):
             md5 = change['node']['deleted_md5']
         else:
             md5 = ''
@@ -759,113 +766,14 @@ class SqliteChangeStore():
 
     @pydio_profile
     def flatten_and_store(self, location, row, last_info=None):
-        if last_info is None:
-            last_info = dict()
-        previous_id = last_info['node_id'] if (last_info and last_info.has_key('node_id')) else -1
-        change = last_info['change'] if (last_info and last_info.has_key('change')) else dict()
-        max_seq = last_info['max_seq'] if (last_info and last_info.has_key('max_seq')) else -1
-
-        if not row:
-            if last_info and last_info.has_key('change') and change:
-                seq = change['seq']
-                first, second = self.reformat(change)
-                if first:
-                    self.store(location, first['seq'], first)
-                if second:
-                    self.store(location, second['seq'], second)
-        else:
-            seq = row.pop('seq')
-            max_seq = seq if seq > max_seq else max_seq
-            last_info['max_seq'] = max_seq
-
-            logging.debug("processing " + row['source'] + " -> " + row['target'])
-            source = row.pop('source')
-            target = row.pop('target')
-            if source == 'NULL':
-                source = os.path.sep
-            if target == 'NULL':
-                target = os.path.sep
-            content = row.pop('type')
-
-            if previous_id != row['node_id']:
-                if previous_id != -1:
-                    first, second = self.reformat(change)
-                    if first:
-                        self.store(location, first['seq'], first)
-                    if second:
-                        self.store(location, second['seq'], second)
-                last_info['change'] = None
-                last_info['node_id'] = row['node_id']
-                change = dict()
-
-            if not change:
-                change['source'] = source
-                change['dp'] = PathOperation.path_sub(target, source)
-                change['dc'] = (content == 'content')
-                change['seq'] = seq
-                change['node'] = row
-            else:
-                dp = PathOperation.path_sub(target, source)
-                change['dp'] = PathOperation.path_add(change['dp'], dp)
-                change['dc'] = ((content == 'content') or change['dc'])
-                change['seq'] = seq
-
-            last_info['change'] = change
-            last_info['max_seq'] = max_seq
-
-    # from (path, dp, dc ) to (source, target, type,...)
-    def reformat(self, change):
-        source = change.pop('source')
-        target = PathOperation.path_add(source, change.pop('dp'))
-        if source == os.path.sep:
-            source = 'NULL'
-        if target == os.path.sep:
-            target = 'NULL'
-        content = ''
-        if target == source and (source == 'NULL' or not change['dc']):
-            return None, None
-        if target != 'NULL' and source == 'NULL':
-            content = 'create'
-        elif target == 'NULL' and source != 'NULL':
-            content = 'delete'
-        else:
-            dc = change.pop('dc')
-            if target != source and not dc:
-                content = 'path'
-            elif target != source and dc:
-                content = 'edit_move'
-            elif target == source and dc:
-                content = 'content'
-
-        if content != 'edit_move':
-            stat_result = change['node'].pop('stat_result') if change['node'].has_key('stat_result') else None
-            return {'location': 'local', 'node_id': change['node'].pop('node_id'), 'source': source, 'target': target,
-                    'type': content, 'seq': change.pop('seq'), 'stat_result': stat_result, 'node': change['node']}, None
-        else:
-            seq = change.pop('seq')
-            node_id = change['node'].pop('node_id')
-            stat_result = change['node'].pop('stat_result') if change['node'].has_key('stat_result') else None
-            return {'location': 'local', 'node_id': node_id, 'source': source, 'target': 'NULL', 'type': 'delete',
-                    'seq': seq, 'stat_result': stat_result, 'node': None}, \
-                   {'location': 'local', 'node_id': node_id, 'source': 'NULL', 'target': target, 'type': 'create',
-                    'seq': seq, 'stat_result': stat_result, 'node': change['node']}
+        first, second = flatten(location, row, last_info)
+        if first:
+            self.store(location, first['seq'], first)
+        if second:
+            self.store(location, second['seq'], second)
 
     @pydio_profile
     def update_pending_status(self, status_handler, local_seq):
         res = self.conn.execute('SELECT seq_id FROM ajxp_changes WHERE seq_id >' + str(local_seq) + ' ORDER BY seq_id')
         list_seq_ids = [str(row[0]) for row in res]
         status_handler.update_bulk_node_status_as_pending(list_seq_ids)
-
-
-class PathOperation(object):
-    @staticmethod
-    def path_add(path, delta):
-        return os.path.normpath(os.path.join(path, delta))
-
-    @staticmethod
-    def path_sub(path, path2):
-        return os.path.relpath(path, path2)
-
-    @staticmethod
-    def path_compare(path1, path2):
-        return os.path.normcase(os.path.normpath(path1)) == os.path.normcase(os.path.normpath(path2))
