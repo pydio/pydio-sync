@@ -53,7 +53,16 @@ class SyncChecker():
         folder_queue = [path]
 
         while len(folder_queue):
+            ignore = False
             folder = folder_queue.pop(0)
+            for excluded in self.sdk.remote_excluded_files:
+                if folder.startswith(excluded):
+                    ignore = True
+                    break
+
+            if ignore:
+                continue
+
             result = self.sdk.list(dir=folder, recursive='false', max_depth=1)
             del result[folder]
             keys = list(result.keys())
@@ -64,7 +73,7 @@ class SyncChecker():
             for p in blk_stats:
                 stats = blk_stats[p]
                 ls[p] = stats
-                if stats['hash'] == 'directory' and p != folder:
+                if stats.has_key('hash') and stats['hash'] == 'directory' and p != folder:
                     folder_queue.append(p)
         return ls
 
