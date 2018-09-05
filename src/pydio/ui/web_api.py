@@ -473,7 +473,11 @@ class JobManager(Resource):
             up = [0.0]
             def callback(location, change, info):
                 if change and "bytesize" in change and change["md5"] != "directory":
-                    up[0] += float(change["bytesize"])
+                    try:
+                        up[0] += float(change["bytesize"])
+                    except ValueError:
+                        pass
+
             sdk.changes_stream(0, callback)
             # COMPUTE LOCAL SIZE
             down = 0.0

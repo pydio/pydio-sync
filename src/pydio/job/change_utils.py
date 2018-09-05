@@ -77,6 +77,8 @@ def reformat(location, change, type_seq):
     node_id = change['node'].pop('node_id')
     stat_result = change['node'].pop('stat_result') if change['node'].has_key('stat_result') else None
     node = change.pop("node")
+    if node.has_key("node"):
+        node = node["node"]
 
     flatten_change_type = ""
 

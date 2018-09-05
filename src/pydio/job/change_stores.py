@@ -169,7 +169,7 @@ class SqliteChangeStore():
 
                 location = 'remote' if r['location'] == 'local' else 'local'
                 if (r['type'] == 'content' or r['type'] == 'create') and r['md5'] != 'directory' :
-                    search_result = c.execute("SELECT * FROM ajxp_last_buffer WHERE location=? AND "
+                    search_result = self.conn.execute("SELECT * FROM ajxp_last_buffer WHERE location=? AND "
                                               "(type='create' OR type='content') AND target=? AND "
                                               "bytesize=? AND md5=? LIMIT 1",
                                               (location, r['target'], r['bytesize'], r['md5']))
@@ -696,15 +696,15 @@ class SqliteChangeStore():
         if self.filter_path(change['source']) or self.filter_path(change['target']):
             return
 
-        if change['node'] and change['node']['md5']:
+        if change.has_key('node') and change['node'].has_key('md5'):
             md5 = change['node']['md5']
         elif change.has_key('node') and change["node"] is not None and change['node'].has_key('deleted_md5'):
             md5 = change['node']['deleted_md5']
         else:
             md5 = ''
-        if change['node'] and change['node']['bytesize']:
+        if change.has_key('node') and change['node'].has_key('bytesize'):
             bytesize = change['node']['bytesize']
-        elif change['node'] and change['node']['bytesize'] == 0:
+        elif change.has_key('node') and change['node'].has_key('bytesize') == 0:
             # Fixing the bug: Instead of assigning the bytesize of the empty file to null, it should be set to zero, it
             # prevents from the errors on file size comparison.
             bytesize = 0
