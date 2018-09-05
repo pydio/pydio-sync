@@ -49,9 +49,7 @@ try:
     from pydio.utils import i18n
 
     _ = i18n.language.ugettext
-    from pydio.sdk.mock import MockSDK
 except ImportError:
-    from sdk.mock import MockSDK
     from job.change_processor import ChangeProcessor, StorageChangeProcessor
     from job.job_config import JobsLoader
     from job.localdb import LocalDbHandler, SqlEventHandler, DBCorruptedException
