@@ -80,7 +80,7 @@ class ConnectionHelper:
             proxy = urllib2.ProxyHandler(proxies)
             opener = urllib2.build_opener(proxy)
             urllib2.install_opener(opener)
-            urllib2.urlopen('https://www.google.com', timeout=1)
+            urllib2.urlopen('https://www.google.com', timeout=10)
             self.internet_ok = True
             return True
         except Exception as e:
