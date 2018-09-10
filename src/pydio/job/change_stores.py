@@ -386,7 +386,7 @@ class SqliteChangeStore():
     def detect_unnecessary_changes(self):
         local = self.get_row_count('local')
         rem = self.get_row_count('remote')
-        logging.debug("[detect unecessary] LOCAL CHANGES: " + str(local) + " REMOTE CHANGES " + str(rem))
+        logging.debug("[detect unnecessary] LOCAL CHANGES: " + str(local) + " REMOTE CHANGES " + str(rem))
         bulk_size = 400
         ids_to_delete = []
         for i in range(0, int(math.ceil(float(local) / float(bulk_size)))):

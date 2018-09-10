@@ -144,12 +144,12 @@ msgstr ""
 
 #: job/continous_merger.py:546
 #, fuzzy
-msgid "Detecting unecessary changes..."
+msgid "Detecting unnecessary changes..."
 msgstr "%i lokale Änderungen werden erkannt ..."
 
 #: job/continous_merger.py:549
 #, fuzzy
-msgid "Done detecting unecessary changes..."
+msgid "Done detecting unnecessary changes..."
 msgstr "%i lokale Änderungen werden erkannt ..."
 
 #: job/continous_merger.py:566 job/continous_merger.py:569

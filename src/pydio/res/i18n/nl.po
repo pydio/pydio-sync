@@ -135,11 +135,11 @@ msgid "Merging changes between remote and local, please wait..."
 msgstr ""
 
 #: job/continous_merger.py:546
-msgid "Detecting unecessary changes..."
+msgid "Detecting unnecessary changes..."
 msgstr ""
 
 #: job/continous_merger.py:549
-msgid "Done detecting unecessary changes..."
+msgid "Done detecting unnecessary changes..."
 msgstr ""
 
 #: job/continous_merger.py:566 job/continous_merger.py:569
