@@ -18,8 +18,7 @@
 #  The latest code can be found at <http://pyd.io/>.
 
 from flask import Flask, request, redirect, Response
-from flask_restful import Api, reqparse
-from flask.ext.restful import Resource
+from flask_restful import Api, reqparse, Resource
 import flask
 from requests.exceptions import SSLError, ProxyError, TooManyRedirects, ChunkedEncodingError, ContentDecodingError, \
     InvalidSchema, InvalidURL, Timeout, RequestException
