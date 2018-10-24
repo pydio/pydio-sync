@@ -67,6 +67,31 @@ In that case, the JSON file must contain an array of "jobs configs" objects, inc
 ]
 ```
 
+### Use http or https proxy
+Create a `proxies.json` at your Pydio config directory.
+* Mac: ~/Library/Application Support/Pydio/
+* Linux: ~/.local/share/Pydio/
+
+Here is a sample config:
+```
+{
+    "http": {
+        "active": "true",
+        "username": "",
+        "password": "",
+        "hostname": "127.0.0.1",
+        "port": "8118"
+    },
+    "https": {
+        "active": "true",
+        "username": "",
+        "password": "",
+        "hostname": "127.0.0.1",
+        "port": "8118"
+    }
+}
+```
+
 ## Development Setup
 
 ### Linux
