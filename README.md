@@ -14,7 +14,7 @@ Pydio server needs the following to be turned on:
  * *Meta.syncable plugin* applied to the workspace you want to synchronize. This will track all the changes in a specific db-table, making it very quick for the sync client to load the last changes.
  * *php_rsync* extension on the server to allow transferring files deltas instead of complete files contents when modified. Not yet implemented but will be back at one point.
 
-##Client Setup
+## Client Setup
 
 ### Installing
 
@@ -131,8 +131,8 @@ kernprof -v -l main.py
 
 ## Reporting Issues
 
-If you have any questions, please consider finding or posting them on our <a href="https://pydio.com/forum/f/forum/troubleshooting/pydiosync/">dedicated forum</a>, once it is qualified as a bug, you can open issues.
+If you have any questions, please consider finding or posting them on our [dedicated forum](https://forum.pydio.com/c/sync-client), once it is qualified as a bug, you can open issues.
 
 ## Contributing
 
-Please <a href="http://pyd.io/contribute/cla">sign the Contributor License Agreement</a> before contributing.
+Please [sign the Contributor License Agreement](https://pydio.com/en/community/contribute/contributor-license-agreement-cla) before contributing.
